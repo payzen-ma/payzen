@@ -252,9 +252,15 @@ export class AuthService {
       // Use isCabinetExpert from backend, fallback to role-based detection
       const isExpertCapable = user.isCabinetExpert ?? 
         (user.role === UserRole.CABINET || user.role === UserRole.ADMIN_PAYZEN);
-      
+
+      // Employees who previously chose standard mode should not see the
+      // expert option again – skip adding the expert membership.
+      const employeeLockedToStandard =
+        user.role === UserRole.EMPLOYEE &&
+        localStorage.getItem(`payzen_employee_mode_${user.id}`) === 'standard';
+
       // If expert capable, add expert membership
-      if (isExpertCapable) {
+      if (isExpertCapable && !employeeLockedToStandard) {
         memberships.push({
           companyId: user.companyId,
           companyName: user.companyName || this.getCompanyNameFromUser(user),
@@ -290,6 +296,21 @@ export class AuthService {
     // }
 
     return memberships;
+  }
+
+  /**
+   * Reset the employee mode preference and rebuild memberships.
+   * Called when the user explicitly triggers "Switch Workspace" so the
+   * expert option becomes available again on the context-selection page.
+   */
+  rebuildMemberships(): void {
+    const user = this.currentUser();
+    if (!user) return;
+    // Clear any stored standard-mode lock for this user
+    localStorage.removeItem(`payzen_employee_mode_${user.id}`);
+    // Rebuild and push memberships (both expert + standard will reappear)
+    const memberships = this.buildMembershipsFromUser(user);
+    this.contextService.setMemberships(memberships);
   }
 
   /**

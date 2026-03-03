@@ -12,6 +12,10 @@ import { Header } from '@app/shared/components/header/header';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyMembership } from '@app/core/models/membership.model';
+import { UserRole } from '@app/core/models/user.model';
+
+/** localStorage key prefix for employee mode preference */
+const EMPLOYEE_MODE_PREF_PREFIX = 'payzen_employee_mode_';
 
 @Component({
   selector: 'app-context-selection',
@@ -74,6 +78,13 @@ export class ContextSelectionPage implements OnInit {
   selectMembership(membership: CompanyMembership): void {
     this.selectedCard.set(this.getMembershipId(membership));
     this.isNavigating.set(true);
+
+    // If an employee picks standard mode, save their preference so the
+    // context-selection page won't reappear on subsequent logins.
+    const user = this.currentUser();
+    if (user && user.role === UserRole.EMPLOYEE && !membership.isExpertMode) {
+      localStorage.setItem(`${EMPLOYEE_MODE_PREF_PREFIX}${user.id}`, 'standard');
+    }
 
     // Small delay for visual feedback
     setTimeout(() => {

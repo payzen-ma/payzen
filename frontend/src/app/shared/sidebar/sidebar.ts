@@ -484,26 +484,33 @@ export class Sidebar {
       routerLink: `${prefix}/profile`
     });
 
-    // 3. Gestion (Specific to Cabinets & Admins)
-    if (user && [UserRole.CABINET, UserRole.ADMIN, UserRole.RH].includes(user.role as UserRole)) {
+    // 3. Switch Workspace – visible for any user who can have multiple contexts:
+    //    • has multiple memberships already loaded, OR
+    //    • is a CABINET / RH user, OR
+    //    • is an employee whose company is flagged as isCabinetExpert
+    const canSwitchWorkspace =
+      this.hasMultipleMemberships() ||
+      user?.role === UserRole.CABINET ||
+      user?.role === UserRole.RH ||
+      !!user?.isCabinetExpert;
+
+    if (canSwitchWorkspace) {
       items.push({ separator: true });
+      items.push({
+        label: 'contextSelection.switchWorkspace',
+        icon: 'pi pi-sync',
+        command: () => this.switchWorkspace()
+      });
+    }
 
-      // Show Switch Workspace if user has multiple memberships OR is a CABINET (Expert Comptable)
-      if (this.hasMultipleMemberships() || user.role === UserRole.CABINET) {
-        items.push({
-          label: 'contextSelection.switchWorkspace',
-          icon: 'pi pi-sync',
-          command: () => this.switchWorkspace()
-        });
-      }
-
-      if ([UserRole.ADMIN, UserRole.RH, UserRole.ADMIN_PAYZEN].includes(user.role as UserRole)) {
-        items.push({
-          label: 'nav.companySettings',
-          icon: 'pi pi-cog',
-          routerLink: `${this.routePrefix()}/company`
-        });
-      }
+    // 4. Company Settings – only for Admins and HR
+    if (user && [UserRole.ADMIN, UserRole.RH, UserRole.ADMIN_PAYZEN].includes(user.role as UserRole)) {
+      if (!canSwitchWorkspace) items.push({ separator: true });
+      items.push({
+        label: 'nav.companySettings',
+        icon: 'pi pi-cog',
+        routerLink: `${this.routePrefix()}/company`
+      });
     }
 
     items.push({ separator: true });
@@ -534,6 +541,9 @@ export class Sidebar {
   }
 
   switchWorkspace(): void {
+    // Rebuild memberships (clears any employee standard-mode lock so
+    // the expert option reappears on the context-selection page)
+    this.authService.rebuildMemberships();
     // Clear current context but keep memberships
     this.contextService.clearContext();
     // Navigate to context selection
