@@ -1,0 +1,97 @@
+<header [class.expert-header]="isExpertMode()" class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <h1 class="text-xl font-semibold text-gray-800">{{ 'app.name' | translate }}</h1>
+      
+      <!-- Subtle Expert Indicator -->
+      @if (isExpertMode()) {
+        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-100 tracking-wide uppercase">
+          {{ 'expert.modeLabel' | translate }}
+        </span>
+      }
+    </div>
+
+    <!-- Company Selector (Expert Mode - Always Visible) -->
+    @if (showCompanySelector()) {
+      <div class="flex items-center gap-3 ml-4 pl-4 border-l border-gray-300">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-building text-sm text-(--primary)"></i>
+          @if (!isClientView()) {
+            <span class="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+              {{ 'expert.noClientSelected' | translate }}
+            </span>
+          }
+        </div>
+        <p-select
+          [options]="companyOptions()"
+          [ngModel]="selectedCompany()"
+          (onChange)="onCompanyChange($event.value)"
+          optionLabel="legalName"
+          dataKey="id"
+          [filter]="true"
+          filterBy="legalName,ice"
+          [placeholder]="'expert.selectClient' | translate"
+          [loading]="isLoadingCompanies()"
+          [style]="{'min-width': '300px'}"
+          [showClear]="false">
+          <ng-template pTemplate="value" let-company>
+            @if (company) {
+              <div class="flex items-center gap-2">
+                @if (company.ice === 'PORTFOLIO') {
+                  <i class="pi pi-briefcase text-xs text-(--primary)"></i>
+                  <span class="font-semibold text-(--primary)">{{ company.legalName }}</span>
+                  <p-tag value="Cabinet" severity="info" [rounded]="true" class="ml-2 scale-75 origin-left"></p-tag>
+                } @else {
+                  <i class="pi pi-building text-xs text-green-600"></i>
+                  <span class="font-medium">{{ company.legalName }}</span>
+                  @if (!isExpertMode()) {
+                    <p-tag [value]="company.ice" severity="secondary" [rounded]="true" class="ml-2 scale-75 origin-left"></p-tag>
+                  }
+                }
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 text-gray-500">
+                <i class="pi pi-building text-xs"></i>
+                <span>{{ 'expert.selectClient' | translate }}</span>
+              </div>
+            }
+          </ng-template>
+          <ng-template pTemplate="item" let-company>
+            @if (company.ice === 'PORTFOLIO') {
+              <div class="flex items-center gap-2 py-2 px-1 border-b border-gray-200">
+                <i class="pi pi-briefcase text-sm text-(--primary)"></i>
+                <div>
+                  <div class="font-semibold text-(--primary)">{{ company.legalName }}</div>
+                  <div class="text-xs text-gray-500">{{ 'expert.portfolioView' | translate }}</div>
+                </div>
+                <p-tag value="Cabinet" severity="info" [rounded]="true" class="ml-auto scale-75"></p-tag>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 py-1">
+                <i class="pi pi-building text-xs" [class.text-green-600]="company.id === companyId()"></i>
+                <div>
+                  <div class="font-medium" [class.text-green-600]="company.id === companyId()">{{ company.legalName }}</div>
+                  <div class="text-xs text-gray-500">{{ isExpertMode() ? company.ice : 'Role: ' + company.ice }}</div>
+                </div>
+                @if (!isExpertMode()) {
+                   <p-tag [value]="company.ice" severity="secondary" [rounded]="true" class="ml-2 scale-75"></p-tag>
+                }
+                @if (company.id === companyId()) {
+                  <i class="pi pi-check text-xs text-green-600 ml-auto"></i>
+                }
+              </div>
+            }
+          </ng-template>
+        </p-select>
+      </div>
+    }
+  </div>
+
+  <div class="flex items-center gap-4">
+    <!-- Language Switcher -->
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-600">{{ 'language.select' | translate }}:</span>
+      <app-language-switcher></app-language-switcher>
+    </div>
+  </div>
+</header>

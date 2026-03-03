@@ -1,0 +1,143 @@
+:host {
+  display: block;
+}
+
+.hr-dashboard-page {
+  min-height: 100%;
+}
+
+.hr-dashboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: -0.2rem;
+}
+
+.hr-dashboard-controls {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.hr-month-picker {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.hr-filter-picker {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.hr-month-picker__label {
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hr-filter-picker__label {
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .hr-month-picker__select {
+  min-width: 11rem;
+}
+
+:host ::ng-deep .hr-filter-picker__multi {
+  min-width: 12rem;
+}
+
+:host ::ng-deep .hr-filter-picker__select {
+  min-width: 8.5rem;
+}
+
+@media (min-width: 768px) {
+  .hr-dashboard-controls {
+    margin-left: auto;
+  }
+}
+
+.hr-meta-chip {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  color: #475569;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  min-height: 1.85rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.hr-meta-chip--source {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.hr-meta-chip--live {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0f766e;
+}
+
+.hr-tab-list {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.35rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.hr-tab-item {
+  border-radius: 0.5rem;
+  color: #4b5563;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 0.95rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.hr-tab-item[aria-selected='true'] {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.hr-tab-item:hover {
+  background: #f8fafc;
+}
+
+:host ::ng-deep .dashboard-table-header {
+  background: #f8fafc;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+}
+
+:host ::ng-deep .dashboard-table-cell {
+  border-bottom: 1px solid #f1f5f9;
+  color: #1f2937;
+  font-size: 0.875rem;
+  padding: 0.85rem 1rem;
+  vertical-align: top;
+}
+
+:host ::ng-deep .p-datatable-tbody > tr:last-child > .dashboard-table-cell {
+  border-bottom: none;
+}

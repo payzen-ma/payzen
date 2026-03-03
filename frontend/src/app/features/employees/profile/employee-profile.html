@@ -1,0 +1,1175 @@
+<div class="min-h-screen bg-(--bg-page)">
+  <div
+    aria-live="polite"
+    style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"
+  >
+    {{ ariaMessage() }}
+  </div>
+  <!-- Dialogs -->
+  <app-change-confirmation-dialog
+    [visible]="showConfirmDialog()"
+    [changes]="changeSet().changes"
+    [isSaving]="isSaving()"
+    (visibleChange)="showConfirmDialog.set($event)"
+    (confirm)="confirmSave()"
+    (cancel)="showConfirmDialog.set(false)"
+  />
+
+  <app-unsaved-changes-dialog
+    [visible]="showUnsavedDialog()"
+    [changeCount]="changeSet().changeCount"
+    (save)="onUnsavedDialogSave()"
+    (discard)="onUnsavedDialogDiscard()"
+    (continueEditing)="onUnsavedDialogCancel()"
+  />
+
+  <!-- Header -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4 pb-4">
+      <!-- Draft Restored Banner -->
+      @if (draftRestored()) {
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i class="pi pi-history text-blue-600 text-xl"></i>
+              <div>
+                <p class="text-sm font-medium text-blue-900">
+                  {{ 'employees.profile.ui.draftRestoredTitle' | translate: { date: lastAutoSave() | date: 'medium' } }}
+                </p>
+                <div class="flex items-center gap-2 mt-1">
+                  <button
+                    pButton
+                    [label]="'employees.profile.ui.applyDraft' | translate"
+                    size="small"
+                    severity="info"
+                    (click)="applyDraft()"
+                  ></button>
+                  <button
+                    pButton
+                    [label]="'employees.profile.ui.dismissDraft' | translate"
+                    size="small"
+                    severity="secondary"
+                    [outlined]="true"
+                    (click)="dismissDraft()"
+                  ></button>
+                </div>
+              </div>
+            </div>
+            <button (click)="dismissDraft()" class="text-blue-600 hover:text-blue-800">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </div>
+      }
+      
+      <div class="flex items-center justify-between mb-4">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-arrow-left"
+          [label]="'common.back' | translate"
+          [attr.aria-label]="'common.back' | translate"
+          title="{{ 'common.back' | translate }}"
+          class="btn btn-ghost"
+          (click)="goBack()"
+        ></button>
+
+        @if (!isEditMode()) {
+          <button
+            pButton
+            type="button"
+            [label]="'common.edit' | translate"
+            [attr.aria-label]="'common.edit' | translate"
+            title="{{ 'common.edit' | translate }}"
+            icon="pi pi-pencil"
+            class="btn btn-primary"
+            (click)="toggleEditMode()"
+          ></button>
+        } @else {
+          <div class="flex flex-wrap items-center gap-3 justify-end">
+            @if (hasFormChanges()) {
+              <span class="text-xs text-(--text-secondary) flex items-center gap-2">
+                <i class="pi pi-history"></i>
+                @if (lastAutoSave()) {
+                  {{ 'employees.profile.ui.autoSaveAt' | translate: { time: (lastAutoSave() | date: 'HH:mm:ss') } }}
+                } @else {
+                  {{ 'employees.profile.ui.autoSavePending' | translate }}
+                }
+              </span>
+            }
+            <div class="flex items-center gap-2">
+              <button
+                pButton
+                type="button"
+                [label]="'common.cancel' | translate"
+                class="btn btn-danger-outline"
+                [attr.aria-label]="'common.cancel' | translate"
+                title="{{ 'common.cancel' | translate }}"
+                icon="pi pi-times"
+                (click)="cancel()"
+                [disabled]="isSaving()"
+              ></button>
+              <button
+                pButton
+                type="button"
+                [label]="'common.save' | translate"
+                icon="pi pi-check"
+                [attr.aria-label]="'common.save' | translate"
+                title="{{ 'common.save' | translate }}"
+                class="btn btn-success"
+                (click)="saveWithConfirmation()"
+                [disabled]="isSaving() || !hasFormChanges()"
+              >
+                @if (changeSet().changeCount > 0) {
+                  <span class="ml-1">({{ changeSet().changeCount }})</span>
+                }
+              </button>
+            </div>
+            @if (saveError()) {
+              <p class="w-full text-xs text-red-600" role="alert">{{ saveError() }}</p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Employee Header Card -->
+      <div class="card mb-4">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            @if (employee().photo) {
+              <p-avatar
+                [image]="employee().photo"
+                shape="circle"
+                size="xlarge"
+              ></p-avatar>
+            } @else {
+              <p-avatar
+                [label]="getInitials()"
+                shape="circle"
+                size="xlarge"
+                class="bg-(--primary)/10 text-(--primary) font-bold text-2xl"
+                [style]="{'width': '80px', 'height': '80px'}"
+              ></p-avatar>
+            }
+            <div>
+              <h1 class="text-2xl font-bold text-(--text-primary) mb-1">
+                {{ getFullName() }}
+              </h1>
+              <p class="text-(--text-secondary) mb-2">{{ employee().position }}</p>
+              <div class="flex items-center gap-2">
+                <app-tag
+                  [label]="getStatusLabel()"
+                  [variant]="getStatusSeverity()"
+                  size="sm"
+                ></app-tag>
+                <span class="text-sm text-(--text-secondary)">
+                  {{ employee().department }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="flex flex-col items-end gap-2">
+            <div class="text-sm text-(--text-secondary)">{{ 'employees.profile.ui.entryDate' | translate }}</div>
+            <div class="text-lg font-semibold text-(--text-primary)">
+              {{ employee().startDate | date: 'dd/MM/yyyy' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (draftRestored()) {
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="card alert-info alert flex flex-wrap items-center gap-3 justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <span class="bg-(--primary)/10 text-(--primary) rounded-full p-2">
+            <i class="pi pi-history"></i>
+          </span>
+          <div>
+            <p class="font-semibold text-(--text-primary)">{{ 'employees.profile.ui.draftRestoredTitleShort' | translate }}</p>
+            <p class="text-sm text-(--text-secondary)">{{ 'employees.profile.ui.draftRestoredSubtitle' | translate }}</p>
+          </div>
+        </div>
+        <button
+          pButton
+          type="button"
+          class="btn btn-secondary"
+          [label]="('common.ok' | translate) || 'OK'"
+          (click)="dismissDraft()"
+        ></button>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content with Tabs -->
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="card pt-0">
+      <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
+        <p-tablist class="bg-(--bg-element) border-b border-(--border-color-subtle) ">
+          <p-tab value="0" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-id-card"></i>
+              <span>{{ 'employees.profile.sections.identity' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="1" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-phone"></i>
+              <span>{{ 'employees.profile.sections.contact' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="2" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-users"></i>
+              <span>{{ 'employees.profile.sections.family' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="3" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-briefcase"></i>
+              <span>{{ 'employees.profile.sections.position' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="4" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-dollar"></i>
+              <span>{{ 'employees.profile.sections.salary' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="5" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-shield"></i>
+              <span>{{ 'employees.profile.sections.legal' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="6" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-file"></i>
+              <span>{{ 'employees.profile.sections.documents' | translate }}</span>
+            </div>
+          </p-tab>
+          <p-tab value="7" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-history"></i>
+              <span>{{ 'employees.profile.sections.history' | translate }}</span>
+            </div>
+          </p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+          <!-- Tab 1: Identité -->
+          <p-tabpanel value="0">
+            <div class="p-6 space-y-6">
+              <h3 class="section-title">{{ 'employees.profile.sections.identity' | translate }}</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.identity.firstName' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().firstName" (ngModelChange)="updateField('firstName', $event)" class="w-full input" title="{{ 'employees.profile.identity.firstName' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().firstName }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.identity.lastName' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().lastName" (ngModelChange)="updateField('lastName', $event)" class="w-full input" title="{{ 'employees.profile.identity.lastName' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().lastName }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.identity.cin' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().cin" (ngModelChange)="updateField('cin', $event)" class="w-full input" title="{{ 'employees.profile.identity.cin' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().cin }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.identity.maritalStatus' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="maritalStatusOptions"
+                      [ngModel]="employee().maritalStatus"
+                      (ngModelChange)="updateField('maritalStatus', $event)"
+                      optionLabel="label"
+                      optionValue="value"
+                      styleClass="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ getMaritalStatusLabel() }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.identity.gender' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().genders || []"
+                      [ngModel]="employee().genderId"
+                      (ngModelChange)="updateField('genderId', $event)"
+                      optionLabel="label"
+                      optionValue="id"
+                      class="w-full input"
+                      [placeholder]="'common.select' | translate"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ getGenderLabel() }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.identity.birthDate' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText type="date" [ngModel]="employee().dateOfBirth" (ngModelChange)="updateField('dateOfBirth', $event)" class="w-full input" title="{{ 'employees.profile.identity.birthDate' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().dateOfBirth | date: 'dd/MM/yyyy' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.identity.birthPlace' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().birthPlace" (ngModelChange)="updateField('birthPlace', $event)" class="w-full input" title="{{ 'employees.profile.identity.birthPlace' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().birthPlace }}</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 2: Contacts -->
+          <p-tabpanel value="1">
+            <div class="p-6 space-y-6">
+              <h3 class="section-title">{{ 'employees.profile.sections.contact' | translate }}</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.contact.personalEmail' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText type="email" [ngModel]="employee().personalEmail" (ngModelChange)="updateField('personalEmail', $event)" class="w-full input" title="{{ 'employees.profile.contact.personalEmail' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().personalEmail }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.contact.phone' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText type="tel" [ngModel]="employee().phone" (ngModelChange)="updateField('phone', $event)" class="w-full input" title="{{ 'employees.profile.contact.phone' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().phone }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.create.form.country' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-autoComplete
+                      [suggestions]="filteredCountries()"
+                      (completeMethod)="searchCountry($event)"
+                      [ngModel]="selectedCountry()"
+                      (ngModelChange)="onCountryChange($event)"
+                      field="label"
+                      [forceSelection]="false"
+                      [placeholder]="'employees.create.form.countryPlaceholder' | translate"
+                      styleClass="w-full"
+                      inputStyleClass="w-full input"
+                    ></p-autoComplete>
+                  } @else {
+                    <p class="read-only-value">{{ employee().countryName || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.create.form.city' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-autoComplete
+                      [suggestions]="filteredCities()"
+                      (completeMethod)="searchCity($event)"
+                      [ngModel]="selectedCity()"
+                      (ngModelChange)="onCityChange($event)"
+                      field="label"
+                      [forceSelection]="false"
+                      [placeholder]="'employees.create.form.cityPlaceholder' | translate"
+                      styleClass="w-full"
+                      inputStyleClass="w-full input"
+                    ></p-autoComplete>
+                  } @else {
+                    <p class="read-only-value">{{ employee().city || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field md:col-span-2">
+                  <label class="form-label">{{ 'employees.create.form.addressLine1' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().addressLine1" (ngModelChange)="updateField('addressLine1', $event)" class="w-full input" title="{{ 'employees.create.form.addressLine1' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().addressLine1 || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field md:col-span-2">
+                  <label class="form-label">{{ 'employees.create.form.addressLine2' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().addressLine2" (ngModelChange)="updateField('addressLine2', $event)" class="w-full input" title="{{ 'employees.create.form.addressLine2' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().addressLine2 || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.create.form.zipCode' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().zipCode" (ngModelChange)="updateField('zipCode', $event)" class="w-full input" title="{{ 'employees.create.form.zipCode' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().zipCode || '-' }}</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 3: Family (Spouse & Children) -->
+          <p-tabpanel value="2">
+            <div class="p-6">
+              <app-spouse-children 
+                [employeeId]="employee().id" 
+                [isEditMode]="isEditMode()"
+                [spouses]="employee().spouses || []"
+                [children]="employee().children || []"
+                (spousesChange)="updateField('spouses', $event)"
+                (childrenChange)="updateField('children', $event)">
+              </app-spouse-children>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 4: Poste & Contrat -->
+          <p-tabpanel value="3">
+            <div class="p-6 space-y-6">
+              <h3 class="section-title">{{ 'employees.profile.sections.position' | translate }}</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.position.position' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().jobPositions"
+                      [ngModel]="employee().position"
+                      (ngModelChange)="updateField('position', $event)"
+                      optionLabel="label"
+                      optionValue="label"
+                      [placeholder]="'employees.profile.position.position' | translate"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ employee().position }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.position.department' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().departments"
+                      [ngModel]="employee().department"
+                      (ngModelChange)="updateField('department', $event)"
+                      optionLabel="label"
+                      optionValue="label"
+                      [placeholder]="'employees.profile.position.department' | translate"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ employee().department }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.position.manager' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().potentialManagers"
+                      [ngModel]="employee().manager"
+                      (ngModelChange)="updateField('manager', $event)"
+                      optionLabel="label"
+                      optionValue="label"
+                      [placeholder]="'employees.profile.position.manager' | translate"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ employee().manager }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.position.contractType' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="contractTypeSelectOptions()"
+                      [ngModel]="employee().contractType"
+                      (ngModelChange)="updateField('contractType', $event)"
+                      [showClear]="true"
+                      optionLabel="label"
+                      optionValue="value"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ getContractTypeLabel() }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.create.form.employeeCategory' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().employeeCategories || []"
+                      [ngModel]="employee().employeeCategoryId"
+                      (ngModelChange)="updateField('employeeCategoryId', $event)"
+                      [showClear]="true"
+                      optionLabel="label"
+                      optionValue="id"
+                      [placeholder]="'employees.create.form.employeeCategoryPlaceholder' | translate"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ getEmployeeCategoryLabel() }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.position.startDate' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText type="date" [ngModel]="employee().startDate" (ngModelChange)="updateField('startDate', $event)" class="w-full input" title="{{ 'employees.profile.position.startDate' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().startDate | date: 'dd/MM/yyyy' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.position.status' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="formData().statuses.length ? formData().statuses : statusOptions()"
+                      [ngModel]="employee().status"
+                      (ngModelChange)="updateField('status', $event)"
+                      optionLabel="label"
+                      optionValue="value"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ employee().statusName || getStatusLabel() }}</p>
+                  }
+                </div>
+
+                @if (employee().contractType === 'CDD') {
+                  <div class="form-field">
+                    <label class="form-label">{{ 'employees.profile.position.endDate' | translate }}</label>
+                    @if (isEditMode()) {
+                      <input pInputText type="date" [ngModel]="employee().endDate" (ngModelChange)="updateField('endDate', $event)" class="w-full input" title="{{ 'employees.profile.position.endDate' | translate }}" />
+                    } @else {
+                      <p class="read-only-value">{{ employee().endDate ? (employee().endDate | date: 'dd/MM/yyyy') : '-' }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 4: Salaire & Eléments Fixes -->
+          <p-tabpanel value="4">
+            <div class="p-6 space-y-6">
+              <!-- ASSIGNED PACKAGE SECTION -->
+              @if (employee().assignedPackage) {
+                <!-- Active Assignment Display -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <label class="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1 block">
+                        {{ 'employees.profile.salary.assignedPackage' | translate }}
+                      </label>
+                      <p class="text-lg font-semibold text-blue-900 mb-1">
+                        {{ employee().assignedPackage!.salaryPackageName }}
+                      </p>
+                      <div class="flex items-center gap-3 text-sm text-blue-600">
+                        <span class="flex items-center gap-1">
+                          <i class="pi pi-calendar text-xs"></i>
+                          {{ 'employees.profile.salary.effectiveSince' | translate }}:
+                          {{ employee().assignedPackage!.effectiveDate | date: 'dd/MM/yyyy' }}
+                        </span>
+                        <span class="flex items-center gap-1">
+                          <i class="pi pi-tag text-xs"></i>
+                          Version {{ employee().assignedPackage!.packageVersion }}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      pButton
+                      type="button"
+                      [label]="'employees.profile.salary.viewPackage' | translate"
+                      icon="pi pi-external-link"
+                      class="p-button-text p-button-sm text-blue-700 hover:text-blue-900"
+                      (click)="navigateToSalaryPackages()"
+                      [title]="'employees.profile.salary.viewPackageTooltip' | translate">
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <!-- No Assignment - Empty State -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i class="pi pi-inbox text-gray-500"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium text-gray-700">
+                          {{ 'employees.profile.salary.noPackageAssigned' | translate }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                          {{ 'employees.profile.salary.noPackageAssignedDescription' | translate }}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      pButton
+                      type="button"
+                      [label]="'employees.profile.salary.assignPackage' | translate"
+                      icon="pi pi-plus"
+                      class="p-button-outlined p-button-sm"
+                      (click)="navigateToAssignPackage()"
+                      [title]="'employees.profile.salary.assignPackageTooltip' | translate">
+                    </button>
+                  </div>
+                </div>
+              }
+              <!-- END ASSIGNED PACKAGE SECTION -->
+
+              <div class="flex items-center justify-between">
+                <h3 class="section-title">{{ 'employees.profile.sections.salary' | translate }}</h3>
+                <div class="text-right">
+                  <p class="text-sm text-(--text-muted)">{{ 'employees.profile.ui.totalSalary' | translate }}</p>
+                  <p class="text-2xl font-bold text-(--primary)">{{ totalSalary() | number:'1.2-2' }} MAD</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.salary.baseSalary' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-inputnumber [ngModel]="employee().baseSalary" (ngModelChange)="updateField('baseSalary', $event ?? 0)" mode="currency" currency="MAD" locale="fr-MA" styleClass="w-full" inputStyleClass="w-full input" title="{{ 'employees.profile.salary.baseSalary' | translate }}"></p-inputnumber>
+                  } @else {
+                    <p class="read-only-value">{{ employee().baseSalary | number:'1.2-2' }} MAD</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.salary.paymentMethod' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-select
+                      [options]="paymentMethodOptions"
+                      [ngModel]="employee().paymentMethod"
+                      (ngModelChange)="updateField('paymentMethod', $event)"
+                      optionLabel="label"
+                      optionValue="value"
+                      title="{{ 'employees.profile.salary.paymentMethod' | translate }}"
+                      class="w-full input"
+                    ></p-select>
+                  } @else {
+                    <p class="read-only-value">{{ getPaymentMethodLabel() }}</p>
+                  }
+                </div>
+
+                <!-- Salary Components Section -->
+                <div class="form-field md:col-span-2">
+                  <div class="flex items-center justify-between mb-3">
+                    <label class="form-label">{{ 'employees.profile.salary.components' | translate }}</label>
+                    @if (isEditMode()) {
+                      <button 
+                        pButton 
+                        type="button" 
+                        icon="pi pi-plus" 
+                        label="Add" 
+                        class="p-button-text p-button-sm" 
+                        (click)="addSalaryComponent()">
+                      </button>
+                    }
+                  </div>
+
+                  <div class="space-y-3">
+                    @for (comp of employee().salaryComponents; track $index) {
+                      @if (isEditMode()) {
+                        <div class="flex items-start gap-3 group">
+                          <div class="flex-1">
+                            <input 
+                              pInputText 
+                              [ngModel]="comp.type" 
+                              (ngModelChange)="updateSalaryComponent($index, 'type', $event)" 
+                              class="w-full input" 
+                              placeholder="Component Name"
+                              aria-label="Component Name"
+                            />
+                          </div>
+                          <div class="w-40">
+                            <p-inputnumber 
+                              [ngModel]="comp.amount" 
+                              (ngModelChange)="updateSalaryComponent($index, 'amount', $event)" 
+                              mode="currency" 
+                              currency="MAD" 
+                              locale="fr-MA" 
+                              styleClass="w-full"
+                              inputStyleClass="w-full input"
+                              placeholder="0.00"
+                              title="Amount"
+                            ></p-inputnumber>
+                          </div>
+                          <button 
+                            pButton 
+                            type="button" 
+                            icon="pi pi-trash" 
+                            class="p-button-text p-button-danger p-button-rounded" 
+                            (click)="removeSalaryComponent($index)"
+                            title="Remove"
+                            aria-label="Remove salary component"
+                          ></button>
+                        </div>
+                      } @else {
+                        <div class="flex items-center justify-between p-3 bg-(--bg-page) rounded-md border border-(--border-color-subtle)">
+                          <span class="text-(--text-secondary) font-medium">{{ comp.type }}</span>
+                          <span class="text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                        </div>
+                      }
+                    }
+
+                    @if (!employee().salaryComponents.length) {
+                      <div class="text-center py-6 bg-(--bg-page) rounded-lg border border-dashed border-(--border-color-subtle)">
+                        <p class="text-sm text-(--text-muted)">No salary components added</p>
+                        @if (isEditMode()) {
+                          <button 
+                            pButton 
+                            type="button" 
+                            label="Add component" 
+                            class="p-button-link p-button-sm mt-1" 
+                            (click)="addSalaryComponent()">
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 5: Infos Legales -->
+          <p-tabpanel value="5">
+            <div class="p-6 space-y-6">
+              <h3 class="section-title">{{ 'employees.profile.sections.legal' | translate }}</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.legal.cnss' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().cnss" (ngModelChange)="updateField('cnss', $event)" class="w-full input" title="{{ 'employees.profile.legal.cnss' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().cnss || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.legal.cimr' | translate }}</label>
+                  @if (isEditMode()) {
+                    <input pInputText [ngModel]="employee().cimr" (ngModelChange)="updateField('cimr', $event)" class="w-full input" title="{{ 'employees.profile.legal.cimr' | translate }}" />
+                  } @else {
+                    <p class="read-only-value">{{ employee().cimr || '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.legal.cimrEmployeeRate' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-inputnumber [ngModel]="employee().cimrEmployeeRate" (ngModelChange)="onCimrEmployeeRateChange($event)" suffix=" %" [minFractionDigits]="2" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full input"></p-inputnumber>
+                  } @else {
+                    <p class="read-only-value">{{ employee().cimrEmployeeRate ? (employee().cimrEmployeeRate + ' %') : '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.legal.cimrCompanyRate' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-inputnumber [ngModel]="employee().cimrCompanyRate" (ngModelChange)="updateField('cimrCompanyRate', $event)" suffix=" %" [minFractionDigits]="2" [maxFractionDigits]="2" [disabled]="true" styleClass="w-full bg-surface-100" inputStyleClass="w-full input"></p-inputnumber>
+                  } @else {
+                    <p class="read-only-value">{{ employee().cimrCompanyRate ? (employee().cimrCompanyRate + ' %') : '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.legal.hasPrivateInsurance' | translate }}</label>
+                  @if (isEditMode()) {
+                    <div class="flex items-center gap-2">
+                      <p-checkbox [ngModel]="employee().hasPrivateInsurance" (ngModelChange)="updateField('hasPrivateInsurance', $event)" [binary]="true" inputId="hasPrivateInsurance"></p-checkbox>
+                      <label for="hasPrivateInsurance" class="cursor-pointer">{{ 'employees.profile.legal.hasPrivateInsuranceLabel' | translate }}</label>
+                    </div>
+                  } @else {
+                    <p class="read-only-value">{{ (employee().hasPrivateInsurance ? 'common.yes' : 'common.no') | translate }}</p>
+                  }
+                </div>
+
+                @if (employee().hasPrivateInsurance) {
+                  <div class="form-field">
+                    <label class="form-label">{{ 'employees.profile.legal.privateInsuranceNumber' | translate }}</label>
+                    @if (isEditMode()) {
+                      <input pInputText [ngModel]="employee().privateInsuranceNumber" (ngModelChange)="updateField('privateInsuranceNumber', $event)" class="w-full input" title="{{ 'employees.profile.legal.privateInsuranceNumber' | translate }}" />
+                    } @else {
+                      <p class="read-only-value">{{ employee().privateInsuranceNumber || '-' }}</p>
+                    }
+                  </div>
+
+                  <div class="form-field">
+                    <label class="form-label">{{ 'employees.profile.legal.privateInsuranceRate' | translate }}</label>
+                    @if (isEditMode()) {
+                      <p-inputnumber [ngModel]="employee().privateInsuranceRate" (ngModelChange)="updateField('privateInsuranceRate', $event)" suffix=" %" [minFractionDigits]="2" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full input"></p-inputnumber>
+                    } @else {
+                      <p class="read-only-value">{{ employee().privateInsuranceRate ? (employee().privateInsuranceRate + ' %') : '-' }}</p>
+                    }
+                  </div>
+
+                  <div class="form-field">
+                    <label class="form-label">{{ 'employees.profile.legal.disableAmo' | translate }}</label>
+                    @if (isEditMode()) {
+                      <div class="flex items-center gap-2">
+                        <p-checkbox [ngModel]="employee().disableAmo" (ngModelChange)="updateField('disableAmo', $event)" [binary]="true" inputId="disableAmo"></p-checkbox>
+                        <label for="disableAmo" class="cursor-pointer">{{ 'employees.profile.legal.disableAmoLabel' | translate }}</label>
+                      </div>
+                    } @else {
+                      <p class="read-only-value">{{ (employee().disableAmo ? 'common.yes' : 'common.no') | translate }}</p>
+                    }
+                  </div>
+                }
+
+                <div class="form-field">
+                  <label class="form-label required">{{ 'employees.profile.legal.annualLeave' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-inputnumber [ngModel]="employee().annualLeave" (ngModelChange)="updateField('annualLeave', $event ?? 0)" suffix=" jours" styleClass="w-full" inputStyleClass="w-full input"></p-inputnumber>
+                  } @else {
+                    <p class="read-only-value">{{ employee().annualLeave }} jours</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 7: Documents -->
+          <p-tabpanel value="6">
+            <div class="p-6 space-y-4">
+              <h3 class="section-title">{{ 'employees.profile.sections.documents' | translate }}</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (doc of documents(); track doc.type) {
+                  <div class="border border-(--border-color-subtle) rounded-lg p-4 hover:border-(--primary) transition-colors bg-white">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start gap-3">
+                        <div [class]="doc.status === 'uploaded' ? 'w-10 h-10 bg-(--success)/10 rounded-lg flex items-center justify-center' : 'w-10 h-10 bg-(--danger)/10 rounded-lg flex items-center justify-center'">
+                          <i [class]="doc.status === 'uploaded' ? 'pi pi-file-pdf text-(--success)' : 'pi pi-file text-(--danger)'"></i>
+                        </div>
+                        <div class="flex-1">
+                          <p class="font-medium text-(--text-primary)">{{ doc.name }}</p>
+                          @if (doc.uploadDate) {
+                            <p class="text-xs text-(--text-secondary) mt-1">{{ 'employees.profile.ui.documentUploadedOn' | translate: { date: (doc.uploadDate | date: 'dd/MM/yyyy') } }}</p>
+                          } @else {
+                            <p class="text-xs text-(--danger) mt-1">{{ 'employees.profile.ui.documentMissing' | translate }}</p>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-1">
+                        @if (doc.status === 'uploaded') {
+                          <button
+                            pButton
+                            type="button"
+                            icon="pi pi-download"
+                            class="p-button-text p-button-sm p-button-rounded text-(--text-secondary) hover:text-(--primary)"
+                            title="{{ 'employees.profile.ui.downloadDocument' | translate }}"
+                            (click)="downloadDocument(doc)"
+                          ></button>
+                          <button
+                            pButton
+                            type="button"
+                            icon="pi pi-trash"
+                            class="p-button-text p-button-sm p-button-rounded text-(--danger) hover:bg-(--danger)/10"
+                            title="{{ 'employees.profile.ui.deleteDocument' | translate }}"
+                            (click)="deleteDocument(doc)"
+                          ></button>
+                        } @else {
+                          <p-fileupload
+                            mode="basic"
+                            [chooseLabel]="'employees.profile.ui.uploadDocument' | translate"
+                            chooseIcon="pi pi-upload"
+                            class="p-button-sm"
+                            [auto]="true"
+                            (onSelect)="uploadDocument($event, doc.type)"
+                          ></p-fileupload>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </p-tabpanel>
+
+          <!-- Tab 8: Historique (Enhanced) -->
+          <p-tabpanel value="7">
+            <div class="p-6 history-container" role="region" aria-label="Employee history">
+              <!-- Header Section -->
+              <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3 class="section-title mb-1">{{ 'employees.profile.sections.history' | translate }}</h3>
+                  @if (!isLoadingProfile()) {
+                    <p class="text-sm text-(--text-secondary)">
+                      @if (hasActiveHistoryFilters()) {
+                        {{ historyResultCount() }} {{ 'audit.of' | translate }} {{ historyTotalCount() }} {{ 'audit.events' | translate }}
+                      } @else {
+                        {{ historyTotalCount() }} {{ 'audit.totalEvents' | translate }}
+                      }
+                    </p>
+                  }
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    pButton 
+                    type="button" 
+                    [icon]="historyFiltersExpanded() ? 'pi pi-filter-slash' : 'pi pi-filter'" 
+                    [label]="historyFiltersExpanded() ? ('audit.hideFilters' | translate) : ('audit.showFilters' | translate)"
+                    class="p-button-outlined p-button-sm"
+                    (click)="toggleHistoryFilters()"
+                    [attr.aria-controls]="'history-filters-panel'"
+                    [attr.aria-expanded]="historyFiltersExpanded()"
+                    [title]="historyFiltersExpanded() ? ('audit.hideFiltersTooltip' | translate) : ('audit.showFiltersTooltip' | translate)"
+                    pTooltip="{{ historyFiltersExpanded() ? ('audit.hideFiltersTooltip' | translate) : ('audit.showFiltersTooltip' | translate) }}"
+                    tooltipPosition="top">
+                  </button>
+                </div>
+              </header>
+
+              <!-- Active Filters Display -->
+              @if (hasActiveHistoryFilters()) {
+                <div class="flex flex-wrap gap-2 mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200 animate-fade-in" role="status" aria-live="polite">
+                  <span class="font-medium text-blue-800 text-sm">{{ 'audit.activeFilters' | translate }}:</span>
+                  @if (historySearchQuery()) {
+                    <p-chip 
+                      [label]="('audit.search' | translate) + ': ' + historySearchQuery()"
+                      [removable]="true"
+                      (onRemove)="removeHistoryFilter('searchQuery')"
+                      styleClass="text-sm">
+                    </p-chip>
+                  }
+                  @if (selectedHistoryTypes().length > 0) {
+                    <p-chip 
+                      [label]="('audit.eventType' | translate) + ': ' + selectedHistoryTypes().join(', ')"
+                      [removable]="true"
+                      (onRemove)="removeHistoryFilter('eventType')"
+                      styleClass="text-sm">
+                    </p-chip>
+                  }
+                  <button 
+                    pButton 
+                    type="button" 
+                    [label]="'audit.clearAll' | translate"
+                    icon="pi pi-filter-slash" 
+                    class="p-button-text p-button-sm p-button-link"
+                    (click)="clearHistoryFilters()"
+                    [attr.aria-label]="'audit.clearAllFilters' | translate"
+                    [title]="'audit.clearAllFilters' | translate">
+                  </button>
+                </div>
+              }
+
+              <!-- Filters Panel -->
+              @if (historyFiltersExpanded()) {
+                <section 
+                  id="history-filters-panel"
+                  class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 animate-slide-down"
+                  [attr.aria-expanded]="historyFiltersExpanded()">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Search Filter -->
+                    <div>
+                      <label 
+                        for="history-search-input" 
+                        class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ 'audit.search' | translate }}
+                      </label>
+                      <p-iconField iconPosition="left">
+                        <p-inputIcon styleClass="pi pi-search" aria-hidden="true"></p-inputIcon>
+                        <input 
+                          id="history-search-input"
+                          pInputText 
+                          type="text" 
+                          (input)="onHistorySearch($event)"
+                          [placeholder]="'audit.searchPlaceholder' | translate"
+                          [value]="historySearchQuery()"
+                          class="w-full input"
+                          aria-label="{{ 'audit.search' | translate }}" />
+                      </p-iconField>
+                    </div>
+
+                    <!-- Event Type Filter -->
+                    <div>
+                      <label 
+                        for="history-type-select" 
+                        class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ 'audit.eventType' | translate }}
+                      </label>
+                      <p-multiSelect
+                        id="history-type-select"
+                        [options]="historyTypeOptions"
+                        [(ngModel)]="selectedHistoryTypes"
+                        (ngModelChange)="onHistoryTypeChange($event)"
+                        optionLabel="label"
+                        optionValue="value"
+                        [placeholder]="'audit.selectEventTypes' | translate"
+                        styleClass="w-full"
+                        [maxSelectedLabels]="2"
+                        aria-label="{{ 'audit.eventType' | translate }}">
+                      </p-multiSelect>
+                    </div>
+                  </div>
+                </section>
+              }
+
+              <!-- Loading State with Skeleton -->
+              @if (isLoadingProfile()) {
+                <div class="py-8 space-y-4" aria-live="polite" aria-atomic="true">
+                  <p-skeleton height="2rem" class="mb-4"></p-skeleton>
+                  <p-skeleton height="6rem" class="mb-4"></p-skeleton>
+                  <p-skeleton height="4rem" class="mb-4"></p-skeleton>
+                  <p-skeleton height="6rem"></p-skeleton>
+                </div>
+              }
+
+              <!-- Timeline Content -->
+              @else if (filteredHistory().length > 0) {
+                <p-timeline [value]="filteredHistory()" align="left" styleClass="custom-timeline">
+                  <ng-template pTemplate="marker" let-event>
+                    <div 
+                      [class]="'w-10 h-10 rounded-full flex items-center justify-center border-2 ' + getEventSeverityClass(event.type)"
+                      [title]="event.type">
+                      <i [class]="getEventIcon(event.type) + ' text-lg'" aria-hidden="true"></i>
+                    </div>
+                  </ng-template>
+                  
+                  <ng-template pTemplate="content" let-event>
+                    <article class="pb-6">
+                      <div class="card p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out border border-(--border-color-subtle)">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2">
+                          <h4 class="font-semibold text-(--text-primary) text-base mb-1 sm:mb-0">{{ event.title }}</h4>
+                          <time 
+                            class="text-xs text-(--text-muted) whitespace-nowrap sm:ml-4" 
+                            [attr.datetime]="event.timestamp"
+                            pTooltip="{{ getHistoryTooltipText(event.timestamp || event.date) }}"
+                            tooltipPosition="top">
+                            {{ formatRelativeTime(event.timestamp || event.date) }}
+                          </time>
+                        </div>
+                        
+                        <p class="text-sm text-(--text-secondary) mb-2">{{ event.description }}</p>
+                        
+                        @if (event.details?.oldValue || event.details?.newValue) {
+                          <div class="mt-2 p-3 bg-(--bg-page) rounded-lg text-sm">
+                            <div class="flex items-center gap-2 flex-wrap">
+                              @if (event.details.oldValue) {
+                                <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs line-through"
+                                      [title]="'audit.oldValue' | translate">
+                                  {{ event.details.oldValue }}
+                                </span>
+                              } @else {
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs italic"
+                                      [title]="'audit.noOldValue' | translate">
+                                  ({{ 'audit.empty' | translate }})
+                                </span>
+                              }
+                              <i class="pi pi-arrow-right text-gray-400 text-xs" aria-hidden="true"></i>
+                              @if (event.details.newValue) {
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs"
+                                      [title]="'audit.newValue' | translate">
+                                  {{ event.details.newValue }}
+                                </span>
+                              } @else {
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs italic"
+                                      [title]="'audit.noNewValue' | translate">
+                                  ({{ 'audit.empty' | translate }})
+                                </span>
+                              }
+                            </div>
+                          </div>
+                        }
+                        
+                        <div class="flex items-center gap-2 mt-3 text-xs text-(--text-muted)">
+                          <i class="pi pi-user" aria-hidden="true"></i>
+                          <span class="font-medium">{{ event.modifiedBy?.name || 'Unknown' }}</span>
+                          @if (event.modifiedBy?.role) {
+                            <span class="text-gray-400">•</span>
+                            <span class="truncate max-w-xs" [title]="event.modifiedBy.role">{{ event.modifiedBy.role }}</span>
+                          }
+                        </div>
+                      </div>
+                    </article>
+                  </ng-template>
+                </p-timeline>
+              }
+
+              <!-- Empty State -->
+              @else {
+                <div class="text-center py-12 bg-(--bg-page) rounded-lg border border-dashed border-(--border-color-subtle) animate-fade-in" role="status">
+                  <div class="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="pi pi-history text-2xl text-gray-400" aria-hidden="true"></i>
+                  </div>
+                  <p class="text-sm text-(--text-secondary) font-medium mb-1">
+                    @if (hasActiveHistoryFilters()) {
+                      {{ 'audit.noFilteredLogs' | translate }}
+                    } @else {
+                      {{ 'audit.noLogs' | translate }}
+                    }
+                  </p>
+                  <p class="text-xs text-(--text-muted)">
+                    @if (hasActiveHistoryFilters()) {
+                      {{ 'audit.noFilteredLogsDescription' | translate }}
+                    } @else {
+                      {{ 'audit.noLogsDescription' | translate }}
+                    }
+                  </p>
+                  @if (hasActiveHistoryFilters()) {
+                    <button 
+                      pButton 
+                      type="button" 
+                      [label]="'audit.clearFilters' | translate"
+                      icon="pi pi-filter-slash" 
+                      class="p-button-text p-button-sm mt-4"
+                      (click)="clearHistoryFilters()"
+                      [attr.aria-label]="'audit.clearFilters' | translate"
+                      [title]="'audit.clearFilters' | translate">
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </p-tabpanel>
+          <!-- Tab 8: Spouse & Children -->
+          <p-tabpanel value="7">
+            <div class="p-6">
+              <app-spouse-children [employeeId]="employee().id"></app-spouse-children>
+            </div>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  </div>
+</div>

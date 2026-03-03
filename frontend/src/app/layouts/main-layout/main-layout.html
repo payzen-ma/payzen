@@ -1,0 +1,52 @@
+<div class="flex h-screen bg-(--color-bg) font-family-sans">
+  <!-- Sidebar Navigation - 240px Desktop, Hidden Mobile -->
+  <app-sidebar 
+    [Collapsible]="true" 
+    [showCloseButton]="true"
+    (closeButtonClick)="closeSidebar()"
+    [Collapsed]="isTablet()"
+    [className]="{'open': isSidebarOpen()}"
+  ></app-sidebar>
+
+  <!-- Mobile Overlay (mobile only) -->
+  @if (isSidebarOpen()) {
+    <div
+      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300"
+      (click)="closeSidebar()"
+      (keydown.escape)="closeSidebar()"
+      role="button"
+      tabindex="0"
+      aria-label="Close sidebar"
+    ></div>
+  }
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Header (tablet + desktop) -->
+    <div class="hidden md:block">
+      <app-header></app-header>
+      <app-breadcrumb></app-breadcrumb>
+    </div>
+
+    <!-- Mobile Header with Hamburger (mobile only) -->
+    <header class="md:hidden bg-white px-4 py-3 flex items-center justify-between gap-3 border-b border-gray-200">
+      <button
+        type="button"
+        class="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-(--color-primary) shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-(--primary)/30 focus:ring-offset-2"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="'nav.mainMenu' | translate"
+        [attr.aria-expanded]="isSidebarOpen()"
+      >
+        <i class="pi pi-bars text-lg" aria-hidden="true"></i>
+      </button>
+
+      <span class="text-(--color-primary) font-bold text-xl">{{ 'app.name' | translate }}</span>
+      <app-language-switcher></app-language-switcher>
+    </header>
+
+    <!-- Main Content with router outlet -->
+    <main class="flex-1 overflow-auto px-3 bg-(--bg-page)">
+      <router-outlet />
+    </main>
+  </div>
+</div>

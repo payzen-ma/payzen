@@ -1,0 +1,32 @@
+:host { display: block; height: 100%; }
+
+[dir='rtl'] .sidebar-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Fade animation for collapsing content */
+:host .transition-opacity {
+  transition: opacity 0.15s ease-out;
+}
+
+/* Profile Menu Styling */
+:host ::ng-deep .profile-menu {
+  .p-menu-list {
+    padding: 0;
+  }
+
+  .p-menuitem {
+    margin: 0;
+  }
+
+  .p-menuitem-content {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .p-menuitem-separator {
+    margin: 0;
+    border-color: rgb(243 244 246); /* gray-100 */
+  }
+}

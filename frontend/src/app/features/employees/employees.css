@@ -1,0 +1,16 @@
+:host ::ng-deep .search-field {
+  position: relative;
+}
+
+:host ::ng-deep .search-field .p-inputicon {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+:host ::ng-deep .search-field .p-inputtext {
+  padding-left: 2.5rem;
+}

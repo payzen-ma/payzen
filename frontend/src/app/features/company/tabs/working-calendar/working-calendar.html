@@ -1,0 +1,76 @@
+<div class="working-calendar-container">
+  @if (loading()) {
+    <div class="loading-container">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+      <p>{{ 'common.loading' | translate }}</p>
+    </div>
+  } @else {
+    <div class="header-section">
+      <div>
+        <h2 class="heading">{{ 'workingCalendar.title' | translate }}</h2>
+        <p class="subheading">{{ 'workingCalendar.description' | translate }}</p>
+      </div>
+      <button 
+        pButton 
+        [label]="'common.save' | translate"
+        icon="pi pi-save"
+        [loading]="saving()"
+        (click)="saveWorkingCalendar()"
+        class="btn-primary">
+      </button>
+    </div>
+
+    <div class="calendar-grid">
+      @for (day of daysOfWeek(); track day.dayOfWeek) {
+        <div class="day-card">
+          <div class="day-header">
+            <div class="day-info">
+              <h3 class="day-name">{{ day.dayName | translate }}</h3>
+            </div>
+            <p-checkbox
+              [(ngModel)]="day.isWorkingDay"
+              [binary]="true"
+              (onChange)="onWorkingDayChange(day)"
+              [inputId]="'working-' + day.dayOfWeek">
+            </p-checkbox>
+          </div>
+
+          @if (day.isWorkingDay) {
+            <div class="time-inputs">
+              <div class="time-input-group">
+                <label [for]="'start-' + day.dayOfWeek">
+                  {{ 'workingCalendar.startTime' | translate }}
+                </label>
+                <input
+                  type="time"
+                  [id]="'start-' + day.dayOfWeek"
+                  [(ngModel)]="day.startTime"
+                  class="time-input"
+                  required>
+              </div>
+
+              <div class="time-input-group">
+                <label [for]="'end-' + day.dayOfWeek">
+                  {{ 'workingCalendar.endTime' | translate }}
+                </label>
+                <input
+                  type="time"
+                  [id]="'end-' + day.dayOfWeek"
+                  [(ngModel)]="day.endTime"
+                  class="time-input"
+                  required>
+              </div>
+            </div>
+          } @else {
+            <div class="non-working-notice">
+              <i class="pi pi-moon"></i>
+              <span>{{ 'workingCalendar.nonWorkingDay' | translate }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<p-toast></p-toast>

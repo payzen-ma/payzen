@@ -1,0 +1,1927 @@
+{
+  "app": {
+    "name": "PayZen",
+    "country": "MAROC"
+  },
+  "nav": {
+    "mainMenu": "Menu Principal",
+    "dashboard": "Tableau de Bord",
+    "company": "Entreprise",
+    "companySettings": "Paramètres Entreprise",
+    "appSettings": "Paramètres de l'application",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "myProfile": "Mon Profil",
+    "management": "Gestion",
+    "switchCompany": "Changer de Dossier",
+    "support": "Support",
+    "help": "Aide & Documentation",
+    "signedInAs": "Connecté en tant que",
+    "employees": "Employés",
+    "payroll": "Paie",
+    "reports": "Rapports",
+    "permissions": "Permissions",
+    "userManagement": "Gestion des Utilisateurs",
+    "backToPortfolio": "Retour au Portefeuille",
+    "portfolio": "Portefeuille",
+    "leave": "Congés",
+    "absences": "Absences",
+    "absencesTeam": "Absence Équipe",
+    "attendanceReport": "Rapport de Présence",
+    "overtime": "Heures Supplémentaires",
+    "overtimeManagement": "Validation Heures Sup",
+    "holidays": "Jours Fériés",
+    "salaryPackages": "Packages Salariaux"
+  },
+  "hrGrant": "Accorder une absence",
+  "expert": {
+    "activeClient": "Client Actif",
+    "switchClient": "Changer de Client",
+    "selectClient": "Sélectionner une Entreprise",
+    "portfolioView": "Mon Cabinet & Portefeuille",
+    "myCabinet": "Mon Cabinet",
+    "clientManagement": "Gestion Client",
+    "viewingClient": "Vue Client",
+    "viewingCabinet": "Vue Cabinet",
+    "noClientSelected": "Mon Cabinet",
+    "selectCompanyFirst": "Veuillez d'abord sélectionner une entreprise",
+    "selectCompanyRequired": "Sélection d'entreprise requise",
+    "selectCompanyMessage": "Vous devez sélectionner une entreprise pour accéder à cette section.",
+    "useHeaderDropdown": "Utilisez le menu déroulant dans l'en-tête pour sélectionner un client.",
+    "modeLabel": "Expert Cabinet",
+    "modeDescription": "Vous êtes actuellement en mode Expert",
+    "dashboard": {
+      "title": "Tableau de Bord Expert",
+      "subtitle": "Vue d'ensemble de votre cabinet et de vos clients",
+      "newClient": "Nouveau Client",
+      "totalClients": "Total Clients",
+      "totalEmployees": "Total Employés",
+      "pendingLeaves": "Demandes de Congés en Attente",
+      "recentActivity": "Activité Récente",
+      "viewAll": "Voir Tout",
+      "backToPortfolio": "Retour au Portefeuille",
+      "viewingAsExpert": "Vous consultez cette entreprise en tant qu'Expert"
+    }
+  },
+  "attendance": {
+    "title": "Ma Présence",
+    "subtitle": "Suivez vos heures de travail et votre présence",
+    "date": "Date",
+    "refresh": "Actualiser",
+    "checkIn": "Pointer l'arrivée",
+    "checkOut": "Pointer le départ",
+    "status": "Statut",
+    "timeIn": "Heure d'arrivée",
+    "timeOut": "Heure de départ",
+    "duration": "Durée",
+    "employee": "Employé",
+    "noRecords": "Aucun enregistrement de présence trouvé",
+    "todayStatus": "Statut du jour",
+    "notCheckedIn": "Pas encore pointé",
+    "checkedIn": "Arrivée pointée",
+    "checkedOut": "Départ pointé",
+    "checkInSuccess": "Arrivée enregistrée avec succès",
+    "checkOutSuccess": "Départ enregistré avec succès",
+    "alreadyCheckedIn": "Vous avez déjà pointé votre arrivée aujourd'hui",
+    "alreadyCheckedOut": "Vous avez déjà pointé votre départ aujourd'hui",
+    "history": "Historique de présence",
+    "report": "Rapport de présence",
+    "thisWeek": "Cette semaine",
+    "thisMonth": "Ce mois",
+    "present": "Présent",
+    "absent": "Absent",
+    "late": "En retard",
+    "currentStatus": "Statut actuel",
+    "startBreak": "Commencer la pause",
+    "endBreak": "Terminer la pause",
+    "breaks": "Pauses",
+    "todayBreaks": "Pauses d'aujourd'hui",
+    "noBreaks": "Aucune pause enregistrée",
+    "breakMinutesApplied": "Minutes de pause appliquées",
+    "ongoing": "En cours"
+  },
+  "attendanceReport": {
+    "title": "Rapport de présence",
+    "subtitle": "Générer le récapitulatif de présence pour tous les employés",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "generate": "Générer",
+    "employee": "Employé",
+    "position": "Poste",
+    "department": "Département",
+    "totalWorked": "Total travaillé",
+    "totalWorkedDays": "Nombre de jours travaillés"
+  },
+  "profile": {
+    "title": "Profil",
+    "personalSettings": "Paramètres Personnels",
+    "appSettings": "Paramètres de l'Application",
+    "personalInfo": "Informations Personnelles",
+    "personalInfoDesc": "Gérez vos informations personnelles, mot de passe et coordonnées ici.",
+    "appPreferences": "Préférences de l'Application",
+    "appPreferencesDesc": "Personnalisez votre expérience d'application, les notifications et les paramètres d'affichage.",
+    "fullName": "Nom Complet",
+    "email": "Email",
+    "theme": "Thème",
+    "comingSoon": "Bientôt disponible"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "subtitle": "Gestion de la paie",
+    "newCompany": "Nouvelle Société",
+    "vsLastMonth": "vs mois dernier",
+    "charts": {
+      "payrollEvolution": "Évolution de la Masse Salariale",
+      "trend6Months": "Tendance sur les 6 derniers mois",
+      "employeeDistribution": "Répartition des Employés",
+      "byContractType": "Par type de contrat"
+    },
+    "recentPayslips": {
+      "title": "Bulletins Récents",
+      "subtitle": "Documents de paie récents"
+    },
+    "quickActions": {
+      "title": "Actions Rapides",
+      "generatePayroll": "Générer les Paies",
+      "addEmployee": "Ajouter un Employé",
+      "viewReports": "Voir les Rapports",
+      "companySettings": "Paramètres Société"
+    },
+    "metrics": {
+      "totalEmployees": "Total Employés",
+      "payrollMass": "Masse Salariale",
+      "pendingPayrolls": "Paies en Attente"
+    },
+    "status": {
+      "paid": "Payé",
+      "pending": "En attente"
+    }
+  },
+  "auth": {
+    "login": {
+      "welcome": "Bienvenue",
+      "title": "Connexion",
+      "subtitle": "Connectez-vous à votre compte",
+      "emailAddress": "Email Address",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Veuillez entrer un email valide",
+      "username": "Nom d'Utilisateur",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+      "rememberMe": "Se souvenir de moi",
+      "submit": "Se connecter",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Vous n'avez pas de compte?",
+      "signUp": "S'inscrire",
+      "demoAccounts": "Comptes de démonstration (mot de passe: password123)",
+      "adminAccount": "Admin:",
+      "hrAccount": "RH:",
+      "managerAccount": "Manager:",
+      "employeeAccount": "Salarié:"
+    },
+    "logout": "Déconnexion"
+  },
+  "contextSelection": {
+    "title": "Sélectionnez Votre Espace",
+    "welcomeBack": "Bon retour",
+    "subtitle": "Choisissez une entreprise et un rôle pour accéder à votre tableau de bord",
+    "loading": "Chargement de vos espaces...",
+    "selectWorkspace": "Sélectionnez un espace",
+    "expertMode": "Mode Expert",
+    "standardMode": "Standard",
+    "clickToAccess": "Cliquez pour accéder",
+    "noMemberships": "Aucun Espace Disponible",
+    "noMembershipsDesc": "Vous n'avez accès à aucun espace entreprise. Veuillez contacter votre administrateur pour obtenir l'accès.",
+    "contactSupport": "Contacter le Support",
+    "needHelp": "Besoin d'aide ?",
+    "switchWorkspace": "Changer d'espace"
+  },
+  "user": {
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "manageRole": "Gérer le rôle",
+    "assignRole": {
+      "title": "Gérer le rôle",
+      "subtitle": "Attribuer un rôle à l'utilisateur sélectionné",
+      "userLabel": "Utilisateur",
+      "roleLabel": "Rôle",
+      "selectRolePlaceholder": "Sélectionner un rôle",
+      "assign": "Attribuer le rôle"
+    },
+    "role": {
+      "admin": "Administrateur",
+      "user": "Utilisateur",
+      "manager": "Gestionnaire",
+      "hr": "RH",
+      "employee": "Employé",
+      "cabinet": "Cabinet",
+      "adminPayzen": "Admin PayZen",
+      "viewer": "Lecteur"
+    }
+  },
+  "common": {
+    "system": "Système",
+    "readOnly": "Lecture seule",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée disponible",
+    "error": "Une erreur s'est produite",
+    "success": "Opération réussie",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "yes": "Oui",
+    "no": "Non",
+    "optional": "Optionnel",
+    "actions": "Actions",
+    "view": "Voir",
+    "viewAll": "Voir Tous",
+    "download": "Télécharger",
+    "upload": "Uploader",
+    "uploaded": "Téléversé",
+    "missing": "Manquant",
+    "replace": "Remplacer",
+    "back": "Retour",
+    "clear": "Effacer",
+    "reset": "Réinitialiser",
+    "retry": "Réessayer",
+    "apply": "Appliquer",
+    "ok": "OK",
+    "remove": "Supprimer",
+    "warning": "Avertissement",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "cin": "CIN",
+    "phone": "Téléphone",
+    "select": "Sélectionner",
+    "selectDate": "Sélectionner une date",
+    "unsavedChanges": {
+      "title": "Modifications non enregistrées",
+      "message": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?",
+      "description": "Vous avez {{count}} modifications non enregistrées.",
+      "continueEditing": "Continuer la saisie",
+      "discard": "Ignorer les modifications",
+      "save": "Enregistrer"
+    },
+    "time": {
+      "justNow": "À l'instant",
+      "minutesAgo": "Il y a {{count}} min",
+      "hoursAgo": "Il y a {{count}}h",
+      "daysAgo": "Il y a {{count}}j"
+    },
+    "confirmation": "Confirmation",
+    "now": "maintenant",
+    "table": {
+      "showing": "Affichage de {first} à {last} sur {totalRecords} entrées"
+    },
+    "validation": {
+      "required": "Ce champ est obligatoire"
+    }
+  },
+  "errors": {
+    "required": "Ce champ est requis",
+    "invalidEmail": "Veuillez saisir une adresse e-mail valide",
+    "minLength": "Minimum {{min}} caractères requis",
+    "maxLength": "Maximum {{max}} caractères autorisés",
+    "pattern": "Format invalide"
+  },
+  "company": {
+    "title": "Gestion de l'Entreprise",
+    "subtitle": "Gérez les informations et paramètres de votre société",
+    "active": "Actif",
+    "tabs": {
+      "info": "Identité & Légal",
+      "hrSettings": "Paramètres de Paie",
+      "documents": "Signataires & Documents",
+      "users": "Gestionnaires & Accès",
+      "departments": "Départements",
+      "jobPositions": "Postes",
+      "contractTypes": "Types de Contrat",
+      "employeeCategories": "Catégories d'Employés",
+      "holidays": "Jours Fériés",
+      "workingCalendar": "Calendrier de Travail",
+      "referenceData": "Données de Référence",
+      "history": "Historique"
+    },
+    "info": {
+      "title": "Informations de la Société",
+      "subtitle": "Gérez les informations légales et de contact de votre société",
+      "bannerTitle": "Informations Légales Verrouillées",
+      "bannerDescription": "Certaines informations sont gérées par le support PayZen. Contactez-nous pour mettre à jour votre identité légale.",
+      "legalEntity": "Entité Légale",
+      "operationalDetails": "Détails Opérationnels",
+      "viewAuditLog": "Voir audit log",
+      "generalInfo": "Informations Générales",
+      "raisonSociale": "Raison Sociale",
+      "ice": "ICE",
+      "identifiantFiscal": "Identifiant Fiscal",
+      "rc": "RC",
+      "patente": "Patente",
+      "legalForm": "Forme Juridique",
+      "cnss": "N° Affiliation CNSS",
+      "rib": "Compte Bancaire Principal (RIB)",
+      "address": "Adresse",
+      "city": "Ville",
+      "email": "Email Officiel",
+      "phone": "Numéro de Téléphone",
+      "website": "Site Web",
+      "contact": "Contact",
+      "accountingFirm": "Cabinet Comptable",
+      "associatedFirm": "Cabinet Associé",
+      "noFirmAssociated": "Aucun cabinet associé",
+      "associateFirmHint": "Associez un cabinet comptable pour lui donner accès aux données de paie",
+      "associate": "Associer",
+      "managedByBackoffice": "Géré par le Backoffice",
+      "changeLogo": "Changer le Logo",
+      "operationalDetailsDesc": "Mettez à jour les informations de contact et opérationnelles utilisées pour la paie et la communication.",
+      "logoAlt": "Logo de l'entreprise",
+      "messages": {
+        "loadError": "Failed to load company information",
+        "logoUpdated": "Logo updated successfully",
+        "logoUpdateError": "Failed to update logo",
+        "fieldUpdated": "Field updated successfully",
+        "fieldUpdateError": "Failed to update field"
+      }
+    },
+    "hrSettings": {
+      "title": "Paramètres RH",
+      "workingSchedule": "Calendrier de travail",
+      "workingScheduleDesc": "Définissez la semaine de travail standard et les heures journalières de votre entreprise.",
+      "workingDays": "Jours ouvrés",
+      "workingDaysHint": "Sélectionnez les jours ouvrés standards pour votre entreprise.",
+      "standardHoursPerDay": "Heures standard par jour",
+      "standardHoursHint": "Utilisé pour calculer les taux journaliers et les heures supplémentaires (ex. 8 heures/jour).",
+      "workingCalendarNotice": {
+        "title": "Configuration du Calendrier de Travail",
+        "description": "Les jours et horaires de travail sont maintenant gérés dans l'onglet Calendrier de Travail. Vous pouvez définir les horaires spécifiques pour chaque jour de la semaine.",
+        "link": "Configurer le Calendrier de Travail"
+      },
+      "leaveRules": "Règles de Congés",
+      "leaveRulesDesc": "Configurez comment les congés annuels sont accumulés et calculés.",
+      "leaveRate": "Taux d'Acquisition des Congés",
+      "leaveRateHint": "Détermine combien de jours les employés gagnent par mois (loi marocaine: 1,5 jours/mois).",
+      "includeSaturdays": "Inclure les Samedis dans le Décompte ?",
+      "saturdaysHint": "Lors du calcul de la durée des congés, les samedis doivent-ils être comptés comme jours ouvrables ?",
+      "salaryPayment": "Salaire & Paiement",
+      "salaryPaymentDesc": "Définissez les préférences de paiement par défaut pour le traitement de la paie.",
+      "paymentMode": "Mode de Paiement par Défaut",
+      "rib": "Compte Bancaire Principal (RIB)",
+      "ribPlaceholder": "Entrez le numéro RIB à 24 chiffres",
+      "ribHint": "Compte bancaire principal de l'entreprise pour les virements de salaire (24 chiffres).",
+      "workingHours": "Heures de Travail",
+      "day": "Jour",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "workingHoursHint": "Entrez les heures de début et de fin (format 0-23). Exemple : Début 9, Fin 17 pour 9 h à 17 h.",
+      "hoursPerWeek": "heures/semaine",
+      "helpTitle": "Guide de Configuration RH",
+      "helpDescription": "Configurez les paramètres RH essentiels qui affectent les calculs de paie, la gestion des congés et la conformité.",
+      "helpPoint1": "Les jours et heures de travail déterminent les calculs d'heures supplémentaires et les taux journaliers.",
+      "helpPoint2": "Le taux d'acquisition des congés affecte la manière dont les jours de vacances sont gagnés (1,5 jours/mois est standard au Maroc).",
+      "helpPoint3": "Les paramètres de paiement établissent les valeurs par défaut pour les nouveaux employés et le traitement de la paie.",
+      "leaveCalculation": "Mode de Calcul des Congés",
+      "absenceCalculation": "Mode de Calcul des Absences",
+      "formErrors": "Veuillez corriger les erreurs suivantes :",
+      "saveNote": "Les modifications s'appliqueront uniquement aux futurs calculs de paie.",
+      "payrollSetup": "Paramétrage Paie",
+      "currency": "Devise",
+      "paymentFrequency": "Périodicité de paie",
+      "fiscalYearStartMonth": "Exercice fiscal (mois de début)",
+      "paymentModeEmployees": "Mode de paiement des salaires",
+      "advancedSettings": "Paramètres avancés",
+      "sector": "Secteur / Activité",
+      "collectiveAgreement": "Convention collective",
+      "collectiveAgreementHint": "si applicable",
+      "collectiveAgreementPlaceholder": "Ex: Convention collective nationale du commerce",
+      "cnssSpecificParams": "Paramètres CNSS spécifiques",
+      "cnssSpecificParamsHint": "si applicable",
+      "cnssSpecificParamsPlaceholder": "Paramètres CNSS particuliers pour cette entreprise",
+      "irSpecificParams": "Paramètres IR spécifiques",
+      "irSpecificParamsHint": "si applicable",
+      "irSpecificParamsPlaceholder": "Paramètres IR particuliers pour cette entreprise",
+      "selectPaymentMode": "Sélectionnez un mode de paiement",
+      "selectSector": "Sélectionnez un secteur",
+      "currencies": {
+        "mad": "MAD - Dirham marocain",
+        "eur": "EUR - Euro",
+        "usd": "USD - Dollar américain"
+      },
+      "frequencies": {
+        "monthly": "Mensuelle",
+        "bimonthly": "Bimensuelle",
+        "weekly": "Hebdomadaire"
+      },
+      "months": {
+        "january": "Janvier",
+        "february": "Février",
+        "march": "Mars",
+        "april": "Avril",
+        "may": "Mai",
+        "june": "Juin",
+        "july": "Juillet",
+        "august": "Août",
+        "september": "Septembre",
+        "october": "Octobre",
+        "november": "Novembre",
+        "december": "Décembre"
+      },
+      "paymentModes": {
+        "bankTransfer": "Virement bancaire",
+        "check": "Chèque",
+        "cash": "Espèces"
+      },
+      "sectors": {
+        "agriculture": "Agriculture",
+        "industry": "Industrie",
+        "commerce": "Commerce",
+        "services": "Services",
+        "tech": "Technologies",
+        "construction": "Construction",
+        "transport": "Transport",
+        "tourism": "Tourisme",
+        "health": "Santé",
+        "education": "Éducation",
+        "finance": "Finance",
+        "other": "Autre"
+      },
+      "errors": {
+        "workingDaysRequired": "Veuillez sélectionner au moins un jour ouvrable.",
+        "hoursInvalid": "Les heures par jour doivent être entre 0 et 24.",
+        "ribInvalid": "Le RIB doit contenir exactement 24 chiffres.",
+        "currencyRequired": "La devise est obligatoire",
+        "paymentFrequencyRequired": "La périodicité de paie est obligatoire",
+        "fiscalYearRequired": "Le mois de début d'exercice fiscal est obligatoire"
+      },
+      "daysShort": {
+        "monday": "Lun",
+        "tuesday": "Mar",
+        "wednesday": "Mer",
+        "thursday": "Jeu",
+        "friday": "Ven",
+        "saturday": "Sam",
+        "sunday": "Dim"
+      },
+      "leaveRateOptions": {
+        "standard": "Standard (1,5 jour / mois)",
+        "extended": "Étendu (2 jours / mois)"
+      },
+      "messages": {
+        "validationError": "Please fix the errors in the form before saving",
+        "saveSuccess": "HR settings saved successfully",
+        "saveError": "Failed to save HR settings",
+        "changesDiscarded": "Unsaved changes were discarded"
+      }
+    },
+    "users": {
+      "title": "Gestion des Utilisateurs",
+      "subtitle": "Gérez qui peut accéder à ce profil d'entreprise.",
+      "manageRole": "Gérer le rôle",
+      "assignRole": {
+        "title": "Gérer le rôle",
+        "subtitle": "Attribuer un rôle à l'utilisateur sélectionné",
+        "userLabel": "Utilisateur",
+        "roleLabel": "Rôle",
+        "selectRolePlaceholder": "Sélectionner un rôle",
+        "assign": "Attribuer le rôle"
+      },
+      "invite": "Ajouter un Utilisateur",
+      "sendInvite": "Créer le Compte",
+      "inviteSuccess": "Compte Utilisateur Créé",
+      "inviteSentTo": "Compte utilisateur créé pour {{name}}",
+      "changeRole": "Changer le Rôle",
+      "remove": "Supprimer",
+      "table": {
+        "user": "Utilisateur",
+        "email": "Email",
+        "role": "Rôle",
+        "status": "Statut",
+        "actions": "Actions",
+        "description": "Gérez les accès et les permissions des utilisateurs"
+      },
+      "actions": {
+        "edit": "Modifier l'utilisateur",
+        "activate": "Activer",
+        "deactivate": "Désactiver",
+        "remove": "Supprimer l'utilisateur"
+      },
+      "inviteDialog": {
+        "title": "Créer un Compte Utilisateur",
+        "selectEmployee": "Sélectionner un Employé",
+        "selectEmployeePlaceholder": "Rechercher ou sélectionner un employé...",
+        "noAvailableEmployees": "Tous les employés ont déjà un compte utilisateur.",
+        "email": "Adresse Email",
+        "role": "Attribuer un Rôle",
+        "selectRole": "Sélectionner un rôle",
+        "hint": "Un compte utilisateur sera créé pour l'employé sélectionné.",
+        "subtitle": "Accorder un accès à la plateforme à un employé",
+        "footerInfo": "L'utilisateur recevra ses accès par e-mail."
+      },
+      "stats": {
+        "count": "{{count}} utilisateur(s)"
+      },
+      "searchPlaceholder": "Rechercher des utilisateurs...",
+      "empty": {
+        "title": "Aucun utilisateur",
+        "description": "Invitez des employés et attribuez-leur des rôles d'accès."
+      },
+      "footer": {
+        "showing": "{{count}} utilisateur(s) affiché(s)",
+        "lastUpdated": "Dernière mise à jour"
+      },
+      "messages": {
+        "loadRolesError": "Failed to load available roles",
+        "employeeIdMissing": "Employee identifier is missing",
+        "noRoleSelected": "Select at least one role",
+        "rolesUpdated": "User role(s) updated successfully",
+        "selectEmployee": "Select an employee before continuing",
+        "inviteError": "Failed to create user account",
+        "companyNotSelected": "No company selected",
+        "loadEmployeesError": "Failed to load employees",
+        "notImplementedTitle": "Not implemented",
+        "notImplemented": "This action is not implemented yet.",
+        "userRemoved": "User {{name}} was removed",
+        "removeUserError": "Failed to remove user"
+      }
+    },
+    "status": {
+      "active": "Actif",
+      "pending": "En attente",
+      "inactive": "Inactif",
+      "ACTIVE": "Actif",
+      "PENDING": "En attente",
+      "INACTIVE": "Inactif"
+    },
+    "documents": {
+      "title": "Documents de l'Entreprise",
+      "subtitle": "Gérez les documents officiels de votre société",
+      "signatoryTitle": "Informations du Signataire",
+      "signatorySubtitle": "Personne autorisée à signer les documents officiels de l'entreprise",
+      "signatoryName": "Nom du Signataire",
+      "signatoryRole": "Titre du Signataire",
+      "officialImages": "Images Officielles",
+      "signature": "Signature Scannée",
+      "noSignature": "Aucune signature téléchargée",
+      "stamp": "Cachet de l'Entreprise",
+      "noStamp": "Aucun cachet téléchargé",
+      "otherDocs": "Autres Documents",
+      "previousVersions": "Versions précédentes",
+      "name": "Nom du Document",
+      "status": "Statut",
+      "date": "Date",
+      "uploadTitle": "Télécharger un Document",
+      "selectPdf": "Sélectionner un PDF",
+      "uploadHint": "Taille max: 5 Mo. Format supporté: PDF.",
+      "uploadImageHint": "PNG ou JPG, max 2 Mo",
+      "saveSignatory": "Enregistrer les modifications",
+      "cnss_attestation": "Attestation CNSS",
+      "amo": "Attestation AMO",
+      "signatoryDesc": "Personne autorisée à signer les documents officiels de l'entreprise.",
+      "placeholders": {
+        "signatoryName": "ex. M. Directeur Général",
+        "signatoryRole": "ex. DG"
+      },
+      "signatureAlt": "Signature",
+      "stampAlt": "Cachet",
+      "messages": {
+        "loadError": "Failed to load company documents",
+        "signatureUploaded": "Signature uploaded successfully",
+        "stampUploaded": "Stamp uploaded successfully",
+        "signatorySaved": "Signatory information saved successfully",
+        "documentUploaded": "Document uploaded successfully",
+        "signatureRemoved": "Signature removed",
+        "stampRemoved": "Stamp removed"
+      }
+    },
+    "history": {
+      "title": "Historique de la Société",
+      "modifiedBy": "Par",
+      "noHistory": "Aucun historique",
+      "noHistoryDescription": "Les modifications apportées à vos paramètres d'entreprise apparaîtront ici.",
+      "loadError": "Échec du chargement de l'historique",
+      "noCompanySelected": "Sélectionnez une entreprise pour afficher l'historique."
+    },
+    "departments": {
+      "title": "Départements",
+      "subtitle": "Gérez les départements de l'entreprise",
+      "add": "Ajouter un département",
+      "edit": "Modifier le département",
+      "create": "Créer un département",
+      "editDescription": "Mettre à jour les informations du département",
+      "createDescription": "Ajouter un nouveau département à votre organisation",
+      "nameHint": "Saisissez un nom descriptif pour ce département",
+      "examples": "Suggestions rapides",
+      "footerInfo": "Les champs obligatoires sont marqués d'un *",
+      "table": {
+        "name": "Nom du département",
+        "description": "Organisez votre structure d'entreprise par départements"
+      },
+      "fields": {
+        "name": "Nom du département"
+      },
+      "placeholders": {
+        "name": "ex : Ressources Humaines"
+      },
+      "stats": {
+        "count": "{{count}} département(s)"
+      },
+      "searchPlaceholder": "Rechercher des départements...",
+      "empty": {
+        "title": "Aucun département",
+        "description": "Créez votre premier département pour organiser les équipes."
+      },
+      "itemMeta": "Département",
+      "footer": {
+        "showing": "{{count}} département(s) affiché(s)",
+        "lastUpdated": "Dernière mise à jour"
+      },
+      "deleteConfirm": "Are you sure you want to delete this department? This action cannot be undone.",
+      "messages": {
+        "loadError": "Failed to load departments",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Department updated successfully",
+        "createSuccess": "Department created successfully",
+        "deleteSuccess": "Department deleted successfully",
+        "alreadyExists": "This department already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Department not found"
+      }
+    },
+    "jobPositions": {
+      "title": "Postes",
+      "subtitle": "Gérez les postes de l'entreprise",
+      "add": "Ajouter un poste",
+      "edit": "Modifier le poste",
+      "create": "Créer un poste",
+      "editDescription": "Mettre à jour les détails du poste",
+      "createDescription": "Ajouter un nouveau poste à votre organisation",
+      "nameHint": "Entrez le titre du poste (ex: Ingénieur logiciel, Responsable RH)",
+      "examples": "Exemples courants",
+      "footerInfo": "Utilisé pour catégoriser les rôles des employés",
+      "table": {
+        "name": "Intitulé du poste",
+        "description": "Définissez les rôles disponibles dans votre organisation"
+      },
+      "fields": {
+        "name": "Intitulé du poste"
+      },
+      "placeholders": {
+        "name": "ex : Développeur .NET"
+      },
+      "stats": {
+        "count": "{{count}} poste(s)"
+      },
+      "searchPlaceholder": "Rechercher des postes...",
+      "empty": {
+        "title": "Aucun poste",
+        "description": "Créez votre premier poste pour structurer les rôles."
+      },
+      "itemMeta": "Poste",
+      "custom": "Personnalisé",
+      "system": "Système",
+      "footer": {
+        "showing": "{{count}} poste(s) affiché(s)",
+        "lastUpdated": "Dernière mise à jour"
+      },
+      "deleteConfirm": "Are you sure you want to delete this job position? This action cannot be undone.",
+      "messages": {
+        "loadError": "Failed to load job positions",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Job position updated successfully",
+        "createSuccess": "Job position created successfully",
+        "deleteSuccess": "Job position deleted successfully",
+        "alreadyExists": "This job position already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Job position not found"
+      }
+    },
+    "contractTypes": {
+      "title": "Types de Contrat",
+      "subtitle": "Gérez les types de contrat de l'entreprise",
+      "add": "Ajouter un type de contrat",
+      "edit": "Modifier le type de contrat",
+      "create": "Créer un type de contrat",
+      "editDescription": "Mettre à jour les détails du type de contrat",
+      "createDescription": "Ajouter un nouveau type de contrat pour les accords d'emploi",
+      "nameHint": "Entrez le nom du type de contrat (ex: Temps plein, Temps partiel)",
+      "examples": "Exemples courants",
+      "footerInfo": "Définit les catégories d'accords d'emploi",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce type de contrat ? Cette action est irréversible.",
+      "table": {
+        "name": "Nom du type de contrat",
+        "description": "Définissez les types de contrat utilisés dans l'entreprise"
+      },
+      "fields": {
+        "name": "Nom du type de contrat",
+        "legalContractType": "Type de Contrat Légal",
+        "stateEmploymentProgram": "Programme d'Emploi Gouvernemental"
+      },
+      "placeholders": {
+        "name": "ex : CDI, CDD, Stage",
+        "legalContractType": "Sélectionnez le type légal",
+        "stateEmploymentProgram": "Sélectionnez le programme (optionnel)"
+      },
+      "stats": {
+        "count": "{{count}} type(s) de contrat"
+      },
+      "searchPlaceholder": "Rechercher des types de contrat...",
+      "empty": {
+        "title": "Aucun type de contrat",
+        "description": "Créez votre premier type de contrat."
+      },
+      "itemMeta": "Type de contrat",
+      "custom": "Personnalisé",
+      "system": "Système",
+      "footer": {
+        "showing": "{{count}} type(s) de contrat affiché(s)",
+        "lastUpdated": "Dernière mise à jour"
+      },
+      "hints": {
+        "legalContractType": "Sélectionnez la classification légale de ce type de contrat.",
+        "stateEmploymentProgram": "Associez éventuellement un programme public d'emploi."
+      },
+      "messages": {
+        "loadError": "Failed to load contract types",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Contract type updated successfully",
+        "createSuccess": "Contract type created successfully",
+        "deleteSuccess": "Contract type deleted successfully",
+        "alreadyExists": "This contract type already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Contract type not found"
+      }
+    },
+    "employeeCategories": {
+      "title": "Catégories d'Employés",
+      "subtitle": "Gérez les catégories de classification des employés",
+      "createTitle": "Créer une catégorie",
+      "editTitle": "Modifier la catégorie",
+      "add": "Ajouter une catégorie",
+      "edit": "Modifier la catégorie",
+      "create": "Créer une catégorie",
+      "editDescription": "Mettre à jour les détails de la catégorie d'employé",
+      "createDescription": "Ajouter une nouvelle catégorie pour classifier les employés",
+      "nameHint": "Entrez le nom de la catégorie (ex: Manager, Cadre, Stagiaire)",
+      "descriptionHint": "Description optionnelle pour cette catégorie",
+      "examples": "Exemples courants",
+      "footerInfo": "Les catégories aident à organiser et classifier les employés",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette catégorie d'employé ? Cette action est irréversible.",
+      "noCategories": "Aucune catégorie d'employé pour le moment. Créez-en une pour commencer à organiser votre personnel.",
+      "table": {
+        "name": "Nom de la catégorie",
+        "mode": "Mode",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Nom de la catégorie",
+        "description": "Description"
+      },
+      "form": {
+        "name": "Nom de la catégorie",
+        "namePlaceholder": "Entrez le nom de la catégorie",
+        "description": "Description",
+        "descriptionPlaceholder": "Entrez la description (optionnel)",
+        "mode": "Mode",
+        "modeOptions": {
+          "attendance": "Présence",
+          "absence": "Absence"
+        }
+      },
+      "placeholders": {
+        "name": "ex : Manager, Cadre, Technicien",
+        "description": "Description optionnelle"
+      },
+      "stats": {
+        "count": "{{count}} catégorie(s)"
+      },
+      "searchPlaceholder": "Rechercher des catégories...",
+      "empty": {
+        "title": "Aucune catégorie",
+        "description": "Créez votre première catégorie pour classer les employés."
+      },
+      "footer": {
+        "showing": "{{count}} catégorie(s) affichée(s)",
+        "lastUpdated": "Dernière mise à jour"
+      },
+      "messages": {
+        "loadError": "Failed to load employee categories",
+        "updateSuccess": "Category updated successfully",
+        "updateError": "Failed to update category",
+        "createSuccess": "Category created successfully",
+        "createError": "Failed to create category",
+        "deleteSuccess": "Category deleted successfully",
+        "deleteError": "Failed to delete category"
+      }
+    },
+    "referenceData": {
+      "title": "Données de Référence",
+      "subtitle": "Gérez les données de référence système utilisées dans l'application",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.",
+      "genders": {
+        "title": "Genres",
+        "name": "Nom du genre",
+        "add": "Ajouter un genre",
+        "edit": "Modifier le genre",
+        "create": "Créer un genre",
+        "placeholder": "ex : Masculin, Féminin"
+      },
+      "maritalStatuses": {
+        "title": "Situations Matrimoniales",
+        "name": "Nom du statut",
+        "add": "Ajouter un statut",
+        "edit": "Modifier le statut",
+        "create": "Créer un statut",
+        "placeholder": "ex : Célibataire, Marié(e)"
+      },
+      "educationLevels": {
+        "title": "Niveaux d'Éducation",
+        "name": "Nom du niveau",
+        "add": "Ajouter un niveau",
+        "edit": "Modifier le niveau",
+        "create": "Créer un niveau",
+        "placeholder": "ex : Licence, Master"
+      }
+    }
+  },
+  "employees": {
+    "title": "Gestion des Salariés",
+    "subtitle": "Gérez les informations et documents de vos employés",
+    "searchPlaceholder": "Rechercher par nom ou poste...",
+    "filter": {
+      "department": "Département",
+      "status": "Statut",
+      "allDepartments": "Tous les départements",
+      "allStatuses": "Tous les statuts",
+      "allContractTypes": "Tous les types"
+    },
+    "loading": "Chargement des salariés...",
+    "manager": "Manager",
+    "documentsMissingCount": "{{count}} manquant(s)",
+    "documentsComplete": "Complet",
+    "stats": {
+      "total": "Total Salariés",
+      "active": "Actifs",
+      "onLeave": "En congé",
+      "missingDocs": "Docs manquants"
+    },
+    "status": {
+      "active": "Actif",
+      "onLeave": "En congé",
+      "inactive": "Inactif"
+    },
+    "addEmployee": "Ajouter un Salarié",
+    "viewProfile": "Voir Fiche",
+    "noEmployees": "Aucun salarié trouvé",
+    "noEmployeesDesc": "Commencez par ajouter votre premier salarié.",
+    "errors": {
+      "loadFailed": "Échec du chargement des salariés"
+    },
+    "table": {
+      "employee": "Salarié",
+      "position": "Poste",
+      "department": "Département",
+      "contract": "Contrat",
+      "startDate": "Date d'entrée",
+      "status": "Statut",
+      "documents": "Documents",
+      "actions": "Actions"
+    },
+    "profile": {
+      "title": "Fiche Salarié",
+      "sections": {
+        "identity": "Identité",
+        "contact": "Contacts",
+        "position": "Poste & Contrat",
+        "salary": "Salaire & Éléments Fixes",
+        "legal": "Infos Légales",
+        "documents": "Documents",
+        "history": "Historique",
+        "family": "Conjoint et Enfants"
+      },
+      "identity": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "cin": "CIN",
+        "gender": "Genre",
+        "maritalStatus": "Situation Familiale",
+        "birthDate": "Date de Naissance",
+        "birthPlace": "Lieu de Naissance"
+      },
+      "contact": {
+        "professionalEmail": "Email Professionnel",
+        "personalEmail": "Email Personnel",
+        "phone": "Téléphone",
+        "address": "Adresse Complète"
+      },
+      "position": {
+        "position": "Poste",
+        "department": "Département",
+        "manager": "Manager",
+        "contractType": "Type de Contrat",
+        "status": "Statut d'Emploi",
+        "startDate": "Date de Début",
+        "endDate": "Date de Fin",
+        "probationPeriod": "Période d'Essai",
+        "exitReason": "Motif de Sortie"
+      },
+      "salary": {
+        "baseSalary": "Salaire de Base",
+        "transportAllowance": "Prime Transport",
+        "mealAllowance": "Prime Panier",
+        "seniorityBonus": "Prime Ancienneté",
+        "benefitsInKind": "Avantages en Nature",
+        "paymentMethod": "Mode de Paiement",
+        "components": "Éléments de Salaire",
+        "assignedPackage": "Package Salarial Attribué",
+        "effectiveSince": "Effectif depuis",
+        "viewPackage": "Voir le package",
+        "viewPackageTooltip": "Ouvrir la page des packages salariaux",
+        "noPackageAssigned": "Aucun package salarial attribué",
+        "noPackageAssignedDescription": "Attribuez un package depuis le module Packages Salariaux",
+        "assignPackage": "Attribuer un package",
+        "assignPackageTooltip": "Aller au module Packages Salariaux pour attribuer"
+      },
+      "legal": {
+        "cnss": "CNSS",
+        "amo": "AMO",
+        "cimr": "CIMR",
+        "cimrEmployeeRate": "Taux CIMR Employé",
+        "cimrCompanyRate": "Taux CIMR Employeur",
+        "hasPrivateInsurance": "Assurance Privée",
+        "hasPrivateInsuranceLabel": "L'employé possède une assurance privée",
+        "privateInsuranceNumber": "N° Assurance Privée",
+        "privateInsuranceRate": "Taux Assurance Privée",
+        "disableAmo": "Désactiver AMO",
+        "disableAmoLabel": "Désactiver la couverture AMO pour cet employé",
+        "annualLeave": "Congés Annuels"
+      },
+      "documents": {
+        "cin": "CIN",
+        "contract": "Contrat",
+        "jobDescription": "Fiche de Poste",
+        "rib": "Compte Bancaire Principal (RIB)"
+      },
+      "confirmChanges": {
+        "title": "Confirmer les modifications",
+        "summary": "Vous avez modifié {{count}} champ(s). Vérifiez avant d'enregistrer :",
+        "before": "Avant",
+        "after": "Après",
+        "manyChanges": "⚠️ Vous modifiez de nombreux champs. Merci de vérifier attentivement."
+      },
+      "draft": {
+        "restored": "Brouillon restauré du {{date}}",
+        "autoSaved": "Sauvegardé automatiquement à {{time}}",
+        "saving": "Sauvegarde du brouillon...",
+        "dismiss": "Ignorer"
+      },
+      "ui": {
+        "draftRestoredTitle": "Brouillon restauré du {{date}}",
+        "draftRestoredTitleShort": "Brouillon restauré",
+        "draftRestoredSubtitle": "Vos modifications non sauvegardées ont été restaurées. Vérifiez-les avant d'enregistrer.",
+        "applyDraft": "Appliquer le brouillon",
+        "dismissDraft": "Ignorer",
+        "autoSaveAt": "Sauvegarde auto {{time}}",
+        "autoSavePending": "Sauvegarde auto en attente...",
+        "entryDate": "Date d'entrée",
+        "totalSalary": "Salaire total",
+        "documentUploadedOn": "Uploadé le {{date}}",
+        "documentMissing": "Document manquant",
+        "downloadDocument": "Télécharger le document",
+        "deleteDocument": "Supprimer le document",
+        "uploadDocument": "Uploader"
+      },
+      "family": {
+        "title": "Famille",
+        "spouse": "Conjoint",
+        "spouses": "Conjoints",
+        "spouseName": "Nom du conjoint",
+        "children": "Enfants",
+        "noSpouse": "Aucun conjoint enregistré",
+        "noSpouses": "Aucun conjoint enregistré",
+        "noChildren": "Aucun enfant enregistré",
+        "editSpouse": "Modifier le conjoint",
+        "editChild": "Modifier l'enfant",
+        "childName": "Nom",
+        "childDob": "Date de naissance",
+        "dob": "Date de naissance",
+        "gender": "Genre",
+        "marriageDate": "Date de mariage",
+        "isDependent": "À charge",
+        "isStudent": "Étudiant"
+      },
+      "noChanges": "Aucun changement à enregistrer",
+      "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
+      "saveSuccess": "Modifications enregistrées",
+      "loadError": "Échec du chargement de la fiche salarié"
+    },
+    "create": {
+      "eyebrow": "Nouveau collaborateur",
+      "title": "Créer un salarié",
+      "subtitle": "Renseignez l'identité, le contrat et les contacts avant l'onboarding.",
+      "submit": "Créer le salarié",
+      "successTitle": "Salarié créé",
+      "errorTitle": "Échec de création",
+      "success": "Le salarié a été créé avec succès.",
+      "error": "Impossible de créer le salarié. Veuillez réessayer.",
+      "salaryPackageAssignWarningTitle": "Package salarial non assigné",
+      "salaryPackageAssignWarning": "Le salarié a été créé, mais l'assignation du package salarial a échoué.",
+      "emptyState": "Les données du formulaire sont indisponibles pour le moment.",
+      "placeholders": {
+        "firstName": "Amal"
+      },
+      "sections": {
+        "personal": "Identité",
+        "personalTitle": "Informations personnelles",
+        "personalDescription": "Identité légale, état civil et données démographiques.",
+        "job": "Poste",
+        "jobTitle": "Poste & contrat",
+        "jobDescription": "Associez le salarié à un département, un poste et un manager.",
+        "contact": "Contact",
+        "contactTitle": "Coordonnées & adresse",
+        "contactDescription": "Informations de localisation utilisées pour la paie et les documents légaux."
+      },
+      "form": {
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email professionnel",
+        "cin": "CIN",
+        "birthDate": "Date de naissance",
+        "phone": "Numéro de téléphone",
+        "phoneCountry": "Indicatif",
+        "phoneCountryPlaceholder": "Code",
+        "gender": "Genre",
+        "status": "Statut d'emploi",
+        "statusPlaceholder": "Sélectionnez un statut",
+        "maritalStatus": "Situation familiale",
+        "educationLevel": "Niveau d'études",
+        "nationality": "Nationalité",
+        "department": "Département",
+        "departmentPlaceholder": "Choisissez un département",
+        "jobPosition": "Poste",
+        "jobPositionPlaceholder": "Choisissez un poste",
+        "contractType": "Type de contrat",
+        "contractTypePlaceholder": "Choisissez un type de contrat",
+        "manager": "Manager direct",
+        "managerPlaceholder": "Affecter un manager (optionnel)",
+        "startDate": "Date d'entrée",
+        "salary": "Salaire brut",
+        "salaryPackage": "Package salarial",
+        "salaryPackagePlaceholder": "Sélectionner un package salarial",
+        "attendanceType": "Type de présence",
+        "attendanceTypePlaceholder": "Choisir le type de présence",
+        "employeeCategory": "Catégorie d'employé",
+        "employeeCategoryPlaceholder": "Sélectionner une catégorie",
+        "country": "Pays",
+        "countryPlaceholder": "Sélectionnez un pays",
+        "city": "Ville",
+        "cityPlaceholder": "Sélectionnez une ville",
+        "addressLine1": "Adresse ligne 1",
+        "addressLine2": "Adresse ligne 2",
+        "zipCode": "Code postal"
+      },
+      "validation": {
+        "required": "Ce champ est obligatoire",
+        "email": "Veuillez saisir un email valide"
+      }
+    }
+  },
+  "salaryPackages": {
+    "page": {
+      "title": "Bibliothèque des packages salariaux",
+      "subtitle": "Un espace simple pour gérer vos modèles de rémunération.",
+      "newPackage": "Nouveau package",
+      "retry": "Réessayer",
+      "packageType": "Type de packages",
+      "searchPackage": "Rechercher un package...",
+      "searchOfficial": "Rechercher un template officiel...",
+      "officialHint": "Templates officiels valides et maintenus par PayZen. Clonez un template pour le personnaliser.",
+      "loading": "Chargement des packages...",
+      "emptyTitle": "Aucun package trouvé",
+      "emptyDescription": "Essayez un autre filtre ou créez un nouveau package.",
+      "templatesCount": "{{count}} templates",
+      "noOfficialTitle": "Aucun template officiel",
+      "noOfficialDescription": "Le catalogue sera disponible prochainement."
+    },
+    "tabs": {
+      "company": "Packages entreprise",
+      "official": "Templates officiels"
+    },
+    "metrics": {
+      "myPackages": "Mes packages",
+      "myPackagesDesc": "Templates de votre entreprise",
+      "drafts": "Brouillons",
+      "draftsDesc": "À finaliser",
+      "published": "Publiés",
+      "publishedDesc": "Assignables",
+      "official": "Officiels",
+      "officialDesc": "Catalogue PayZen"
+    },
+    "filters": {
+      "statusLabel": "Statut package",
+      "categoryLabel": "Catégorie",
+      "filterByCategory": "Filtrer par catégorie",
+      "allCategories": "Toutes les catégories",
+      "all": "Tous",
+      "draft": "Brouillons",
+      "published": "Publiés",
+      "deprecated": "Obsolètes"
+    },
+    "card": {
+      "noCode": "Sans code",
+      "noCategory": "Sans catégorie",
+      "componentsCount": "{{count}} composants",
+      "sectorPrefix": "Secteur :",
+      "basePrefix": "Base :",
+      "updatedPrefix": "Maj :",
+      "officialBadge": "Officiel"
+    },
+    "actions": {
+      "view": "Voir",
+      "edit": "Modifier",
+      "publish": "Publier",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "newVersion": "Nouvelle version",
+      "createVersion": "Créer la version",
+      "deprecate": "Obsolète",
+      "markDeprecated": "Marquer obsolète",
+      "clearFilters": "Effacer les filtres",
+      "createPackage": "Créer un package",
+      "clone": "Cloner",
+      "assign": "Assigner",
+      "replace": "Remplacer"
+    },
+    "dialogs": {
+      "clone": {
+        "title": "Cloner un template officiel",
+        "description": "Ce template sera créé en brouillon pour votre entreprise.",
+        "newName": "Nouveau nom",
+        "placeholder": "Ex : Package Cadres - Copie"
+      },
+      "confirm": {
+        "deleteTitle": "Confirmer la suppression",
+        "deleteMessage": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible.",
+        "publishTitle": "Confirmer la publication",
+        "publishMessage": "Publier \"{{name}}\" ? Cette action rendra le package assignable aux employés.",
+        "newVersionTitle": "Créer une nouvelle version ?",
+        "newVersionMessage": "Une nouvelle version (v{{nextVersion}}) sera créée en brouillon. La version actuelle (v{{currentVersion}}) restera active jusqu'à publication.",
+        "deprecateTitle": "Marquer comme obsolète ?",
+        "deprecateMessage": "Le package \"{{name}}\" ne pourra plus être assigné aux nouveaux employés. Cette action est irréversible.",
+        "cancelEditTitle": "Annuler les modifications ?",
+        "cancelEditMessage": "Toutes les modifications non sauvegardées seront perdues.",
+        "publishReadonlyWarning": "Une fois publié, ce package deviendra lecture seule. Voulez-vous continuer ?",
+        "unsavedChanges": "Vous avez des modifications non enregistrées. Quitter quand même ?",
+        "replaceAssignmentTitle": "Remplacer le package actuel ?",
+        "replaceAssignmentSame": "{{employeeName}} a déjà ce package actif. Voulez-vous créer une nouvelle assignation qui remplacera l'actuelle à partir de la date d'effet ?",
+        "replaceAssignmentOther": "{{employeeName}} a déjà un package actif ({{currentPackageName}}). Voulez-vous appliquer ce package et remplacer l'assignation actuelle ?"
+      }
+    },
+    "assignModal": {
+      "title": "Assigner le Package",
+      "package": "Package",
+      "baseSalary": "Salaire de base",
+      "employee": "Employé",
+      "loadingEmployees": "Chargement des employés...",
+      "selectEmployee": "Sélectionner un employé",
+      "loadingContract": "Chargement du contrat...",
+      "contract": "Contrat",
+      "startDate": "Début",
+      "endDate": "Fin",
+      "effectiveDate": "Date d'effet",
+      "info": "Cela créera un nouvel enregistrement de salaire avec les composants de ce package.",
+      "errors": {
+        "loadEmployees": "Impossible de charger les employés",
+        "loadContract": "Impossible de charger le contrat de l'employé",
+        "noActiveContract": "Aucun contrat actif trouvé pour cet employé"
+      }
+    },
+    "endAssignmentModal": {
+      "title": "Terminer l'assignation",
+      "employee": "Employé",
+      "package": "Package",
+      "startDate": "Début",
+      "endDate": "Date de fin",
+      "warning": "Cela clôturera l'enregistrement de salaire de l'employé et arrêtera l'assignation du package.",
+      "submit": "Terminer l'assignation"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "published": "Publié",
+      "deprecated": "Obsolète"
+    },
+    "view": {
+      "packageNamePlaceholder": "Nom du package",
+      "description": "Description",
+      "descriptionPlaceholder": "Description du package salarial",
+      "noDescription": "Aucune description",
+      "salaryComponents": "Composants salariaux",
+      "exemptionLimitPrefix": "Plafond",
+      "noComponents": "Aucun composant salarial défini",
+      "table": {
+        "label": "Libellé",
+        "type": "Type",
+        "variable": "Variable",
+        "amount": "Montant"
+      },
+      "assignments": {
+        "title": "Employés assignés",
+        "empty": "Aucun employé assigné à ce package",
+        "table": {
+          "employee": "Employé",
+          "startDate": "Date d'effet",
+          "endDate": "Date de fin",
+          "status": "Statut",
+          "version": "Version"
+        },
+        "status": {
+          "active": "Actif",
+          "ended": "Terminé"
+        }
+      },
+      "summary": {
+        "title": "Résumé",
+        "grossTotal": "Total brut",
+        "irBase": "Assiette IR",
+        "cnssBase": "Assiette CNSS"
+      },
+      "cimr": {
+        "title": "Configuration CIMR",
+        "regime": "Régime CIMR",
+        "employeeRate": "Taux salarial",
+        "employerRate": "Taux patronal (calculé)"
+      },
+      "autoRules": {
+        "title": "Règles automatiques",
+        "seniorityBonus": "Prime d'ancienneté",
+        "seniorityBonusDesc": "Calcul automatique selon la loi marocaine"
+      },
+      "meta": {
+        "title": "Informations",
+        "sector": "Secteur d'activité",
+        "version": "Version",
+        "validFrom": "Valide à partir de",
+        "validTo": "Valide jusqu'au",
+        "createdAt": "Créé le",
+        "updatedAt": "Modifié le"
+      },
+      "types": {
+        "baseSalary": "Salaire de base",
+        "allowance": "Indemnité",
+        "bonus": "Prime",
+        "benefitInKind": "Avantage en nature",
+        "socialCharge": "Charge sociale"
+      }
+    },
+    "editor": {
+      "subtitleEdit": "Modifiez les détails du package de rémunération",
+      "subtitleCreate": "Créez un nouveau package de rémunération",
+      "globalTemplateTitle": "Modèle global (lecture seule)",
+      "globalTemplateDescription": "Ce modèle est un modèle officiel créé par PayZen. Pour le personnaliser, veuillez le cloner depuis la liste des modèles officiels.",
+      "clonedTemplateTitle": "Modèle cloné",
+      "clonedTemplateDescription": "Ce package est basé sur le modèle officiel",
+      "generalInfo": "Informations générales",
+      "nameLabel": "Nom du package",
+      "namePlaceholder": "Ex: Package Cadre Standard",
+      "categoryLabel": "Catégorie",
+      "selectCategory": "Sélectionner une catégorie",
+      "baseSalaryLabel": "Salaire de base (MAD)",
+      "descriptionLabel": "Description (optionnel)",
+      "descriptionPlaceholder": "Description du package...",
+      "validFromLabel": "Date d'effet (optionnel)",
+      "validToLabel": "Date de fin (optionnel)",
+      "componentsTitle": "Éléments de rémunération",
+      "componentsSubtitle": "Primes, indemnités et avantages",
+      "selectComponent": "Sélectionner un élément...",
+      "noComponentFound": "Aucun élément trouvé",
+      "noComponents": "Aucun élément de rémunération ajouté",
+      "addComponent": "Ajouter un élément",
+      "componentsCount": "Composants",
+      "categories": {
+        "cadres": "Cadres",
+        "nonCadres": "Non-cadres",
+        "executive": "Dirigeants",
+        "cadre": "Cadre",
+        "nonCadre": "Non-cadre",
+        "employee": "Employé",
+        "worker": "Ouvrier",
+        "intern": "Stagiaire",
+        "other": "Autre"
+      }
+    },
+    "create": {
+      "generalInfo": "Informations générales",
+      "nameLabel": "Nom du package",
+      "namePlaceholder": "Ex: Package Cadres 2026",
+      "categoryLabel": "Catégorie",
+      "baseSalaryLabel": "Salaire de base (MAD)",
+      "descriptionPlaceholder": "Contexte ou notes sur ce package",
+      "componentsTitle": "Composants",
+      "addCustomComponent": "Ajouter un composant personnalisé",
+      "addFromOfficial": "Ajouter depuis le référentiel officiel",
+      "selectOfficialComponent": "Sélectionner un composant officiel",
+      "alreadyAdded": "déjà ajouté",
+      "noComponentsTitle": "Aucun composant",
+      "noComponentsDescription": "Ajoutez des composants pour finaliser ce package.",
+      "componentTypeOfficial": "Officiel",
+      "componentTypeCustom": "Personnalisé",
+      "backofficeRules": "Règles backoffice",
+      "regulatoryTreatmentReadonly": "Traitement réglementaire (verrouillé - défini en backoffice)",
+      "regulatoryTreatment": "Traitement réglementaire",
+      "cnssIrReadonly": "CNSS et IR en lecture seule",
+      "cnssIr": "CNSS et IR",
+      "backofficeReadonly": "Défini en backoffice (lecture seule)",
+      "summaryTitle": "Récapitulatif",
+      "estimatedGross": "Brut estimé",
+      "autoEmployerRate": "Part patronale automatique",
+      "customDialog": {
+        "title": "Nouveau composant personnalisé",
+        "name": "Nom",
+        "namePlaceholder": "Ex: Prime performance",
+        "defaultAmount": "Montant par défaut (MAD)",
+        "subjectToCnss": "Soumis CNSS",
+        "taxableIr": "Imposable IR"
+      }
+    },
+    "cimr": {
+      "regime": "Régime",
+      "none": "Non affilié",
+      "alKamil": "Al Kamil",
+      "alMounassib": "Al Mounassib",
+      "alMounassibPme": "Al Mounassib (PME)",
+      "assiette": "Assiette",
+      "assietteLabel": "Assiette",
+      "assietteGross": "Salaire brut total",
+      "assietteExceeding": "Part dépassant {{amount}} MAD",
+      "employeePart": "Part salariale",
+      "employerPart": "Part patronale",
+      "employerPartCalculated": "Part patronale (×1.3)",
+      "previewBase": "Aperçu (Base: {{amount}} MAD)",
+      "assietteCimr": "Assiette CIMR",
+      "employeeContribution": "Cotisation salariale",
+      "employerContribution": "Cotisation patronale",
+      "employeeRate": "Taux salarié",
+      "customRate": "Taux personnalisé",
+      "customRateHint": "Utiliser un taux non-standard",
+      "noContribution": "Pas de cotisation CIMR"
+    },
+    "errors": {
+      "loadPackages": "Erreur lors du chargement des packages",
+      "loadPackage": "Erreur lors du chargement du package",
+      "saveFailed": "Erreur lors de la sauvegarde",
+      "nameRequired": "Le nom est obligatoire",
+      "nameMinLength": "Le nom doit contenir au moins 3 caractères",
+      "baseSalaryRequired": "Le salaire de base est obligatoire",
+      "baseSalaryPositive": "Le salaire de base doit être positif",
+      "categoryRequiredPublish": "La catégorie est obligatoire pour publier",
+      "minOneComponent": "Au moins un composant est recommandé",
+      "officialComponentAlreadyAdded": "Le composant officiel \"{{name}}\" est déjà ajouté.",
+      "validationTitle": "Erreurs de validation",
+      "saveBeforePublish": "Le package doit être sauvegardé avant publication.",
+      "publishFailedWithReason": "Échec de la publication : {{errorMsg}}",
+      "saveFailedWithReason": "Échec de l'enregistrement : {{errorMsg}}",
+      "noCompanySelected": "Aucune entreprise sélectionnée",
+      "cloneFailed": "Erreur lors du clonage du modèle",
+      "onlyDraftDelete": "Seuls les packages en brouillon peuvent être supprimés",
+      "deleteFailed": "Erreur lors de la suppression",
+      "publishFailed": "Erreur lors de la publication",
+      "duplicateFailed": "Erreur lors de la duplication",
+      "onlyPublishedVersion": "Seuls les packages publiés peuvent avoir de nouvelles versions",
+      "newVersionFailed": "Erreur lors de la création de la version",
+      "onlyPublishedDeprecate": "Seuls les packages publiés peuvent être marqués obsolètes",
+      "deprecateFailed": "Erreur lors de la dépréciation",
+      "packageIdMissing": "ID de package non spécifié",
+      "loadAssignments": "Erreur lors du chargement des assignations",
+      "verifyEmployeeAssignmentFailed": "Impossible de vérifier le package actuel de cet employé",
+      "assignmentFailed": "Échec de l'assignation"
+    },
+    "messages": {
+      "savedSuccess": "Package \"{{name}}\" enregistré avec succès.",
+      "publishedSuccess": "Package \"{{name}}\" publié avec succès."
+    },
+    "common": {
+      "copy": "Copie",
+      "unknownError": "Erreur inconnue",
+      "others": "Autres",
+      "general": "Général",
+      "anotherPackage": "un autre package",
+      "thisEmployee": "Cet employé"
+    }
+  },
+  "language": {
+    "select": "Sélectionner la Langue",
+    "en": "Anglais",
+    "ar": "Arabe",
+    "fr": "Français"
+  },
+  "audit": {
+    "title": "Historique",
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher par description, champ ou utilisateur...",
+    "eventType": "Type d'événement",
+    "dateRange": "Plage de dates",
+    "allEvents": "Tous les événements",
+    "clearFilters": "Effacer les filtres",
+    "clearAll": "Tout effacer",
+    "clearAllFilters": "Effacer tous les filtres actifs",
+    "activeFilters": "Filtres actifs",
+    "selectDateRange": "Sélectionner la plage de dates",
+    "selectEventTypes": "Sélectionner les types d'événements",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "from": "Du",
+    "to": "Au",
+    "noLogs": "Aucun historique trouvé",
+    "noLogsDescription": "Aucun événement n'a encore été enregistré.",
+    "noFilteredLogs": "Aucun événement correspondant",
+    "noFilteredLogsDescription": "Essayez d'ajuster vos filtres ou de les effacer.",
+    "loading": "Chargement de l'historique...",
+    "error": "Échec du chargement de l'historique",
+    "errorTitle": "Erreur de chargement",
+    "errorMessage": "Une erreur s'est produite lors du chargement de l'historique. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "refresh": "Actualiser",
+    "refreshTooltip": "Actualiser la liste de l'historique",
+    "showFilters": "Filtres",
+    "hideFilters": "Masquer",
+    "showFiltersTooltip": "Afficher les options de filtre",
+    "hideFiltersTooltip": "Masquer les options de filtre",
+    "of": "sur",
+    "events": "événements",
+    "totalEvents": "événements au total",
+    "companyEvents": "Événements de l'entreprise",
+    "employeeEvents": "Événements des employés",
+    "cabinetEvents": "Événements du cabinet",
+    "oldValue": "Ancienne valeur",
+    "newValue": "Nouvelle valeur",
+    "noOldValue": "Pas de valeur précédente",
+    "noNewValue": "Pas de nouvelle valeur",
+    "empty": "vide",
+    "history": {
+      "actions": {
+        "changed": "modifié",
+        "created": "créé",
+        "updated": "mis à jour",
+        "deleted": "supprimé"
+      },
+      "fields": {
+        "address": "Adresse",
+        "website_url": "URL du site web",
+        "department": "Département"
+      }
+    },
+    "eventTypes": {
+      "COMPANY_CREATED": "Entreprise Créée",
+      "COMPANY_UPDATED": "Entreprise Mise à Jour",
+      "COMPANY_DELETED": "Entreprise Supprimée",
+      "COMPANY_ACTIVATED": "Entreprise Activée",
+      "COMPANY_DEACTIVATED": "Entreprise Désactivée",
+      "EMPLOYEE_CREATED": "Employé Créé",
+      "EMPLOYEE_UPDATED": "Employé Mis à Jour",
+      "EMPLOYEE_DELETED": "Employé Supprimé",
+      "EMPLOYEE_ACTIVATED": "Employé Activé",
+      "EMPLOYEE_DEACTIVATED": "Employé Désactivé",
+      "USER_LOGIN": "Connexion Utilisateur",
+      "USER_LOGOUT": "Déconnexion Utilisateur",
+      "PERMISSION_GRANTED": "Permission Accordée",
+      "PERMISSION_REVOKED": "Permission Révoquée",
+      "ROLE_ASSIGNED": "Rôle Attribué",
+      "ROLE_REMOVED": "Rôle Retiré",
+      "SETTINGS_CHANGED": "Paramètres Modifiés",
+      "PASSWORD_CHANGED": "Mot de Passe Modifié",
+      "PASSWORD_RESET": "Réinitialisation du Mot de Passe",
+      "USER_ROLE_ASSIGNED": "Rôle utilisateur attribué",
+      "USER_ROLE_REVOKED": "Rôle utilisateur retiré"
+    },
+    "justNow": "À l'instant",
+    "noResults": "Aucun résultat trouvé",
+    "noResultsDescription": "Essayez d'ajuster vos filtres pour voir plus de résultats.",
+    "unknownEvent": "Événement inconnu",
+    "unknownUser": "Utilisateur inconnu"
+  },
+  "permissions": {
+    "title": "Gestion des Permissions",
+    "subtitle": "Gérer les permissions, rôles et affectations utilisateurs",
+    "userManagement": {
+      "title": "Gestion des Utilisateurs",
+      "subtitle": "Attribuer des rôles aux utilisateurs de votre entreprise"
+    },
+    "tabs": {
+      "permissions": "Permissions",
+      "roles": "Rôles",
+      "userRoles": "Rôles Utilisateurs"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "subtitle": "Définir les permissions système",
+      "create": "Créer une Permission",
+      "edit": "Modifier la Permission",
+      "delete": "Supprimer la Permission",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette permission ?",
+      "deleteSuccess": "Permission supprimée avec succès",
+      "deleteError": "Échec de la suppression de la permission",
+      "saveSuccess": "Permission enregistrée avec succès",
+      "saveError": "Échec de l'enregistrement de la permission",
+      "name": "Nom de la Permission",
+      "namePlaceholder": "ex: READ_USERS",
+      "nameHint": "Utiliser le format UPPERCASE_SNAKE_CASE",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez ce que cette permission permet",
+      "actions": "Actions",
+      "noPermissions": "Aucune permission trouvée",
+      "loading": "Chargement des permissions..."
+    },
+    "roles": {
+      "title": "Rôles",
+      "subtitle": "Gérer les rôles et leurs permissions",
+      "create": "Créer un Rôle",
+      "edit": "Modifier le Rôle",
+      "delete": "Supprimer le Rôle",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce rôle ?",
+      "deleteSuccess": "Rôle supprimé avec succès",
+      "deleteError": "Échec de la suppression du rôle",
+      "saveSuccess": "Rôle enregistré avec succès",
+      "saveError": "Échec de l'enregistrement du rôle",
+      "name": "Nom du Rôle",
+      "namePlaceholder": "ex: Gestionnaire RH",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez les responsabilités de ce rôle",
+      "permissions": "Permissions",
+      "permissionsCount": "{{count}} permission(s)",
+      "managePermissions": "Gérer les Permissions",
+      "assignPermissions": "Attribuer des Permissions à {{roleName}}",
+      "selectPermissions": "Sélectionner des permissions",
+      "permissionsSaveSuccess": "Permissions du rôle mises à jour avec succès",
+      "permissionsSaveError": "Échec de la mise à jour des permissions du rôle",
+      "actions": "Actions",
+      "noRoles": "Aucun rôle trouvé",
+      "loading": "Chargement des rôles..."
+    },
+    "userRoles": {
+      "title": "Rôles Utilisateurs",
+      "subtitle": "Attribuer des rôles aux utilisateurs",
+      "user": "Utilisateur",
+      "email": "Email",
+      "roles": "Rôles",
+      "rolesCount": "{{count}} rôle(s)",
+      "assignRoles": "Attribuer des Rôles",
+      "manageRoles": "Gérer les Rôles pour {{userName}}",
+      "selectRoles": "Sélectionner des rôles",
+      "selectRole": "Sélectionner un rôle",
+      "noLinkedAccount": "Aucun compte utilisateur lié",
+      "noRoles": "Aucun rôle attribué",
+      "saveSuccess": "Rôles utilisateur mis à jour avec succès",
+      "saveError": "Échec de la mise à jour des rôles utilisateur",
+      "actions": "Actions",
+      "noUsers": "Aucun utilisateur trouvé",
+      "loading": "Chargement des utilisateurs..."
+    },
+    "common": {
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "close": "Fermer",
+      "confirm": "Confirmer",
+      "search": "Rechercher...",
+      "filter": "Filtrer",
+      "reset": "Réinitialiser",
+      "apply": "Appliquer"
+    }
+  },
+  "absences": {
+    "accessDenied": {
+      "title": "Accès refusé",
+      "message": "Vous n'êtes pas autorisé à accéder à cette page."
+    },
+    "myAbsences": "Mes Absences",
+    "hrTitle": "Gestion des Absences",
+    "hrSubtitle": "Gérez les demandes d'absence de tous les employés",
+    "teamTitle": "Absences de l'Équipe",
+    "teamSubtitle": "Gérez les demandes d'absence de votre équipe",
+    "hrGrant": "Accorder une Absence",
+    "subtitle": "Consultez et gérez vos demandes d'absence",
+    "requestAbsence": "Demander une Absence",
+    "declareAbsence": "Déclarer une Absence",
+    "declare": "Déclarer",
+    "employeeAbsences": "Absences de",
+    "manageEmployeeAbsences": "Gérez les demandes d'absence de cet employé",
+    "searchEmployee": "Rechercher un employé...",
+    "viewDetails": "Voir Détails",
+    "viewEmployee": "Voir Employé",
+    "detailTitle": "Détails de l'Absence",
+    "createdBy": "Créé Par",
+    "createdAt": "Créé Le",
+    "days": "jours",
+    "morning": "Matin",
+    "afternoon": "Après-midi",
+    "pending": "En Attente",
+    "pendingRequests": "Demandes en Attente",
+    "noAbsences": "Aucune absence enregistrée",
+    "noEmployees": "Aucun employé trouvé",
+    "noTeamMembers": "Aucun membre d'équipe trouvé",
+    "details": "Détails des Absences",
+    "submit": "Soumettre",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "cancel": "Annuler",
+    "approveRequest": "Approuver la Demande",
+    "rejectRequest": "Rejeter la Demande",
+    "confirmApprove": "Êtes-vous sûr de vouloir approuver cette demande d'absence ?",
+    "confirmCancel": "Êtes-vous sûr de vouloir annuler cette absence ?",
+    "cancelRequest": "Annuler la Demande",
+    "rejectionReason": "Motif de Rejet",
+    "rejectionReasonPlaceholder": "Veuillez indiquer la raison du rejet...",
+    "stats": {
+      "total": "Total Absences",
+      "pending": "En Attente",
+      "approved": "Approuvées",
+      "rejected": "Rejetées",
+      "totalDays": "Total Jours"
+    },
+    "status": {
+      "pending": "En Attente",
+      "submitted": "Soumise",
+      "approved": "Approuvée",
+      "rejected": "Rejetée",
+      "cancelled": "Annulée",
+      "expired": "Expirée"
+    },
+    "table": {
+      "employee": "Employé",
+      "date": "Date",
+      "type": "Type",
+      "startDate": "Date Début",
+      "endDate": "Date Fin",
+      "duration": "Durée",
+      "status": "Statut",
+      "reason": "Motif",
+      "totalAbsences": "Total Absences",
+      "pendingRequests": "Demandes en Attente",
+      "approvedAbsences": "Absences Approuvées",
+      "totalDays": "Total Jours"
+    },
+    "types": {
+      "annual_leave": "Congé Annuel",
+      "sick": "Maladie",
+      "maternity": "Maternité",
+      "paternity": "Paternité",
+      "unpaid": "Sans Solde",
+      "mission": "Mission",
+      "training": "Formation",
+      "justified": "Absence Justifiée",
+      "unjustified": "Absence Non Justifiée",
+      "accident_work": "Accident de Travail",
+      "exceptional": "Exceptionnelle",
+      "religious": "Religieuse"
+    },
+    "durations": {
+      "fullDay": "Journée complète",
+      "halfDay": "Demi-journée",
+      "halfDayMorning": "Demi-journée (Matin)",
+      "halfDayAfternoon": "Demi-journée (Après-midi)",
+      "hourly": "Tranche horaire"
+    },
+    "form": {
+      "date": "Date",
+      "type": "Type d'Absence",
+      "durationType": "Durée",
+      "period": "Période",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "timeRange": "Plage Horaire",
+      "startDate": "Date de Début",
+      "endDate": "Date de Fin",
+      "reason": "Motif (optionnel)",
+      "reasonPlaceholder": "Indiquez le motif de votre demande d'absence..."
+    },
+    "rejectDialog": {
+      "title": "Rejeter la demande d'absence",
+      "description": "Vous êtes sur le point de rejeter cette demande d'absence. Veuillez fournir un motif.",
+      "reason": "Motif du rejet",
+      "reasonPlaceholder": "Indiquez le motif du rejet...",
+      "hint": "Ce motif sera communiqué à l'employé.",
+      "confirm": "Rejeter"
+    },
+    "filters": {
+      "searchEmployee": "Rechercher un employé...",
+      "allTypes": "Tous les types",
+      "allDurations": "Toutes les durées"
+    }
+  },
+  "overtime": {
+    "title": "Heures Supplémentaires",
+    "subtitle": "Déclarez et gérez vos heures supplémentaires",
+    "myRequests": "Mes Demandes",
+    "declareOvertime": "Déclarer des Heures Sup",
+    "addOvertime": "Ajouter des Heures Supplémentaires",
+    "editOvertime": "Modifier des Heures Supplémentaires",
+    "noData": "Aucune heure supplémentaire enregistrée",
+    "cancel": "Annuler",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette déclaration d'heures supplémentaires ?",
+    "confirmCancel": "Êtes-vous sûr de vouloir annuler cette déclaration d'heures supplémentaires ?",
+    "table": {
+      "date": "Date",
+      "type": "Type",
+      "time": "Horaire",
+      "employee": "Employé",
+      "startTime": "Heure Début",
+      "endTime": "Heure Fin",
+      "totalHours": "Total Heures",
+      "reason": "Motif",
+      "status": "Statut"
+    },
+    "form": {
+      "date": "Date",
+      "selectDate": "Sélectionner une date",
+      "type": "Type",
+      "selectType": "Sélectionner un type",
+      "startTime": "Heure de Début",
+      "endTime": "Heure de Fin",
+      "reason": "Motif",
+      "reasonPlaceholder": "Décrivez le motif des heures supplémentaires..."
+    },
+    "type": {
+      "hourly": "Tranche Horaire",
+      "holiday": "Jour Férié"
+    },
+    "status": {
+      "all": "Toutes",
+      "submitted": "Soumise",
+      "approved": "Approuvée",
+      "rejected": "Rejetée",
+      "cancelled": "Annulée"
+    },
+    "messages": {
+      "createSuccess": "Heures supplémentaires déclarées avec succès",
+      "updateSuccess": "Heures supplémentaires mises à jour avec succès",
+      "deleteSuccess": "Heures supplémentaires supprimées avec succès",
+      "cancelSuccess": "Heures supplémentaires annulées avec succès",
+      "approved": "Heures supplémentaires approuvées avec succès",
+      "rejected": "Heures supplémentaires rejetées"
+    },
+    "errors": {
+      "loadFailed": "Échec du chargement des heures supplémentaires",
+      "createFailed": "Échec de la déclaration des heures supplémentaires",
+      "updateFailed": "Échec de la mise à jour des heures supplémentaires",
+      "deleteFailed": "Échec de la suppression des heures supplémentaires",
+      "cancelFailed": "Échec de l'annulation des heures supplémentaires",
+      "approveFailed": "Échec de l'approbation des heures supplémentaires",
+      "rejectFailed": "Échec du rejet des heures supplémentaires",
+      "noEmployee": "Aucun employé trouvé"
+    },
+    "management": {
+      "title": "Gestion des Heures Supplémentaires",
+      "subtitle": "Validez les demandes d'heures supplémentaires de vos employés",
+      "allRequests": "Toutes les Demandes",
+      "pending": "En Attente",
+      "review": "Examiner",
+      "reviewRequest": "Examiner la Demande",
+      "employeeInfo": "Informations Employé",
+      "details": "Détails des Heures Supplémentaires",
+      "comment": "Commentaire",
+      "commentPlaceholder": "Ajoutez un commentaire (optionnel pour approbation, requis pour rejet)...",
+      "approve": "Approuver",
+      "reject": "Rejeter"
+    },
+    "filters": {
+      "status": "Statut",
+      "startDate": "Date Début",
+      "endDate": "Date Fin"
+    },
+    "validation": {
+      "rejectCommentRequired": "Un commentaire est requis pour rejeter une demande"
+    }
+  },
+  "holidays": {
+    "title": "Jours Fériés",
+    "subtitle": "Gérez les jours fériés de votre entreprise",
+    "addHoliday": "Ajouter un Jour Férié",
+    "editHoliday": "Modifier un Jour Férié",
+    "createDescription": "Définir un nouveau jour férié",
+    "editDescription": "Modifier les informations du jour férié",
+    "noData": "Aucun jour férié enregistré",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce jour férié ?",
+    "filters": {
+      "year": "Année",
+      "scope": "Portée",
+      "type": "Type",
+      "status": "Statut"
+    },
+    "table": {
+      "date": "Date",
+      "name": "Nom",
+      "type": "Type",
+      "scope": "Portée",
+      "paid": "Payé",
+      "status": "Statut",
+      "title": "Liste des jours fériés",
+      "description": "Gérer les jours fériés nationaux et de l'entreprise"
+    },
+    "form": {
+      "nameFr": "Nom en Français",
+      "nameFrPlaceholder": "Ex: Fête du Travail",
+      "nameAr": "Nom en Arabe",
+      "nameArPlaceholder": "Ex: عيد العمال",
+      "nameEn": "Nom en Anglais",
+      "nameEnPlaceholder": "Ex: Labour Day",
+      "date": "Date",
+      "selectDate": "Sélectionner une date",
+      "type": "Type de Jour Férié",
+      "typePlaceholder": "Ex: National, Religieux, Entreprise",
+      "scope": "Portée",
+      "description": "Description",
+      "descriptionPlaceholder": "Description optionnelle du jour férié...",
+      "mandatory": "Obligatoire",
+      "paid": "Payé",
+      "recurring": "Récurrent",
+      "affectPayroll": "Affecte la Paie",
+      "affectAttendance": "Affecte la Présence",
+      "active": "Actif",
+      "year": "Année",
+      "yearPlaceholder": "Ex: 2026",
+      "recurrence": "Récurrence",
+      "recurrencePlaceholder": "Sélectionner la récurrence",
+      "recurrenceHint": "Choisissez si le jour férié se répète chaque année ou non."
+    },
+    "recurrence": {
+      "none": "Non récurrent",
+      "yearly": "Chaque année"
+    },
+    "scope": {
+      "all": "Tous",
+      "global": "Global",
+      "company": "Entreprise"
+    },
+    "status": {
+      "all": "Tous",
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "type": {
+      "all": "Tous"
+    },
+    "messages": {
+      "createSuccess": "Jour férié créé avec succès",
+      "updateSuccess": "Jour férié mis à jour avec succès",
+      "deleteSuccess": "Jour férié supprimé avec succès"
+    },
+    "errors": {
+      "loadFailed": "Échec du chargement des jours fériés",
+      "createFailed": "Échec de la création du jour férié",
+      "updateFailed": "Échec de la mise à jour du jour férié",
+      "deleteFailed": "Échec de la suppression du jour férié",
+      "noCompany": "Aucune entreprise sélectionnée"
+    },
+    "stats": {
+      "count": "{{count}} jour(s) férié(s)"
+    },
+    "empty": {
+      "description": "Commencez par créer votre premier jour férié."
+    }
+  },
+  "workingCalendar": {
+    "title": "Calendrier de Travail",
+    "description": "Définissez les jours et horaires de travail de votre entreprise",
+    "startTime": "Heure de Début",
+    "endTime": "Heure de Fin",
+    "nonWorkingDay": "Jour Non Travaillé",
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    "messages": {
+      "saveSuccess": "Calendrier de travail enregistré avec succès"
+    },
+    "errors": {
+      "noCompany": "Aucune entreprise sélectionnée",
+      "loadFailed": "Échec du chargement du calendrier",
+      "saveFailed": "Échec de l'enregistrement du calendrier",
+      "timesRequired": "Les heures de début et de fin sont requises pour {{day}}",
+      "invalidTimeRange": "L'heure de fin doit être après l'heure de début pour {{day}}"
+    }
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire"
+  }
+}

@@ -1,0 +1,207 @@
+<!-- Loading Skeleton -->
+@if (loading() && documents().length === 0) {
+  <div class="animate-pulse p-6">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-gray-200 rounded-xl h-48"></div>
+        <div class="bg-gray-200 rounded-xl h-64"></div>
+      </div>
+      <div class="bg-gray-200 rounded-xl h-80"></div>
+    </div>
+  </div>
+}
+
+<!-- Main Content -->
+@if (!loading() || documents().length > 0) {
+  <div class="p-4 sm:p-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Signatory & Images -->
+        <main class="lg:col-span-2 space-y-6">
+          <form [formGroup]="signatoryForm" (ngSubmit)="onSubmit()">
+            
+            <!-- Signatory Info Section -->
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6" aria-labelledby="signatory-heading">
+              <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 id="signatory-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i class="pi pi-user-edit text-blue-600"></i>
+                  {{ 'company.documents.signatoryTitle' | translate }}
+                </h2>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ 'company.documents.signatoryDesc' | translate }}
+                </p>
+              </div>
+              
+              <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label for="signatoryName" class="block mb-2 text-sm font-medium text-gray-900">
+                    {{ 'company.documents.signatoryName' | translate }}
+                    <span class="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input 
+                    pInputText 
+                    id="signatoryName" 
+                    formControlName="signatoryName" 
+                    class="w-full"
+                    [placeholder]="'company.documents.placeholders.signatoryName' | translate"
+                    [attr.aria-invalid]="isFieldInvalid('signatoryName')" />
+                  @if (isFieldInvalid('signatoryName')) {
+                    <small class="block mt-1.5 text-sm text-red-600" role="alert">
+                      <i class="pi pi-exclamation-circle mr-1"></i>
+                      {{ 'common.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
+                
+                <div>
+                  <label for="signatoryTitle" class="block mb-2 text-sm font-medium text-gray-900">
+                    {{ 'company.documents.signatoryRole' | translate }}
+                    <span class="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input 
+                    pInputText 
+                    id="signatoryTitle" 
+                    formControlName="signatoryTitle" 
+                    class="w-full"
+                    [placeholder]="'company.documents.placeholders.signatoryRole' | translate"
+                    [attr.aria-invalid]="isFieldInvalid('signatoryTitle')" />
+                  @if (isFieldInvalid('signatoryTitle')) {
+                    <small class="block mt-1.5 text-sm text-red-600" role="alert">
+                      <i class="pi pi-exclamation-circle mr-1"></i>
+                      {{ 'common.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
+              </div>
+            </section>
+
+            <!-- Official Images Section -->
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6" aria-labelledby="images-heading">
+              <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 id="images-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i class="pi pi-image text-amber-600"></i>
+                  {{ 'company.documents.officialImages' | translate }}
+                </h2>
+              </div>
+
+              <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Signature Upload -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                  <span class="font-medium text-gray-700 mb-3">{{ 'company.documents.signature' | translate }}</span>
+                  <div class="w-full h-28 bg-white border-2 border-dashed border-gray-300 rounded-lg mb-3 grid place-items-center overflow-hidden">
+                    @if (signatureUrl()) {
+                      <img [src]="signatureUrl()" class="h-full object-contain" [attr.alt]="'company.documents.signatureAlt' | translate" />
+                    } @else {
+                      <span class="text-gray-400 text-sm">{{ 'company.documents.noSignature' | translate }}</span>
+                    }
+                  </div>
+                  <p-fileUpload 
+                    mode="basic" 
+                    name="signature" 
+                    accept="image/*" 
+                    [maxFileSize]="1000000" 
+                    [customUpload]="true"
+                    (uploadHandler)="onUploadSignature($event)"
+                    [auto]="true"
+                    [chooseLabel]="'common.upload' | translate"
+                    styleClass="p-button-sm p-button-outlined">
+                  </p-fileUpload>
+                </div>
+
+                <!-- Stamp Upload -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                  <span class="font-medium text-gray-700 mb-3">{{ 'company.documents.stamp' | translate }}</span>
+                  <div class="w-full h-28 bg-white border-2 border-dashed border-gray-300 rounded-lg mb-3 grid place-items-center overflow-hidden">
+                    @if (stampUrl()) {
+                      <img [src]="stampUrl()" class="h-full object-contain" [attr.alt]="'company.documents.stampAlt' | translate" />
+                    } @else {
+                      <span class="text-gray-400 text-sm">{{ 'company.documents.noStamp' | translate }}</span>
+                    }
+                  </div>
+                  <p-fileUpload 
+                    mode="basic" 
+                    name="stamp" 
+                    accept="image/*" 
+                    [maxFileSize]="1000000" 
+                    [customUpload]="true"
+                    (uploadHandler)="onUploadStamp($event)"
+                    [auto]="true"
+                    [chooseLabel]="'common.upload' | translate"
+                    styleClass="p-button-sm p-button-outlined">
+                  </p-fileUpload>
+                </div>
+              </div>
+            </section>
+
+            <!-- Save Button -->
+            <div class="flex justify-end">
+              <p-button 
+                type="submit" 
+                [label]="'common.save' | translate" 
+                [loading]="loading()" 
+                [disabled]="loading()"
+                icon="pi pi-check">
+              </p-button>
+            </div>
+          </form>
+        </main>
+
+        <!-- Right Column: Documents List -->
+        <aside class="lg:col-span-1">
+          <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="docs-heading">
+            <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+              <h2 id="docs-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="pi pi-folder-open text-green-600"></i>
+                {{ 'company.documents.otherDocs' | translate }}
+              </h2>
+            </div>
+            
+            <div class="divide-y divide-gray-100">
+              @for (doc of documents(); track doc.type) {
+                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="shrink-0 size-9 rounded-lg grid place-items-center" 
+                         [class]="doc.status === 'uploaded' ? 'bg-green-100' : 'bg-gray-100'">
+                      <i class="pi" 
+                         [class]="doc.status === 'uploaded' ? 'pi-file-pdf text-red-500' : 'pi-file text-gray-400'"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-gray-900 truncate">{{ doc.name | translate }}</div>
+                      @if (doc.date) {
+                        <div class="text-xs text-gray-500">{{ doc.date | date:'mediumDate' }}</div>
+                      } @else {
+                        <div class="text-xs text-amber-600">{{ 'common.missing' | translate }}</div>
+                      }
+                    </div>
+                  </div>
+                  @if (doc.status === 'uploaded') {
+                    <button 
+                      pButton 
+                      icon="pi pi-download" 
+                      class="p-button-text p-button-rounded p-button-sm"
+                      [attr.aria-label]="'common.download' | translate">
+                    </button>
+                  } @else {
+                    <button 
+                      pButton 
+                      icon="pi pi-upload" 
+                      class="p-button-text p-button-rounded p-button-sm text-blue-600"
+                      [attr.aria-label]="'common.upload' | translate">
+                    </button>
+                  }
+                </div>
+              } @empty {
+                <div class="p-6 text-center text-gray-500 text-sm">
+                  {{ 'common.noData' | translate }}
+                </div>
+              }
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+}
+
+<p-toast />

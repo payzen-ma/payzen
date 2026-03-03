@@ -1,0 +1,120 @@
+<div class="min-h-screen flex items-center justify-center bg-linear-to-tl to-white from-(--bg-page)">
+  <div class="w-full max-w-md">
+    <!-- Login Form -->
+    <p-card class="card">
+      <div class="p-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <div class="flex items-center justify-center mb-4">
+            <div class="bg-(--primary) text-gray-50 rounded-md text-2xl font-bold px-4 py-2 ">
+              PayZen
+            </div>
+          </div>
+          <h1 class="text-3xl text-(--primary) font-bold mb-2">{{ 'auth.login.welcome' | translate }}</h1>
+          <p class="text-sm text-(--text-secondary) mt-2">{{ 'auth.login.subtitle' | translate }}</p>
+
+        </div>
+
+        <!-- Error Message -->
+        @if (error()) {
+          <p role="alert" aria-live="assertive" class="w-full mb-4 alert alert-error flex items-center gap-2">
+            <span class="pi pi-times-circle text-lg" aria-hidden="true"></span>
+            <span class="leading-snug">{{ error() }}</span>
+          </p>
+        }
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Email -->
+          <div variant="on" class="form-group">
+            <label for="email" class="block text-sm text-(--text-primary) mb-2 after:text-red-500 after:content-['*']">
+              {{ 'auth.login.emailAddress' | translate }}
+            </label>
+            <input 
+              pInputText 
+              id="email"
+              formControlName="email"
+              type="email"
+              autocomplete="email"
+              [placeholder]="'auth.login.emailPlaceholder' | translate"
+              class="w-full input focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary) transition-shadow"
+              [class.border-(--danger)]="emailControl?.invalid && emailControl?.touched"
+              [class.border-(--success)]="emailControl?.valid"
+              [attr.aria-invalid]="emailControl?.invalid && emailControl?.touched"
+              [attr.aria-describedby]="emailControl?.invalid && emailControl?.touched ? 'email-error' : null"
+            />
+            @if (emailControl?.invalid && emailControl?.touched) {
+              <small id="email-error" role="alert" class="text-(--danger) mt-1 block">
+                @if (emailControl?.hasError('required')) {
+                  {{ 'auth.login.emailRequired' | translate }}
+                }
+                @if (emailControl?.hasError('email')) {
+                  {{ 'auth.login.emailInvalid' | translate }}
+                }
+              </small>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password" class="block text-sm text-(--text-primary) mb-2 after:text-red-500 after:content-['*']">
+              {{ 'auth.login.password' | translate }}
+            </label>
+            
+            <div class="relative">
+              <input 
+                pInputText
+                [type]="showPassword() ? 'text' : 'password'"
+                id="password"
+                formControlName="password"
+                autocomplete="current-password"
+                [placeholder]="'auth.login.passwordPlaceholder' | translate"
+                class="w-full input pr-10 focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary) transition-shadow"
+                [class.border-(--danger)]="passwordControl?.invalid && passwordControl?.touched"
+                [class.border-(--success)]="passwordControl?.valid"
+                [attr.aria-invalid]="passwordControl?.invalid && passwordControl?.touched"
+                [attr.aria-describedby]="passwordControl?.invalid && passwordControl?.touched ? 'password-error' : null"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="absolute inset-y-0 end-0 flex items-center pe-3 text-(--text-secondary) hover:text-(--text-primary) transition-colors focus:outline-none focus-visible:text-(--primary)"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                aria-controls="password"
+              >
+                <i [class]="showPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+            @if (passwordControl?.invalid && passwordControl?.touched) {
+              <small id="password-error" role="alert" class="text-(--danger) mt-1 block">
+                @if (passwordControl?.hasError('required')) {
+                  {{ 'auth.login.passwordRequired' | translate }}
+                }
+                @if (passwordControl?.hasError('minlength')) {
+                  {{ 'auth.login.passwordMinLength' | translate }}
+                }
+              </small>
+            }
+          </div>
+
+          <!-- Forgot Password -->
+          <div class="flex justify-end">
+            <a href="#" class="text-sm text-(--primary) hover:text-(--primary-hover)">
+              {{ 'auth.login.forgotPassword' | translate }}
+            </a>
+          </div>
+
+          <!-- Submit Button -->
+          <p-button 
+            type="submit"
+            [label]="'auth.login.submit' | translate"
+            [loading]="isLoading()"
+            [disabled]="loginForm.invalid"
+            styleClass="w-full btn btn-primary"
+            size="large"
+          />
+        </form>
+      </div>
+    </p-card>
+  </div>
+</div>

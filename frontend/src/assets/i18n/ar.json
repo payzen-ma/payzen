@@ -1,0 +1,1865 @@
+{
+  "app": {
+    "name": "PayZen",
+    "country": "المغرب"
+  },
+  "nav": {
+    "mainMenu": "القائمة الرئيسية",
+    "dashboard": "لوحة القيادة",
+    "company": "الشركة",
+    "companySettings": "إعدادات الشركة",
+    "appSettings": "إعدادات التطبيق",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "myProfile": "ملفي الشخصي",
+    "management": "الإدارة",
+    "switchCompany": "تغيير الشركة",
+    "support": "الدعم",
+    "help": "المساعدة والوثائق",
+    "signedInAs": "تم تسجيل الدخول باسم",
+    "employees": "الموظفون",
+    "payroll": "الرواتب",
+    "reports": "التقارير",
+    "permissions": "الصلاحيات",
+    "userManagement": "إدارة المستخدمين",
+    "backToPortfolio": "العودة إلى المحفظة",
+    "portfolio": "المحفظة",
+    "leave": "الإجازات",
+    "absences": "الغيابات",
+    "attendanceReport": "تقرير الحضور",
+    "overtime": "ساعات إضافية",
+    "overtimeManagement": "الموافقة على الساعات الإضافية",
+    "holidays": "أيام العطل",
+    "salaryPackages": "حزم الرواتب"
+  },
+  "expert": {
+    "activeClient": "العميل الحالي",
+    "switchClient": "تغيير العميل",
+    "selectClient": "اختر شركة",
+    "portfolioView": "نظرة عامة على جميع العملاء",
+    "myCabinet": "مكتبي",
+    "clientManagement": "إدارة العملاء",
+    "viewingClient": "عرض العميل",
+    "viewingCabinet": "عرض المكتب",
+    "noClientSelected": "مكتبي",
+    "selectCompanyFirst": "يرجى اختيار شركة أولاً",
+    "selectCompanyRequired": "مطلوب اختيار شركة",
+    "selectCompanyMessage": "تحتاج إلى اختيار شركة للوصول إلى هذا القسم.",
+    "useHeaderDropdown": "استخدم القائمة المنسدلة للشركة في الرأس لاختيار عميل.",
+    "modeLabel": "خبير محاسب",
+    "modeDescription": "أنت حاليا في وضع الخبير",
+    "dashboard": {
+      "title": "لوحة تحكم الخبير",
+      "subtitle": "نظرة عامة على مكتبك وعملائك",
+      "newClient": "عميل جديد",
+      "totalClients": "إجمالي العملاء",
+      "totalEmployees": "إجمالي الموظفين",
+      "pendingLeaves": "طلبات الإجازة المعلقة",
+      "recentActivity": "النشاط الأخير",
+      "viewAll": "عرض الكل",
+      "backToPortfolio": "العودة إلى المحفظة"
+    }
+  },
+  "attendance": {
+    "title": "حضوري",
+    "subtitle": "تتبع ساعات عملك وحضورك",
+    "date": "التاريخ",
+    "refresh": "تحديث",
+    "checkIn": "تسجيل الدخول",
+    "checkOut": "تسجيل الخروج",
+    "status": "الحالة",
+    "timeIn": "وقت الدخول",
+    "timeOut": "وقت الخروج",
+    "duration": "المدة",
+    "employee": "الموظف",
+    "noRecords": "لم يتم العثور على سجلات حضور",
+    "todayStatus": "حالة اليوم",
+    "notCheckedIn": "لم يتم تسجيل الدخول بعد",
+    "checkedIn": "تم تسجيل الدخول",
+    "checkedOut": "تم تسجيل الخروج",
+    "checkInSuccess": "تم تسجيل الدخول بنجاح",
+    "checkOutSuccess": "تم تسجيل الخروج بنجاح",
+    "alreadyCheckedIn": "لقد قمت بتسجيل الدخول اليوم بالفعل",
+    "alreadyCheckedOut": "لقد قمت بتسجيل الخروج اليوم بالفعل",
+    "history": "سجل الحضور",
+    "report": "تقرير الحضور",
+    "thisWeek": "هذا الأسبوع",
+    "thisMonth": "هذا الشهر",
+    "present": "حاضر",
+    "absent": "غائب",
+    "late": "متأخر",
+    "currentStatus": "الحالة الحالية",
+    "startBreak": "بدء الاستراحة",
+    "endBreak": "إنهاء الاستراحة",
+    "breaks": "الاستراحات",
+    "todayBreaks": "استراحات اليوم",
+    "noBreaks": "لا توجد استراحات مسجلة",
+    "breakMinutesApplied": "دقائق الاستراحة المطبقة",
+    "ongoing": "جارية"
+  },
+  "attendanceReport": {
+    "title": "تقرير الحضور",
+    "subtitle": "إنشاء ملخص الحضور لجميع الموظفين",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "generate": "إنشاء",
+    "employee": "الموظف",
+    "position": "المنصب",
+    "department": "القسم",
+    "totalWorked": "إجمالي العمل",
+    "totalWorkedDays": "إجمالي أيام العمل"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "personalSettings": "الإعدادات الشخصية",
+    "appSettings": "إعدادات التطبيق",
+    "personalInfo": "المعلومات الشخصية",
+    "personalInfoDesc": "قم بإدارة تفاصيلك الشخصية وكلمة المرور ومعلومات الاتصال هنا.",
+    "appPreferences": "تفضيلات التطبيق",
+    "appPreferencesDesc": "خصص تجربة التطبيق والإشعارات وإعدادات العرض.",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "theme": "المظهر",
+    "comingSoon": "قريباً"
+  },
+  "dashboard": {
+    "title": "لوحة القيادة",
+    "subtitle": "إدارة الرواتب",
+    "newCompany": "شركة جديدة",
+    "vsLastMonth": "مقارنة بالشهر الماضي",
+    "charts": {
+      "payrollEvolution": "تطور كتلة الأجور",
+      "trend6Months": "الاتجاه خلال 6 أشهر الماضية",
+      "employeeDistribution": "توزيع الموظفين",
+      "byContractType": "حسب نوع العقد"
+    },
+    "recentPayslips": {
+      "title": "قسائم الراتب الأخيرة",
+      "subtitle": "مستندات الرواتب الأخيرة"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "generatePayroll": "إنشاء كشف الرواتب",
+      "addEmployee": "إضافة موظف",
+      "viewReports": "عرض التقارير",
+      "companySettings": "إعدادات الشركة"
+    },
+    "metrics": {
+      "totalEmployees": "إجمالي الموظفين",
+      "payrollMass": "كتلة الأجور",
+      "pendingPayrolls": "رواتب معلقة"
+    },
+    "status": {
+      "paid": "مدفوع",
+      "pending": "قيد الانتظار"
+    }
+  },
+  "company": {
+    "title": "إعدادات الشركة",
+    "subtitle": "إدارة معلومات وإعدادات شركتك",
+    "status": {
+      "active": "نشط",
+      "pending": "قيد الانتظار",
+      "inactive": "غير نشط",
+      "ACTIVE": "نشط",
+      "PENDING": "قيد الانتظار",
+      "INACTIVE": "غير نشط"
+    },
+    "active": "نشط",
+    "tabs": {
+      "info": "الهوية والقانونية",
+      "hrSettings": "إعدادات الرواتب",
+      "documents": "الموقعون والوثائق",
+      "users": "المديرون والوصول",
+      "departments": "الأقسام",
+      "jobPositions": "المناصب الوظيفية",
+      "contractTypes": "أنواع العقود",
+      "employeeCategories": "فئات الموظفين",
+      "holidays": "أيام العطل",
+      "workingCalendar": "تقويم العمل",
+      "referenceData": "البيانات المرجعية",
+      "history": "السجل"
+    },
+    "info": {
+      "title": "معلومات الشركة",
+      "subtitle": "إدارة المعلومات القانونية ومعلومات الاتصال الخاصة بشركتك",
+      "bannerTitle": "المعلومات القانونية مقفلة",
+      "bannerDescription": "تتم إدارة بعض المعلومات بواسطة دعم PayZen. اتصل بنا لتحديث هويتك القانونية.",
+      "legalEntity": "الكيان القانوني",
+      "operationalDetails": "التفاصيل التشغيلية",
+      "viewAuditLog": "عرض سجل التدقيق",
+      "generalInfo": "معلومات عامة",
+      "raisonSociale": "الاسم القانوني",
+      "ice": "ICE",
+      "identifiantFiscal": "المعرف الضريبي",
+      "rc": "السجل التجاري",
+      "patente": "الضريبة المهنية",
+      "legalForm": "الشكل القانوني",
+      "cnss": "رقم الانخراط CNSS",
+      "rib": "الحساب البنكي الرئيسي (RIB)",
+      "address": "العنوان",
+      "city": "المدينة",
+      "email": "البريد الإلكتروني الرسمي",
+      "phone": "رقم الهاتف",
+      "website": "الموقع الإلكتروني",
+      "contact": "جهة الاتصال",
+      "accountingFirm": "مكتب المحاسبة",
+      "associatedFirm": "المكتب المرتبط",
+      "noFirmAssociated": "لا يوجد مكتب مرتبط",
+      "associateFirmHint": "اربط مكتب محاسبة لمنحهم حق الوصول إلى بيانات الرواتب",
+      "associate": "ربط",
+      "managedByBackoffice": "يديره النظام الخلفي",
+      "changeLogo": "تغيير الشعار",
+      "operationalDetailsDesc": "قم بتحديث معلومات الاتصال والتشغيل المستخدمة في الأجور والتواصل.",
+      "logoAlt": "شعار الشركة",
+      "messages": {
+        "loadError": "Failed to load company information",
+        "logoUpdated": "Logo updated successfully",
+        "logoUpdateError": "Failed to update logo",
+        "fieldUpdated": "Field updated successfully",
+        "fieldUpdateError": "Failed to update field"
+      }
+    },
+    "hrSettings": {
+      "title": "إعدادات الموارد البشرية",
+      "workingSchedule": "جدول العمل",
+      "workingScheduleDesc": "قم بتحديد أسبوع العمل القياسي وساعات العمل اليومية للشركة.",
+      "workingDays": "أيام العمل",
+      "workingDaysHint": "اختر أيام العمل القياسية لشركتك.",
+      "standardHoursPerDay": "ساعات العمل القياسية في اليوم",
+      "standardHoursHint": "تستخدم لحساب المعدلات اليومية والعمل الإضافي (مثال: 8 ساعات/يوم).",
+      "workingCalendarNotice": {
+        "title": "تكوين تقويم العمل",
+        "description": "أيام وساعات العمل تُدار الآن في علامة تبويب تقويم العمل. يمكنك تحديد ساعات محددة لكل يوم من أيام الأسبوع.",
+        "link": "تكوين تقويم العمل"
+      },
+      "leaveRules": "قواعد الإجازة",
+      "leaveRulesDesc": "قم بتكوين كيفية استحقاق وحساب الإجازة السنوية.",
+      "leaveRate": "معدل استحقاق الإجازة",
+      "leaveRateHint": "يحدد عدد الأيام التي يكتسبها الموظفون شهريًا (القانون المغربي: 1.5 يوم/شهر).",
+      "includeSaturdays": "تضمين أيام السبت في حساب الإجازة؟",
+      "saturdaysHint": "عند حساب مدة الإجازة، هل يجب احتساب أيام السبت كأيام عمل؟",
+      "salaryPayment": "الراتب والدفع",
+      "salaryPaymentDesc": "حدد تفضيلات الدفع الافتراضية لمعالجة الرواتب.",
+      "paymentMode": "طريقة الدفع الافتراضية",
+      "rib": "الحساب البنكي الرئيسي (RIB)",
+      "ribPlaceholder": "أدخل رقم RIB المكون من 24 رقمًا",
+      "ribHint": "الحساب البنكي الرئيسي للشركة لتحويلات الرواتب (24 رقمًا).",
+      "workingHours": "ساعات العمل",
+      "day": "اليوم",
+      "startTime": "وقت البداية",
+      "endTime": "وقت الانتهاء",
+      "workingHoursHint": "أدخل ساعات البداية والنهاية (صيغة 0-23). مثال: البداية 9، النهاية 17 من الساعة 9 صباحًا إلى 5 مساءً.",
+      "hoursPerWeek": "ساعة/أسبوع",
+      "helpTitle": "دليل تكوين الموارد البشرية",
+      "helpDescription": "قم بتكوين معايير الموارد البشرية الأساسية التي تؤثر على حسابات الرواتب وإدارة الإجازات والامتثال.",
+      "helpPoint1": "تحدد أيام وساعات العمل حسابات الساعات الإضافية والمعدلات اليومية.",
+      "helpPoint2": "يؤثر معدل استحقاق الإجازة على كيفية اكتساب أيام الإجازة (1.5 يوم/شهر هو المعيار في المغرب).",
+      "helpPoint3": "تحدد إعدادات الدفع القيم الافتراضية للموظفين الجدد ومعالجة الرواتب.",
+      "leaveCalculation": "طريقة حساب الإجازة",
+      "absenceCalculation": "طريقة حساب الغياب",
+      "formErrors": "يرجى تصحيح الأخطاء التالية:",
+      "saveNote": "ستنطبق التغييرات على حسابات الرواتب المستقبلية فقط.",
+      "payrollSetup": "إعداد الرواتب",
+      "currency": "العملة",
+      "paymentFrequency": "دورية الدفع",
+      "fiscalYearStartMonth": "السنة المالية (شهر البداية)",
+      "paymentModeEmployees": "طريقة دفع الرواتب",
+      "advancedSettings": "الإعدادات المتقدمة",
+      "sector": "القطاع / النشاط",
+      "collectiveAgreement": "الاتفاقية الجماعية",
+      "collectiveAgreementHint": "إن وجدت",
+      "collectiveAgreementPlaceholder": "مثال: الاتفاقية الجماعية الوطنية للتجارة",
+      "cnssSpecificParams": "معاملات CNSS الخاصة",
+      "cnssSpecificParamsHint": "إن وجدت",
+      "cnssSpecificParamsPlaceholder": "معاملات CNSS خاصة لهذه الشركة",
+      "irSpecificParams": "معاملات IR الخاصة",
+      "irSpecificParamsHint": "إن وجدت",
+      "irSpecificParamsPlaceholder": "معاملات IR خاصة لهذه الشركة",
+      "selectPaymentMode": "اختر طريقة الدفع",
+      "selectSector": "اختر القطاع",
+      "currencies": {
+        "mad": "MAD - الدرهم المغربي",
+        "eur": "EUR - اليورو",
+        "usd": "USD - الدولار الأمريكي"
+      },
+      "frequencies": {
+        "monthly": "شهرية",
+        "bimonthly": "نصف شهرية",
+        "weekly": "أسبوعية"
+      },
+      "months": {
+        "january": "يناير",
+        "february": "فبراير",
+        "march": "مارس",
+        "april": "أبريل",
+        "may": "مايو",
+        "june": "يونيو",
+        "july": "يوليو",
+        "august": "أغسطس",
+        "september": "سبتمبر",
+        "october": "أكتوبر",
+        "november": "نوفمبر",
+        "december": "ديسمبر"
+      },
+      "paymentModes": {
+        "bankTransfer": "تحويل بنكي",
+        "check": "شيك",
+        "cash": "نقدًا"
+      },
+      "sectors": {
+        "agriculture": "الزراعة",
+        "industry": "الصناعة",
+        "commerce": "التجارة",
+        "services": "الخدمات",
+        "tech": "التكنولوجيا",
+        "construction": "البناء",
+        "transport": "النقل",
+        "tourism": "السياحة",
+        "health": "الصحة",
+        "education": "التعليم",
+        "finance": "المالية",
+        "other": "أخرى"
+      },
+      "errors": {
+        "workingDaysRequired": "يرجى تحديد يوم عمل واحد على الأقل.",
+        "hoursInvalid": "يجب أن تكون ساعات اليوم بين 0 و 24.",
+        "ribInvalid": "يجب أن يكون RIB بالضبط 24 رقمًا.",
+        "currencyRequired": "العملة مطلوبة",
+        "paymentFrequencyRequired": "دورية الدفع مطلوبة",
+        "fiscalYearRequired": "شهر بداية السنة المالية مطلوب"
+      },
+      "daysShort": {
+        "monday": "الإثنين",
+        "tuesday": "الثلاثاء",
+        "wednesday": "الأربعاء",
+        "thursday": "الخميس",
+        "friday": "الجمعة",
+        "saturday": "السبت",
+        "sunday": "الأحد"
+      },
+      "leaveRateOptions": {
+        "standard": "قياسي (1.5 يوم / شهر)",
+        "extended": "موسع (2 يوم / شهر)"
+      },
+      "messages": {
+        "validationError": "Please fix the errors in the form before saving",
+        "saveSuccess": "HR settings saved successfully",
+        "saveError": "Failed to save HR settings",
+        "changesDiscarded": "Unsaved changes were discarded"
+      }
+    },
+    "users": {
+      "title": "إدارة المستخدمين",
+      "subtitle": "إدارة من يمكنه الوصول إلى ملف تعريف الشركة هذا.",
+      "manageRole": "إدارة الدور",
+      "assignRole": {
+        "title": "إدارة الدور",
+        "subtitle": "تعيين دور للمستخدم المحدد",
+        "userLabel": "المستخدم",
+        "roleLabel": "الدور",
+        "selectRolePlaceholder": "اختر دورًا",
+        "assign": "تعيين الدور"
+      },
+      "invite": "إضافة مستخدم",
+      "sendInvite": "إنشاء الحساب",
+      "inviteSuccess": "تم إنشاء حساب المستخدم",
+      "inviteSentTo": "تم إنشاء حساب مستخدم لـ {{name}}",
+      "changeRole": "تغيير الدور",
+      "remove": "إزالة",
+      "table": {
+        "user": "المستخدم",
+        "email": "البريد الإلكتروني",
+        "role": "الدور",
+        "status": "الحالة",
+        "actions": "إجراءات",
+        "description": "إدارة وصول المستخدمين وصلاحياتهم"
+      },
+      "actions": {
+        "edit": "تعديل المستخدم",
+        "activate": "تفعيل",
+        "deactivate": "إلغاء التفعيل",
+        "remove": "إزالة المستخدم"
+      },
+      "inviteDialog": {
+        "title": "إنشاء حساب مستخدم",
+        "selectEmployee": "اختر موظفًا",
+        "selectEmployeePlaceholder": "ابحث أو اختر موظفًا...",
+        "noAvailableEmployees": "جميع الموظفين لديهم حسابات مستخدمين بالفعل.",
+        "email": "عنوان البريد الإلكتروني",
+        "role": "تعيين الدور",
+        "selectRole": "اختر دورًا",
+        "hint": "سيتم إنشاء حساب مستخدم للموظف المحدد.",
+        "subtitle": "منح موظف صلاحية الوصول إلى المنصة",
+        "footerInfo": "سيتلقى المستخدم بيانات الدخول عبر البريد الإلكتروني."
+      },
+      "stats": {
+        "count": "{{count}} مستخدم"
+      },
+      "searchPlaceholder": "ابحث عن المستخدمين...",
+      "empty": {
+        "title": "لا يوجد مستخدمون",
+        "description": "ادعُ الموظفين وعيّن لهم أدوار الوصول."
+      },
+      "footer": {
+        "showing": "عرض {{count}} مستخدم",
+        "lastUpdated": "آخر تحديث"
+      },
+      "messages": {
+        "loadRolesError": "Failed to load available roles",
+        "employeeIdMissing": "Employee identifier is missing",
+        "noRoleSelected": "Select at least one role",
+        "rolesUpdated": "User role(s) updated successfully",
+        "selectEmployee": "Select an employee before continuing",
+        "inviteError": "Failed to create user account",
+        "companyNotSelected": "No company selected",
+        "loadEmployeesError": "Failed to load employees",
+        "notImplementedTitle": "Not implemented",
+        "notImplemented": "This action is not implemented yet.",
+        "userRemoved": "User {{name}} was removed",
+        "removeUserError": "Failed to remove user"
+      }
+    },
+    "documents": {
+      "title": "مستندات الشركة",
+      "subtitle": "إدارة المستندات الرسمية لشركتك",
+      "signatoryTitle": "معلومات الموقع",
+      "signatorySubtitle": "الشخص المخول بتوقيع مستندات الشركة الرسمية",
+      "signatoryName": "اسم الموقع",
+      "signatoryRole": "منصب الموقع",
+      "officialImages": "الصور الرسمية",
+      "signature": "التوقيع الممسوح ضوئيًا",
+      "noSignature": "لم يتم تحميل أي توقيع",
+      "stamp": "ختم الشركة (Cachet)",
+      "noStamp": "لم يتم تحميل أي ختم",
+      "otherDocs": "مستندات أخرى",
+      "previousVersions": "الإصدارات السابقة",
+      "name": "اسم المستند",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "uploadTitle": "تحميل مستند",
+      "selectPdf": "اختيار PDF",
+      "uploadHint": "الحجم الأقصى: 5 ميغابايت. التنسيق المدعوم: PDF.",
+      "uploadImageHint": "PNG أو JPG، الحد الأقصى 2 ميغابايت",
+      "saveSignatory": "حفظ التغييرات",
+      "cnss_attestation": "شهادة CNSS",
+      "amo": "شهادة AMO",
+      "signatoryDesc": "الشخص المخول بتوقيع الوثائق الرسمية للشركة.",
+      "placeholders": {
+        "signatoryName": "مثال: السيد المدير العام",
+        "signatoryRole": "مثال: المدير التنفيذي"
+      },
+      "signatureAlt": "التوقيع",
+      "stampAlt": "الختم",
+      "messages": {
+        "loadError": "Failed to load company documents",
+        "signatureUploaded": "Signature uploaded successfully",
+        "stampUploaded": "Stamp uploaded successfully",
+        "signatorySaved": "Signatory information saved successfully",
+        "documentUploaded": "Document uploaded successfully",
+        "signatureRemoved": "Signature removed",
+        "stampRemoved": "Stamp removed"
+      }
+    },
+    "history": {
+      "title": "سجل الشركة",
+      "modifiedBy": "بواسطة",
+      "noHistory": "لا يوجد سجل بعد",
+      "noHistoryDescription": "ستظهر التغييرات على إعدادات شركتك هنا.",
+      "loadError": "فشل تحميل السجل",
+      "noCompanySelected": "حدد شركة لعرض السجل."
+    },
+    "departments": {
+      "title": "الأقسام",
+      "subtitle": "إدارة أقسام الشركة",
+      "add": "إضافة قسم",
+      "edit": "تعديل القسم",
+      "create": "إنشاء قسم",
+      "editDescription": "تحديث معلومات القسم",
+      "createDescription": "إضافة قسم جديد إلى مؤسستك",
+      "nameHint": "أدخل اسمًا وصفيًا لهذا القسم",
+      "examples": "اقتراحات سريعة",
+      "footerInfo": "الحقول المطلوبة مميزة بـ *",
+      "table": {
+        "name": "اسم القسم",
+        "description": "نظم هيكل الشركة عبر الأقسام"
+      },
+      "fields": {
+        "name": "اسم القسم"
+      },
+      "placeholders": {
+        "name": "مثال: الموارد البشرية"
+      },
+      "stats": {
+        "count": "{{count}} قسم"
+      },
+      "searchPlaceholder": "ابحث عن الأقسام...",
+      "empty": {
+        "title": "لا توجد أقسام",
+        "description": "أنشئ أول قسم لتنظيم الفرق."
+      },
+      "itemMeta": "قسم",
+      "footer": {
+        "showing": "عرض {{count}} قسم",
+        "lastUpdated": "آخر تحديث"
+      },
+      "deleteConfirm": "Are you sure you want to delete this department? This action cannot be undone.",
+      "messages": {
+        "loadError": "Failed to load departments",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Department updated successfully",
+        "createSuccess": "Department created successfully",
+        "deleteSuccess": "Department deleted successfully",
+        "alreadyExists": "This department already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Department not found"
+      }
+    },
+    "jobPositions": {
+      "title": "المناصب الوظيفية",
+      "subtitle": "إدارة المناصب الوظيفية للشركة",
+      "add": "إضافة منصب",
+      "edit": "تعديل المنصب",
+      "create": "إنشاء منصب",
+      "editDescription": "تحديث تفاصيل المنصب الوظيفي",
+      "createDescription": "إضافة منصب وظيفي جديد إلى مؤسستك",
+      "nameHint": "أدخل عنوان المنصب (مثال: مهندس برمجيات، مدير موارد بشرية)",
+      "examples": "أمثلة شائعة",
+      "footerInfo": "يستخدم لتصنيف أدوار الموظفين",
+      "table": {
+        "name": "اسم المنصب",
+        "description": "حدد المناصب المتاحة في مؤسستك"
+      },
+      "fields": {
+        "name": "اسم المنصب"
+      },
+      "placeholders": {
+        "name": "مثال: مهندس برمجيات"
+      },
+      "stats": {
+        "count": "{{count}} منصب"
+      },
+      "searchPlaceholder": "ابحث عن المناصب...",
+      "empty": {
+        "title": "لا توجد مناصب",
+        "description": "أنشئ أول منصب لتنظيم الأدوار."
+      },
+      "itemMeta": "منصب",
+      "custom": "مخصص",
+      "system": "النظام",
+      "footer": {
+        "showing": "عرض {{count}} منصب",
+        "lastUpdated": "آخر تحديث"
+      },
+      "deleteConfirm": "Are you sure you want to delete this job position? This action cannot be undone.",
+      "messages": {
+        "loadError": "Failed to load job positions",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Job position updated successfully",
+        "createSuccess": "Job position created successfully",
+        "deleteSuccess": "Job position deleted successfully",
+        "alreadyExists": "This job position already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Job position not found"
+      }
+    },
+    "contractTypes": {
+      "title": "أنواع العقود",
+      "subtitle": "إدارة أنواع العقود للشركة",
+      "add": "إضافة نوع عقد",
+      "edit": "تعديل نوع العقد",
+      "create": "إنشاء نوع عقد",
+      "editDescription": "تحديث تفاصيل نوع العقد",
+      "createDescription": "إضافة نوع عقد جديد لاتفاقيات التوظيف",
+      "nameHint": "أدخل اسم نوع العقد (مثال: دوام كامل، دوام جزئي)",
+      "examples": "أمثلة شائعة",
+      "footerInfo": "يحدد فئات اتفاقيات التوظيف",
+      "deleteConfirm": "هل أنت متأكد من حذف نوع العقد هذا؟ لا يمكن التراجع عن هذا الإجراء.",
+      "table": {
+        "name": "اسم نوع العقد",
+        "description": "حدد أنواع العقود المستخدمة في الشركة"
+      },
+      "fields": {
+        "name": "اسم نوع العقد",
+        "legalContractType": "النوع القانوني للعقد",
+        "stateEmploymentProgram": "برنامج تشغيل الدولة"
+      },
+      "placeholders": {
+        "name": "مثال: عقد دائم، عقد محدد المدة، تدريب",
+        "legalContractType": "اختر النوع القانوني",
+        "stateEmploymentProgram": "اختر برنامج التشغيل"
+      },
+      "stats": {
+        "count": "{{count}} نوع عقد"
+      },
+      "searchPlaceholder": "ابحث عن أنواع العقود...",
+      "empty": {
+        "title": "لا توجد أنواع عقود",
+        "description": "أنشئ أول نوع عقد."
+      },
+      "itemMeta": "نوع العقد",
+      "custom": "مخصص",
+      "system": "النظام",
+      "footer": {
+        "showing": "عرض {{count}} نوع عقد",
+        "lastUpdated": "آخر تحديث"
+      },
+      "hints": {
+        "legalContractType": "اختر التصنيف القانوني لهذا النوع من العقود.",
+        "stateEmploymentProgram": "يمكن ربط برنامج دعم التشغيل الحكومي اختياريًا."
+      },
+      "messages": {
+        "loadError": "Failed to load contract types",
+        "companyIdMissing": "No company selected",
+        "updateSuccess": "Contract type updated successfully",
+        "createSuccess": "Contract type created successfully",
+        "deleteSuccess": "Contract type deleted successfully",
+        "alreadyExists": "This contract type already exists",
+        "invalidRequest": "Invalid request. Please verify the entered data.",
+        "accessDenied": "Access denied for this operation",
+        "notFound": "Contract type not found"
+      }
+    },
+    "employeeCategories": {
+      "title": "فئات الموظفين",
+      "subtitle": "إدارة فئات تصنيف الموظفين",
+      "createTitle": "إنشاء فئة",
+      "editTitle": "تعديل الفئة",
+      "add": "إضافة فئة",
+      "edit": "تعديل الفئة",
+      "create": "إنشاء فئة",
+      "editDescription": "تحديث تفاصيل فئة الموظف",
+      "createDescription": "إضافة فئة جديدة لتصنيف الموظفين",
+      "nameHint": "أدخل اسم الفئة (مثال: مدير، تنفيذي، متدرب)",
+      "descriptionHint": "وصف اختياري لهذه الفئة",
+      "examples": "أمثلة شائعة",
+      "footerInfo": "تساعد الفئات في تنظيم وتصنيف الموظفين",
+      "deleteConfirm": "هل أنت متأكد من حذف فئة الموظف هذه؟ لا يمكن التراجع عن هذا الإجراء.",
+      "noCategories": "لا توجد فئات موظفين حتى الآن. قم بإنشاء واحدة للبدء في تنظيم القوى العاملة لديك.",
+      "table": {
+        "name": "اسم الفئة",
+        "mode": "الوضع",
+        "description": "الوصف",
+        "actions": "الإجراءات"
+      },
+      "fields": {
+        "name": "اسم الفئة",
+        "description": "الوصف"
+      },
+      "form": {
+        "name": "اسم الفئة",
+        "namePlaceholder": "أدخل اسم الفئة",
+        "description": "الوصف",
+        "descriptionPlaceholder": "أدخل الوصف (اختياري)",
+        "mode": "الوضع",
+        "modeOptions": {
+          "attendance": "الحضور",
+          "absence": "الغياب"
+        }
+      },
+      "placeholders": {
+        "name": "مثال: مدير، تنفيذي، تقني",
+        "description": "وصف اختياري"
+      },
+      "stats": {
+        "count": "{{count}} فئة"
+      },
+      "searchPlaceholder": "ابحث عن الفئات...",
+      "empty": {
+        "title": "لا توجد فئات",
+        "description": "أنشئ أول فئة لتصنيف الموظفين."
+      },
+      "footer": {
+        "showing": "عرض {{count}} فئة",
+        "lastUpdated": "آخر تحديث"
+      },
+      "messages": {
+        "loadError": "Failed to load employee categories",
+        "updateSuccess": "Category updated successfully",
+        "updateError": "Failed to update category",
+        "createSuccess": "Category created successfully",
+        "createError": "Failed to create category",
+        "deleteSuccess": "Category deleted successfully",
+        "deleteError": "Failed to delete category"
+      }
+    },
+    "referenceData": {
+      "title": "البيانات المرجعية",
+      "subtitle": "إدارة البيانات المرجعية المستخدمة في التطبيق",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.",
+      "genders": {
+        "title": "الجنس",
+        "name": "اسم الجنس",
+        "add": "إضافة جنس",
+        "edit": "تعديل الجنس",
+        "create": "إنشاء جنس",
+        "placeholder": "مثال: ذكر، أنثى"
+      },
+      "maritalStatuses": {
+        "title": "الحالة الاجتماعية",
+        "name": "اسم الحالة",
+        "add": "إضافة حالة",
+        "edit": "تعديل الحالة",
+        "create": "إنشاء حالة",
+        "placeholder": "مثال: أعزب، متزوج"
+      },
+      "educationLevels": {
+        "title": "المستويات التعليمية",
+        "name": "اسم المستوى",
+        "add": "إضافة مستوى",
+        "edit": "تعديل المستوى",
+        "create": "إنشاء مستوى",
+        "placeholder": "مثال: إجازة، ماستر"
+      }
+    }
+  },
+  "employees": {
+    "title": "إدارة الموظفين",
+    "subtitle": "قم بإدارة معلومات ومستندات موظفيك",
+    "searchPlaceholder": "البحث بالاسم أو المنصب...",
+    "filter": {
+      "department": "القسم",
+      "status": "الحالة",
+      "allDepartments": "جميع الأقسام",
+      "allStatuses": "جميع الحالات",
+      "allContractTypes": "جميع أنواع العقود"
+    },
+    "loading": "جاري تحميل الموظفين...",
+    "manager": "المدير",
+    "documentsMissingCount": "{{count}} مفقود",
+    "documentsComplete": "مكتمل",
+    "stats": {
+      "total": "إجمالي الموظفين",
+      "active": "النشطون",
+      "onLeave": "في إجازة",
+      "missingDocs": "وثائق ناقصة"
+    },
+    "status": {
+      "active": "نشط",
+      "onLeave": "في إجازة",
+      "inactive": "غير نشط"
+    },
+    "addEmployee": "إضافة موظف",
+    "viewProfile": "عرض الملف",
+    "noEmployees": "لا يوجد موظفون",
+    "noEmployeesDesc": "ابدأ بإضافة أول موظف.",
+    "errors": {
+      "loadFailed": "فشل تحميل الموظفين"
+    },
+    "table": {
+      "employee": "الموظف",
+      "position": "المنصب",
+      "department": "القسم",
+      "contract": "العقد",
+      "startDate": "تاريخ البدء",
+      "status": "الحالة",
+      "documents": "المستندات",
+      "actions": "الإجراءات"
+    },
+    "profile": {
+      "title": "ملف الموظف",
+      "sections": {
+        "identity": "الهوية",
+        "contact": "التواصل",
+        "position": "الوظيفة والعقد",
+        "salary": "الراتب والعناصر الثابتة",
+        "legal": "المعلومات القانونية",
+        "documents": "المستندات",
+        "history": "السجل"
+      },
+      "identity": {
+        "firstName": "الاسم الشخصي",
+        "lastName": "الاسم العائلي",
+        "cin": "رقم البطاقة الوطنية",
+        "maritalStatus": "الوضع العائلي",
+        "birthDate": "تاريخ الازدياد",
+        "birthPlace": "مكان الازدياد"
+      },
+      "contact": {
+        "professionalEmail": "البريد المهني",
+        "personalEmail": "البريد الشخصي",
+        "phone": "الهاتف",
+        "address": "العنوان الكامل"
+      },
+      "position": {
+        "position": "الوظيفة",
+        "department": "القسم",
+        "manager": "المدير",
+        "contractType": "نوع العقد",
+        "status": "حالة التوظيف",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ الانتهاء",
+        "probationPeriod": "فترة التجربة",
+        "exitReason": "سبب الخروج"
+      },
+      "salary": {
+        "baseSalary": "الراتب الأساسي",
+        "transportAllowance": "منحة النقل",
+        "mealAllowance": "منحة الطعام",
+        "seniorityBonus": "منحة الأقدمية",
+        "benefitsInKind": "مزايا عينية",
+        "paymentMethod": "طريقة الدفع",
+        "components": "مكونات الراتب",
+        "assignedPackage": "حزمة الراتب المخصصة",
+        "effectiveSince": "ساري منذ",
+        "viewPackage": "عرض الحزمة",
+        "viewPackageTooltip": "فتح صفحة حزم الرواتب",
+        "noPackageAssigned": "لم يتم تخصيص حزمة راتب",
+        "noPackageAssignedDescription": "قم بتخصيص حزمة من وحدة حزم الرواتب",
+        "assignPackage": "تخصيص حزمة",
+        "assignPackageTooltip": "انتقل إلى وحدة حزم الرواتب للتخصيص"
+      },
+      "legal": {
+        "cnss": "CNSS",
+        "amo": "AMO",
+        "cimr": "CIMR",
+        "cimrEmployeeRate": "معدل CIMR للموظف",
+        "cimrCompanyRate": "معدل CIMR لصاحب العمل",
+        "hasPrivateInsurance": "التأمين الخاص",
+        "hasPrivateInsuranceLabel": "الموظف لديه تأمين خاص",
+        "privateInsuranceNumber": "رقم التأمين الخاص",
+        "privateInsuranceRate": "معدل التأمين الخاص",
+        "disableAmo": "تعطيل AMO",
+        "disableAmoLabel": "تعطيل تغطية AMO لهذا الموظف",
+        "annualLeave": "العطلة السنوية"
+      },
+      "documents": {
+        "cin": "البطاقة الوطنية",
+        "contract": "العقد",
+        "jobDescription": "الوصف الوظيفي",
+        "rib": "الحساب البنكي الرئيسي (RIB)"
+      },
+      "confirmChanges": {
+        "title": "تأكيد التعديلات",
+        "summary": "قمت بتعديل {{count}} حقل. راجعها قبل الحفظ:",
+        "before": "قبل",
+        "after": "بعد",
+        "manyChanges": "⚠️ تعدل عدة حقول دفعة واحدة. يرجى المراجعة بعناية."
+      },
+      "draft": {
+        "restored": "تم استعادة المسودة بتاريخ {{date}}",
+        "autoSaved": "حُفظت تلقائياً في {{time}}",
+        "saving": "جارٍ حفظ المسودة...",
+        "dismiss": "تجاهل"
+      },
+      "ui": {
+        "draftRestoredTitle": "تم استعادة المسودة بتاريخ {{date}}",
+        "draftRestoredTitleShort": "تم استعادة المسودة",
+        "draftRestoredSubtitle": "تمت استعادة تعديلاتك غير المحفوظة. راجعها قبل الحفظ.",
+        "applyDraft": "تطبيق المسودة",
+        "dismissDraft": "تجاهل",
+        "autoSaveAt": "تم الحفظ التلقائي في {{time}}",
+        "autoSavePending": "الحفظ التلقائي قيد الانتظار...",
+        "entryDate": "تاريخ الالتحاق",
+        "totalSalary": "إجمالي الراتب",
+        "documentUploadedOn": "تم الرفع بتاريخ {{date}}",
+        "documentMissing": "المستند مفقود",
+        "downloadDocument": "تحميل المستند",
+        "deleteDocument": "حذف المستند",
+        "uploadDocument": "رفع"
+      },
+      "noChanges": "لا توجد تغييرات للحفظ",
+      "saveError": "فشل الحفظ. حاول مجدداً.",
+      "saveSuccess": "تم حفظ التعديلات",
+      "loadError": "تعذر تحميل ملف الموظف"
+    },
+    "create": {
+      "eyebrow": "موظف جديد",
+      "title": "إنشاء موظف",
+      "subtitle": "اجمع بيانات الهوية والعقد ووسائل الاتصال قبل الانضمام.",
+      "submit": "إنشاء الموظف",
+      "successTitle": "تم إنشاء الموظف",
+      "errorTitle": "فشل إنشاء الموظف",
+      "success": "تم إنشاء الموظف بنجاح.",
+      "error": "تعذر إنشاء الموظف. حاول مرة أخرى.",
+      "salaryPackageAssignWarningTitle": "لم يتم إسناد باقة الراتب",
+      "salaryPackageAssignWarning": "تم إنشاء الموظف، لكن تعذر إسناد باقة الراتب.",
+      "emptyState": "تعذر تحميل بيانات النموذج، حاول بعد قليل.",
+      "placeholders": {
+        "firstName": "أمل"
+      },
+      "sections": {
+        "personal": "الهوية",
+        "personalTitle": "المعلومات الشخصية",
+        "personalDescription": "الهوية القانونية، الحالة العائلية والبيانات الديموغرافية.",
+        "job": "الوظيفة",
+        "jobTitle": "الوظيفة والعقد",
+        "jobDescription": "اربط الموظف بالقسم والوظيفة والمدير.",
+        "contact": "التواصل",
+        "contactTitle": "بيانات الاتصال والعنوان",
+        "contactDescription": "تفاصيل الموقع المستخدمة في الأجور والمستندات."
+      },
+      "form": {
+        "firstName": "الاسم الشخصي",
+        "lastName": "الاسم العائلي",
+        "email": "البريد المهني",
+        "cin": "رقم البطاقة الوطنية",
+        "birthDate": "تاريخ الازدياد",
+        "phone": "رقم الهاتف",
+        "phoneCountry": "مفتاح الدولة",
+        "phoneCountryPlaceholder": "رمز",
+        "gender": "النوع",
+        "status": "حالة التوظيف",
+        "statusPlaceholder": "اختر الحالة",
+        "maritalStatus": "الوضع العائلي",
+        "educationLevel": "المستوى الدراسي",
+        "nationality": "الجنسية",
+        "department": "القسم",
+        "departmentPlaceholder": "اختر قسماً",
+        "jobPosition": "الوظيفة",
+        "jobPositionPlaceholder": "اختر وظيفة",
+        "contractType": "نوع العقد",
+        "contractTypePlaceholder": "اختر نوع العقد",
+        "manager": "المسؤول المباشر",
+        "managerPlaceholder": "أسند مديراً (اختياري)",
+        "startDate": "تاريخ الالتحاق",
+        "salary": "الأجر الإجمالي",
+        "salaryPackage": "باقة الراتب",
+        "salaryPackagePlaceholder": "اختر باقة راتب",
+        "attendanceType": "نوع الحضور",
+        "attendanceTypePlaceholder": "اختر نوع الحضور",
+        "employeeCategory": "فئة الموظف",
+        "employeeCategoryPlaceholder": "اختر الفئة",
+        "country": "البلد",
+        "countryPlaceholder": "اختر بلداً",
+        "city": "المدينة",
+        "cityPlaceholder": "اختر مدينة",
+        "addressLine1": "العنوان الأول",
+        "addressLine2": "العنوان الثاني",
+        "zipCode": "الرمز البريدي"
+      },
+      "validation": {
+        "required": "هذه الخانة مطلوبة",
+        "email": "يرجى إدخال بريد إلكتروني صحيح"
+      }
+    }
+  },
+  "salaryPackages": {
+    "page": {
+      "title": "مكتبة حزم الرواتب",
+      "subtitle": "مساحة بسيطة لإدارة نماذج الأجور.",
+      "newPackage": "حزمة جديدة",
+      "retry": "إعادة المحاولة",
+      "packageType": "نوع الحزم",
+      "searchPackage": "ابحث عن حزمة...",
+      "searchOfficial": "ابحث عن قالب رسمي...",
+      "officialHint": "قوالب رسمية معتمدة من PayZen. يمكنك استنساخ قالب لتخصيصه.",
+      "loading": "جاري تحميل الحزم...",
+      "emptyTitle": "لا توجد حزم",
+      "emptyDescription": "جرّب تصفية أخرى أو أنشئ حزمة جديدة.",
+      "templatesCount": "{{count}} قوالب",
+      "noOfficialTitle": "لا توجد قوالب رسمية",
+      "noOfficialDescription": "سيكون الكتالوج متاحاً قريباً."
+    },
+    "tabs": {
+      "company": "حزم الشركة",
+      "official": "القوالب الرسمية"
+    },
+    "metrics": {
+      "myPackages": "حزمي",
+      "myPackagesDesc": "قوالب شركتك",
+      "drafts": "مسودات",
+      "draftsDesc": "بانتظار الإنهاء",
+      "published": "منشورة",
+      "publishedDesc": "قابلة للإسناد",
+      "official": "رسمية",
+      "officialDesc": "كتالوج PayZen"
+    },
+    "filters": {
+      "statusLabel": "حالة الحزمة",
+      "categoryLabel": "الفئة",
+      "filterByCategory": "تصفية حسب الفئة",
+      "allCategories": "كل الفئات",
+      "all": "الكل",
+      "draft": "مسودات",
+      "published": "منشورة",
+      "deprecated": "متقادمة"
+    },
+    "card": {
+      "noCode": "بدون رمز",
+      "noCategory": "بدون فئة",
+      "componentsCount": "{{count}} مكونات",
+      "sectorPrefix": "القطاع:",
+      "basePrefix": "الأساس:",
+      "updatedPrefix": "آخر تحديث:",
+      "officialBadge": "رسمي"
+    },
+    "actions": {
+      "view": "عرض",
+      "edit": "تعديل",
+      "publish": "نشر",
+      "duplicate": "تكرار",
+      "delete": "حذف",
+      "newVersion": "نسخة جديدة",
+      "createVersion": "إنشاء النسخة",
+      "deprecate": "متقادم",
+      "markDeprecated": "وضع كمتقادم",
+      "clearFilters": "مسح الفلاتر",
+      "createPackage": "إنشاء حزمة",
+      "clone": "استنساخ",
+      "assign": "إسناد",
+      "replace": "استبدال"
+    },
+    "dialogs": {
+      "clone": {
+        "title": "استنساخ قالب رسمي",
+        "description": "سيتم إنشاء هذا القالب كمسودة لشركتك.",
+        "newName": "الاسم الجديد",
+        "placeholder": "مثال: حزمة الإدارة - نسخة"
+      },
+      "confirm": {
+        "deleteTitle": "تأكيد الحذف",
+        "deleteMessage": "هل أنت متأكد من حذف \"{{name}}\"؟ هذا الإجراء لا يمكن التراجع عنه.",
+        "publishTitle": "تأكيد النشر",
+        "publishMessage": "نشر \"{{name}}\"؟ هذا يجعل الحزمة قابلة للإسناد للموظفين.",
+        "newVersionTitle": "إنشاء نسخة جديدة؟",
+        "newVersionMessage": "سيتم إنشاء نسخة جديدة (v{{nextVersion}}) كمسودة. النسخة الحالية (v{{currentVersion}}) تبقى فعالة حتى النشر.",
+        "deprecateTitle": "وضع كمتقادم؟",
+        "deprecateMessage": "لن يمكن إسناد الحزمة \"{{name}}\" لموظفين جدد. هذا الإجراء لا يمكن التراجع عنه.",
+        "cancelEditTitle": "إلغاء التعديلات؟",
+        "cancelEditMessage": "ستفقد كل التعديلات غير المحفوظة.",
+        "publishReadonlyWarning": "بعد النشر تصبح الحزمة للقراءة فقط. هل تريد المتابعة؟",
+        "unsavedChanges": "لديك تعديلات غير محفوظة. هل تريد الخروج؟",
+        "replaceAssignmentTitle": "استبدال الحزمة الحالية؟",
+        "replaceAssignmentSame": "{{employeeName}} لديه هذه الحزمة مفعلة بالفعل. هل تريد إنشاء إسناد جديد يستبدل الحالي ابتداءً من تاريخ السريان؟",
+        "replaceAssignmentOther": "{{employeeName}} لديه حزمة مفعلة ({{currentPackageName}}). هل تريد تطبيق هذه الحزمة واستبدال الإسناد الحالي؟"
+      }
+    },
+    "assignModal": {
+      "title": "إسناد الحزمة",
+      "package": "الحزمة",
+      "baseSalary": "الراتب الأساسي",
+      "employee": "الموظف",
+      "loadingEmployees": "جاري تحميل الموظفين...",
+      "selectEmployee": "اختر موظفاً",
+      "loadingContract": "جاري تحميل العقد...",
+      "contract": "العقد",
+      "startDate": "البداية",
+      "endDate": "النهاية",
+      "effectiveDate": "تاريخ السريان",
+      "info": "سيتم إنشاء سجل راتب جديد بمكونات هذه الحزمة.",
+      "errors": {
+        "loadEmployees": "تعذر تحميل الموظفين",
+        "loadContract": "تعذر تحميل عقد الموظف",
+        "noActiveContract": "لم يتم العثور على عقد نشط لهذا الموظف"
+      }
+    },
+    "endAssignmentModal": {
+      "title": "إنهاء الإسناد",
+      "employee": "الموظف",
+      "package": "الحزمة",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية",
+      "warning": "سيؤدي هذا إلى إغلاق سجل راتب الموظف وإيقاف إسناد الحزمة.",
+      "submit": "إنهاء الإسناد"
+    },
+    "status": {
+      "draft": "مسودة",
+      "published": "منشور",
+      "deprecated": "متقادم"
+    },
+    "view": {
+      "packageNamePlaceholder": "اسم الحزمة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "وصف حزمة الراتب",
+      "noDescription": "لا يوجد وصف",
+      "salaryComponents": "مكونات الراتب",
+      "exemptionLimitPrefix": "السقف",
+      "noComponents": "لا توجد مكونات راتب محددة",
+      "table": {
+        "label": "التسمية",
+        "type": "النوع",
+        "variable": "متغير",
+        "amount": "المبلغ"
+      },
+      "assignments": {
+        "title": "الموظفون المعيّنون",
+        "empty": "لا يوجد أي موظف معيّن لهذه الحزمة",
+        "table": {
+          "employee": "الموظف",
+          "startDate": "تاريخ السريان",
+          "endDate": "تاريخ النهاية",
+          "status": "الحالة",
+          "version": "الإصدار"
+        },
+        "status": {
+          "active": "نشط",
+          "ended": "منتهي"
+        }
+      },
+      "summary": {
+        "title": "الملخص",
+        "grossTotal": "إجمالي الأجر الخام",
+        "irBase": "وعاء الضريبة على الدخل",
+        "cnssBase": "وعاء الضمان الاجتماعي"
+      },
+      "cimr": {
+        "title": "إعدادات CIMR",
+        "regime": "نظام CIMR",
+        "employeeRate": "نسبة مساهمة الأجير",
+        "employerRate": "نسبة مساهمة المشغل (محسوبة)"
+      },
+      "autoRules": {
+        "title": "القواعد التلقائية",
+        "seniorityBonus": "منحة الأقدمية",
+        "seniorityBonusDesc": "يتم احتسابها تلقائياً وفق القانون المغربي"
+      },
+      "meta": {
+        "title": "المعلومات",
+        "sector": "قطاع النشاط",
+        "version": "الإصدار",
+        "validFrom": "صالح ابتداءً من",
+        "validTo": "صالح إلى",
+        "createdAt": "تاريخ الإنشاء",
+        "updatedAt": "تاريخ التعديل"
+      },
+      "types": {
+        "baseSalary": "الراتب الأساسي",
+        "allowance": "تعويض",
+        "bonus": "منحة",
+        "benefitInKind": "منفعة عينية",
+        "socialCharge": "اقتطاع اجتماعي"
+      }
+    },
+    "editor": {
+      "subtitleEdit": "قم بتعديل تفاصيل حزمة الأجور",
+      "subtitleCreate": "أنشئ حزمة أجور جديدة",
+      "globalTemplateTitle": "قالب عام (للقراءة فقط)",
+      "globalTemplateDescription": "هذا قالب رسمي أنشأته PayZen. لتخصيصه، يرجى استنساخه من قائمة القوالب الرسمية.",
+      "clonedTemplateTitle": "قالب مستنسخ",
+      "clonedTemplateDescription": "هذه الحزمة مبنية على القالب الرسمي",
+      "generalInfo": "معلومات عامة",
+      "nameLabel": "اسم الحزمة",
+      "namePlaceholder": "مثال: حزمة الأطر القياسية",
+      "categoryLabel": "الفئة",
+      "selectCategory": "اختر فئة",
+      "baseSalaryLabel": "الراتب الأساسي (MAD)",
+      "descriptionLabel": "الوصف (اختياري)",
+      "descriptionPlaceholder": "وصف الحزمة...",
+      "validFromLabel": "تاريخ السريان (اختياري)",
+      "validToLabel": "تاريخ النهاية (اختياري)",
+      "componentsTitle": "عناصر الأجر",
+      "componentsSubtitle": "منح وتعويضات ومزايا",
+      "selectComponent": "اختر عنصراً...",
+      "noComponentFound": "لم يتم العثور على عناصر",
+      "noComponents": "لم تتم إضافة أي عنصر أجر",
+      "addComponent": "إضافة عنصر",
+      "componentsCount": "المكونات",
+      "categories": {
+        "cadres": "الأطر",
+        "nonCadres": "غير الأطر",
+        "executive": "المديرون",
+        "cadre": "إطار",
+        "nonCadre": "غير إطار",
+        "employee": "موظف",
+        "worker": "عامل",
+        "intern": "متدرب",
+        "other": "أخرى"
+      }
+    },
+    "create": {
+      "generalInfo": "معلومات عامة",
+      "nameLabel": "اسم الحزمة",
+      "namePlaceholder": "مثال: حزمة الأطر 2026",
+      "categoryLabel": "الفئة",
+      "baseSalaryLabel": "الراتب الأساسي (MAD)",
+      "descriptionPlaceholder": "سياق أو ملاحظات حول هذه الحزمة",
+      "componentsTitle": "المكونات",
+      "addCustomComponent": "إضافة مكوّن مخصص",
+      "addFromOfficial": "إضافة من المرجع الرسمي",
+      "selectOfficialComponent": "اختر مكوّناً رسمياً",
+      "alreadyAdded": "مضاف مسبقاً",
+      "noComponentsTitle": "لا توجد مكونات",
+      "noComponentsDescription": "أضف مكونات لإكمال هذه الحزمة.",
+      "componentTypeOfficial": "رسمي",
+      "componentTypeCustom": "مخصص",
+      "backofficeRules": "قواعد الباك أوفيس",
+      "regulatoryTreatmentReadonly": "المعالجة التنظيمية (مقفلة - محددة من الباك أوفيس)",
+      "regulatoryTreatment": "المعالجة التنظيمية",
+      "cnssIrReadonly": "CNSS و IR للقراءة فقط",
+      "cnssIr": "CNSS و IR",
+      "backofficeReadonly": "محدد من الباك أوفيس (قراءة فقط)",
+      "summaryTitle": "الملخص",
+      "estimatedGross": "الأجر الخام التقديري",
+      "autoEmployerRate": "حصة المشغل التلقائية",
+      "customDialog": {
+        "title": "مكوّن مخصص جديد",
+        "name": "الاسم",
+        "namePlaceholder": "مثال: منحة الأداء",
+        "defaultAmount": "المبلغ الافتراضي (MAD)",
+        "subjectToCnss": "خاضع لـ CNSS",
+        "taxableIr": "خاضع للضريبة IR"
+      }
+    },
+    "cimr": {
+      "regime": "النظام",
+      "none": "غير منخرط",
+      "alKamil": "الكامل",
+      "alMounassib": "المناسب",
+      "alMounassibPme": "المناسب (المقاولات الصغرى والمتوسطة)",
+      "assiette": "وعاء الاحتساب",
+      "assietteLabel": "وعاء الاحتساب",
+      "assietteGross": "إجمالي الأجر الخام",
+      "assietteExceeding": "الجزء المتجاوز لـ {{amount}} MAD",
+      "employeePart": "حصة الأجير",
+      "employerPart": "حصة المشغل",
+      "employerPartCalculated": "حصة المشغل (×1.3)",
+      "previewBase": "معاينة (الأساس: {{amount}} MAD)",
+      "assietteCimr": "وعاء CIMR",
+      "employeeContribution": "مساهمة الأجير",
+      "employerContribution": "مساهمة المشغل",
+      "employeeRate": "نسبة الأجير",
+      "customRate": "نسبة مخصصة",
+      "customRateHint": "استخدم نسبة غير قياسية",
+      "noContribution": "لا توجد مساهمة CIMR"
+    },
+    "errors": {
+      "loadPackages": "فشل تحميل حزم الرواتب",
+      "loadPackage": "فشل تحميل حزمة الراتب",
+      "saveFailed": "فشل حفظ الحزمة",
+      "nameRequired": "الاسم مطلوب",
+      "nameMinLength": "يجب أن يحتوي الاسم على 3 أحرف على الأقل",
+      "baseSalaryRequired": "الراتب الأساسي مطلوب",
+      "baseSalaryPositive": "يجب أن يكون الراتب الأساسي أكبر من صفر",
+      "categoryRequiredPublish": "الفئة مطلوبة للنشر",
+      "minOneComponent": "يوصى بإضافة مكوّن واحد على الأقل",
+      "officialComponentAlreadyAdded": "المكون الرسمي \"{{name}}\" مضاف مسبقاً.",
+      "validationTitle": "أخطاء التحقق",
+      "saveBeforePublish": "يجب حفظ الحزمة قبل النشر.",
+      "publishFailedWithReason": "فشل النشر: {{errorMsg}}",
+      "saveFailedWithReason": "فشل الحفظ: {{errorMsg}}",
+      "noCompanySelected": "لم يتم اختيار شركة",
+      "cloneFailed": "فشل استنساخ القالب",
+      "onlyDraftDelete": "يمكن حذف الحزم في حالة المسودة فقط",
+      "deleteFailed": "فشل حذف الحزمة",
+      "publishFailed": "فشل نشر الحزمة",
+      "duplicateFailed": "فشل تكرار الحزمة",
+      "onlyPublishedVersion": "يمكن إنشاء نسخ جديدة للحزم المنشورة فقط",
+      "newVersionFailed": "فشل إنشاء النسخة الجديدة",
+      "onlyPublishedDeprecate": "يمكن وضع الحزم المنشورة كمتقادمة فقط",
+      "deprecateFailed": "فشل وضع الحزمة كمتقادمة",
+      "packageIdMissing": "معرف الحزمة غير محدد",
+      "loadAssignments": "فشل تحميل الإسنادات",
+      "verifyEmployeeAssignmentFailed": "تعذر التحقق من الحزمة الحالية للموظف",
+      "assignmentFailed": "فشل الإسناد"
+    },
+    "messages": {
+      "savedSuccess": "تم حفظ الحزمة \"{{name}}\" بنجاح.",
+      "publishedSuccess": "تم نشر الحزمة \"{{name}}\" بنجاح."
+    },
+    "common": {
+      "copy": "نسخة",
+      "unknownError": "خطأ غير معروف",
+      "others": "أخرى",
+      "general": "عام",
+      "anotherPackage": "حزمة أخرى",
+      "thisEmployee": "هذا الموظف"
+    }
+  },
+  "auth": {
+    "login": {
+      "welcome": "مرحبا",
+      "title": "تسجيل الدخول",
+      "subtitle": "قم بتسجيل الدخول إلى حسابك",
+      "emailAddress": "عنوان البريد الإلكتروني",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "you@example.com",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+      "username": "اسم المستخدم",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMinLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+      "rememberMe": "تذكرني",
+      "submit": "تسجيل الدخول",
+      "forgotPassword": "هل نسيت كلمة المرور؟",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "سجل الآن",
+      "demoAccounts": "حسابات تجريبية (كلمة المرور: password123)",
+      "adminAccount": "مدير:",
+      "hrAccount": "الموارد البشرية:",
+      "managerAccount": "مدير:",
+      "employeeAccount": "موظف:"
+    },
+    "logout": "تسجيل الخروج"
+  },
+  "contextSelection": {
+    "title": "اختر مساحة العمل الخاصة بك",
+    "welcomeBack": "مرحباً بعودتك",
+    "subtitle": "اختر شركة ودوراً للمتابعة إلى لوحة التحكم",
+    "loading": "جاري تحميل مساحات العمل...",
+    "selectWorkspace": "اختر مساحة عمل",
+    "expertMode": "وضع الخبير",
+    "standardMode": "قياسي",
+    "clickToAccess": "انقر للوصول",
+    "noMemberships": "لا توجد مساحات عمل متاحة",
+    "noMembershipsDesc": "ليس لديك حق الوصول إلى أي مساحات عمل للشركة. يرجى الاتصال بالمسؤول للحصول على حق الوصول.",
+    "contactSupport": "اتصل بالدعم",
+    "needHelp": "هل تحتاج مساعدة؟",
+    "switchWorkspace": "تغيير مساحة العمل"
+  },
+  "user": {
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "manageRole": "إدارة الدور",
+    "assignRole": {
+      "title": "إدارة الدور",
+      "subtitle": "تعيين دور للمستخدم المحدد",
+      "userLabel": "المستخدم",
+      "roleLabel": "الدور",
+      "selectRolePlaceholder": "اختر دورًا",
+      "assign": "تعيين الدور"
+    },
+    "role": {
+      "admin": "مدير",
+      "user": "مستخدم",
+      "manager": "مدير",
+      "hr": "الموارد البشرية",
+      "employee": "موظف",
+      "cabinet": "مكتب محاسبة",
+      "adminPayzen": "مدير PayZen",
+      "viewer": "عارض"
+    }
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "noData": "لا توجد بيانات",
+    "error": "حدث خطأ",
+    "success": "تمت العملية بنجاح",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "yes": "نعم",
+    "no": "لا",
+    "optional": "اختياري",
+    "actions": "الإجراءات",
+    "view": "عرض",
+    "viewAll": "عرض الكل",
+    "download": "تحميل",
+    "apply": "تطبيق",
+    "ok": "حسناً",
+    "warning": "تحذير",
+    "remove": "إزالة",
+    "select": "اختيار",
+    "upload": "رفع",
+    "uploaded": "مرفوع",
+    "missing": "مفقود",
+    "replace": "استبدال",
+    "back": "عودة",
+    "clear": "مسح",
+    "reset": "إعادة التعيين",
+    "retry": "إعادة المحاولة",
+    "unsavedChanges": {
+      "title": "تعديلات غير محفوظة",
+      "message": "لديك تعديلات غير محفوظة ستُفقد إذا غادرت هذه الصفحة.",
+      "description": "تم تعديل {{count}} حقل.",
+      "continueEditing": "متابعة التعديل",
+      "discard": "تجاهل التعديلات",
+      "save": "حفظ التعديلات"
+    },
+    "confirmation": "تأكيد",
+    "now": "الآن",
+    "table": {
+      "showing": "عرض {first} إلى {last} من أصل {totalRecords}"
+    },
+    "selectDate": "اختر تاريخاً",
+    "validation": {
+      "required": "هذا الحقل مطلوب"
+    },
+    "system": "النظام"
+  },
+  "errors": {
+    "required": "هذا الحقل مطلوب",
+    "invalidEmail": "الرجاء إدخال عنوان بريد إلكتروني صالح",
+    "minLength": "الحد الأدنى {{min}} حرف مطلوب",
+    "maxLength": "الحد الأقصى {{max}} حرف مسموح به",
+    "pattern": "تنسيق غير صالح"
+  },
+  "language": {
+    "select": "اختر اللغة",
+    "en": "الإنجليزية",
+    "ar": "العربية",
+    "fr": "الفرنسية"
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "search": "البحث عن الأحداث...",
+    "eventType": "نوع الحدث",
+    "dateRange": "نطاق التاريخ",
+    "allEvents": "جميع الأحداث",
+    "clearFilters": "مسح الفلاتر",
+    "selectDateRange": "اختر نطاق التاريخ",
+    "selectEventTypes": "اختر أنواع الأحداث",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "noLogs": "لم يتم العثور على سجلات تدقيق",
+    "noLogsDescription": "لم يتم تسجيل أي أحداث تدقيق بعد.",
+    "loading": "تحميل سجلات التدقيق...",
+    "error": "فشل تحميل سجلات التدقيق",
+    "companyEvents": "أحداث الشركة",
+    "employeeEvents": "أحداث الموظفين",
+    "cabinetEvents": "أحداث المكتب",
+    "empty": "فارغ",
+    "history": {
+      "actions": {
+        "changed": "تم التغيير",
+        "created": "تم الإنشاء",
+        "updated": "تم التحديث",
+        "deleted": "تم الحذف"
+      },
+      "fields": {
+        "address": "العنوان",
+        "website_url": "رابط الموقع",
+        "department": "القسم"
+      }
+    },
+    "eventTypes": {
+      "COMPANY_CREATED": "تم إنشاء الشركة",
+      "COMPANY_UPDATED": "تم تحديث الشركة",
+      "COMPANY_DELETED": "تم حذف الشركة",
+      "COMPANY_ACTIVATED": "تم تفعيل الشركة",
+      "COMPANY_DEACTIVATED": "تم تعطيل الشركة",
+      "EMPLOYEE_CREATED": "تم إنشاء الموظف",
+      "EMPLOYEE_UPDATED": "تم تحديث الموظف",
+      "EMPLOYEE_DELETED": "تم حذف الموظف",
+      "EMPLOYEE_ACTIVATED": "تم تفعيل الموظف",
+      "EMPLOYEE_DEACTIVATED": "تم تعطيل الموظف",
+      "USER_LOGIN": "تسجيل دخول المستخدم",
+      "USER_LOGOUT": "تسجيل خروج المستخدم",
+      "PERMISSION_GRANTED": "تم منح الإذن",
+      "PERMISSION_REVOKED": "تم إلغاء الإذن",
+      "ROLE_ASSIGNED": "تم تعيين الدور",
+      "ROLE_REMOVED": "تم إزالة الدور",
+      "SETTINGS_CHANGED": "تم تغيير الإعدادات",
+      "PASSWORD_CHANGED": "تم تغيير كلمة المرور",
+      "PASSWORD_RESET": "إعادة تعيين كلمة المرور",
+      "USER_ROLE_ASSIGNED": "تم تعيين دور المستخدم",
+      "USER_ROLE_REVOKED": "تم سحب دور المستخدم"
+    },
+    "justNow": "الآن",
+    "activeFilters": "الفلاتر النشطة",
+    "clearAll": "مسح الكل",
+    "clearAllFilters": "مسح جميع الفلاتر النشطة",
+    "errorTitle": "خطأ في تحميل السجل",
+    "errorMessage": "حدث خطأ أثناء تحميل السجل. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "searchPlaceholder": "ابحث حسب الوصف أو الحقل أو المستخدم...",
+    "showFilters": "إظهار الفلاتر",
+    "hideFilters": "إخفاء الفلاتر",
+    "from": "من",
+    "to": "إلى",
+    "of": "من",
+    "events": "حدث",
+    "totalEvents": "إجمالي الأحداث",
+    "noResults": "لا توجد نتائج",
+    "noResultsDescription": "حاول تعديل الفلاتر لعرض نتائج أكثر.",
+    "unknownEvent": "حدث غير معروف",
+    "unknownUser": "مستخدم غير معروف"
+  },
+  "permissions": {
+    "title": "إدارة الصلاحيات",
+    "subtitle": "إدارة الصلاحيات والأدوار وتعيينات المستخدمين",
+    "userManagement": {
+      "title": "إدارة المستخدمين",
+      "subtitle": "تعيين الأدوار للمستخدمين في شركتك"
+    },
+    "tabs": {
+      "permissions": "الصلاحيات",
+      "roles": "الأدوار",
+      "userRoles": "أدوار المستخدمين"
+    },
+    "permissions": {
+      "title": "الصلاحيات",
+      "subtitle": "تحديد صلاحيات النظام",
+      "create": "إنشاء صلاحية",
+      "edit": "تعديل الصلاحية",
+      "delete": "حذف الصلاحية",
+      "deleteConfirm": "هل أنت متأكد من أنك تريد حذف هذه الصلاحية؟",
+      "deleteSuccess": "تم حذف الصلاحية بنجاح",
+      "deleteError": "فشل حذف الصلاحية",
+      "saveSuccess": "تم حفظ الصلاحية بنجاح",
+      "saveError": "فشل حفظ الصلاحية",
+      "name": "اسم الصلاحية",
+      "namePlaceholder": "مثال: READ_USERS",
+      "nameHint": "استخدم تنسيق UPPERCASE_SNAKE_CASE",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف ما تسمح به هذه الصلاحية",
+      "actions": "الإجراءات",
+      "noPermissions": "لم يتم العثور على صلاحيات",
+      "loading": "تحميل الصلاحيات..."
+    },
+    "roles": {
+      "title": "الأدوار",
+      "subtitle": "إدارة الأدوار وصلاحياتها",
+      "create": "إنشاء دور",
+      "edit": "تعديل الدور",
+      "delete": "حذف الدور",
+      "deleteConfirm": "هل أنت متأكد من أنك تريد حذف هذا الدور؟",
+      "deleteSuccess": "تم حذف الدور بنجاح",
+      "deleteError": "فشل حذف الدور",
+      "saveSuccess": "تم حفظ الدور بنجاح",
+      "saveError": "فشل حفظ الدور",
+      "name": "اسم الدور",
+      "namePlaceholder": "مثال: مدير الموارد البشرية",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف مسؤوليات هذا الدور",
+      "permissions": "الصلاحيات",
+      "permissionsCount": "{{count}} صلاحية",
+      "managePermissions": "إدارة الصلاحيات",
+      "assignPermissions": "تعيين الصلاحيات لـ {{roleName}}",
+      "selectPermissions": "اختر الصلاحيات",
+      "permissionsSaveSuccess": "تم تحديث صلاحيات الدور بنجاح",
+      "permissionsSaveError": "فشل تحديث صلاحيات الدور",
+      "actions": "الإجراءات",
+      "noRoles": "لم يتم العثور على أدوار",
+      "loading": "تحميل الأدوار..."
+    },
+    "userRoles": {
+      "title": "أدوار المستخدمين",
+      "subtitle": "تعيين الأدوار للمستخدمين",
+      "user": "المستخدم",
+      "email": "البريد الإلكتروني",
+      "roles": "الأدوار",
+      "rolesCount": "{{count}} دور",
+      "assignRoles": "تعيين الأدوار",
+      "manageRoles": "إدارة الأدوار لـ {{userName}}",
+      "selectRoles": "اختر الأدوار",
+      "selectRole": "اختر دورًا",
+      "noLinkedAccount": "لا يوجد حساب مستخدم مرتبط",
+      "noRoles": "لم يتم تعيين أدوار",
+      "saveSuccess": "تم تحديث أدوار المستخدم بنجاح",
+      "saveError": "فشل تحديث أدوار المستخدم",
+      "actions": "الإجراءات",
+      "noUsers": "لم يتم العثور على مستخدمين",
+      "loading": "تحميل المستخدمين..."
+    },
+    "common": {
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "close": "إغلاق",
+      "confirm": "تأكيد",
+      "search": "بحث...",
+      "filter": "تصفية",
+      "reset": "إعادة تعيين",
+      "apply": "تطبيق"
+    }
+  },
+  "absences": {
+    "accessDenied": {
+      "title": "الوصول مرفوض",
+      "message": "أنت غير مخول بالوصول إلى هذه الصفحة."
+    },
+    "myAbsences": "غياباتي",
+    "hrTitle": "إدارة الغيابات",
+    "hrSubtitle": "إدارة طلبات الغياب لجميع الموظفين",
+    "hrGrant": "منح إجازة",
+    "subtitle": "عرض وإدارة طلبات الغياب الخاصة بك",
+    "requestAbsence": "طلب غياب",
+    "declareAbsence": "تصريح بغياب",
+    "declare": "تصريح",
+    "employeeAbsences": "غيابات",
+    "manageEmployeeAbsences": "إدارة طلبات الغياب لهذا الموظف",
+    "searchEmployee": "البحث عن موظف...",
+    "viewDetails": "عرض التفاصيل",
+    "detailTitle": "تفاصيل الغياب",
+    "createdBy": "أنشئ بواسطة",
+    "createdAt": "تاريخ الإنشاء",
+    "days": "أيام",
+    "morning": "صباح",
+    "afternoon": "بعد الظهر",
+    "noAbsences": "لا توجد غيابات مسجلة",
+    "noEmployees": "لم يتم العثور على موظفين",
+    "submit": "إرسال",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "approveRequest": "الموافقة على الطلب",
+    "rejectRequest": "رفض الطلب",
+    "confirmApprove": "هل أنت متأكد من الموافقة على طلب الغياب هذا؟",
+    "cancelRequest": "إلغاء الطلب",
+    "rejectionReason": "سبب الرفض",
+    "rejectionReasonPlaceholder": "يرجى تقديم سبب للرفض...",
+    "stats": {
+      "total": "إجمالي الغيابات",
+      "pending": "قيد الانتظار",
+      "approved": "موافق عليها",
+      "rejected": "مرفوضة",
+      "totalDays": "إجمالي الأيام"
+    },
+    "table": {
+      "employee": "الموظف",
+      "date": "التاريخ",
+      "type": "النوع",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "duration": "المدة",
+      "status": "الحالة",
+      "reason": "السبب",
+      "totalAbsences": "إجمالي الغيابات",
+      "pendingRequests": "الطلبات المعلقة",
+      "approvedAbsences": "الغيابات الموافق عليها",
+      "totalDays": "إجمالي الأيام"
+    },
+    "types": {
+      "annual_leave": "إجازة سنوية",
+      "sick": "إجازة مرضية",
+      "maternity": "إجازة أمومة",
+      "paternity": "إجازة أبوة",
+      "unpaid": "إجازة بدون أجر",
+      "mission": "مهمة",
+      "training": "تكوين",
+      "justified": "غياب مبرر",
+      "unjustified": "غياب غير مبرر",
+      "accident_work": "حادث عمل",
+      "exceptional": "إجازة استثنائية",
+      "religious": "إجازة دينية"
+    },
+    "durations": {
+      "fullDay": "يوم كامل",
+      "halfDay": "نصف يوم",
+      "halfDayMorning": "نصف يوم (صباح)",
+      "halfDayAfternoon": "نصف يوم (بعد الظهر)",
+      "hourly": "ساعات"
+    },
+    "form": {
+      "date": "التاريخ",
+      "type": "نوع الغياب",
+      "durationType": "المدة",
+      "period": "الفترة",
+      "startTime": "وقت البداية",
+      "endTime": "وقت النهاية",
+      "timeRange": "النطاق الزمني",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "reason": "السبب (اختياري)",
+      "reasonPlaceholder": "قدم سببا لطلب الغياب الخاص بك..."
+    },
+    "rejectDialog": {
+      "title": "رفض طلب الغياب",
+      "description": "أنت على وشك رفض طلب الغياب هذا. يرجى تقديم سبب.",
+      "reason": "سبب الرفض",
+      "reasonPlaceholder": "قدم سببا للرفض...",
+      "hint": "سيتم إبلاغ هذا السبب للموظف.",
+      "confirm": "رفض"
+    },
+    "filters": {
+      "searchEmployee": "البحث عن موظف...",
+      "allTypes": "جميع الأنواع",
+      "allDurations": "جميع المدد"
+    }
+  },
+  "overtime": {
+    "title": "ساعات إضافية",
+    "subtitle": "صرّح وأدِر ساعاتك الإضافية",
+    "myRequests": "طلباتي",
+    "declareOvertime": "تصريح بساعات إضافية",
+    "addOvertime": "إضافة ساعات إضافية",
+    "editOvertime": "تعديل ساعات إضافية",
+    "noData": "لا توجد سجلات ساعات إضافية",
+    "cancel": "إلغاء",
+    "confirmDelete": "هل أنت متأكد من حذف هذا التصريح بالساعات الإضافية؟",
+    "confirmCancel": "هل أنت متأكد من إلغاء هذا التصريح بالساعات الإضافية؟",
+    "table": {
+      "date": "التاريخ",
+      "type": "النوع",
+      "time": "الوقت",
+      "employee": "الموظف",
+      "startTime": "وقت البداية",
+      "endTime": "وقت النهاية",
+      "totalHours": "إجمالي الساعات",
+      "reason": "السبب",
+      "status": "الحالة"
+    },
+    "form": {
+      "date": "التاريخ",
+      "selectDate": "اختر تاريخاً",
+      "type": "النوع",
+      "selectType": "اختر النوع",
+      "startTime": "وقت البداية",
+      "endTime": "وقت النهاية",
+      "reason": "السبب",
+      "reasonPlaceholder": "اشرح سبب الساعات الإضافية..."
+    },
+    "type": {
+      "hourly": "ساعات إضافية بالساعة",
+      "holiday": "العمل في يوم عطلة"
+    },
+    "status": {
+      "all": "الكل",
+      "submitted": "مقدمة",
+      "approved": "مقبولة",
+      "rejected": "مرفوضة",
+      "cancelled": "ملغاة"
+    },
+    "messages": {
+      "createSuccess": "تم التصريح بالساعات الإضافية بنجاح",
+      "updateSuccess": "تم تحديث الساعات الإضافية بنجاح",
+      "deleteSuccess": "تم حذف الساعات الإضافية بنجاح",
+      "cancelSuccess": "تم إلغاء الساعات الإضافية بنجاح",
+      "approved": "تمت الموافقة على الساعات الإضافية بنجاح",
+      "rejected": "تم رفض الساعات الإضافية"
+    },
+    "errors": {
+      "loadFailed": "فشل تحميل سجلات الساعات الإضافية",
+      "createFailed": "فشل التصريح بالساعات الإضافية",
+      "updateFailed": "فشل تحديث الساعات الإضافية",
+      "deleteFailed": "فشل حذف الساعات الإضافية",
+      "cancelFailed": "فشل إلغاء الساعات الإضافية",
+      "approveFailed": "فشل الموافقة على الساعات الإضافية",
+      "rejectFailed": "فشل رفض الساعات الإضافية",
+      "noEmployee": "لم يتم العثور على موظف"
+    },
+    "management": {
+      "title": "إدارة الساعات الإضافية",
+      "subtitle": "راجع ووافق على طلبات الموظفين للساعات الإضافية",
+      "allRequests": "كل الطلبات",
+      "pending": "قيد الانتظار",
+      "review": "مراجعة",
+      "reviewRequest": "مراجعة الطلب",
+      "employeeInfo": "معلومات الموظف",
+      "details": "تفاصيل الساعات الإضافية",
+      "comment": "ملاحظة",
+      "commentPlaceholder": "أضف ملاحظة (اختيارية للموافقة، مطلوبة للرفض)...",
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "filters": {
+      "status": "الحالة",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية"
+    },
+    "validation": {
+      "rejectCommentRequired": "الملاحظة مطلوبة لرفض الطلب"
+    }
+  },
+  "holidays": {
+    "title": "أيام العطل",
+    "subtitle": "إدارة أيام العطل الرسمية لشركتك",
+    "addHoliday": "إضافة يوم عطلة",
+    "editHoliday": "تعديل يوم العطلة",
+    "createDescription": "تحديد يوم عطلة جديد",
+    "editDescription": "تعديل معلومات يوم العطلة",
+    "noData": "لا توجد أيام عطل مسجلة",
+    "confirmDelete": "هل أنت متأكد من حذف هذا اليوم؟",
+    "filters": {
+      "year": "السنة",
+      "scope": "النطاق",
+      "type": "النوع",
+      "status": "الحالة"
+    },
+    "table": {
+      "date": "التاريخ",
+      "name": "الاسم",
+      "type": "النوع",
+      "scope": "النطاق",
+      "paid": "مدفوع",
+      "status": "الحالة",
+      "title": "قائمة العطل",
+      "description": "إدارة عطل الشركة والعطل الوطنية"
+    },
+    "form": {
+      "nameFr": "الاسم بالفرنسية",
+      "nameFrPlaceholder": "مثال: عيد العمال",
+      "nameAr": "الاسم بالعربية",
+      "nameArPlaceholder": "مثال: عيد العمال",
+      "nameEn": "الاسم بالإنجليزية",
+      "nameEnPlaceholder": "مثال: Labour Day",
+      "date": "التاريخ",
+      "selectDate": "اختر تاريخاً",
+      "type": "نوع العطلة",
+      "typePlaceholder": "مثال: وطني، ديني، خاص بالشركة",
+      "scope": "النطاق",
+      "description": "الوصف",
+      "descriptionPlaceholder": "وصف اختياري ليوم العطلة...",
+      "mandatory": "إلزامي",
+      "paid": "مدفوع",
+      "recurring": "متكرر",
+      "affectPayroll": "يؤثر على الرواتب",
+      "affectAttendance": "يؤثر على الحضور",
+      "active": "نشط",
+      "year": "السنة",
+      "yearPlaceholder": "مثال: 2026",
+      "recurrence": "التكرار",
+      "recurrencePlaceholder": "اختر التكرار",
+      "recurrenceHint": "اختر ما إذا كانت العطلة تتكرر كل سنة أم مرة واحدة."
+    },
+    "recurrence": {
+      "none": "غير متكرر",
+      "yearly": "كل سنة"
+    },
+    "scope": {
+      "all": "الكل",
+      "global": "عام",
+      "company": "خاص بالشركة"
+    },
+    "status": {
+      "all": "الكل",
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "type": {
+      "all": "الكل"
+    },
+    "messages": {
+      "createSuccess": "تم إنشاء يوم العطلة بنجاح",
+      "updateSuccess": "تم تحديث يوم العطلة بنجاح",
+      "deleteSuccess": "تم حذف يوم العطلة بنجاح"
+    },
+    "errors": {
+      "loadFailed": "فشل تحميل أيام العطل",
+      "createFailed": "فشل إنشاء يوم العطلة",
+      "updateFailed": "فشل تحديث يوم العطلة",
+      "deleteFailed": "فشل حذف يوم العطلة",
+      "noCompany": "لم يتم اختيار شركة"
+    },
+    "stats": {
+      "count": "{{count}} عطلة"
+    },
+    "empty": {
+      "description": "ابدأ بإنشاء أول عطلة."
+    }
+  },
+  "workingCalendar": {
+    "title": "تقويم العمل",
+    "description": "حدد أيام وساعات العمل لشركتك",
+    "startTime": "وقت البدء",
+    "endTime": "وقت الانتهاء",
+    "nonWorkingDay": "يوم غير عمل",
+    "days": {
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت",
+      "sunday": "الأحد"
+    },
+    "messages": {
+      "saveSuccess": "تم حفظ تقويم العمل بنجاح"
+    },
+    "errors": {
+      "noCompany": "لم يتم تحديد شركة",
+      "loadFailed": "فشل تحميل تقويم العمل",
+      "saveFailed": "فشل حفظ تقويم العمل",
+      "timesRequired": "وقت البدء والانتهاء مطلوبان لـ {{day}}",
+      "invalidTimeRange": "يجب أن يكون وقت الانتهاء بعد وقت البدء لـ {{day}}"
+    }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب"
+  }
+}

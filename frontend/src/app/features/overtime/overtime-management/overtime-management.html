@@ -1,0 +1,320 @@
+<div class="min-h-screen bg-gray-50">
+  <p-toast />
+  <p-confirmDialog />
+
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
+              <i class="pi pi-clock text-2xl"></i>
+            </div>
+            <div>
+              <h1 class="heading">
+                {{ 'overtime.management.title' | translate }}
+              </h1>
+              <p class="subheading mt-1">
+                {{ 'overtime.management.subtitle' | translate }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-6">
+    <!-- Stats Card -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <p-card styleClass="card h-full">
+        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
+          <div class="flex-1">
+            <p class="text-sm text-(--text-secondary) mb-1">{{ 'overtime.management.pending' | translate }}</p>
+            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ pendingCount() }}</h3>
+          </div>
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--blue-500)/10">
+            <i class="pi pi-clock text-(--blue-500) text-xl"></i>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- All Overtime Requests Section -->
+    <div class="card mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-(--text-primary)">
+          {{ 'overtime.management.allRequests' | translate }}
+        </h2>
+      </div>
+
+      <!-- Filters -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Status Filter -->
+        <div class="form-field">
+          <label class="block text-sm font-medium text-(--text-primary) mb-2">
+            {{ 'overtime.filters.status' | translate }}
+          </label>
+          <p-select
+            [(ngModel)]="selectedStatus"
+            [options]="statusOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [placeholder]="'overtime.status.all' | translate"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+
+        <!-- Start Date Filter -->
+        <div class="form-field">
+          <label class="block text-sm font-medium text-(--text-primary) mb-2">
+            {{ 'overtime.filters.startDate' | translate }}
+          </label>
+          <p-datepicker
+            [(ngModel)]="selectedStartDate"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [placeholder]="'common.selectDate' | translate"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+
+        <!-- End Date Filter -->
+        <div class="form-field">
+          <label class="block text-sm font-medium text-(--text-primary) mb-2">
+            {{ 'overtime.filters.endDate' | translate }}
+          </label>
+          <p-datepicker
+            [(ngModel)]="selectedEndDate"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            [placeholder]="'common.selectDate' | translate"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-2 mb-4">
+        <p-button
+          [label]="'common.filter' | translate"
+          icon="pi pi-filter"
+          (onClick)="applyFilters()"
+        />
+        <p-button
+          [label]="'common.reset' | translate"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="resetFilters()"
+        />
+      </div>
+
+      <!-- Table -->
+      <p-table
+        [value]="overtimes()"
+        [loading]="isLoading()"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{'min-width': '50rem'}"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="saas-table-header">{{ 'overtime.table.employee' | translate }}</th>
+            <th class="saas-table-header">{{ 'overtime.table.date' | translate }}</th>
+            <th class="saas-table-header">{{ 'overtime.table.type' | translate }}</th>
+            <th class="saas-table-header">{{ 'overtime.table.time' | translate }}</th>
+            <th class="saas-table-header">{{ 'overtime.table.totalHours' | translate }}</th>
+            <th class="saas-table-header">{{ 'overtime.table.status' | translate }}</th>
+            <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-overtime>
+          <tr class="saas-table-row">
+            <!-- Employee -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-(--primary)/10 text-(--primary) font-semibold">
+                  {{ getEmployeeInitials(overtime.employeeFullName || 'N/A') }}
+                </div>
+                <span class="font-medium">{{ overtime.employeeFullName }}</span>
+              </div>
+            </td>
+
+            <!-- Date -->
+            <td class="px-6 py-4">{{ overtime.overtimeDate | date: 'dd/MM/yyyy' }}</td>
+
+            <!-- Type -->
+            <td class="px-6 py-4">
+              <p-tag 
+                [value]="getTypeLabel(overtime.overtimeType)" 
+                [severity]="overtime.overtimeType === OvertimeType.Hourly ? 'info' : 'warn'"
+              ></p-tag>
+            </td>
+
+            <!-- Time -->
+            <td class="px-6 py-4">
+              @if (overtime.overtimeType === OvertimeType.Hourly) {
+                <span>{{ overtime.startTime }} - {{ overtime.endTime }}</span>
+              }
+              @if (overtime.overtimeType === OvertimeType.Holiday) {
+                <span>-</span>
+              }
+            </td>
+
+            <!-- Total Hours -->
+            <td class="px-6 py-4">
+              <strong>{{ overtime.totalHours | number: '1.2-2' }}h</strong>
+            </td>
+
+            <!-- Status -->
+            <td class="px-6 py-4">
+              <p-tag
+                [value]="overtime.statusDescription"
+                [severity]="getStatusSeverity(overtime.status)"
+              />
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                @if (canApprove(overtime)) {
+                  <button
+                    pButton
+                    icon="pi pi-eye"
+                    [pTooltip]="'overtime.management.review' | translate"
+                    tooltipPosition="top"
+                    (click)="openApprovalDialog(overtime)"
+                    severity="info"
+                    [text]="true"
+                    [rounded]="true"
+                  ></button>
+                }
+                @if (!canApprove(overtime)) {
+                  <span class="flex items-center text-(--text-secondary)">
+                    @if (overtime.status === OvertimeStatus.Approved) {
+                      <i class="pi pi-check-circle"></i>
+                    }
+                    @if (overtime.status === OvertimeStatus.Rejected) {
+                      <i class="pi pi-times-circle"></i>
+                    }
+                    @if (overtime.status === OvertimeStatus.Cancelled) {
+                      <i class="pi pi-ban"></i>
+                    }
+                  </span>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-8">
+              <div class="flex flex-col items-center gap-3">
+                <i class="pi pi-inbox text-4xl text-(--text-secondary)"></i>
+                <p class="text-(--text-secondary)">{{ 'overtime.noData' | translate }}</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- Approval Dialog -->
+  <p-dialog
+    [header]="'overtime.management.reviewRequest' | translate"
+    [(visible)]="showApprovalDialog"
+    [modal]="true"
+    [style]="{width: '600px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="app-dialog"
+  >
+    @if (selectedOvertime()) {
+      <div class="approval-dialog">
+      <!-- Employee Info -->
+      <div class="info-section">
+        <h3>{{ 'overtime.management.employeeInfo' | translate }}</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">{{ 'overtime.table.employee' | translate }}:</span>
+            <span class="value">{{ selectedOvertime()?.employeeFullName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">{{ 'overtime.table.date' | translate }}:</span>
+            <span class="value">{{ selectedOvertime()?.overtimeDate | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overtime Details -->
+      <div class="info-section">
+        <h3>{{ 'overtime.management.details' | translate }}</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">{{ 'overtime.table.type' | translate }}:</span>
+            <span class="value">{{ getTypeLabel(selectedOvertime()!.overtimeType) }}</span>
+          </div>
+          @if (selectedOvertime()?.overtimeType === OvertimeType.Hourly) {
+            <div class="info-item">
+              <span class="label">{{ 'overtime.table.time' | translate }}:</span>
+              <span class="value">{{ selectedOvertime()?.startTime }} - {{ selectedOvertime()?.endTime }}</span>
+            </div>
+          }
+          <div class="info-item">
+            <span class="label">{{ 'overtime.table.totalHours' | translate }}:</span>
+            <span class="value"><strong>{{ selectedOvertime()?.totalHours | number: '1.2-2' }}h</strong></span>
+          </div>
+          @if (selectedOvertime()?.reason) {
+            <div class="info-item full-width">
+              <span class="label">{{ 'overtime.table.reason' | translate }}:</span>
+              <span class="value">{{ selectedOvertime()?.reason }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Comment -->
+      <div class="form-field">
+        <label for="approvalComment" class="form-label">
+          {{ 'overtime.management.comment' | translate }}
+        </label>
+        <textarea
+          id="approvalComment"
+          pTextarea
+          [(ngModel)]="approvalComment"
+          [rows]="3"
+          class="w-full"
+          [placeholder]="'overtime.management.commentPlaceholder' | translate"
+        ></textarea>
+      </div>
+    </div>
+    }
+
+    <ng-template pTemplate="footer">
+      <div class="dialog-footer">
+        <p-button
+          [label]="'common.cancel' | translate"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeApprovalDialog()"
+        />
+        <p-button
+          [label]="'overtime.management.reject' | translate"
+          severity="danger"
+          icon="pi pi-times"
+          (onClick)="rejectOvertime()"
+        />
+        <p-button
+          [label]="'overtime.management.approve' | translate"
+          severity="success"
+          icon="pi pi-check"
+          (onClick)="approveOvertime()"
+        />
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

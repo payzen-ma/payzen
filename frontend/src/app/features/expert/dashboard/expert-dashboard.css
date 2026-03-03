@@ -1,0 +1,17 @@
+/* Expert Dashboard Styles */
+:host {
+  display: block;
+}
+
+/* Custom table styles if needed */
+:host ::ng-deep .p-datatable .p-datatable-header {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.875rem;
+}

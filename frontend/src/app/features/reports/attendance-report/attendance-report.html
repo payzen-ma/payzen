@@ -1,0 +1,51 @@
+<div class="min-h-screen bg-(--bg-page)">
+  <main class="max-w-6xl mx-auto p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900">{{ 'attendanceReport.title' | translate }}</h1>
+      <p class="text-sm text-gray-600 mt-1">{{ 'attendanceReport.subtitle' | translate }}</p>
+    </div>
+
+    <p-card styleClass="shadow-sm border border-gray-200">
+      <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div>
+          <label class="text-sm text-gray-600">{{ 'attendanceReport.startDate' | translate }}</label>
+          <input type="date" class="p-inputtext w-full" [value]="startDate() ? (startDate() | date:'yyyy-MM-dd') : ''" (change)="setStartDateFromInput($event.target.value)" />
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">{{ 'attendanceReport.endDate' | translate }}</label>
+          <input type="date" class="p-inputtext w-full" [value]="endDate() ? (endDate() | date:'yyyy-MM-dd') : ''" (change)="setEndDateFromInput($event.target.value)" />
+        </div>
+        <div>
+          <button pButton type="button" label="{{ 'attendanceReport.generate' | translate }}" (click)="generateReport()" [loading]="isLoading()" class="w-full"></button>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card styleClass="shadow-sm border border-gray-200 mt-6">
+      <div class="p-4">
+        <p-table [value]="reportRows()" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>{{ 'attendanceReport.employee' | translate }}</th>
+              <th>{{ 'attendanceReport.position' | translate }}</th>
+              <th>{{ 'attendanceReport.department' | translate }}</th>
+              <th>{{ 'attendanceReport.totalWorked' | translate }}</th>
+              <th>{{ 'attendanceReport.totalWorkedDays' | translate }}</th>
+              <th>{{ 'attendance.breakMinutesApplied' | translate }}</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.position || '-' }}</td>
+              <td>{{ row.department || '-' }}</td>
+              <td>{{ displayWorked(row) }}</td>
+              <td>{{ row.totalWorkedDays != null ? row.totalWorkedDays : '-' }}</td>
+              <td>{{ row.totalBreakMinutes != null ? (row.totalBreakMinutes + 'm') : '-' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-card>
+  </main>
+</div>

@@ -1,0 +1,63 @@
+<div class="fc-field" [class.fc-invalid]="invalid" [class.fc-disabled]="disabled">
+  @if (!hideLabel) {
+    <div class="fc-label-row">
+        <label class="fc-label" [for]="resolvedInputId">
+          <span>{{ label }}</span>
+          @if(requiredMark) {
+            <span class="fc-required">*</span>
+          }
+        </label>
+        @if(hint) {
+        <span class="fc-hint">{{ hint }}</span>
+        }
+    </div>
+  }
+  
+  @if(description) {
+  <p class="fc-description">{{ description }}</p>
+  }
+
+  <div class="fc-control">
+    <span class="fc-addon fc-prefix">
+      <ng-content select="[prefix]"></ng-content>
+    </span>
+
+    <p-iconfield [iconPosition]="iconPosition" class="w-full relative block">
+      @if(icon && iconPosition === 'left') {
+        <p-inputicon [class]="icon + ' absolute top-1/2 -translate-y-1/2 left-3 z-10 text-gray-500'"></p-inputicon>
+      }
+
+      <input
+        [id]="resolvedInputId"
+        pInputText
+        class="input fc-input"
+        [class.pl-10]="icon && iconPosition === 'left'"
+        [class.pr-10]="icon && iconPosition === 'right'"
+        [type]="type"
+        [placeholder]="placeholder"
+        [disabled]="disabled"
+        [attr.autocomplete]="autocomplete || null"
+        [attr.aria-invalid]="ariaInvalid"
+        [attr.aria-label]="ariaLabel || (hideLabel ? label : null)"
+        [value]="value ?? ''"
+        (input)="handleInput($any($event.target).value)"
+        (blur)="handleBlur()"
+      />
+
+      @if(icon && iconPosition === 'right') {
+        <p-inputicon [class]="icon + ' absolute top-1/2 -translate-y-1/2 right-3 z-10 text-gray-500'"></p-inputicon>
+      }
+    </p-iconfield>
+
+    <span class="fc-addon fc-suffix">
+      <ng-content select="[suffix]"></ng-content>
+    </span>
+  </div>
+  @if(errorList.length) {
+  <div class="fc-errors">
+    @for(error of errorList; track error) {
+      <span>{{ error }}</span>
+    }
+  </div>
+  }
+</div>

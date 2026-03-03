@@ -1,0 +1,169 @@
+<!-- Loading Skeleton -->
+@if (loading() && !company()) {
+  <div class="animate-pulse p-6">
+    <div class="max-w-5xl mx-auto space-y-6">
+      <div class="bg-gray-200 rounded-xl h-20"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-gray-200 rounded-xl h-64"></div>
+        <div class="lg:col-span-2 bg-gray-200 rounded-xl h-96"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Main Content -->
+@if (!loading() || company()) {
+  <div class="p-4 sm:p-6">
+    <div class="max-w-5xl mx-auto space-y-6">
+      
+      <!-- Info Banner Toggle -->
+      <div class="relative flex flex-col" [class.items-end]="!infoExpanded()">
+        @if (!infoExpanded()) {
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 size-10 hover:bg-blue-100 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            (click)="toggleInfoBanner()"
+            [pTooltip]="'company.info.bannerTitle' | translate"
+            tooltipPosition="right"
+            [attr.aria-expanded]="false"
+            aria-controls="company-info-banner"
+          >
+            <i class="pi pi-info-circle text-xl"></i>
+          </button>
+        } @else {
+          <div
+            id="company-info-banner"
+            class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3"
+            role="alert"
+          >
+            <div class="shrink-0 size-10 bg-blue-100 rounded-lg grid place-items-center text-blue-600">
+              <i class="pi pi-info-circle text-xl"></i>
+            </div>
+            <div class="flex-1">
+              <h2 class="font-semibold text-blue-900">{{ 'company.info.bannerTitle' | translate }}</h2>
+              <p class="text-sm text-blue-700 mt-1">{{ 'company.info.bannerDescription' | translate }}</p>
+            </div>
+            <button 
+              type="button"
+              class="shrink-0 text-blue-400 hover:text-blue-600 transition-colors p-1 rounded-md hover:bg-blue-100"
+              (click)="toggleInfoBanner()"
+              [attr.aria-label]="'common.close' | translate"
+            >
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Logo & Basic Info -->
+        <aside class="lg:col-span-1">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <div class="flex flex-col items-center">
+              <!-- Logo -->
+              <div class="relative size-28 mb-4 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-200 grid place-items-center">
+                <img 
+                  [src]="company()?.logoUrl || 'assets/images/placeholder-company.png'" 
+                  [attr.alt]="'company.info.logoAlt' | translate" 
+                  class="object-contain size-full" />
+              </div>
+              
+              <!-- Upload Button -->
+              <p-fileUpload 
+                mode="basic" 
+                [chooseLabel]="'company.info.changeLogo' | translate"
+                chooseIcon="pi pi-upload"
+                name="logo" 
+                accept="image/*" 
+                [maxFileSize]="1000000" 
+                [customUpload]="true"
+                (uploadHandler)="onUpload($event)"
+                [auto]="true"
+                styleClass="w-full btn btn-primary ">
+              </p-fileUpload>
+              
+              <!-- Company Name -->
+              <div class="mt-6 w-full text-center">
+                <h3 class="text-lg font-semibold text-gray-900">{{ company()?.legalName }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ company()?.city }}, {{ company()?.country }}</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Column: Company Details -->
+        <main class="lg:col-span-2 space-y-6">
+          
+          <!-- Legal Entity Section -->
+          <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="legal-heading">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 id="legal-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i class="pi pi-building text-blue-600"></i>
+                  {{ 'company.info.legalEntity' | translate }}
+                </h2>
+              </div>
+              @if (!isAdmin()) {
+                <span class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200 flex items-center gap-1.5">
+                  <i class="pi pi-lock text-xs"></i>
+                  {{ 'company.info.managedByBackoffice' | translate }}
+                </span>
+              }
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              @for (field of legalFields; track field.id) {
+                @if (isAdmin()) {
+                  <app-editable-field 
+                    [value]="getFieldValue(field.key)" 
+                    [label]="field.label | translate"
+                    [type]="'text'"
+                    (save)="updateField(field.key, $any($event))">
+                  </app-editable-field>
+                } @else {
+                  <app-readonly-field
+                    [fieldId]="field.id"
+                    [label]="field.label | translate"
+                    [value]="getFieldValue(field.key)"
+                    [tooltipText]="'company.info.managedByBackoffice' | translate">
+                  </app-readonly-field>
+                }
+              }
+            </div>
+          </section>
+
+          <!-- Operational Details Section (Editable) -->
+          <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="operational-heading">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <h2 id="operational-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <i class="pi pi-briefcase text-green-600"></i>
+                {{ 'company.info.operationalDetails' | translate }}
+              </h2>
+              <p class="text-sm text-gray-600 mt-1">
+                {{ 'company.info.operationalDetailsDesc' | translate }}
+              </p>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              @for (field of editableFields; track field.key) {
+                <div [class.sm:col-span-2]="field.fullWidth">
+                  <app-editable-field 
+                    [value]="getFieldValue(field.key)" 
+                    [label]="field.label | translate"
+                    [type]="field.type || 'text'"
+                    [suggestions]="field.key === 'city' ? citySuggestions() : []"
+                    (search)="field.key === 'city' ? searchCities($event) : null"
+                    (save)="updateField(field.key, $any($event))">
+                  </app-editable-field>
+                </div>
+              }
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+}
+
+<p-toast />

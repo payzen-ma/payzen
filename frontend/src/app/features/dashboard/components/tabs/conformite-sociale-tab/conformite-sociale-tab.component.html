@@ -1,0 +1,45 @@
+<section class="space-y-6">
+  <app-section-header
+    [eyebrow]="data().meta.eyebrow ?? ''"
+    [title]="data().meta.title"
+    [subtitle]="data().meta.subtitle"
+    [badge]="data().meta.badge ?? ''"
+    [icon]="data().meta.icon ?? 'pi pi-check-circle'"
+  />
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    @for (metric of data().kpis; track metric.label) {
+      <app-kpi-card [metric]="metric" />
+    }
+  </div>
+
+  <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div class="overflow-x-auto">
+      <p-table [value]="data().declarations" styleClass="p-datatable-sm" [tableStyle]="{ minWidth: '920px' }">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="dashboard-table-header">Declaration</th>
+            <th class="dashboard-table-header">Montant (MAD)</th>
+            <th class="dashboard-table-header">Echeance</th>
+            <th class="dashboard-table-header">Statut</th>
+            <th class="dashboard-table-header">Reference</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td class="dashboard-table-cell">{{ row.declaration }}</td>
+            <td class="dashboard-table-cell font-semibold">{{ row.montantMad }}</td>
+            <td class="dashboard-table-cell">{{ row.echeance }}</td>
+            <td class="dashboard-table-cell"><app-status-badge [value]="row.statut" /></td>
+            <td class="dashboard-table-cell">{{ row.reference }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </article>
+
+  <article class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+    Ces 5 dashboards constituent le socle MVP de la demo. Les donnees sont hardcodees et remplacables facilement via le repository API.
+  </article>
+</section>
