@@ -1,4 +1,163 @@
-﻿# 📘 API PayZen - Documentation Complète
+﻿# Payzen Backend — API REST
+
+API REST de la plateforme Payzen, développée avec **.NET 9** et **SQL Server**. Couvre la gestion RH complète : authentification, entreprises, employés, paie, congés, absences et tableau de bord analytique. Intègre un moteur de calcul de paie DSL et une couche IA (Claude / Gemini).
+
+---
+
+## Stack technique
+
+| Technologie | Version |
+|---|---|
+| .NET | 9.0 |
+| ASP.NET Core Web API | 9.0 |
+| Entity Framework Core | 9.0 |
+| SQL Server | Express ou supérieur |
+| JWT Bearer | 9.0 |
+| BCrypt.Net-Next | 4.0.3 |
+| ClosedXML (exports Excel) | 0.102.2 |
+| Anthropic Claude SDK | 12.8.0 |
+| OpenAPI / Swagger | 3.0 |
+
+---
+
+## Prérequis
+
+- [.NET SDK 9](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [SQL Server](https://www.microsoft.com/fr-fr/sql-server/) (Express ou supérieur)
+- [Visual Studio 2022+](https://visualstudio.microsoft.com/) ou `dotnet CLI`
+
+---
+
+## Installation & Configuration
+
+### 1. Base de données
+
+Configurer la chaîne de connexion dans `appsettings.json` :
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=payzen_db;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
+}
+```
+
+### 2. JWT
+
+```json
+{
+  "JwtSettings": {
+    "Key": "votre-clé-secrète-32-caractères-minimum",
+    "Issuer": "PayzenApi",
+    "Audience": "PayzenApp",
+    "ExpiresInMinutes": 120
+  }
+}
+```
+
+### 3. Moteur IA (optionnel)
+
+Choisir entre **Claude** (Anthropic), **Gemini** (Google, gratuit) ou **Mock** (hors ligne) :
+
+```json
+{
+  "Anthropic": { "ApiKey": "sk-ant-...", "UseMock": false },
+  "Google":    { "ApiKey": "AIza...",   "UseGemini": true }
+}
+```
+
+| Mode | Config | Description |
+|---|---|---|
+| Mock | `UseMock: true` | Calculs simplifiés, aucune consommation de tokens |
+| Gemini | `UseGemini: true` | Google Gemini 1.5 Flash — 100% gratuit |
+| Claude | (défaut) | Anthropic Claude Sonnet — tokens payants |
+
+---
+
+## Démarrage
+
+```bash
+cd payzen_backend/payzen_backend
+
+# Appliquer les migrations (première fois)
+dotnet ef database update
+
+# Lancer l'API
+dotnet run
+```
+
+L'API sera disponible sur `http://localhost:5119` (configurable dans `launchSettings.json`).
+
+> Au démarrage, un **seed automatique** peuple la base de données avec les données initiales nécessaires.
+
+---
+
+## Contrôleurs disponibles
+
+| Contrôleur | Préfixe | Rôle |
+|---|---|---|
+| `AuthController` | `/api/auth` | Login, logout, gestion des tokens |
+| `CompanyController` | `/api/company` | CRUD entreprises, onboarding |
+| `EmployeeController` | `/api/employee` | CRUD employés, contrats |
+| `PayrollController` | `/api/payroll` | Calcul de paie, fiches de paie |
+| `LeaveController` | `/api/leave` | Demandes de congés, soldes |
+| `DashboardController` | `/api/dashboard` | KPIs et statistiques RH |
+| `ReferentielController` | `/api/referentiel` | Éléments de paie, règles |
+| `EventController` | `/api/event` | Journal des événements |
+| `SystemDataController` | `/api/systemdata` | Données système (pays, devises…) |
+
+---
+
+## Structure du projet
+
+```
+payzen_backend/
+├── Controllers/          # Contrôleurs API (Auth, Payroll, Leave, …)
+├── Data/                 # DbContext (AppDbContext) + configuration EF
+├── DTOs/                 # Data Transfer Objects
+├── Models/               # Entités de domaine
+├── Services/             # Logique métier
+│   ├── Payroll/          # Moteur de calcul DSL
+│   ├── Leave/            # Gestion des congés et soldes
+│   ├── Dashboard/        # Agrégation KPIs
+│   ├── Company/          # Onboarding, seeders par défaut
+│   ├── Llm/              # Intégration Claude / Gemini / Mock
+│   └── Convergence/      # Analyse et validation du référentiel
+├── Migrations/           # Migrations EF Core
+├── Seeding/              # Seeders de données initiales
+├── Authorization/        # HasPermissionAttribute
+├── Extensions/           # Extension methods
+└── Program.cs            # Point d'entrée, DI, middleware
+```
+
+---
+
+## Tests
+
+```bash
+cd payzen_backend.Tests
+dotnet test
+```
+
+Les tests couvrent le moteur de calcul de paie DSL (`PayrollCalculationEngineDslTests`).
+
+---
+
+## CORS
+
+Les origines autorisées en développement :
+- `http://localhost:4200` (Frontend)
+- `http://localhost:55879` (Backoffice)
+
+---
+
+## Documentation API complète
+
+👇 La référence complète des endpoints est disponible ci-dessous.
+
+---
+
+# 📘 API PayZen - Documentation Complète
 
 ## 🚀 Introduction
 
