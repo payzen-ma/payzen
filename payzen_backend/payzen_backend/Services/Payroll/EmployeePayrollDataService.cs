@@ -44,6 +44,11 @@ namespace payzen_backend.Services.Payroll
                          && (ec.EndDate == null || ec.EndDate >= startOfMonth))
             .OrderByDescending(ec => ec.StartDate)
             .FirstOrDefaultAsync();
+        
+        if (contract == null)
+        {
+            throw new Exception($"Aucun contrat trouvé pour l'employé {employee.FirstName} {employee.LastName} au cours du mois de paie.");
+        }
 
         // 3. Salaire actif (ou ayant été actif) au cours du mois de paie
         var salary = await _db.EmployeeSalaries
@@ -54,6 +59,11 @@ namespace payzen_backend.Services.Payroll
                 && (es.EndDate == null || es.EndDate >= startOfMonth))
             .OrderByDescending(es => es.EffectiveDate)
             .FirstOrDefaultAsync();
+        
+        if (salary == null)
+        {
+            throw new Exception($"Aucun salaire trouvé pour l'employé {employee.FirstName} {employee.LastName} au cours du mois de paie.");
+        }
 
         // 4. Package salarial actif (ou ayant été actif) au cours du mois de paie
         // LOGIQUE : On prend le package dont l'EffectiveDate est <= à la FIN du mois

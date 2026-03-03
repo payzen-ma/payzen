@@ -83,9 +83,10 @@ export class BulletinComponent implements OnInit {
   readonly filteredResults = computed(() => {
     let results = this.payrollResults();
     
-    // Filtre par statut
-    if (this.statusFilter()) {
-      results = results.filter(r => r.status === this.statusFilter());
+    // Filtre par statut (en normalisant les valeurs renvoyées par l'API)
+    const currentStatusFilter = this.statusFilter();
+    if (currentStatusFilter) {
+      results = results.filter(r => this.normalizeStatus(r.status) === currentStatusFilter);
     }
     
     // Filtre par recherche (nom employé)
@@ -104,9 +105,9 @@ export class BulletinComponent implements OnInit {
     const results = this.filteredResults();
     return {
       total: results.length,
-      success: results.filter(r => r.status === PayrollResultStatus.SUCCESS).length,
-      error: results.filter(r => r.status === PayrollResultStatus.ERROR).length,
-      pending: results.filter(r => r.status === PayrollResultStatus.PENDING).length,
+      success: results.filter(r => this.normalizeStatus(r.status) === PayrollResultStatus.SUCCESS).length,
+      error: results.filter(r => this.normalizeStatus(r.status) === PayrollResultStatus.ERROR).length,
+      pending: results.filter(r => this.normalizeStatus(r.status) === PayrollResultStatus.PENDING).length,
       totalBrut: results.reduce((sum, r) => sum + (r.totalBrut || 0), 0),
       totalNet: results.reduce((sum, r) => sum + (r.totalNet || 0), 0)
     };
@@ -274,16 +275,57 @@ export class BulletinComponent implements OnInit {
     this.loadPayrollResults();
   }
 
-  onStatusFilterChange(status: PayrollResultStatus | null): void {
-    this.statusFilter.set(status);
+  onStatusFilterChange(status: PayrollResultStatus | null | string): void {
+    // L'option "Tous les statuts" a une valeur null, qui arrive souvent sous forme de chaîne "null".
+    if (status === null || status === undefined || status === '' || status === 'null') {
+      this.statusFilter.set(null);
+      return;
+    }
+    this.statusFilter.set(status as PayrollResultStatus);
   }
 
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
   }
 
+  /**
+   * Normalise un statut retourné par l'API (SUCCESS, COMPLETED, Error, erreur, pending, etc.)
+   * vers l'enum PayrollResultStatus, pour garder des compteurs, filtres et badges cohérents.
+   *
+   * Règle métier: tout ce qui n'est ni "erreur" ni "en attente" est considéré comme "succès".
+   */
+  private normalizeStatus(status: PayrollResultStatus | string | null | undefined): PayrollResultStatus | null {
+    if (status === undefined || status === null) return null;
+    const raw = status.toString().trim().toUpperCase();
+
+    // Erreurs
+    if (
+      raw === PayrollResultStatus.ERROR ||
+      raw === 'ERROR' ||
+      raw === 'ERREUR' ||
+      raw === 'FAILED' ||
+      raw === 'FAIL'
+    ) {
+      return PayrollResultStatus.ERROR;
+    }
+
+    // En attente
+    if (
+      raw === PayrollResultStatus.PENDING ||
+      raw === 'PENDING' ||
+      raw === 'EN_ATTENTE' ||
+      raw === 'EN ATTENTE'
+    ) {
+      return PayrollResultStatus.PENDING;
+    }
+
+    // Par défaut, tout le reste est traité comme "succès"
+    return PayrollResultStatus.SUCCESS;
+  }
+
   getStatusBadgeVariant(status: PayrollResultStatus): 'success' | 'danger' | 'warning' | 'info' {
-    switch (status) {
+    const normalized = this.normalizeStatus(status);
+    switch (normalized) {
       case PayrollResultStatus.SUCCESS:
         return 'success';
       case PayrollResultStatus.ERROR:
@@ -296,7 +338,8 @@ export class BulletinComponent implements OnInit {
   }
 
   getStatusLabel(status: PayrollResultStatus): string {
-    switch (status) {
+    const normalized = this.normalizeStatus(status);
+    switch (normalized) {
       case PayrollResultStatus.SUCCESS:
         return this.translate.instant('payrollBulletin.statusSuccess');
       case PayrollResultStatus.ERROR:

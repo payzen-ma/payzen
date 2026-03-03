@@ -429,18 +429,6 @@ export class Sidebar {
     const isExpert = this.isExpertMode();
     const hasClient = this.isClientView();
     
-    // If in expert mode and trying to access certain pages from the portfolio (no client selected),
-    // redirect back to the expert dashboard instead of navigating to owner/package pages.
-    const target = item.routerLink || '';
-    if (isExpert && !hasClient) {
-      if (target.includes('/company')) {
-        event.preventDefault();
-        event.stopPropagation();
-        this.router.navigate(['/expert/dashboard']);
-        return false;
-      }
-    }
-
     // If in expert mode and item requires company context but no client is selected
     if (isExpert && item.requiresCompanyContext && !hasClient) {
       event.preventDefault();

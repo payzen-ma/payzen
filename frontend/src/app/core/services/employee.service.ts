@@ -969,7 +969,13 @@ export class EmployeeService {
 
   private composePhone(code?: string | null, phone?: string | number): string {
     const cleanCode = code ? String(code).trim() : '';
-    const cleanPhone = phone ? String(phone).trim() : '';
+    let cleanPhone = phone ? String(phone).trim() : '';
+
+    // Éviter de dupliquer l'indicatif (ex: +212+212600000000)
+    if (cleanCode && cleanPhone && cleanPhone.startsWith(cleanCode)) {
+      cleanPhone = cleanPhone.slice(cleanCode.length).trim();
+    }
+
     return `${cleanCode} ${cleanPhone}`.trim();
   }
 
