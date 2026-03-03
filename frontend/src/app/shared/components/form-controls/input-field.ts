@@ -109,7 +109,25 @@ export class InputFieldComponent implements ControlValueAccessor {
   }
 
   handleInput(raw: string): void {
-    const parsed = this.type === 'number' ? (raw === '' ? null : Number(raw)) : raw;
+    let parsed: any;
+    if (this.type === 'number') {
+      if (raw === '') {
+        parsed = null;
+      } else {
+        // Autoriser la virgule comme séparateur décimal (saisie "française")
+        // et les séparateurs de milliers (espace, point)
+        const normalized = raw
+          .replace(/\s/g, '')   // enlever les espaces
+          .replace(/\./g, '')   // enlever les points de milliers
+          .replace(',', '.');   // convertir la virgule en point décimal
+        parsed = Number(normalized);
+        if (Number.isNaN(parsed)) {
+          parsed = null;
+        }
+      }
+    } else {
+      parsed = raw;
+    }
     this.value = parsed ?? '';
     this.onChange(parsed);
   }

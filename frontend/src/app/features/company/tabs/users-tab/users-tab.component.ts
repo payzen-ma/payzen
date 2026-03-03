@@ -169,7 +169,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
             value: String(r.id)
           }));
         this.roles.set(options);
-        console.log('[UsersTab] loadRoles -> roles set', options);
       },
       error: (err) => {
         console.error('Error loading roles', err);
@@ -268,7 +267,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
   }
 
   openAssignRoleDialog(user: UserDisplay) {
-    console.log('[UsersTab] openAssignRoleDialog called for user', user);
     this.selectedUserForAssign = user;
 
     // Try to preload assigned roles from server and select accordingly.
@@ -276,7 +274,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
     if (!Number.isNaN(employeeIdNum)) {
       this.userService.getEmployeeRoles(employeeIdNum).subscribe({
         next: (assignments) => {
-          console.log('[UsersTab] getUserRoles -> assignments', assignments);
           const mappedIds: string[] = (Array.isArray(assignments) ? assignments : [])
             .map(a => String(a?.RoleId ?? a?.roleId ?? a?.Role?.id ?? a?.role?.id ?? a?.id ?? ''))
             .filter(Boolean);
@@ -289,7 +286,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
               .map(id => this.roles().find(o => String(o.value) === String(id)))
               .filter(Boolean)
               .map((m: any) => String(m.value));
-            console.log('[UsersTab] preselected roles', this.selectedRoleIdsForAssign);
             this.blurActiveElement();
             this.assignRoleDialogVisible.set(true);
           };
@@ -378,23 +374,37 @@ export class UsersTabComponent implements OnInit, OnDestroy {
       return;
     }
     const selectedIds = (this.selectedRoleIdsForAssign || []).map(String).filter(Boolean);
-    if (!selectedIds || selectedIds.length === 0) {
-      this.showToast(
-        'error',
-        this.translate.instant('common.error'),
-        this.translate.instant('company.users.messages.noRoleSelected')
-      );
-      return;
-    }
 
     this.assigningRoleLoading.set(true);
 
-    const roleIdsToAssign = selectedIds.map(Number);
+    // Compute differences between initialAssignedRoleIds and selectedIds
+    const initialIds = (this.initialAssignedRoleIds || []).map(String).filter(Boolean);
+    const toKeep = selectedIds.filter(id => initialIds.includes(id));
+    const toAdd = selectedIds.filter(id => !initialIds.includes(id)).map(Number);
+    const toRemove = initialIds.filter(id => !selectedIds.includes(id)).map(Number);
 
-    // Use the new employee-based endpoint
-    const assign$ = this.permissionService.assignRolesToEmployee(employeeId, roleIdsToAssign);
+    const calls = [] as any[];
 
-    assign$.subscribe({
+    // Add assignments (use employee endpoint)
+    if (toAdd.length > 0) {
+      calls.push(this.permissionService.assignRolesToEmployee(employeeId, toAdd));
+    }
+
+    // Removals: call removeRole per roleId (backend supports UserId+RoleId delete)
+    toRemove.forEach(roleId => {
+      calls.push(this.permissionService.removeRole(employeeId, roleId));
+    });
+
+    // If nothing changed, short-circuit
+    if (calls.length === 0) {
+      this.assigningRoleLoading.set(false);
+      this.assignRoleDialogVisible.set(false);
+      this.showToast('info', 'No Changes', 'No role changes to apply');
+      return;
+    }
+
+    // Execute all calls in parallel
+    forkJoin(calls).subscribe({
       next: () => {
         this.assigningRoleLoading.set(false);
         this.assignRoleDialogVisible.set(false);
@@ -406,7 +416,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         this.loadUsers();
       },
       error: (err) => {
-        console.error('Error assigning roles', err);
+        console.error('Error updating roles', err);
         this.assigningRoleLoading.set(false);
         const apiMsg = this.formatApiError(err);
         this.showToast('error', this.translate.instant('common.error'), apiMsg);
@@ -532,14 +542,55 @@ export class UsersTabComponent implements OnInit, OnDestroy {
       next: (resp) => {
         const beforeCount = (resp?.employees || []).length;
         const employees = resp.employees || [];
-        console.log('[UsersTab] employees fetched:', beforeCount);
 
         const displayUsers: UserDisplay[] = employees.map(e => {
           const email = (e as any).email ?? (e as any).Email ?? '';
           const roleRaw = (e as any).roleName ?? (e as any).RoleName ?? (e as any).role ?? null;
-          const role = roleRaw ? `user.role.${roleRaw}` : 'user.role.viewer';
-          const name = `${e.firstName ?? ''} ${e.lastName ?? ''}`.trim() || email || `#${e.id}`;
           const userId = (e as any).userId ?? (e as any).UserId ?? null;
+          console.log('Mapping employee to user display:', { id: e.id, email, roleRaw, userId });
+          // If we don't have role or user linkage, output the full payload for debugging
+          if (!roleRaw && !userId) {
+            console.log('Full employee payload (no role/userId):', e);
+          }
+
+          // Default to viewer. We'll try several places to find role information
+          // (roleName, Role, roles array, nested user roles) and only set `employee`
+          // when the backend explicitly indicates it.
+          let role = 'user.role.viewer';
+          try {
+            // Candidate may come from multiple shapes
+            let candidate: any = roleRaw ?? (e as any).roleName ?? (e as any).RoleName ?? (e as any).Role ?? null;
+
+            if (!candidate) {
+              const rolesArr = (e as any).roles ?? (e as any).Roles ?? (e as any).user?.roles ?? (e as any).User?.roles;
+              if (Array.isArray(rolesArr) && rolesArr.length > 0) {
+                const first = rolesArr[0];
+                candidate = first?.name ?? first?.code ?? first?.role ?? first;
+              } else if ((e as any).Role && typeof (e as any).Role === 'object') {
+                const R = (e as any).Role;
+                candidate = R?.name ?? R?.code ?? R?.role ?? R?.RoleName ?? null;
+              }
+            }
+
+            if (candidate) {
+              if (typeof candidate === 'string') {
+                const r = candidate.trim();
+                if (r.startsWith('user.role.')) {
+                  role = r;
+                } else if (r.includes('.')) {
+                  role = `user.role.${r.split('.').pop()?.toLowerCase()}`;
+                } else {
+                  role = `user.role.${r.toLowerCase()}`;
+                }
+              } else if (typeof candidate === 'object') {
+                const cand = candidate.name ?? candidate.code ?? candidate.role ?? '';
+                if (cand) role = `user.role.${String(cand).toLowerCase()}`;
+              }
+            }
+          } catch (err) {
+            // leave as viewer on any unexpected shape
+          }
+          const name = `${e.firstName ?? ''} ${e.lastName ?? ''}`.trim() || email || `#${e.id}`;
           return {
             id: String((e as any).id ?? (e as any).Id ?? ''),
             userId: userId ? String(userId) : null,
@@ -593,7 +644,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
 
   private editUser(user: UserDisplay) {
     // TODO: Implement edit functionality
-    console.log('Edit user:', user);
   }
 
   private toggleUserStatus(user: UserDisplay) {
@@ -635,10 +685,9 @@ export class UsersTabComponent implements OnInit, OnDestroy {
       if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
         const el = document.activeElement as HTMLElement;
         el.blur();
-        console.log('[UsersTab] blurActiveElement: blurred active element');
       }
     } catch (e) {
-      console.log('[UsersTab] blurActiveElement error', e);
+      // swallow error
     }
   }
 

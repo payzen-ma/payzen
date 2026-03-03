@@ -43,7 +43,25 @@ export class AuditLogService {
   private mapHistoryDtoToDisplayItem(dto: CompanyHistoryDto, companyId: number, index: number): AuditLogDisplayItem {
     const eventType = this.parseEventTypeFromTitle(dto.title);
     const { icon, severity } = this.getEventMetadata(eventType);
-    const parsedTitle = this.parseHistoryTitle(dto.title);
+
+    // Determine a normalized event key for i18n lookup (e.g., "CompanyName_Changed" -> "COMPANY_NAME_CHANGED")
+    const rawTitle = dto.title || '';
+    // Insert underscores between lower->upper (camelCase), replace non-word with underscore, collapse multiple underscores
+    const snake = rawTitle
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/[^A-Za-z0-9]+/g, '_')
+      .replace(/__+/g, '_')
+      .replace(/^_|_$/g, '')
+      .toUpperCase();
+    const eventKey = snake;
+
+    // Format the field name for display (e.g., "Email_Changed" -> "Email")
+    const fieldName = rawTitle?.replace(/_?Changed$/i, '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/_/g, ' ') || '';
+    const parsedTitle = {
+      fieldDisplayName: fieldName,
+      fieldKey: rawTitle,
+      action: rawTitle.match(/_?(Changed|Created|Deleted|Updated|Assigned|Revoked)$/i)?.[1] || ''
+    };
 
     return {
       id: index, // Use index as ID since backend doesn't provide one
@@ -51,6 +69,7 @@ export class AuditLogService {
       entityId: companyId,
       entityName: parsedTitle.fieldDisplayName,
       eventType,
+      eventKey,
       description: dto.description || dto.title || 'Unknown event',
       details: {
         fieldName: parsedTitle.fieldDisplayName,
@@ -295,11 +314,11 @@ export class AuditLogService {
       case AuditEventType.EMPLOYEE_DELETED:
         return { icon: 'pi-trash', severity: 'danger' };
       
-      case AuditEventType.USER_ROLE_ASSIGNED:
+      case AuditEventType.ROLE_ASSIGNED:
       case AuditEventType.COMPANY_DELEGATION_ADDED:
         return { icon: 'pi-check-circle', severity: 'success' };
       
-      case AuditEventType.USER_ROLE_REVOKED:
+      case AuditEventType.ROLE_REVOKED:
       case AuditEventType.COMPANY_DELEGATION_REMOVED:
         return { icon: 'pi-ban', severity: 'warn' };
       

@@ -115,6 +115,16 @@ export const routes: Routes = [
         canActivate: [rhGuard]
       },
       {
+        path: 'overtime/hr',
+        loadComponent: () => import('./features/overtime/hr-employees/hr-employees').then(m => m.HrEmployeesComponent),
+        canActivate: [rhGuard]
+      },
+      {
+        path: 'overtime/detail/:id',
+        loadComponent: () => import('./features/overtime/overtime-detail/overtime-detail').then(m => m.OvertimeDetailComponent),
+        canActivate: [rhGuard]
+      },
+      {
         path: 'employees/create',
         component: EmployeeCreatePage,
         canActivate: [rhGuard]
@@ -169,6 +179,84 @@ export const routes: Routes = [
             .then(m => m.SalaryPackageCreateComponent),
         canActivate: [rhGuard],
         title: 'Modifier Package - PayZen'
+      },
+      // Leave Management Routes
+      {
+        path: 'leave',
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'types',
+            loadComponent: () => import('./features/leave/leave-types/leave-types').then(m => m.LeaveTypesPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'types/create',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-form/leave-type-form').then(m => m.LeaveTypeFormPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'types/:id',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-detail/leave-type-detail').then(m => m.LeaveTypeDetailPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'types/:id/edit',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-form/leave-type-form').then(m => m.LeaveTypeFormPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'policies',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policies').then(m => m.LeavePoliciesPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'policies/create',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'policies/configure/:leaveTypeId',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'policies/:id',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            canActivate: [rhGuard]
+          },
+          {
+            path: 'legal-rules',
+            loadComponent: () => import('./features/leave/leave-legal-rules/leave-legal-rules').then(m => m.LeaveLegalRulesPage),
+            canActivate: [rhGuard]
+          }
+        ]
+      },
+
+      // Employee Leave Requests
+      {
+        path: 'my-leave-requests',
+        loadComponent: () => import('./features/leave/leave-requests/leave-requests.component').then(m => m.LeaveRequestsComponent),
+        title: 'Mes Demandes de Congé - PayZen'
+      },
+
+      // HR Leave Management
+      {
+        path: 'hr-leave-management',
+        loadComponent: () => import('./features/leave/hr-leave-management/hr-leave-management.component').then(m => m.HrLeaveManagementComponent),
+        title: 'Gestion des Congés RH - PayZen'
+      },
+
+      // Payroll - Bulletins de Paie
+      {
+        path: 'payroll/bulletin',
+        loadComponent: () => import('./features/payroll/bulletin/bulletin.component').then(m => m.BulletinComponent),
+        canActivate: [rhGuard],
+        title: 'Bulletins de Paie - PayZen'
       }
     ]
   },
@@ -290,38 +378,13 @@ export const routes: Routes = [
         path: 'profile',
         loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent)
       },
-      // Salary Packages (Expert Mode)
+
+      // Payroll - Bulletins de Paie (Expert Mode)
       {
-        path: 'salary-packages',
-        loadComponent: () => 
-          import('./features/salary-packages/salary-packages')
-            .then(m => m.SalaryPackagesPage),
+        path: 'payroll/bulletin',
+        loadComponent: () => import('./features/payroll/bulletin/bulletin.component').then(m => m.BulletinComponent),
         data: { expertMode: true },
-        title: 'Packages de Rémunération - PayZen'
-      },
-      {
-        path: 'salary-packages/create',
-        loadComponent: () =>
-          import('./features/salary-packages/components/salary-package-create/salary-package-create')
-            .then(m => m.SalaryPackageCreateComponent),
-        data: { expertMode: true },
-        title: 'Nouveau Package - PayZen'
-      },
-      {
-        path: 'salary-packages/:id',
-        loadComponent: () => 
-          import('./features/salary-packages/components/salary-package-view/salary-package-view')
-            .then(m => m.SalaryPackageViewComponent),
-        data: { expertMode: true },
-        title: 'Détails Package - PayZen'
-      },
-      {
-        path: 'salary-packages/:id/edit',
-        loadComponent: () =>
-          import('./features/salary-packages/components/salary-package-create/salary-package-create')
-            .then(m => m.SalaryPackageCreateComponent),
-        data: { expertMode: true },
-        title: 'Modifier Package - PayZen'
+        title: 'Bulletins de Paie - PayZen'
       }
     ]
   },

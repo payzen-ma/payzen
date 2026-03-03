@@ -25,6 +25,9 @@
     "backToPortfolio": "Retour au Portefeuille",
     "portfolio": "Portefeuille",
     "leave": "Congés",
+    "leaveConfiguration": "Configuration",
+    "myLeaveRequests": "Mes Demandes de Congé",
+    "hrLeaveManagement": "Gestion RH - Congés",
     "absences": "Absences",
     "absencesTeam": "Absence Équipe",
     "attendanceReport": "Rapport de Présence",
@@ -33,7 +36,148 @@
     "holidays": "Jours Fériés",
     "salaryPackages": "Packages Salariaux"
   },
-  "hrGrant": "Accorder une absence",
+  "payrollBulletin": {
+    "title": "Bulletins de Paie",
+    "subtitle": "Gérez et générez les bulletins de paie pour",
+    "generateSection": "Générer la paie",
+    "month": "Mois",
+    "year": "Année",
+    "employeeOptional": "Employé (optionnel)",
+    "placeholderMonth": "Sélectionner un mois",
+    "placeholderYear": "Sélectionner une année",
+    "placeholderEmployee": "Sélectionner un employé",
+    "generateAll": "Générer pour tous",
+    "calculateOne": "Calculer un employé",
+    "total": "Total",
+    "success": "Succès",
+    "errors": "Erreurs",
+    "totalBrut": "Total Brut",
+    "totalNet": "Total Net",
+    "searchEmployee": "Rechercher un employé",
+    "searchPlaceholder": "Nom de l'employé...",
+    "filterByStatus": "Filtrer par statut",
+    "allStatuses": "Tous les statuts",
+    "loadingBulletins": "Chargement des bulletins...",
+    "employee": "Employé",
+    "period": "Période",
+    "status": "Statut",
+    "baseSalary": "Salaire de base",
+    "brut": "Brut",
+    "employerContributions": "Cotisations patronales",
+    "actions": "Actions",
+    "viewDetails": "Voir détails",
+    "delete": "Supprimer",
+    "noBulletin": "Aucun bulletin",
+    "noBulletinHint": "Générez la paie pour voir les bulletins ici.",
+    "detailTitle": "Détail du bulletin",
+    "loadingDetails": "Chargement des détails...",
+    "identity": "Identité",
+    "company": "Société",
+    "daysWorkedTitle": "Jours travaillés et présence",
+    "daysWorked": "Jours travaillés",
+    "daysLeaveDeducted": "Jours congé (déduits)",
+    "daysHoliday": "Jours fériés",
+    "daysPaidTotal": "Jours payés total",
+    "baseAndHours": "Salaire de base et heures",
+    "baseMonthlyProrata": "Salaire base mensuel (prorata)",
+    "seniorityBonus": "Prime ancienneté",
+    "hourlyRate": "Taux horaire",
+    "hsup25Hours": "Heures sup. 25% (heures)",
+    "hsup25Amount": "Heures sup. 25% (montant)",
+    "hsup50Hours": "Heures sup. 50% (heures)",
+    "hsup50Amount": "Heures sup. 50% (montant)",
+    "hsup100Hours": "Heures sup. 100% (heures)",
+    "hsup100Amount": "Heures sup. 100% (montant)",
+    "totalHsup": "Total heures sup.",
+    "absences": "Absences",
+    "leaves": "Congés",
+    "date": "Date",
+    "type": "Type",
+    "duration": "Durée",
+    "from": "Du",
+    "to": "Au",
+    "daysDeducted": "Jours déduits",
+    "overtimes": "Heures supplémentaires",
+    "hours": "Heures",
+    "rate": "Taux",
+    "primes": "Primes",
+    "label": "Libellé",
+    "amount": "Montant",
+    "taxable": "Imposable",
+    "yes": "Oui",
+    "no": "Non",
+    "taxablePrimesAndBrut": "Primes imposables et brut",
+    "primeImposable1": "Prime imposable 1",
+    "primeImposable2": "Prime imposable 2",
+    "primeImposable3": "Prime imposable 3",
+    "totalTaxablePrimes": "Total primes imposables",
+    "feesAndAllowances": "Frais professionnels et indemnités",
+    "professionalFees": "Frais professionnels",
+    "indemnityRepresentation": "Ind. représentation",
+    "transportAllowance": "Prime transport",
+    "mealAllowance": "Prime panier",
+    "travelAllowance": "Ind. déplacement",
+    "cashAllowance": "Ind. caisse",
+    "soilingAllowance": "Prime salissure",
+    "familyGratification": "Gratifications familial",
+    "pilgrimageAllowance": "Prime voyage Mecque",
+    "severanceAllowance": "Ind. licenciement",
+    "mileageAllowance": "Ind. kilométrique",
+    "turnAllowance": "Prime tournée",
+    "toolsAllowance": "Prime outillage",
+    "medicalAid": "Aide médicale",
+    "otherNonTaxable": "Autres primes non imposables",
+    "totalIndemnities": "Total indemnités",
+    "excedentImposable": "Excédent imposable",
+    "employeeContributions": "Cotisations salariales",
+    "cnssEmployee": "CNSS part salariale",
+    "cimrEmployee": "CIMR part salariale",
+    "amoEmployee": "AMO part salariale",
+    "mutualEmployee": "Mutuelle part salariale",
+    "totalEmployeeContributions": "Total cotisations salariales",
+    "employerContributionsTitle": "Cotisations patronales",
+    "cnssEmployer": "CNSS part patronale",
+    "cimrEmployer": "CIMR part patronale",
+    "amoEmployer": "AMO part patronale",
+    "mutualEmployer": "Mutuelle part patronale",
+    "totalEmployerContributions": "Total cotisations patronales",
+    "taxAndNet": "Impôt, retenues et net à payer",
+    "incomeTax": "Impôt sur le revenu",
+    "rounding": "Arrondi",
+    "salaryAdvance": "Avance sur salaire",
+    "housingInterest": "Intérêt sur logement",
+    "taxableBrut": "Brut imposable",
+    "taxableNet": "Net imposable",
+    "totalGains": "Total gains",
+    "totalDeductions": "Total retenues",
+    "netToPay": "Net à payer",
+    "totalNet2": "Total net 2",
+    "auditTitle": "Audit du calcul",
+    "auditHint": "Formule utilisée et entrées/sorties par module.",
+    "step": "Étape",
+    "inputs": "Entrées",
+    "outputs": "Sorties",
+    "close": "Fermer",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "confirmGenerateTitle": "Générer la paie",
+    "confirmGenerateMessage": "Voulez-vous générer la paie pour tous les employés ?",
+    "confirmDeleteTitle": "Supprimer le bulletin",
+    "confirmDeleteMessage": "Voulez-vous vraiment supprimer le bulletin de {{name}} ?",
+    "statusSuccess": "Succès",
+    "statusError": "Erreur",
+    "statusPending": "En attente",
+    "selectEmployeeRequired": "Veuillez sélectionner un employé",
+    "calculationSuccess": "Calcul de paie terminé avec succès",
+    "calculationSuccessFor": "Calcul de paie terminé avec succès pour {{month}}/{{year}}",
+    "calculationError": "Erreur lors du calcul de la paie",
+    "detailLoadError": "Impossible de charger les détails du bulletin.",
+    "deleteSuccess": "Bulletin supprimé avec succès",
+    "deleteError": "Erreur lors de la suppression du bulletin",
+    "allEmployees": "Tous les employés",
+    "loading": "Chargement..."
+  },
   "expert": {
     "activeClient": "Client Actif",
     "switchClient": "Changer de Client",
@@ -47,7 +191,15 @@
     "selectCompanyFirst": "Veuillez d'abord sélectionner une entreprise",
     "selectCompanyRequired": "Sélection d'entreprise requise",
     "selectCompanyMessage": "Vous devez sélectionner une entreprise pour accéder à cette section.",
-    "useHeaderDropdown": "Utilisez le menu déroulant dans l'en-tête pour sélectionner un client.",
+      "status": "Statut",
+      "admin": "Administrateur",
+      "user": "Utilisateur",
+      "manager": "Manager",
+      "hr": "RH",
+      "employee": "Employé",
+      "cabinet": "Cabinet",
+      "adminPayzen": "Admin PayZen",
+      "viewer": "Observateur",
     "modeLabel": "Expert Cabinet",
     "modeDescription": "Vous êtes actuellement en mode Expert",
     "dashboard": {
@@ -60,7 +212,15 @@
       "recentActivity": "Activité Récente",
       "viewAll": "Voir Tout",
       "backToPortfolio": "Retour au Portefeuille",
-      "viewingAsExpert": "Vous consultez cette entreprise en tant qu'Expert"
+      "editClient": "Modifier le client",
+      "viewingAsExpert": "Vous consultez cette entreprise en tant qu'Expert",
+      "viewingClient": "Vos Clients"
+    }
+    ,
+    "client": {
+      "adminUser": "Utilisateur Admin",
+      "adminDescription": "Créez un compte administrateur pour cette entreprise.",
+      "autoGeneratePassword": "Générer automatiquement un mot de passe sécurisé"
     }
   },
   "attendance": {
@@ -158,6 +318,8 @@
     }
   },
   "auth": {
+    "password" : "Mot de passe",
+    "passwordPlaceholder": "Entrez votre mot de passe",
     "login": {
       "welcome": "Bienvenue",
       "title": "Connexion",
@@ -224,10 +386,20 @@
     }
   },
   "common": {
-    "system": "Système",
+    "submit": "Soumettre",
+  "Showing" : "Affichage de",
+  "system": "Système",
+  "custom": "Personnalisé",
     "readOnly": "Lecture seule",
     "save": "Enregistrer",
     "cancel": "Annuler",
+    "reset": "Réinitialiser",
+    "status": "Statut",
+    "allStatuses": "Tous les statuts",
+    "selectDate": "Sélectionner une date",
+    "confirmation": "Confirmation",
+    "unknown": "Inconnu",
+    "total": "Total",
     "create": "Créer",
     "update": "Mettre à jour",
     "delete": "Supprimer",
@@ -267,6 +439,38 @@
     "cin": "CIN",
     "phone": "Téléphone",
     "select": "Sélectionner",
+    "refresh": "Actualiser",
+    "day": "jour",
+    "days": "jours",
+    "week": "semaine",
+    "weeks": "semaines",
+    "month": "mois",
+    "months": "mois",
+    "year": "année",
+    "years": "années",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "lastUpdated": "Dernière mise à jour :",
+    "confirmDelete": "Confirmer la suppression",
+    "showing": "Affichage de",
+    "goBack" : "Retour vers le tableau de bord",
+    "table": {
+      "showing": "Affichage de {first} à {last} sur {total}"
+    },
+    "validation": {
+      "required": "Ce champ est requis"
+    },
+    "messages": {
+      "loadFailed": "Échec du chargement des données",
+      "createSuccess": "Créé avec succès",
+      "createFailed": "Échec de la création",
+      "updateSuccess": "Mis à jour avec succès",
+      "updateFailed": "Échec de la mise à jour",
+      "deleteSuccess": "Supprimé avec succès",
+      "deleteFailed": "Échec de la suppression"
+    },
     "selectDate": "Sélectionner une date",
     "unsavedChanges": {
       "title": "Modifications non enregistrées",
@@ -312,6 +516,7 @@
       "contractTypes": "Types de Contrat",
       "employeeCategories": "Catégories d'Employés",
       "holidays": "Jours Fériés",
+      "leaves": "Congés",
       "workingCalendar": "Calendrier de Travail",
       "referenceData": "Données de Référence",
       "history": "Historique"
@@ -323,6 +528,7 @@
       "bannerDescription": "Certaines informations sont gérées par le support PayZen. Contactez-nous pour mettre à jour votre identité légale.",
       "legalEntity": "Entité Légale",
       "operationalDetails": "Détails Opérationnels",
+      "operationalDetailsDesc": "Gérez les détails opérationnels de votre entreprise, y compris les coordonnées et les informations de contact.",
       "viewAuditLog": "Voir audit log",
       "generalInfo": "Informations Générales",
       "raisonSociale": "Raison Sociale",
@@ -330,6 +536,7 @@
       "identifiantFiscal": "Identifiant Fiscal",
       "rc": "RC",
       "patente": "Patente",
+      "foundingDate": "Date de création",
       "legalForm": "Forme Juridique",
       "cnss": "N° Affiliation CNSS",
       "rib": "Compte Bancaire Principal (RIB)",
@@ -355,6 +562,9 @@
         "fieldUpdated": "Field updated successfully",
         "fieldUpdateError": "Failed to update field"
       }
+      ,
+      "createCity": "Créer une ville",
+      "cityPlaceholder": "Tapez pour rechercher ou créer une ville"
     },
     "hrSettings": {
       "title": "Paramètres RH",
@@ -497,6 +707,9 @@
         "selectRolePlaceholder": "Sélectionner un rôle",
         "assign": "Attribuer le rôle"
       },
+      "searchPlaceholder": "Rechercher des utilisateurs...",
+      "emptyTitle": "Aucun utilisateur pour le moment",
+      "emptyDescription": "Invitez des employés pour leur donner accès à la plateforme.",
       "invite": "Ajouter un Utilisateur",
       "sendInvite": "Créer le Compte",
       "inviteSuccess": "Compte Utilisateur Créé",
@@ -505,6 +718,8 @@
       "remove": "Supprimer",
       "table": {
         "user": "Utilisateur",
+        "users": "Utilisateurs",
+        "description": "Gérez l'accès et les permissions des utilisateurs",
         "email": "Email",
         "role": "Rôle",
         "status": "Statut",
@@ -519,6 +734,7 @@
       },
       "inviteDialog": {
         "title": "Créer un Compte Utilisateur",
+        "subtitle": "Donner l'accès à la plateforme à un employé",
         "selectEmployee": "Sélectionner un Employé",
         "selectEmployeePlaceholder": "Rechercher ou sélectionner un employé...",
         "noAvailableEmployees": "Tous les employés ont déjà un compte utilisateur.",
@@ -554,6 +770,8 @@
         "notImplemented": "This action is not implemented yet.",
         "userRemoved": "User {{name}} was removed",
         "removeUserError": "Failed to remove user"
+      ,
+        "footerInfo": "L'utilisateur recevra ses identifiants par e-mail"
       }
     },
     "status": {
@@ -623,9 +841,16 @@
       "createDescription": "Ajouter un nouveau département à votre organisation",
       "nameHint": "Saisissez un nom descriptif pour ce département",
       "examples": "Suggestions rapides",
+      "singular": "Département",
+      "plural": "Départements",
+      "searchPlaceholder": "Rechercher des départements...",
+      "emptyTitle": "Aucun département pour le moment",
+      "emptyDescription": "Commencez par créer votre premier département pour organiser la structure de votre équipe.",
       "footerInfo": "Les champs obligatoires sont marqués d'un *",
+
       "table": {
         "name": "Nom du département",
+        "description": "Gérer et organiser la structure de votre entreprise",
         "description": "Organisez votre structure d'entreprise par départements"
       },
       "fields": {
@@ -670,10 +895,22 @@
       "createDescription": "Ajouter un nouveau poste à votre organisation",
       "nameHint": "Entrez le titre du poste (ex: Ingénieur logiciel, Responsable RH)",
       "examples": "Exemples courants",
+      "singular": "Poste",
+      "plural": "Postes",
+      "searchPlaceholder": "Rechercher des postes...",
+      "emptyTitle": "Aucun poste pour le moment",
+      "emptyDescription": "Créez des postes pour mieux organiser les rôles et responsabilités de votre équipe.",
+      "examplesList": {
+        "softwareEngineer": "Ingénieur logiciel",
+        "projectManager": "Chef de projet",
+        "hrSpecialist": "Spécialiste RH"
+      },
+      "description": "",
       "footerInfo": "Utilisé pour catégoriser les rôles des employés",
       "table": {
         "name": "Intitulé du poste",
-        "description": "Définissez les rôles disponibles dans votre organisation"
+        "description": "Définissez les rôles disponibles dans votre organisation",
+        "description": "Définire les poste eu sein de votre entreprise pour mieux organiser vos employés"
       },
       "fields": {
         "name": "Intitulé du poste"
@@ -721,6 +958,9 @@
       "examples": "Exemples courants",
       "footerInfo": "Définit les catégories d'accords d'emploi",
       "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce type de contrat ? Cette action est irréversible.",
+      "singular": "Type de contrat",
+      "plural": "Types de contrat",
+      "description": "Gérez les types de contrat et leurs classifications",
       "table": {
         "name": "Nom du type de contrat",
         "description": "Définissez les types de contrat utilisés dans l'entreprise"
@@ -769,6 +1009,10 @@
     "employeeCategories": {
       "title": "Catégories d'Employés",
       "subtitle": "Gérez les catégories de classification des employés",
+      "singular": "Catégorie",
+      "plural": "Catégories",
+      "searchPlaceholder": "Rechercher des catégories...",
+      "description": "Classer et organiser les employés en catégories",
       "createTitle": "Créer une catégorie",
       "editTitle": "Modifier la catégorie",
       "add": "Ajouter une catégorie",
@@ -779,6 +1023,15 @@
       "nameHint": "Entrez le nom de la catégorie (ex: Manager, Cadre, Stagiaire)",
       "descriptionHint": "Description optionnelle pour cette catégorie",
       "examples": "Exemples courants",
+      "examplesList": {
+        "Manager": "Manager",
+        "Executive": "Cadre",
+        "Technician": "Technicien",
+        "Supervisor": "Superviseur",
+        "Intern": "Stagiaire"
+      },
+      "emptyTitle": "Aucune catégorie d'employés pour le moment",
+      "emptyDescription": "Créez des catégories d'employés pour mieux classer et organiser votre personnel.",
       "footerInfo": "Les catégories aident à organiser et classifier les employés",
       "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette catégorie d'employé ? Cette action est irréversible.",
       "noCategories": "Aucune catégorie d'employé pour le moment. Créez-en une pour commencer à organiser votre personnel.",
@@ -862,6 +1115,11 @@
   "employees": {
     "title": "Gestion des Salariés",
     "subtitle": "Gérez les informations et documents de vos employés",
+    "employee": "Employé",
+    "allEmployees": "Tous les employés",
+    "name": "Nom",
+    "position": "Poste",
+    "department": "Département",
     "searchPlaceholder": "Rechercher par nom ou poste...",
     "filter": {
       "department": "Département",
@@ -982,7 +1240,8 @@
         "summary": "Vous avez modifié {{count}} champ(s). Vérifiez avant d'enregistrer :",
         "before": "Avant",
         "after": "Après",
-        "manyChanges": "⚠️ Vous modifiez de nombreux champs. Merci de vérifier attentivement."
+        "manyChanges": "⚠️ Vous modifiez de nombreux champs. Merci de vérifier attentivement.",
+        "confirmMessage": "Êtes-vous sûr de vouloir enregistrer ces modifications ?"
       },
       "draft": {
         "restored": "Brouillon restauré du {{date}}",
@@ -1025,13 +1284,83 @@
         "isDependent": "À charge",
         "isStudent": "Étudiant"
       },
+
       "noChanges": "Aucun changement à enregistrer",
       "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
       "saveSuccess": "Modifications enregistrées",
       "loadError": "Échec du chargement de la fiche salarié"
     },
+    "history": {
+      "types": {
+        "general_update": "Modification",
+        "address_created": "Ajout d'adresse",
+        "contract_created": "Nouveau contrat",
+        "FirstName_Changed": "Prénom modifié",
+        "Status_Changed": "Statut modifié",
+        "Child_Added": "Enfant ajouté",
+        "child_added": "Enfant ajouté",
+        "ChildAdded": "Enfant ajouté",
+        "childadded": "Enfant ajouté",
+        "Email_Changed": "Email modifié",
+        "email_changed": "Email modifié",
+        "CNSS_Changed": "CNSS mis à jour",
+        "cnss_changed": "CNSS mis à jour",
+        "CIMR_Changed": "CIMR mis à jour",
+        "cimr_changed": "CIMR mis à jour",
+        "UserAccount_Created": "Compte utilisateur créé",
+        "user_account_created": "Compte utilisateur créé",
+        "Salary_Created": "Salaire créé",
+        "salary_created": "Salaire créé",
+        "Employee_Created": "Employé créé",
+        "employee_created": "Employé créé",
+        "Address_Created": "Adresse ajoutée",
+        "Contract_Created": "Contrat créé",
+        "ROLE_ASSIGNED":"Rôle Attribué",
+        "Role_Assigned": "Rôle attribué",
+        "role_assigned": "Rôle attribué",
+        "Role_Revoked": "Rôle révoqué",
+        "role_revoked": "Rôle révoqué",
+        "ROLE_REVOKED": "Rôle révoqué",
+        "ROLE_REMOVED":"Rôle Retiré"
+      },
+      "titles": {
+        "general_update": "Modification",
+        "address_created": "Ajout d'adresse",
+        "contract_created": "Nouveau contrat",
+        "FirstName_Changed": "Prénom modifié",
+        "Status_Changed": "Statut modifié",
+        "Child_Added": "Enfant ajouté",
+        "child_added": "Enfant ajouté",
+        "ChildAdded": "Enfant ajouté",
+        "childadded": "Enfant ajouté",
+        "Email_Changed": "Email modifié",
+        "email_changed": "Email modifié",
+        "CNSS_Changed": "CNSS mis à jour",
+        "cnss_changed": "CNSS mis à jour",
+        "CIMR_Changed": "CIMR mis à jour",
+        "cimr_changed": "CIMR mis à jour",
+        "UserAccount_Created": "Compte utilisateur créé",
+        "user_account_created": "Compte utilisateur créé",
+        "Salary_Created": "Salaire créé",
+        "salary_created": "Salaire créé",
+        "Employee_Created": "Employé créé",
+        "employee_created": "Employé créé",
+        "Address_Created": "Adresse ajoutée",
+        "Contract_Created": "Contrat créé",
+        "ROLE_ASSIGNED":"Rôle Attribué",
+        "Role_Assigned": "Rôle attribué",
+        "role_assigned": "Rôle attribué",
+        "ROLE_REVOKED": "Rôle révoqué",
+        "Role_Revoked": "Rôle révoqué",
+        "role_revoked": "Rôle révoqué",
+        "ROLE_REMOVED": "Rôle Retiré"
+      },
+      "noHistory": "Aucun historique pour le moment",
+      "loadError": "Échec du chargement de l'historique",
+      "ariaLabel": "Historique de l'employé"
+    },
     "create": {
-      "eyebrow": "Nouveau collaborateur",
+        "eyebrow": "Nouveau collaborateur",
       "title": "Créer un salarié",
       "subtitle": "Renseignez l'identité, le contrat et les contacts avant l'onboarding.",
       "submit": "Créer le salarié",
@@ -1431,6 +1760,7 @@
   },
   "audit": {
     "title": "Historique",
+    "genericModification": "Modification",
     "search": "Rechercher",
     "searchPlaceholder": "Rechercher par description, champ ou utilisateur...",
     "eventType": "Type d'événement",
@@ -1457,20 +1787,11 @@
     "retry": "Réessayer",
     "refresh": "Actualiser",
     "refreshTooltip": "Actualiser la liste de l'historique",
-    "showFilters": "Filtres",
     "hideFilters": "Masquer",
     "showFiltersTooltip": "Afficher les options de filtre",
     "hideFiltersTooltip": "Masquer les options de filtre",
-    "of": "sur",
-    "events": "événements",
-    "totalEvents": "événements au total",
-    "companyEvents": "Événements de l'entreprise",
-    "employeeEvents": "Événements des employés",
-    "cabinetEvents": "Événements du cabinet",
-    "oldValue": "Ancienne valeur",
-    "newValue": "Nouvelle valeur",
-    "noOldValue": "Pas de valeur précédente",
-    "noNewValue": "Pas de nouvelle valeur",
+    "showFilters": "Afficher les filtres",
+    "totalEvents": "événement(s)",
     "empty": "vide",
     "history": {
       "actions": {
@@ -1505,14 +1826,39 @@
       "SETTINGS_CHANGED": "Paramètres Modifiés",
       "PASSWORD_CHANGED": "Mot de Passe Modifié",
       "PASSWORD_RESET": "Réinitialisation du Mot de Passe",
-      "USER_ROLE_ASSIGNED": "Rôle utilisateur attribué",
-      "USER_ROLE_REVOKED": "Rôle utilisateur retiré"
-    },
-    "justNow": "À l'instant",
-    "noResults": "Aucun résultat trouvé",
-    "noResultsDescription": "Essayez d'ajuster vos filtres pour voir plus de résultats.",
-    "unknownEvent": "Événement inconnu",
-    "unknownUser": "Utilisateur inconnu"
+      "COMPANY_NAME_CHANGED": "Nom de l'entreprise modifié",
+      "LEGAL_FORM_CHANGED": "Forme juridique modifiée",
+      "FOUNDING_DATE_CHANGED": "Date de création modifiée",
+      "EMAIL_CHANGED": "Email modifié",
+      "PHONE_CHANGED": "Téléphone modifié",
+      "ADDRESS_CHANGED": "Adresse modifiée",
+      "CITY_CHANGED": "Ville modifiée",
+      "COUNTRY_CHANGED": "Pays modifié",
+      "STATUS_CHANGED": "Statut modifié",
+      "LICENCE_CHANGED": "Licence modifiée",
+      "ICE_NUMBER_CHANGED": "Numéro ICE modifié",
+      "IF_NUMBER_CHANGED": "Identifiant fiscal modifié",
+      "RC_NUMBER_CHANGED": "Numéro RC modifié",
+      "CNSS_NUMBER_CHANGED": "Numéro CNSS modifié",
+      "ICE_CHANGED": "ICE modifié",
+      "IF_CHANGED": "Identifiant fiscal modifié",
+      "RC_CHANGED": "RC modifié",
+      "CNSS_CHANGED": "CNSS modifié",
+      "IS_CABINET_EXPERT_CHANGED": "Statut d'expert cabinet modifié",
+      "ACCOUNTANT_CHANGED": "Cabinet comptable modifié",
+      "CABINET_LINKED": "Cabinet lié",
+      "CABINET_UNLINKED": "Cabinet dissocié",
+      "JOBPOSITION_CREATED": "Poste créé",
+      "JOBPOSITION_UPDATED": "Poste mis à jour",
+      "JOBPOSITION_DELETED": "Poste supprimé",
+      "WEBSITE_CHANGED": "Site web modifié",
+      "WEBSITE_URL_CHANGED": "URL du site web modifiée",
+      "RIB_CHANGED": "Compte bancaire modifié",
+      "PATENT_CHANGED": "Patente modifiée",
+      "DEPARTEMENT_CREATED": "Département créé",
+      "DEPARTEMENT_UPDATED": "Département mis à jour",
+      "DEPARTEMENT_DELETED": "Département supprimé"
+    }
   },
   "permissions": {
     "title": "Gestion des Permissions",
@@ -1604,6 +1950,11 @@
       "apply": "Appliquer"
     }
   },
+  "accessDenied" :
+  {
+    "title": "Accès refusé",
+    "message": "Vous n'êtes pas autorisé à accéder à cette page."
+  },
   "absences": {
     "accessDenied": {
       "title": "Accès refusé",
@@ -1630,7 +1981,7 @@
     "days": "jours",
     "morning": "Matin",
     "afternoon": "Après-midi",
-    "pending": "En Attente",
+    "pending": "En Attent",
     "pendingRequests": "Demandes en Attente",
     "noAbsences": "Aucune absence enregistrée",
     "noEmployees": "Aucun employé trouvé",
@@ -1652,15 +2003,18 @@
       "pending": "En Attente",
       "approved": "Approuvées",
       "rejected": "Rejetées",
-      "totalDays": "Total Jours"
+      "totalDays": "Total Jours",
+      "all": "Tous"
     },
     "status": {
+      "draft": "Brouillon",
       "pending": "En Attente",
       "submitted": "Soumise",
       "approved": "Approuvée",
       "rejected": "Rejetée",
       "cancelled": "Annulée",
-      "expired": "Expirée"
+      "expired": "Expirée",
+      "all": "Tous"
     },
     "table": {
       "employee": "Employé",
@@ -1677,7 +2031,7 @@
       "totalDays": "Total Jours"
     },
     "types": {
-      "annual_leave": "Congé Annuel",
+      "ANNUAL_LEAVE" : "Congé Annuel",
       "sick": "Maladie",
       "maternity": "Maternité",
       "paternity": "Paternité",
@@ -1686,7 +2040,7 @@
       "training": "Formation",
       "justified": "Absence Justifiée",
       "unjustified": "Absence Non Justifiée",
-      "accident_work": "Accident de Travail",
+      "accidentWork": "Accident de Travail",
       "exceptional": "Exceptionnelle",
       "religious": "Religieuse"
     },
@@ -1708,7 +2062,8 @@
       "startDate": "Date de Début",
       "endDate": "Date de Fin",
       "reason": "Motif (optionnel)",
-      "reasonPlaceholder": "Indiquez le motif de votre demande d'absence..."
+      "reasonPlaceholder": "Indiquez le motif de votre demande d'absence...",
+      "useLeaveBalance": "Utiliser le solde de congés"
     },
     "rejectDialog": {
       "title": "Rejeter la demande d'absence",
@@ -1718,10 +2073,21 @@
       "hint": "Ce motif sera communiqué à l'employé.",
       "confirm": "Rejeter"
     },
+    "deleteDialog": {
+      "title": "Supprimer l'absence",
+      "message": "Voulez-vous vraiment supprimer cette absence ?"
+    },
+    "editDialog": {
+      "title": "Modifier l'absence"
+    },
     "filters": {
       "searchEmployee": "Rechercher un employé...",
       "allTypes": "Tous les types",
       "allDurations": "Toutes les durées"
+    },
+    "hr": {
+      "employees": "Employés",
+      "grant": "Accorder"
     }
   },
   "overtime": {
@@ -1737,12 +2103,16 @@
     "confirmCancel": "Êtes-vous sûr de vouloir annuler cette déclaration d'heures supplémentaires ?",
     "table": {
       "date": "Date",
+      "description": "Description",
       "type": "Type",
       "time": "Horaire",
       "employee": "Employé",
       "startTime": "Heure Début",
       "endTime": "Heure Fin",
       "totalHours": "Total Heures",
+      "rateMultiplier": "Multiplicateur",
+      "processedInPayroll": "Traité en Paie",
+      "createdAt": "Date de création",
       "reason": "Motif",
       "status": "Statut"
     },
@@ -1754,18 +2124,27 @@
       "startTime": "Heure de Début",
       "endTime": "Heure de Fin",
       "reason": "Motif",
-      "reasonPlaceholder": "Décrivez le motif des heures supplémentaires..."
+      "reasonPlaceholder": "Décrivez le motif des heures supplémentaires...",
+      "holidayYear": "Année",
+      "selectHoliday": "Sélectionner un jour férié",
+      "applyHoliday": "Appliquer le jour férié",
+      "timeFormatHint": "Format : HH:00 (heures seulement)"
     },
     "type": {
-      "hourly": "Tranche Horaire",
+      "standard": "Heures Supplémentaires Standard",
+      "publicHoliday": "Travail en Jour Férié",
+      "weeklyRest": "Travail en Jour de Repos",
+      "hourly": "Heures Supplémentaires à l'heure",
       "holiday": "Jour Férié"
     },
     "status": {
+      "draft": "Brouillon",
       "all": "Toutes",
       "submitted": "Soumise",
       "approved": "Approuvée",
       "rejected": "Rejetée",
-      "cancelled": "Annulée"
+      "cancelled": "Annulée",
+      "all": "Tous"
     },
     "messages": {
       "createSuccess": "Heures supplémentaires déclarées avec succès",
@@ -1773,8 +2152,12 @@
       "deleteSuccess": "Heures supplémentaires supprimées avec succès",
       "cancelSuccess": "Heures supplémentaires annulées avec succès",
       "approved": "Heures supplémentaires approuvées avec succès",
-      "rejected": "Heures supplémentaires rejetées"
+      "rejected": "Heures supplémentaires rejetées",
+      "submitSuccess": "Heures supplémentaires soumises avec succès",
+       "submitError": "Échec de la soumission des heures supplémentaires"
     },
+    "declareFor": "Déclarer des heures supplémentaires pour {{name}}",
+    "declare": "Déclarer",
     "errors": {
       "loadFailed": "Échec du chargement des heures supplémentaires",
       "createFailed": "Échec de la déclaration des heures supplémentaires",
@@ -1783,7 +2166,8 @@
       "cancelFailed": "Échec de l'annulation des heures supplémentaires",
       "approveFailed": "Échec de l'approbation des heures supplémentaires",
       "rejectFailed": "Échec du rejet des heures supplémentaires",
-      "noEmployee": "Aucun employé trouvé"
+      "noEmployee": "Aucun employé trouvé",
+      "noHolidaySelected": "Aucun jour férié sélectionné"
     },
     "management": {
       "title": "Gestion des Heures Supplémentaires",
@@ -1802,15 +2186,24 @@
     "filters": {
       "status": "Statut",
       "startDate": "Date Début",
-      "endDate": "Date Fin"
+      "endDate": "Date Fin",
+      "searchEmployee": "Rechercher un employé...",
+      "search": "Rechercher une description...",
+      "searchPlaceholder": "Rechercher par description"
     },
     "validation": {
       "rejectCommentRequired": "Un commentaire est requis pour rejeter une demande"
+    },
+    "hr": {
+      "employees": "Employés",
+      "declare": "Déclarer"
     }
   },
   "holidays": {
     "title": "Jours Fériés",
     "subtitle": "Gérez les jours fériés de votre entreprise",
+    "holiday": "Jour férié",
+    "selectHoliday": "Sélectionnez un jour férié",
     "addHoliday": "Ajouter un Jour Férié",
     "editHoliday": "Modifier un Jour Férié",
     "createDescription": "Définir un nouveau jour férié",
@@ -1824,6 +2217,7 @@
       "status": "Statut"
     },
     "table": {
+      "subtitle": "Gérez les jours fériés de l'entreprise et nationaux",
       "date": "Date",
       "name": "Nom",
       "type": "Type",
@@ -1857,7 +2251,11 @@
       "yearPlaceholder": "Ex: 2026",
       "recurrence": "Récurrence",
       "recurrencePlaceholder": "Sélectionner la récurrence",
-      "recurrenceHint": "Choisissez si le jour férié se répète chaque année ou non."
+      "recurrenceHint": "Choisissez si le jour férié se répète chaque année ou non.",
+      "recurrenceHint": "Choisissez si ce jour férié se répète chaque année ou s'il est ponctuel."
+    },
+    "empty": {
+      "description": "Commencez par créer votre premier jour férié."
     },
     "recurrence": {
       "none": "Non récurrent",
@@ -1923,5 +2321,402 @@
   },
   "validation": {
     "required": "Ce champ est obligatoire"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "email": "Veuillez saisir un email valide",
+    "minLength": "Minimum {{min}} caractères requis",
+    "maxLength": "Maximum {{max}} caractères autorisés"
+  },
+  "leave": {
+    "title": "Paramétrage des Congés",
+    "subtitle": "Gérer mes demandes de congé et suivre leur statut",
+    "description": "Gérer les types de congés et les politiques spécifiques à l'entreprise",
+    "status": {
+      "pending": "En Attente",
+      "approved": "Approuvée",
+      "rejected": "Rejetée",
+      "cancelled": "Annulée",
+      "all": "Tous"
+    },
+    "type": "Type de Congé",
+    "tabs": 
+      {
+        "types": "Types de Congé",
+        "policies": "Politiques de Congé"
+      },
+    "allTypes": "Tous les types",
+    "noReason": "Aucun motif",
+    "noReasonSpecified": "Aucun motif spécifié",
+    "dateTo": "au",
+    "newRequest": "Nouvelle Demande",
+    "myRequests": "Mes Demandes de Congé",
+      "actions": {
+        "submit": "Soumettre"
+      },
+      "confirmations": {
+        "submit": {
+          "title": "Confirmation",
+          "message": "Êtes-vous sûr de vouloir soumettre cette demande de congé ?",
+          "submitButton": "Soumettre",
+          "cancelButton": "Annuler"
+        }
+      },
+    "editRequest": "Modifier la Demande",
+    "addRequest": "Nouvelle Demande de Congé",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "noData": "Aucune demande de congé trouvée",
+    "hr": {
+      "title": "Gestion des Congés RH",
+      "subtitle": "Gérer les demandes de congé de tous les employés",
+      "grantLeave": "Accorder un Congé",
+      "approveRequest": "Approuver la demande",
+      "rejectRequest": "Rejeter la demande",
+      "viewDetails": "Voir les détails",
+      "approvalDialog": {
+        "title": "Traitement de la Demande",
+        "summary": "Résumé de la demande",
+        "notes": "Notes de l'approbateur (optionnel)",
+        "notesPlaceholder": "Ajoutez des commentaires sur votre décision...",
+        "approve": "Approuver",
+        "reject": "Rejeter"
+      },
+      "grantDialog": {
+        "title": "Accorder un Congé",
+        "employee": "Employé",
+        "selectEmployee": "Sélectionner un employé",
+        "autoApprove": "Approuver automatiquement",
+        "autoApproveHint": "Si coché, le congé sera automatiquement approuvé après création",
+        "grant": "Accorder"
+      },
+      "tabs": {
+        "pending": "En Attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "all": "Toutes"
+      },
+      "stats": {
+        "pending": "En Attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "total": "Total"
+      },
+      "filters": {
+        "employee": "Employé",
+        "allEmployees": "Tous les employés",
+        "type": "Type",
+        "allTypes": "Tous les types",
+        "status": "Statut",
+        "allStatuses": "Tous les statuts",
+        "reset": "Réinitialiser"
+      },
+      "table": {
+        "employee": "Employé",
+        "dates": "Dates",
+        "actions": "Actions"
+      },
+      "messages": {
+        "approveSuccess": "Demande de congé approuvée avec succès",
+        "rejectSuccess": "Demande de congé rejetée avec succès",
+        "grantSuccess": "Congé accordé avec succès",
+        "grantAndApproveSuccess": "Congé accordé et approuvé avec succès",
+        "loadError": "Impossible de charger les demandes de congé"
+      },
+      "emptyMessages": {
+        "pending": "Aucune demande en attente",
+        "approved": "Aucune demande approuvée",
+        "rejected": "Aucune demande rejetée",
+        "cancelled": "Aucune demande annulée",
+        "all": "Aucune demande de congé",
+        "default": "Aucune demande trouvée",
+        "noRequestsYet": "Aucune demande de congé n'a encore été créée.",
+        "tryFilters": "Essayez de modifier les filtres ou changer d'onglet.",
+        "totalButNone": "Il y a {{count}} demande(s) au total, mais aucune {{status}}."
+      }
+    },
+    "paid": "Payé",
+    "unpaid": "Non payé",
+    "requiresBalance": "Nécessite un solde",
+    "accrual": {
+      "none": "Aucune",
+      "monthly": "Mensuelle",
+      "annual": "Annuelle",
+      "perPayPeriod": "Par période de paie",
+      "hoursWorked": "Heures travaillées"
+    },
+    "table": {
+      "leaveType": "Type de Congé",
+      "startDate": "Date de Début",
+      "endDate": "Date de Fin",
+      "duration": "Durée",
+      "workingDaysDeducted": "Jours Ouvrables Déduits",
+      "reason": "Motif",
+      "status": "Statut",
+      "createdAt": "Créée le"
+    },
+    "types": {
+      "title": "Types de Congés",
+      "subtitle": "Configurer les types de congés disponibles",
+      "description": "Configurer les types de congés disponibles dans votre système",
+      "add": "Ajouter un Type",
+      "addNew": "Ajouter un Type de Congé",
+      "edit": "Modifier le Type de Congé",
+      "delete": "Supprimer le Type de Congé",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce type de congé ?",
+      "code": "Code du Congé",
+      "codePlaceholder": "ex: ANNUEL, MALADIE",
+      "name": "Nom du Congé",
+      "namePlaceholder": "ex: Congé Annuel",
+      "searchPlaceholder": "Rechercher des types de congés...",
+      "filterScope": "Filtrer par portée",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Entrez une description pour ce type de congé",
+      "scope": "Portée",
+      "isPaid": "Congé Payé",
+      "requiresBalance": "Nécessite un Solde",
+      "requiresEligibility": "Éligibilité 6 Mois",
+      "isActive": "Actif",
+      "global": "Global",
+      "company": "Entreprise",
+      "noTypes": "Aucun Type de Congé Trouvé",
+      "noTypesDesc": "Cliquez sur le bouton ci-dessous pour ajouter votre premier type de congé",
+      "yes": "Oui",
+      "no": "Non",
+      "table": {
+        "code": "Code",
+        "name": "Nom",
+        "scope": "Portée",
+        "paid": "Payé",
+        "options": "Options"
+      },
+      "stats": {
+        "total": "Total",
+        "global": "Global",
+        "company": "Entreprise", 
+        "active": "Actifs",
+        "inactive": "Inactifs"
+      }
+    },
+    "policies": {
+      "title": "Politiques de Congés",
+      "subtitle": "Gérer les politiques de congés et règles d'accumulation spécifiques à l'entreprise",
+      "description": "Gérer les politiques de congés et règles d'accumulation spécifiques à l'entreprise",
+      "add": "Ajouter une Politique",
+      "addNew": "Ajouter une Politique",
+      "edit": "Modifier la Politique",
+      "delete": "Supprimer la Politique",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette politique ?",
+      "isEnabled": "Est Activée",
+      "accrualMethod": "Méthode d'Accumulation",
+      "none": "Aucune",
+      "monthly": "Mensuelle",
+      "annual": "Annuelle",
+      "enabled": "Activée",
+      "disabled": "Désactivée",
+      "noPolicies": "Aucune politique configurée",
+      "noPoliciesDesc": "Ajoutez une politique pour configurer les règles d'accumulation des congés",
+      "searchPlaceholder": "Rechercher une politique...",
+      "table": {
+        "leaveType": "Type de Congé",
+        "status": "Statut",
+        "accrualMethod": "Accumulation",
+        "daysPerMonthAdult": "Jours/Mois (Adulte)",
+        "daysPerMonthMinor": "Jours/Mois (Mineur)",
+        "bonus5Years": "Bonus 5 Ans",
+        "annualCap": "Plafond Annuel",
+        "carryover": "Report",
+        "minDays": "Jours Min",
+        "calendar": "Calendrier"
+      },
+      "stats": {
+        "total": "Total",
+        "enabled": "Activées",
+        "disabled": "Désactivées"
+      },
+      "form": {
+        "leaveType": "Type de Congé",
+        "selectLeaveType": "Sélectionner un type de congé",
+        "noLeaveTypesAvailable": "Aucun type de congé disponible",
+        "enabled": "Politique activée",
+        "accrualMethod": "Méthode d'accumulation",
+        "daysPerMonthAdult": "Jours par mois (Adulte)",
+        "daysPerMonthMinor": "Jours par mois (Mineur)",
+        "bonusDays": "Jours bonus après 5 ans",
+        "annualCap": "Plafond annuel (jours)",
+        "requiresEligibility": "Nécessite 6 mois d'ancienneté",
+        "requiresBalance": "Nécessite un solde",
+        "requiresBalanceDesc": "Les employés doivent avoir un solde suffisant pour prendre ces congés",
+        "allowCarryover": "Autoriser le report des congés",
+        "maxCarryoverYears": "Années de report maximum",
+        "minConsecutiveDays": "Jours consécutifs minimum",
+        "useWorkingCalendar": "Utiliser le calendrier de travail"
+      }
+    },
+    "legalRules": {
+      "title": "Congés Légaux",
+      "subtitle": "Règles et dispositions légales pour les congés",
+      "searchPlaceholder": "Rechercher dans les règles légales...",
+      "discontinuous": "Fractionnable",
+      "stats": {
+        "total": "Total des Règles",
+        "discontinuous": "Fractionnables",
+        "withTimeLimit": "Avec Limite de Temps"
+      },
+      "table": {
+        "leaveType": "Type de Congé",
+        "eventCode": "Code Événement",
+        "description": "Description",
+        "daysGranted": "Jours Accordés",
+        "legalArticle": "Article Légal",
+        "discontinuous": "Fractionnable",
+        "timeLimit": "Délai d'Usage"
+      }
+    },
+    "form": {
+      "leaveType": "Type de Congé",
+      "selectLeaveType": "Sélectionner un type de congé",
+      "leaveTypeRequired": "Le type de congé est obligatoire",
+      "startDate": "Date de Début",
+      "endDate": "Date de Fin",
+      "selectDate": "Sélectionner une date",
+      "startDateRequired": "La date de début est obligatoire",
+      "endDateRequired": "La date de fin est obligatoire",
+      "reason": "Motif",
+      "reasonPlaceholder": "Indiquez le motif de votre demande de congé...",
+      "reasonRequired": "Le motif est obligatoire",
+      "leaveCode": "Code de Congé",
+      "leaveName": "Nom du Congé",
+      "scope": "Portée",
+      "isPaid": "Est Payé",
+      "requiresBalance": "Nécessite un Solde",
+      "requiresEligibility6Months": "Nécessite 6 Mois d'Éligibilité",
+      "isActive": "Est Actif",
+      "isEnabled": "Est Activé",
+      "accrualMethod": "Méthode d'Accumulation",
+      "daysPerMonthAdult": "Jours par Mois (Adulte)",
+      "daysPerMonthMinor": "Jours par Mois (Mineur)",
+      "bonusDaysPerYearAfter5Years": "Jours Bonus Après 5 Ans",
+      "annualCapDays": "Plafond Annuel (Jours)",
+      "allowCarryover": "Autoriser le Report",
+      "maxCarryoverYears": "Années de Report Maximum",
+      "minConsecutiveDays": "Jours Consécutifs Minimum",
+      "useWorkingCalendar": "Utiliser le Calendrier de Travail",
+      "requiresApprovalWorkflow": "Nécessite une Approbation",
+      "requiresAttachment": "Nécessite une Pièce Jointe",
+      "allowNegativeBalance": "Autoriser Solde Négatif",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "required": "Ce champ est requis",
+      "invalidNumber": "Veuillez saisir un nombre valide"
+    },
+    "messages": {
+      "submitSuccess": "Demande de congé soumise avec succès",
+      "createSuccess": "Type de congé créé avec succès",
+      "updateSuccess": "Type de congé mis à jour avec succès",
+      "deleteSuccess": "Type de congé supprimé avec succès",
+      "policyCreateSuccess": "Politique de congé créée avec succès",
+      "policyUpdateSuccess": "Politique de congé mise à jour avec succès",
+      "policyDeleteSuccess": "Politique de congé supprimée avec succès"
+    },
+    "errors": {
+      "loadFailed": "Échec du chargement des données",
+      "createFailed": "Échec de la création du type de congé",
+      "updateFailed": "Échec de la mise à jour du type de congé",
+      "deleteFailed": "Échec de la suppression du type de congé",
+      "policyCreateFailed": "Échec de la création de la politique",
+      "policyUpdateFailed": "Échec de la mise à jour de la politique",
+      "policyDeleteFailed": "Échec de la suppression de la politique"
+    },
+    "requests": {
+      "title": "Mes Demandes de Congé",
+      "subtitle": "Créer et gérer vos demandes de congé",
+      "newRequest": "Nouvelle Demande",
+      "searchPlaceholder": "Rechercher dans mes demandes...",
+      "noRequests": "Aucune demande de congé trouvée",
+      "noRequestsDesc": "Cliquez sur 'Nouvelle Demande' pour créer votre première demande de congé",
+      "status": {
+        "draft": "Brouillon",
+        "submitted": "Soumise",
+        "approved": "Approuvée",
+        "rejected": "Rejetée",
+        "cancelled": "Annulée",
+        "renounced": "Renoncée"
+      },
+      "table": {
+        "leaveType": "Type de Congé",
+        "startDate": "Date de Début",
+        "endDate": "Date de Fin",
+        "duration": "Durée",
+        "workingDaysDeducted": "Jours Ouvrables Déduits",
+        "reason": "Motif",
+        "status": "Statut",
+        "createdAt": "Créée le",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "submit": "Soumettre",
+        "delete": "Supprimer",
+        "cancel": "Annuler",
+        "view": "Voir"
+      },
+      "form": {
+        "createTitle": "Nouvelle Demande de Congé",
+        "editTitle": "Modifier la Demande de Congé",
+        "leaveType": "Type de Congé",
+        "selectLeaveType": "Sélectionner un type de congé",
+        "startDate": "Date de Début",
+        "endDate": "Date de Fin",
+        "reason": "Motif",
+        "reasonPlaceholder": "Indiquez le motif de votre demande de congé...",
+        "duration": "Durée",
+        "durationDays": "jour(s)",
+        "save": "Enregistrer",
+        "create": "Créer",
+        "update": "Modifier",
+        "cancel": "Annuler",
+        "validation": {
+          "leaveTypeRequired": "Le type de congé est obligatoire",
+          "startDateRequired": "La date de début est obligatoire",
+          "endDateRequired": "La date de fin est obligatoire",
+          "reasonRequired": "Le motif est obligatoire",
+          "reasonMaxLength": "Le motif ne peut pas dépasser 500 caractères",
+          "endDateAfterStart": "La date de fin doit être après la date de début"
+        }
+      },
+      "confirmations": {
+        "submit": {
+          "title": "Confirmation",
+          "message": "Êtes-vous sûr de vouloir soumettre cette demande de congé ?",
+          "submitButton": "Soumettre",
+          "cancelButton": "Annuler"
+        },
+        "delete": {
+          "title": "Confirmation",
+          "message": "Êtes-vous sûr de vouloir supprimer cette demande de congé ?",
+          "deleteButton": "Supprimer",
+          "cancelButton": "Annuler"
+        }
+      },
+      "messages": {
+        "createSuccess": "Demande de congé créée avec succès",
+        "updateSuccess": "Demande de congé mise à jour avec succès",
+        "submitSuccess": "Demande de congé soumise avec succès",
+        "deleteSuccess": "Demande de congé supprimée avec succès",
+        "onlyDraftCanEdit": "Seules les demandes en brouillon peuvent être modifiées",
+        "onlyDraftCanSubmit": "Seules les demandes en brouillon peuvent être soumises",
+        "onlyDraftCanDelete": "Seules les demandes en brouillon peuvent être supprimées"
+      },
+      "errors": {
+        "loadFailed": "Impossible de charger les demandes de conge",
+        "loadLeaveTypesFailed": "Impossible de charger les types de conge",
+        "createFailed": "Impossible de creer la demande de conge",
+        "updateFailed": "Impossible de mettre a jour la demande de conge",
+        "submitFailed": "Impossible de soumettre la demande de conge",
+        "deleteFailed": "Impossible de supprimer la demande de conge"
+      }
+    }
   }
 }
+

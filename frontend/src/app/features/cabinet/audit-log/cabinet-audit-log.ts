@@ -153,7 +153,6 @@ export class CabinetAuditLogComponent implements OnInit {
 
   exportLogs(): void {
     // Implement export logic (CSV/Excel)
-    console.log('Exporting logs...');
   }
 
   getSeverity(severity: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" | undefined {

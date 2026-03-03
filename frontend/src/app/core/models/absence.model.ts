@@ -1,4 +1,4 @@
-export type AbsenceStatus = 'Submitted' | 'Approved' | 'Rejected' | 'Cancelled' | 'Expired';
+export type AbsenceStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Cancelled' | 'Expired';
 
 export interface Absence {
   id: number;
@@ -63,6 +63,9 @@ export interface CreateAbsenceRequest {
   endTime?: string;
   absenceType: AbsenceType;
   reason?: string;
+  useLeaveBalance?: boolean;
+  // Optional numeric status to send to backend (0 = Draft, 1 = Submitted, ...)
+  status?: number;
 }
 
 export interface UpdateAbsenceRequest {

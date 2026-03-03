@@ -68,6 +68,7 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     { id: 'if', key: 'if', label: 'company.info.identifiantFiscal' },
     { id: 'rc', key: 'rc', label: 'company.info.rc' },
     { id: 'patente', key: 'patente', label: 'company.info.patente' },
+    { id: 'foundingDate', key: 'foundingDate', label: 'company.info.foundingDate', type: 'date' },
     { id: 'legalForm', key: 'legalForm', label: 'company.info.legalForm' },
     { id: 'cnss', key: 'cnss', label: 'company.info.cnss' },
     { id: 'rib', key: 'rib', label: 'company.info.rib' },
@@ -109,7 +110,15 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
 
   /** Get field value from company object */
   getFieldValue(key: keyof Company): string {
-    return (this.company()?.[key] as string) ?? '';
+    const val = this.company()?.[key] as any;
+    if (key === 'foundingDate') {
+      if (!val) return '';
+      // If it's a Date, format to yyyy-mm-dd for <input type="date"> value
+      const d = val instanceof Date ? val : new Date(val);
+      if (isNaN(d.getTime())) return '';
+      return d.toISOString().split('T')[0];
+    }
+    return (val as string) ?? '';
   }
 
   private loadCompanyData() {
@@ -162,15 +171,23 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
       this.loading.set(false);
       return;
     }
+    // Convert foundingDate string (from input) to a Date object
+    const payloadValue = field === 'foundingDate' ? (value ? new Date(value) : undefined) : value;
 
     const updatePayload: Partial<Company> = {
       id: currentCompany.id,
-      [field]: value
+      [field]: payloadValue as any
     };
+
+    // Optimistic UI: apply change locally immediately so user sees the updated value
+    const previous = { ...currentCompany };
+    this.company.set({ ...currentCompany, [field]: payloadValue as any });
 
     this.companyService.updateCompany(updatePayload).subscribe({
       next: (updatedCompany) => {
-        this.company.set(updatedCompany);
+        // Merge server response with previous but prefer the locally-updated value
+        const merged = this.mergeCompany(previous, updatedCompany, { [field]: payloadValue as any });
+        this.company.set(merged);
         this.showToast(
           'success',
           this.translate.instant('common.success'),
@@ -180,6 +197,8 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Update failed:', err);
+        // Revert optimistic update on error
+        this.company.set(previous);
         this.showToast(
           'error',
           this.translate.instant('common.error'),
@@ -188,6 +207,31 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       }
     });
+  }
+
+  // Merge server-updated company into previous local company state.
+  // Preserve previous values for keys where server returned undefined or empty string
+  private mergeCompany(prev: Company, server: Company, overrides: Partial<Company> = {}): Company {
+    const result: any = { ...prev };
+    if (!server) return { ...result, ...overrides } as Company;
+
+    // Apply server values when present
+    Object.keys(server).forEach((k) => {
+      const val = (server as any)[k];
+      if (val !== undefined && val !== '') {
+        result[k] = val;
+      }
+    });
+
+    // Apply overrides (local updates) last so they take precedence
+    Object.keys(overrides).forEach((k) => {
+      const val = (overrides as any)[k];
+      if (val !== undefined) {
+        result[k] = val;
+      }
+    });
+
+    return result as Company;
   }
 
   private showToast(severity: 'success' | 'error' | 'info', summary: string, detail: string) {

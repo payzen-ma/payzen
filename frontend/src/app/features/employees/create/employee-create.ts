@@ -161,12 +161,6 @@ export class EmployeeCreatePage implements OnInit {
     this.employeeService.getEmployeeFormData().subscribe({
       next: (data) => {
         this.formData.set(data);
-        console.log('[EmployeeCreate] mapped formData', {
-          genders: data.genders,
-          educationLevels: data.educationLevels,
-          maritalStatuses: data.maritalStatuses,
-          statuses: data.statuses
-        });
         if (data.countries.length) {
           const defaultCountry = this.findDefaultCountry(data.countries);
           if (!this.employeeForm.controls.phoneCountryId.value) {
@@ -229,6 +223,12 @@ export class EmployeeCreatePage implements OnInit {
     }
 
     const value = this.employeeForm.value;
+    const rawCompanyId = this.contextService.companyId();
+    const companyId =
+      rawCompanyId !== null && rawCompanyId !== undefined
+        ? Number(rawCompanyId as any)
+        : null;
+
     const selectedPhoneCode = this.phoneCode();
     const selectedSalaryPackageId = value.salaryPackageId ? Number(value.salaryPackageId) : null;
     const payload: CreateEmployeeRequest = {
@@ -258,7 +258,8 @@ export class EmployeeCreatePage implements OnInit {
       cnssNumber: null,
       cimrNumber: null,
       attendanceTypeId: value.attendanceTypeId ? Number(value.attendanceTypeId) : null,
-      employeeCategoryId: value.employeeCategoryId ? Number(value.employeeCategoryId) : null
+      employeeCategoryId: value.employeeCategoryId ? Number(value.employeeCategoryId) : null,
+      companyId: companyId && !Number.isNaN(companyId) ? companyId : null
     };
 
     this.isSubmitting.set(true);

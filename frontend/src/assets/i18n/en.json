@@ -25,6 +25,9 @@
     "backToPortfolio": "Back to Portfolio",
     "portfolio": "Portfolio",
     "leave": "Leave",
+    "leaveConfiguration": "Configuration",
+    "myLeaveRequests": "My Leave Requests",
+    "hrLeaveManagement": "HR Leave Management",
     "attendance": "Attendance",
     "absences": "Absences",
     "attendanceReport": "Attendance Report",
@@ -32,6 +35,148 @@
     "overtimeManagement": "Overtime Approval",
     "holidays": "Holidays",
     "salaryPackages": "Salary Packages"
+  },
+  "payrollBulletin": {
+    "title": "Pay Slips",
+    "subtitle": "Manage and generate pay slips for",
+    "generateSection": "Generate Payroll",
+    "month": "Month",
+    "year": "Year",
+    "employeeOptional": "Employee (optional)",
+    "placeholderMonth": "Select a month",
+    "placeholderYear": "Select a year",
+    "placeholderEmployee": "Select an employee",
+    "generateAll": "Generate for all",
+    "calculateOne": "Calculate one employee",
+    "total": "Total",
+    "success": "Success",
+    "errors": "Errors",
+    "totalBrut": "Total Gross",
+    "totalNet": "Total Net",
+    "searchEmployee": "Search employee",
+    "searchPlaceholder": "Employee name...",
+    "filterByStatus": "Filter by status",
+    "allStatuses": "All statuses",
+    "loadingBulletins": "Loading pay slips...",
+    "employee": "Employee",
+    "period": "Period",
+    "status": "Status",
+    "baseSalary": "Base salary",
+    "brut": "Gross",
+    "employerContributions": "Employer contributions",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "delete": "Delete",
+    "noBulletin": "No pay slip",
+    "noBulletinHint": "Generate payroll to see pay slips here.",
+    "detailTitle": "Pay slip details",
+    "loadingDetails": "Loading details...",
+    "identity": "Identity",
+    "company": "Company",
+    "daysWorkedTitle": "Days worked and attendance",
+    "daysWorked": "Days worked",
+    "daysLeaveDeducted": "Leave days (deducted)",
+    "daysHoliday": "Holiday days",
+    "daysPaidTotal": "Total paid days",
+    "baseAndHours": "Base salary and hours",
+    "baseMonthlyProrata": "Monthly base (prorata)",
+    "seniorityBonus": "Seniority bonus",
+    "hourlyRate": "Hourly rate",
+    "hsup25Hours": "Overtime 25% (hours)",
+    "hsup25Amount": "Overtime 25% (amount)",
+    "hsup50Hours": "Overtime 50% (hours)",
+    "hsup50Amount": "Overtime 50% (amount)",
+    "hsup100Hours": "Overtime 100% (hours)",
+    "hsup100Amount": "Overtime 100% (amount)",
+    "totalHsup": "Total overtime",
+    "absences": "Absences",
+    "leaves": "Leave",
+    "date": "Date",
+    "type": "Type",
+    "duration": "Duration",
+    "from": "From",
+    "to": "To",
+    "daysDeducted": "Days deducted",
+    "overtimes": "Overtime",
+    "hours": "Hours",
+    "rate": "Rate",
+    "primes": "Bonuses",
+    "label": "Label",
+    "amount": "Amount",
+    "taxable": "Taxable",
+    "yes": "Yes",
+    "no": "No",
+    "taxablePrimesAndBrut": "Taxable bonuses and gross",
+    "primeImposable1": "Taxable bonus 1",
+    "primeImposable2": "Taxable bonus 2",
+    "primeImposable3": "Taxable bonus 3",
+    "totalTaxablePrimes": "Total taxable bonuses",
+    "feesAndAllowances": "Professional fees and allowances",
+    "professionalFees": "Professional fees",
+    "indemnityRepresentation": "Representation allowance",
+    "transportAllowance": "Transport allowance",
+    "mealAllowance": "Meal allowance",
+    "travelAllowance": "Travel allowance",
+    "cashAllowance": "Cash allowance",
+    "soilingAllowance": "Soiling allowance",
+    "familyGratification": "Family gratification",
+    "pilgrimageAllowance": "Pilgrimage allowance",
+    "severanceAllowance": "Severance allowance",
+    "mileageAllowance": "Mileage allowance",
+    "turnAllowance": "Turn allowance",
+    "toolsAllowance": "Tools allowance",
+    "medicalAid": "Medical aid",
+    "otherNonTaxable": "Other non-taxable bonuses",
+    "totalIndemnities": "Total allowances",
+    "excedentImposable": "Taxable excess",
+    "employeeContributions": "Employee contributions",
+    "cnssEmployee": "CNSS employee share",
+    "cimrEmployee": "CIMR employee share",
+    "amoEmployee": "AMO employee share",
+    "mutualEmployee": "Mutual employee share",
+    "totalEmployeeContributions": "Total employee contributions",
+    "employerContributionsTitle": "Employer contributions",
+    "cnssEmployer": "CNSS employer share",
+    "cimrEmployer": "CIMR employer share",
+    "amoEmployer": "AMO employer share",
+    "mutualEmployer": "Mutual employer share",
+    "totalEmployerContributions": "Total employer contributions",
+    "taxAndNet": "Tax, deductions and net pay",
+    "incomeTax": "Income tax",
+    "rounding": "Rounding",
+    "salaryAdvance": "Salary advance",
+    "housingInterest": "Housing interest",
+    "taxableBrut": "Taxable gross",
+    "taxableNet": "Taxable net",
+    "totalGains": "Total gains",
+    "totalDeductions": "Total deductions",
+    "netToPay": "Net to pay",
+    "totalNet2": "Total net 2",
+    "auditTitle": "Calculation audit",
+    "auditHint": "Formula used and inputs/outputs per module.",
+    "step": "Step",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "close": "Close",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "confirmGenerateTitle": "Generate payroll",
+    "confirmGenerateMessage": "Do you want to generate payroll for all employees?",
+    "confirmDeleteTitle": "Delete pay slip",
+    "confirmDeleteMessage": "Do you really want to delete the pay slip for {{name}}?",
+    "statusSuccess": "Success",
+    "statusError": "Error",
+    "statusPending": "Pending",
+    "selectEmployeeRequired": "Please select an employee",
+    "calculationSuccess": "Payroll calculation completed successfully",
+    "calculationSuccessFor": "Payroll calculation completed successfully for {{month}}/{{year}}",
+    "calculationError": "Error during payroll calculation",
+    "detailLoadError": "Unable to load pay slip details.",
+    "deleteSuccess": "Pay slip deleted successfully",
+    "deleteError": "Error while deleting pay slip",
+    "allEmployees": "All employees",
+    "loading": "Loading..."
   },
   "expert": {
     "activeClient": "Active Client",
@@ -59,7 +204,14 @@
       "recentActivity": "Recent Activity",
       "viewAll": "View All",
       "backToPortfolio": "Back to Portfolio",
+      "editClient": "Edit Client",
       "viewingAsExpert": "You are viewing this company as an Expert"
+    }
+    ,
+    "client": {
+      "adminUser": "Admin User",
+      "adminDescription": "Create an administrator account for this company.",
+      "autoGeneratePassword": "Auto-generate secure password"
     }
   },
   "attendance": {
@@ -203,21 +355,43 @@
     "profile": "Profile",
     "settings": "Settings",
     "role": {
+      "date": "Date",
+      "description": "Description",
+      "type": "Type",
+      "time": "Time Range",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "totalHours": "Total Hours",
+      "rateMultiplier": "Rate Multiplier",
+      "processedInPayroll": "Processed in Payroll",
+      "createdAt": "Created At",
+      "reason": "Reason",
+      "status": "Status",
       "admin": "Admin",
       "user": "User",
       "manager": "Manager",
       "hr": "HR",
       "employee": "Employee",
       "cabinet": "Cabinet",
-      "adminPayzen": "PayZen Admin",
+      "adminPayzen": "Admin PayZen",
+      "viewer": "Viewer",
       "viewer": "Viewer"
     }
   },
   "common": {
+    "Showing" : "Showing",
     "system": "System",
+    "custom": "Custom",
     "readOnly": "Read Only",
     "save": "Save",
     "cancel": "Cancel",
+    "reset": "Reset",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "selectDate": "Select a date",
+    "confirmation": "Confirmation",
+    "unknown": "Unknown",
+    "total": "Total",
     "create": "Create",
     "update": "Update",
     "delete": "Delete",
@@ -257,6 +431,37 @@
     "cin": "CIN",
     "phone": "Phone",
     "select": "Select",
+    "refresh": "Refresh",
+    "day": "day",
+    "days": "days",
+    "week": "week",
+    "weeks": "weeks",
+    "month": "month",
+    "months": "months",
+    "year": "year",
+    "years": "years",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "active": "Active",
+    "inactive": "Inactive",
+    "lastUpdated": "Last updated:",
+    "confirmDelete": "Confirm Deletion",
+    "showing": "Showing",
+    "table": {
+      "showing": "Showing {first} to {last} of {total}"
+    },
+    "validation": {
+      "required": "This field is required"
+    },
+    "messages": {
+      "loadFailed": "Failed to load data",
+      "createSuccess": "Created successfully",
+      "createFailed": "Failed to create",
+      "updateSuccess": "Updated successfully",
+      "updateFailed": "Failed to update",
+      "deleteSuccess": "Deleted successfully",
+      "deleteFailed": "Failed to delete"
+    },
     "selectDate": "Select Date",
     "unsavedChanges": {
       "title": "Unsaved Changes",
@@ -302,6 +507,7 @@
       "contractTypes": "Contract Types",
       "employeeCategories": "Employee Categories",
       "holidays": "Holidays",
+      "leaves": "Leaves",
       "workingCalendar": "Working Calendar",
       "referenceData": "Reference Data",
       "history": "History"
@@ -323,6 +529,7 @@
       "cnss": "CNSS",
       "legalForm": "Legal Form",
       "rib": "Primary Bank Account (RIB)",
+      "foundingDate": "Founding Date",
       "address": "Address",
       "city": "City",
       "email": "Official Email",
@@ -345,6 +552,9 @@
         "fieldUpdated": "Field updated successfully",
         "fieldUpdateError": "Failed to update field"
       }
+      ,
+      "createCity": "Create city",
+      "cityPlaceholder": "Type to search or create a city"
     },
     "hrSettings": {
       "title": "HR Settings",
@@ -487,6 +697,9 @@
         "selectRolePlaceholder": "Select a role",
         "assign": "Assign Role"
       },
+      "searchPlaceholder": "Search users...",
+      "emptyTitle": "No users yet",
+      "emptyDescription": "Invite employees to give them access to the platform.",
       "invite": "Add User",
       "sendInvite": "Create User Account",
       "inviteSuccess": "User Account Created",
@@ -495,6 +708,8 @@
       "remove": "Remove",
       "table": {
         "user": "User",
+        "users": "Users",
+        "description": "Manage user access and permissions",
         "email": "Email",
         "role": "Role",
         "status": "Status",
@@ -509,6 +724,7 @@
       },
       "inviteDialog": {
         "title": "Create User Account",
+        "subtitle": "Grant platform access to an employee",
         "selectEmployee": "Select Employee",
         "selectEmployeePlaceholder": "Search or select an employee...",
         "noAvailableEmployees": "All employees already have user accounts.",
@@ -544,6 +760,8 @@
         "notImplemented": "This action is not implemented yet.",
         "userRemoved": "User {{name}} was removed",
         "removeUserError": "Failed to remove user"
+      ,
+        "footerInfo": "User will receive access credentials via email"
       }
     },
     "status": {
@@ -613,9 +831,15 @@
       "createDescription": "Add a new department to your organization",
       "nameHint": "Enter a descriptive name for this department",
       "examples": "Quick suggestions",
+      "singular": "department",
+      "plural": "departments",
+      "searchPlaceholder": "Search departments...",
+      "emptyTitle": "No departments yet",
+      "emptyDescription": "Get started by creating your first department to organize your team structure.",
       "footerInfo": "Required fields are marked with *",
       "table": {
         "name": "Department Name",
+        "description": "Manage and organize your company structure",
         "description": "Organize your company structure with departments"
       },
       "fields": {
@@ -660,9 +884,21 @@
       "createDescription": "Add a new job position to your organization",
       "nameHint": "Enter the title of the position (e.g., Software Engineer, HR Manager)",
       "examples": "Common examples",
+      "singular": "position",
+      "plural": "positions",
+      "searchPlaceholder": "Search positions...",
+      "emptyTitle": "No job positions yet",
+      "emptyDescription": "Create job positions to better organize your team roles and responsibilities.",
+      "examplesList": {
+        "softwareEngineer": "Software Engineer",
+        "projectManager": "Project Manager",
+        "hrSpecialist": "HR Specialist"
+      },
+      "description": "",
       "footerInfo": "Used to categorize employee roles",
       "table": {
         "name": "Position Name",
+        "description": "Define company posts",
         "description": "Define roles available in your organization"
       },
       "fields": {
@@ -711,6 +947,9 @@
       "examples": "Common examples",
       "footerInfo": "Defines employment agreement categories",
       "deleteConfirm": "Are you sure you want to delete this contract type? This action cannot be undone.",
+      "singular": "contract type",
+      "plural": "contract types",
+      "description": "Manage employment contract types and classifications",
       "table": {
         "name": "Contract Type Name",
         "description": "Define contract types used in your company"
@@ -759,6 +998,10 @@
     "employeeCategories": {
       "title": "Employee Categories",
       "subtitle": "Manage employee classification categories",
+      "singular": "category",
+      "plural": "categories",
+      "searchPlaceholder": "Search categories...",
+      "description": "Classify and organize employees into categories",
       "createTitle": "Create Category",
       "editTitle": "Edit Category",
       "add": "Add Category",
@@ -769,6 +1012,15 @@
       "nameHint": "Enter the category name (e.g., Manager, Executive, Intern)",
       "descriptionHint": "Optional description for this category",
       "examples": "Common examples",
+      "examplesList": {
+        "Manager": "Manager",
+        "Executive": "Executive",
+        "Technician": "Technician",
+        "Supervisor": "Supervisor",
+        "Intern": "Intern"
+      },
+      "emptyTitle": "No employee categories yet",
+      "emptyDescription": "Create employee categories to better classify and organize your workforce.",
       "footerInfo": "Categories help organize and classify employees",
       "deleteConfirm": "Are you sure you want to delete this employee category? This action cannot be undone.",
       "noCategories": "No employee categories yet. Create one to start organizing your workforce.",
@@ -852,6 +1104,11 @@
   "employees": {
     "title": "Employee Management",
     "subtitle": "Manage your employees' information and documents",
+    "employee": "Employee",
+    "allEmployees": "All employees",
+    "name": "Name",
+    "position": "Position",
+    "department": "Department",
     "searchPlaceholder": "Search by name or position...",
     "filter": {
       "department": "Department",
@@ -973,7 +1230,8 @@
         "summary": "You have modified {{count}} field(s). Please review the changes before saving:",
         "before": "Before",
         "after": "After",
-        "manyChanges": "⚠️ You're modifying many fields at once. Please review carefully."
+        "manyChanges": "⚠️ You're modifying many fields at once. Please review carefully.",
+        "ConfirmMessage": "Are you sure you want to save these changes?"
       },
       "draft": {
         "restored": "Draft restored from {{date}}",
@@ -1020,6 +1278,49 @@
       "saveError": "Failed to save changes. Please try again.",
       "saveSuccess": "Changes saved successfully",
       "loadError": "Failed to load employee profile"
+    },
+    "history": {
+      "types": {
+        "general_update": "Update",
+        "address_created": "Address added",
+        "contract_created": "Contract created",
+        "FirstName_Changed": "First name changed",
+        "Status_Changed": "Status changed",
+        "Child_Added": "Child added",
+        "child_added": "Child added",
+        "ChildAdded": "Child added",
+        "childadded": "Child added",
+        "Email_Changed": "Email changed",
+        "CNSS_Changed": "CNSS updated",
+        "CIMR_Changed": "CIMR updated",
+        "UserAccount_Created": "User account created",
+        "Salary_Created": "Salary created",
+        "Employee_Created": "Employee created",
+        "Address_Created": "Address added",
+        "Contract_Created": "Contract created"
+      },
+      "titles": {
+        "general_update": "Update",
+        "address_created": "Address Added",
+        "contract_created": "New Contract",
+        "FirstName_Changed": "First Name Changed",
+        "Status_Changed": "Status Changed",
+        "Child_Added": "Child Added",
+        "childadded": "Child Added",
+        "child_added": "Child Added",
+        "ChildAdded": "Child Added",
+        "Email_Changed": "Email Changed",
+        "CNSS_Changed": "CNSS Updated",
+        "CIMR_Changed": "CIMR Updated",
+        "UserAccount_Created": "User Account Created",
+        "Salary_Created": "Salary Created",
+        "Employee_Created": "Employee Created",
+        "Address_Created": "Address Added",
+        "Contract_Created": "Contract Created"
+      },
+      "noHistory": "No history yet",
+      "loadError": "Failed to load history",
+      "ariaLabel": "Employee history"
     },
     "create": {
       "eyebrow": "New hire flow",
@@ -1422,6 +1723,7 @@
   },
   "audit": {
     "title": "Audit Log",
+    "genericModification": "Modification",
     "search": "Search",
     "searchPlaceholder": "Search by description, field, or user...",
     "eventType": "Event Type",
@@ -1498,12 +1800,39 @@
       "SETTINGS_CHANGED": "Settings Changed",
       "PASSWORD_CHANGED": "Password Changed",
       "PASSWORD_RESET": "Password Reset",
-      "USER_ROLE_ASSIGNED": "User Role Assigned",
-      "USER_ROLE_REVOKED": "User Role Revoked"
-    },
-    "justNow": "Just now",
-    "unknownEvent": "Unknown event",
-    "unknownUser": "Unknown user"
+      "COMPANY_NAME_CHANGED": "Company name changed",
+      "LEGAL_FORM_CHANGED": "Legal form changed",
+      "FOUNDING_DATE_CHANGED": "Founding date changed",
+      "EMAIL_CHANGED": "Email changed",
+      "PHONE_CHANGED": "Phone changed",
+      "ADDRESS_CHANGED": "Address changed",
+      "CITY_CHANGED": "City changed",
+      "COUNTRY_CHANGED": "Country changed",
+      "STATUS_CHANGED": "Status changed",
+      "LICENCE_CHANGED": "Licence changed",
+      "ICE_NUMBER_CHANGED": "ICE number changed",
+      "IF_NUMBER_CHANGED": "IF number changed",
+      "RC_NUMBER_CHANGED": "RC number changed",
+      "CNSS_NUMBER_CHANGED": "CNSS number changed",
+      "ICE_CHANGED": "ICE changed",
+      "IF_CHANGED": "IF changed",
+      "RC_CHANGED": "RC changed",
+      "CNSS_CHANGED": "CNSS changed",
+      "IS_CABINET_EXPERT_CHANGED": "Cabinet expert status changed",
+      "ACCOUNTANT_CHANGED": "Accountant changed",
+      "CABINET_LINKED": "Cabinet linked",
+      "CABINET_UNLINKED": "Cabinet unlinked",
+      "JOBPOSITION_CREATED": "Job position created",
+      "JOBPOSITION_UPDATED": "Job position updated",
+      "JOBPOSITION_DELETED": "Job position deleted",
+      "WEBSITE_CHANGED": "Website changed",
+      "WEBSITE_URL_CHANGED": "Website URL changed",
+      "RIB_CHANGED": "Bank account changed",
+      "PATENT_CHANGED": "Patent changed",
+      "DEPARTEMENT_CREATED": "Department created",
+      "DEPARTEMENT_UPDATED": "Department updated",
+      "DEPARTEMENT_DELETED": "Department deleted"
+    }
   },
   "permissions": {
     "title": "Permission Management",
@@ -1613,6 +1942,7 @@
     "manageEmployeeAbsences": "Manage absence requests for this employee",
     "searchEmployee": "Search employee...",
     "viewDetails": "View Details",
+    "viewEmployee": "View Employee",
     "detailTitle": "Absence Details",
     "createdBy": "Created By",
     "createdAt": "Created At",
@@ -1637,7 +1967,18 @@
       "pending": "Pending",
       "approved": "Approved",
       "rejected": "Rejected",
-      "totalDays": "Total Days"
+      "totalDays": "Total Days",
+      "all": "All"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "all": "All"
     },
     "table": {
       "employee": "Employee",
@@ -1685,7 +2026,8 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "reason": "Reason (optional)",
-      "reasonPlaceholder": "Provide a reason for your absence request..."
+      "reasonPlaceholder": "Provide a reason for your absence request...",
+      "useLeaveBalance": "Use leave balance"
     },
     "rejectDialog": {
       "title": "Reject Absence Request",
@@ -1695,10 +2037,22 @@
       "hint": "This reason will be communicated to the employee.",
       "confirm": "Reject"
     },
+    "deleteDialog": {
+      "title": "Delete Absence",
+      "message": "Are you sure you want to delete this absence?"
+    },
+    "editDialog": {
+      "title": "Edit Absence"
+    },
     "filters": {
       "searchEmployee": "Search employee...",
       "allTypes": "All types",
       "allDurations": "All durations"
+    },
+    "hr": {
+      "employees": "Employees",
+      "title": "Absence Management",
+      "subtitle": "Manage absence requests for all employees"
     }
   },
   "overtime": {
@@ -1731,18 +2085,25 @@
       "startTime": "Start Time",
       "endTime": "End Time",
       "reason": "Reason",
-      "reasonPlaceholder": "Describe the reason for overtime..."
+      "reasonPlaceholder": "Describe the reason for overtime...",
+      "holidayYear": "Year",
+      "selectHoliday": "Select a holiday",
+      "applyHoliday": "Apply Holiday",
+      "timeFormatHint": "Format: HH:00 (hours only)"
     },
     "type": {
-      "hourly": "Hourly Overtime",
-      "holiday": "Holiday Work"
+      "standard": "Standard Overtime",
+      "publicHoliday": "Public Holiday Work",
+      "weeklyRest": "Weekly Rest Day Work"
     },
     "status": {
+      "pending": "Pending",
       "all": "All",
       "submitted": "Submitted",
       "approved": "Approved",
       "rejected": "Rejected",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "all": "All"
     },
     "messages": {
       "createSuccess": "Overtime successfully declared",
@@ -1750,8 +2111,13 @@
       "deleteSuccess": "Overtime successfully deleted",
       "cancelSuccess": "Overtime successfully cancelled",
       "approved": "Overtime approved successfully",
-      "rejected": "Overtime rejected"
+      "rejected": "Overtime rejected",
+      "submitSuccess": "Leave request submitted successfully",
+      "submitError": "Failed to submit leave request"
     },
+    "declareFor": "Declare overtime for {{name}}",
+    "declare": "Declare",
+
     "errors": {
       "loadFailed": "Failed to load overtime records",
       "createFailed": "Failed to declare overtime",
@@ -1760,7 +2126,8 @@
       "cancelFailed": "Failed to cancel overtime",
       "approveFailed": "Failed to approve overtime",
       "rejectFailed": "Failed to reject overtime",
-      "noEmployee": "No employee found"
+      "noEmployee": "No employee found",
+      "noHolidaySelected": "No holiday selected"
     },
     "management": {
       "title": "Overtime Management",
@@ -1779,15 +2146,24 @@
     "filters": {
       "status": "Status",
       "startDate": "Start Date",
-      "endDate": "End Date"
+      "endDate": "End Date",
+      "searchEmployee": "Search employee...",
+      "search": "Search description...",
+      "searchPlaceholder": "Search by description"
     },
     "validation": {
       "rejectCommentRequired": "A comment is required to reject a request"
+    },
+    "hr": {
+      "employees": "Employees",
+      "declare": "Declare"
     }
   },
   "holidays": {
     "title": "Holidays",
     "subtitle": "Manage your company holidays",
+    "holiday": "Holiday",
+    "selectHoliday": "Select a holiday",
     "addHoliday": "Add Holiday",
     "editHoliday": "Edit Holiday",
     "createDescription": "Define a new holiday",
@@ -1803,6 +2179,7 @@
     },
     "table": {
       "title": "Holidays List",
+      "subtitle": "Manage company and national holidays",
       "date": "Date",
       "name": "Name",
       "type": "Type",
@@ -1835,7 +2212,11 @@
       "yearPlaceholder": "e.g. 2026",
       "recurrence": "Recurrence",
       "recurrencePlaceholder": "Select recurrence",
-      "recurrenceHint": "Choose if the holiday repeats every year or occurs once."
+      "recurrenceHint": "Choose if the holiday repeats every year or occurs once.",
+      "recurrenceHint": "Choose whether this holiday recurs every year or is a one-time event."
+    },
+    "empty": {
+      "description": "Get started by creating your first holiday."
     },
     "recurrence": {
       "none": "Non-recurring",
@@ -1897,6 +2278,402 @@
       "saveFailed": "Failed to save working calendar",
       "timesRequired": "Start and end times are required for {{day}}",
       "invalidTimeRange": "End time must be after start time for {{day}}"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email",
+    "minLength": "Minimum {{min}} characters required",
+    "maxLength": "Maximum {{max}} characters allowed"
+  },
+  "leave": {
+    "title": "My Leave Requests",
+    "subtitle": "Manage my leave requests and track their status",
+    "description": "Manage leave types and company-specific leave policies",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "type": "Leave Type",
+    "allTypes": "All types",
+    "noReason": "No reason",
+    "noReasonSpecified": "No reason specified",
+    "dateTo": "to",
+    "newRequest": "New Request",
+    "myRequests": "My Leave Requests",
+    "actions": {
+      "submit": "Submit"
+    },
+    "confirmations": {
+      "submit": {
+        "title": "Confirmation",
+        "message": "Are you sure you want to submit this leave request?",
+        "submitButton": "Submit",
+        "cancelButton": "Cancel"
+      }
+    },
+    "editRequest": "Edit Request",
+    "addRequest": "New Leave Request",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "noData": "No leave requests found",
+    "hr": {
+      "title": "HR Leave Management",
+      "subtitle": "Manage leave requests for all employees",
+      "grantLeave": "Grant Leave",
+      "approveRequest": "Approve request",
+      "rejectRequest": "Reject request",
+      "viewDetails": "View details",
+      "approvalDialog": {
+        "title": "Process Request",
+        "summary": "Request summary",
+        "notes": "Approver notes (optional)",
+        "notesPlaceholder": "Add comments about your decision...",
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "grantDialog": {
+        "title": "Grant Leave",
+        "employee": "Employee",
+        "selectEmployee": "Select an employee",
+        "autoApprove": "Auto-approve",
+        "autoApproveHint": "If checked, the leave will be automatically approved after creation",
+        "grant": "Grant"
+      },
+      "tabs": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "all": "All"
+      },
+      "stats": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "total": "Total"
+      },
+      "filters": {
+        "employee": "Employee",
+        "allEmployees": "All employees",
+        "type": "Type",
+        "allTypes": "All types",
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "reset": "Reset"
+      },
+      "table": {
+        "employee": "Employee",
+        "dates": "Dates",
+        "actions": "Actions"
+      },
+      "messages": {
+        "approveSuccess": "Leave request approved successfully",
+        "rejectSuccess": "Leave request rejected successfully",
+        "grantSuccess": "Leave granted successfully",
+        "grantAndApproveSuccess": "Leave granted and approved successfully",
+        "loadError": "Unable to load leave requests"
+      },
+      "emptyMessages": {
+        "pending": "No pending requests",
+        "approved": "No approved requests",
+        "rejected": "No rejected requests",
+        "cancelled": "No cancelled requests",
+        "all": "No leave requests",
+        "default": "No requests found",
+        "noRequestsYet": "No leave requests have been created yet.",
+        "tryFilters": "Try adjusting filters or switching tabs.",
+        "totalButNone": "There are {{count}} request(s) in total, but none {{status}}."
+      }
+    },
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "requiresBalance": "Requires Balance",
+    "accrual": {
+      "none": "None",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "perPayPeriod": "Per Pay Period",
+      "hoursWorked": "Hours Worked"
+    },
+    "tabs": {
+      "types": "Leave Types",
+      "policies": "Leave Policies"
+    },
+    "table": {
+      "leaveType": "Leave Type",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "duration": "Duration",
+      "workingDaysDeducted": "Working Days Deducted",
+      "reason": "Reason",
+      "status": "Status",
+      "createdAt": "Created On"
+    },
+    "requestForm": {
+      "leaveType": "Leave Type",
+      "selectLeaveType": "Select a leave type",
+      "leaveTypeRequired": "Leave type is required",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "selectDate": "Select a date",
+      "startDateRequired": "Start date is required",
+      "endDateRequired": "End date is required",
+      "reason": "Reason",
+      "reasonPlaceholder": "Please provide the reason for your leave request...",
+      "reasonRequired": "Reason is required"
+    },
+    "types": {
+      "title": "Leave Types",
+      "subtitle": "Configure available leave types",
+      "description": "Configure the types of leave available in your system",
+      "add": "Add Leave Type",
+      "addNew": "Add Leave Type",
+      "edit": "Edit Leave Type",
+      "delete": "Delete Leave Type",
+      "deleteConfirm": "Are you sure you want to delete this leave type?",
+      "code": "Leave Code",
+      "codePlaceholder": "e.g., ANNUAL, SICK",
+      "name": "Leave Name",
+      "namePlaceholder": "e.g., Annual Leave",
+      "searchPlaceholder": "Search leave types...",
+      "filterScope": "Filter by scope",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Enter a description for this leave type",
+      "scope": "Scope",
+      "isPaid": "Paid Leave",
+      "requiresBalance": "Requires Balance",
+      "requiresEligibility": "6 Months Eligibility",
+      "isActive": "Active",
+      "global": "Global",
+      "company": "Company",
+      "noTypes": "No Leave Types Found",
+      "noTypesDesc": "Click the button below to add your first leave type",
+      "yes": "Yes",
+      "no": "No",
+      "table": {
+        "code": "Code",
+        "name": "Name",
+        "scope": "Scope",
+        "paid": "Paid",
+        "options": "Options"
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Active",
+        "inactive": "Inactive",
+        "global": "Global",
+        "company": "Company"
+      }
+    },
+    "policies": {
+      "title": "Leave Policies",
+      "subtitle": "Manage company-specific leave policies and accrual rules",
+      "description": "Manage company-specific leave policies and accrual rules",
+      "add": "Add Policy",
+      "addNew": "Add Policy",
+      "edit": "Edit Policy",
+      "delete": "Delete Policy",
+      "deleteConfirm": "Are you sure you want to delete this policy?",
+      "isEnabled": "Is Enabled",
+      "accrualMethod": "Accrual Method",
+      "none": "None",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "noPolicies": "No policies configured",
+      "noPoliciesDesc": "Add a policy to configure leave accrual rules",
+      "searchPlaceholder": "Search policies...",
+      "table": {
+        "leaveType": "Leave Type",
+        "status": "Status",
+        "accrualMethod": "Accrual",
+        "daysPerMonthAdult": "Days/Month (Adult)",
+        "daysPerMonthMinor": "Days/Month (Minor)",
+        "bonus5Years": "Bonus 5 Years",
+        "annualCap": "Annual Cap",
+        "carryover": "Carryover",
+        "minDays": "Min Days",
+        "calendar": "Work Calendar"
+      },
+      "stats": {
+        "total": "Total",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "form": {
+        "leaveType": "Leave Type",
+        "selectLeaveType": "Select a leave type",
+        "noLeaveTypesAvailable": "No leave types available",
+        "enabled": "Policy enabled",
+        "accrualMethod": "Accrual method",
+        "daysPerMonthAdult": "Days per month (Adult)",
+        "daysPerMonthMinor": "Days per month (Minor)",
+        "bonusDays": "Bonus days after 5 years",
+        "annualCap": "Annual cap (days)",
+        "requiresEligibility": "Requires 6 months seniority",
+        "requiresBalance": "Requires balance",
+        "requiresBalanceDesc": "Employees must have sufficient balance to take these leaves",
+        "allowCarryover": "Allow leave carryover",
+        "maxCarryoverYears": "Maximum carryover years",
+        "minConsecutiveDays": "Minimum consecutive days",
+        "useWorkingCalendar": "Use working calendar"
+      }
+    },
+    "form": {
+      "leaveCode": "Leave Code",
+      "leaveName": "Leave Name",
+      "scope": "Scope",
+      "isPaid": "Is Paid",
+      "requiresBalance": "Requires Balance",
+      "requiresEligibility6Months": "Requires 6 Months Eligibility",
+      "isActive": "Is Active",
+      "isEnabled": "Is Enabled",
+      "accrualMethod": "Accrual Method",
+      "daysPerMonthAdult": "Days per Month (Adult)",
+      "daysPerMonthMinor": "Days per Month (Minor)",
+      "bonusDaysPerYearAfter5Years": "Bonus Days After 5 Years",
+      "annualCapDays": "Annual Cap Days",
+      "allowCarryover": "Allow Carryover",
+      "maxCarryoverYears": "Max Carryover Years",
+      "minConsecutiveDays": "Min Consecutive Days",
+      "useWorkingCalendar": "Use Working Calendar",
+      "requiresApprovalWorkflow": "Requires Approval",
+      "requiresAttachment": "Requires Attachment",
+      "allowNegativeBalance": "Allow Negative Balance",
+      "save": "Save",
+      "cancel": "Cancel",
+      "required": "This field is required",
+      "invalidNumber": "Please enter a valid number"
+    },
+    "messages": {
+      "submitSuccess": "Leave request submitted successfully",
+      "createSuccess": "Leave type created successfully",
+      "updateSuccess": "Leave type updated successfully", 
+      "deleteSuccess": "Leave type deleted successfully",
+      "policyCreateSuccess": "Leave policy created successfully",
+      "policyUpdateSuccess": "Leave policy updated successfully",
+      "policyDeleteSuccess": "Leave policy deleted successfully"
+    },
+    "errors": {
+      "loadFailed": "Failed to load data",
+      "createFailed": "Failed to create leave type",
+      "updateFailed": "Failed to update leave type",
+      "deleteFailed": "Failed to delete leave type",
+      "policyCreateFailed": "Failed to create policy",
+      "policyUpdateFailed": "Failed to update policy",
+      "policyDeleteFailed": "Failed to delete policy"
+    },
+    "legalRules": {
+      "title": "Legal Leave Rules",
+      "subtitle": "Legal provisions and rules for leave types",
+      "searchPlaceholder": "Search legal rules...",
+      "discontinuous": "Can be taken discontinuously",
+      "stats": {
+        "total": "Total Rules",
+        "discontinuous": "Discontinuous",
+        "withTimeLimit": "With Time Limit"
+      },
+      "table": {
+        "leaveType": "Leave Type",
+        "eventCode": "Event Code",
+        "description": "Description",
+        "daysGranted": "Days Granted",
+        "legalArticle": "Legal Article",
+        "discontinuous": "Discontinuous",
+        "timeLimit": "Usage Deadline"
+      }
+    },
+    "requests": {
+      "title": "My Leave Requests",
+      "subtitle": "Create and manage your leave requests",
+      "newRequest": "New Request",
+      "searchPlaceholder": "Search in my requests...",
+      "noRequests": "No leave requests found",
+      "noRequestsDesc": "Click 'New Request' to create your first leave request",
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "renounced": "Renounced"
+      },
+      "table": {
+        "leaveType": "Leave Type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "duration": "Duration",
+        "workingDaysDeducted": "Working Days Deducted",
+        "reason": "Reason",
+        "status": "Status",
+        "createdAt": "Created On",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "submit": "Submit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "view": "View"
+      },
+      "form": {
+        "createTitle": "New Leave Request",
+        "editTitle": "Edit Leave Request",
+        "leaveType": "Leave Type",
+        "selectLeaveType": "Select a leave type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "reason": "Reason",
+        "reasonPlaceholder": "Enter the reason for your leave request...",
+        "duration": "Duration",
+        "durationDays": "day(s)",
+        "save": "Save",
+        "create": "Create",
+        "update": "Update",
+        "cancel": "Cancel",
+        "validation": {
+          "leaveTypeRequired": "Leave type is required",
+          "startDateRequired": "Start date is required",
+          "endDateRequired": "End date is required",
+          "reasonRequired": "Reason is required",
+          "reasonMaxLength": "Reason cannot exceed 500 characters",
+          "endDateAfterStart": "End date must be after start date"
+        }
+      },
+      "confirmations": {
+        "submit": {
+          "title": "Confirmation",
+          "message": "Are you sure you want to submit this leave request?",
+          "submitButton": "Submit",
+          "cancelButton": "Cancel"
+        },
+        "delete": {
+          "title": "Confirmation",
+          "message": "Are you sure you want to delete this leave request?",
+          "deleteButton": "Delete",
+          "cancelButton": "Cancel"
+        }
+      },
+      "messages": {
+        "createSuccess": "Leave request created successfully",
+        "updateSuccess": "Leave request updated successfully",
+        "submitSuccess": "Leave request submitted successfully",
+        "deleteSuccess": "Leave request deleted successfully",
+        "onlyDraftCanEdit": "Only draft requests can be edited",
+        "onlyDraftCanSubmit": "Only draft requests can be submitted",
+        "onlyDraftCanDelete": "Only draft requests can be deleted"
+      },
+      "errors": {
+        "loadFailed": "Unable to load leave requests",
+        "loadLeaveTypesFailed": "Unable to load leave types",
+        "createFailed": "Unable to create leave request",
+        "updateFailed": "Unable to update leave request",
+        "submitFailed": "Unable to submit leave request",
+        "deleteFailed": "Unable to delete leave request"
+      }
     }
   },
   "validation": {

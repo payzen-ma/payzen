@@ -12,6 +12,7 @@ import { LanguageSwitcher } from '../language-switcher/language-switcher';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { CompanyService } from '@app/core/services/company.service';
 import { Company } from '@app/core/models/company.model';
+import { CompanyMembership } from '@app/core/models/membership.model';
 import { AuthService } from '@app/core/services/auth.service';
 import { filter } from 'rxjs/operators';
 
@@ -42,6 +43,15 @@ export class Header implements OnInit {
   readonly isExpertMode = this.contextService.isExpertMode;
   readonly isClientView = this.contextService.isClientView;
   readonly companyName = this.contextService.companyName;
+  // Cabinet (expert) company name: find the membership matching cabinetId so we can display it
+  readonly cabinetName = computed(() => {
+    const current = this.contextService.currentContext();
+    const cabId = current?.cabinetId;
+    if (!cabId) return null;
+    const membership = this.contextService.memberships().find((m: CompanyMembership) => m.companyId === cabId);
+    return membership?.companyName ?? null;
+  });
+  
   readonly companyId = this.contextService.companyId;
 
   // === Companies for dropdown ===
@@ -75,9 +85,11 @@ export class Header implements OnInit {
       if (!current?.cabinetId) return [];
 
       // Create portfolio option with all required Company fields
+      // Determine a stable label for the expert's cabinet (portfolio) using memberships
+      const cabinetMembership = this.contextService.memberships().find((m: CompanyMembership) => m.companyId === current.cabinetId);
       const portfolioOption: Company = {
         id: current.cabinetId,
-        legalName: current.companyName || 'Portfolio',
+        legalName: cabinetMembership?.companyName ?? current.companyName ?? 'Portfolio',
         ice: 'PORTFOLIO',
         cnss: '',
         address: '',
@@ -149,7 +161,10 @@ export class Header implements OnInit {
   readonly showCompanySelector = computed(() => {
     // Hide selector on the select-context page or on dashboard immediately
     const route = this.currentRoute();
-    if (route && (route.startsWith('/select-context') || route.startsWith('/app'))) return false;
+    if (route && route.startsWith('/select-context')) return false;
+    // Keep selector visible on `/app` when in expert mode (client view uses /app routes),
+    // but hide it for standard users on `/app` routes.
+    if (route && route.startsWith('/app') && !this.isExpertMode()) return false;
 
     // If user has multiple memberships, show selector in standard mode
     if (this.contextService.memberships().length > 1) return true;
@@ -188,7 +203,6 @@ export class Header implements OnInit {
     this.isLoadingCompanies.set(true);
     this.companyService.getManagedCompanies().subscribe({
       next: (companies) => {
-        console.log('[Header] loaded managed companies:', companies);
         this.clientCompanies.set(companies);
         this.isLoadingCompanies.set(false);
       },
@@ -216,12 +230,13 @@ export class Header implements OnInit {
         // Navigate to cabinet dashboard
         this.router.navigate(['/cabinet/dashboard']);
       } else {
-        // Switch to client view - don't navigate, stay on current page
-        // Components will auto-refresh via contextChanged$ subscription
+        // Switch to client view and navigate to client dashboard
         this.contextService.switchToClientContext({
           id: company.id,
           legalName: company.legalName
-        }, false); // Don't navigate
+        }, false);
+        // After switching context, redirect user to the client dashboard
+        this.router.navigate(['/dashboard']);
       }
     } else {
       // Handle Standard Mode Switching (Multi-membership)

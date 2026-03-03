@@ -41,13 +41,15 @@
                   <i class="pi pi-briefcase text-xs text-(--primary)"></i>
                   <span class="font-semibold text-(--primary)">{{ company.legalName }}</span>
                   <p-tag value="Cabinet" severity="info" [rounded]="true" class="ml-2 scale-75 origin-left"></p-tag>
-                } @else {
-                  <i class="pi pi-building text-xs text-green-600"></i>
-                  <span class="font-medium">{{ company.legalName }}</span>
+                      } @else {
+                        <i class="pi pi-building text-xs text-green-600"></i>
                   @if (!isExpertMode()) {
-                    <p-tag [value]="company.ice" severity="secondary" [rounded]="true" class="ml-2 scale-75 origin-left"></p-tag>
+                    <span class="font-medium">{{ company.legalName }}</span>
                   }
-                }
+                        @if (!isExpertMode()) {
+                          <p-tag [value]="company.ice" severity="secondary" [rounded]="true" class="ml-2 scale-75 origin-left"></p-tag>
+                        }
+                      }
               </div>
             } @else {
               <div class="flex items-center gap-2 text-gray-500">

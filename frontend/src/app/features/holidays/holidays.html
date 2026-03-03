@@ -112,7 +112,14 @@
               optionValue="value"
               (onChange)="applyFilters()"
               styleClass="w-full"
-            />
+            >
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
           </div>
 
           <!-- Active Filter -->
@@ -236,7 +243,7 @@
                 </td>
                 <td class="py-3 px-4">
                   <div class="flex items-center justify-center gap-1">
-                    <ng-container *ngIf="holiday.scope !== HolidayScope.Global">
+                    @if (holiday?.scope == HolidayScope.Global) {
                       <p-button
                         icon="pi pi-pencil"
                         [rounded]="true"
@@ -255,7 +262,7 @@
                         (onClick)="deleteHoliday(holiday)"
                         [pTooltip]="'common.delete' | translate"
                       />
-                    </ng-container>
+                    }
                   </div>
                 </td>
               </tr>

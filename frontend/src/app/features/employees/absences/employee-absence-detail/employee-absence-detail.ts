@@ -13,7 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AbsenceService } from '@app/core/services/absence.service';
 import { EmployeeService } from '@app/core/services/employee.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { Absence, AbsenceType, AbsenceDurationType } from '@app/core/models/absence.model';
+import { Absence, AbsenceType, AbsenceDurationType, UpdateAbsenceRequest } from '@app/core/models/absence.model';
 
 @Component({
   selector: 'app-employee-absence-detail',
@@ -56,6 +56,15 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
   showRejectDialog = signal(false);
   selectedAbsenceId = signal<number | null>(null);
   rejectReason = signal('');
+
+  // Delete dialog
+  showDeleteDialog = signal(false);
+  selectedAbsenceIdForDelete = signal<number | null>(null);
+
+  // Edit dialog
+  showEditDialog = signal(false);
+  editedAbsence = signal<Absence | null>(null);
+  editForm = signal<UpdateAbsenceRequest & { absenceDate?: string }>({});
 
   ngOnInit() {
     // Determine route prefix
@@ -103,6 +112,17 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
     this.router.navigate([`${this.routePrefix()}/absences/hr`]);
   }
 
+  submitAbsence(absenceId: number) {
+    this.absenceService.submitAbsence(absenceId).subscribe({
+      next: () => {
+        this.loadAbsences(this.employeeId());
+      },
+      error: (err) => {
+        console.error('Failed to submit absence', err);
+      }
+    });
+  }
+
   approveAbsence(absenceId: number) {
     this.absenceService.approveAbsence(absenceId).subscribe({
       next: () => {
@@ -147,9 +167,130 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
     this.rejectReason.set('');
   }
 
+  canDelete(status: string | undefined): boolean {
+    return status === 'Draft' || status === 'Rejected' || status === 'Cancelled' || status === 'Expired';
+  }
+
+  openDeleteDialog(absenceId: number) {
+    this.selectedAbsenceIdForDelete.set(absenceId);
+    this.showDeleteDialog.set(true);
+  }
+
+  cancelDelete() {
+    this.showDeleteDialog.set(false);
+    this.selectedAbsenceIdForDelete.set(null);
+  }
+
+  confirmDelete() {
+    const id = this.selectedAbsenceIdForDelete();
+    if (id == null) return;
+    this.absenceService.deleteAbsence(id).subscribe({
+      next: () => {
+        this.cancelDelete();
+        this.loadAbsences(this.employeeId());
+      },
+      error: (err) => console.error('Failed to delete absence', err)
+    });
+  }
+
+  openEditDialog(absence: Absence) {
+    if (absence.status !== 'Draft') return;
+    this.editedAbsence.set(absence);
+    const dateStr = absence.absenceDate && absence.absenceDate.length >= 10
+      ? absence.absenceDate.slice(0, 10)
+      : '';
+    this.editForm.set({
+      absenceDate: dateStr,
+      absenceType: absence.absenceType,
+      durationType: absence.durationType,
+      isMorning: absence.isMorning,
+      startTime: absence.startTime ?? undefined,
+      endTime: absence.endTime ?? undefined,
+      reason: absence.reason ?? undefined
+    });
+    this.showEditDialog.set(true);
+  }
+
+  cancelEdit() {
+    this.showEditDialog.set(false);
+    this.editedAbsence.set(null);
+    this.editForm.set({});
+  }
+
+  updateEditForm(partial: Partial<UpdateAbsenceRequest & { absenceDate?: string }>) {
+    this.editForm.update(prev => ({ ...prev, ...partial }));
+  }
+
+  onEditDurationChange(durationType: AbsenceDurationType) {
+    this.updateEditForm({ durationType });
+    this.editForm.update(prev => {
+      const next = { ...prev, durationType };
+      if (durationType !== 'HalfDay') delete (next as Partial<UpdateAbsenceRequest>).isMorning;
+      if (durationType !== 'Hourly') {
+        delete (next as Partial<UpdateAbsenceRequest>).startTime;
+        delete (next as Partial<UpdateAbsenceRequest>).endTime;
+      }
+      return next;
+    });
+  }
+
+  canSaveEdit(): boolean {
+    const f = this.editForm();
+    return !!(f.absenceDate && f.absenceType && f.durationType);
+  }
+
+  saveEdit() {
+    const absence = this.editedAbsence();
+    const f = this.editForm();
+    if (!absence || !this.canSaveEdit()) return;
+    const payload: UpdateAbsenceRequest = {
+      absenceDate: f.absenceDate,
+      absenceType: f.absenceType as AbsenceType,
+      durationType: f.durationType,
+      reason: f.reason || undefined
+    };
+    if (f.durationType === 'HalfDay' && f.isMorning !== undefined) payload.isMorning = f.isMorning;
+    if (f.durationType === 'Hourly') {
+      payload.startTime = f.startTime;
+      payload.endTime = f.endTime;
+    }
+    this.absenceService.updateAbsence(absence.id, payload).subscribe({
+      next: () => {
+        this.cancelEdit();
+        this.loadAbsences(this.employeeId());
+      },
+      error: (err) => console.error('Failed to update absence', err)
+    });
+  }
+
+  absenceTypeOptions(): { label: string; value: AbsenceType }[] {
+    return [
+      { label: 'absences.types.ANNUAL_LEAVE', value: 'ANNUAL_LEAVE' },
+      { label: 'absences.types.sick', value: 'SICK' },
+      { label: 'absences.types.maternity', value: 'MATERNITY' },
+      { label: 'absences.types.paternity', value: 'PATERNITY' },
+      { label: 'absences.types.unpaid', value: 'UNPAID' },
+      { label: 'absences.types.mission', value: 'MISSION' },
+      { label: 'absences.types.training', value: 'TRAINING' },
+      { label: 'absences.types.justified', value: 'JUSTIFIED' },
+      { label: 'absences.types.unjustified', value: 'UNJUSTIFIED' },
+      { label: 'absences.types.accidentWork', value: 'ACCIDENT_WORK' },
+      { label: 'absences.types.exceptional', value: 'EXCEPTIONAL' },
+      { label: 'absences.types.religious', value: 'RELIGIOUS' }
+    ];
+  }
+
+  durationTypeOptions(): { label: string; value: AbsenceDurationType }[] {
+    return [
+      { label: 'absences.durations.fullDay', value: 'FullDay' },
+      { label: 'absences.durations.halfDayMorning', value: 'HalfDay' },
+      { label: 'absences.durations.hourly', value: 'Hourly' }
+    ];
+  }
+
   getAbsenceTypeLabel(type: AbsenceType): string {
     const typeMap: Partial<Record<AbsenceType, string>> = {
-      'ANNUAL_LEAVE': 'absences.types.annual_leave',
+      'ANNUAL_LEAVE': 'absences.types.ANNUAL_LEAVE',
       'SICK': 'absences.types.sick',
       'MATERNITY': 'absences.types.maternity',
       'PATERNITY': 'absences.types.paternity',
@@ -158,7 +299,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
       'TRAINING': 'absences.types.training',
       'JUSTIFIED': 'absences.types.justified',
       'UNJUSTIFIED': 'absences.types.unjustified',
-      'ACCIDENT_WORK': 'absences.types.accident_work',
+      'ACCIDENT_WORK': 'absences.types.accidentWork',
       'EXCEPTIONAL': 'absences.types.exceptional',
       'RELIGIOUS': 'absences.types.religious'
     };

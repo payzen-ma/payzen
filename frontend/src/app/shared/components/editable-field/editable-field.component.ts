@@ -57,6 +57,16 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
                 >
               </p-autoComplete>
 
+              <!-- Native date input -->
+              <input *ngSwitchCase="'date'"
+                pInputText
+                type="date"
+                [(ngModel)]="tempValue"
+                (keydown.enter)="onSave()"
+                (keydown.escape)="onCancel()"
+                class="w-full p-inputtext-sm"
+                [placeholder]="label" />
+
               <!-- Standard Input -->
               <input *ngSwitchDefault
                 pInputText 
@@ -66,7 +76,6 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
                 (keydown.escape)="onCancel()"
                 class="w-full p-inputtext-sm"
                 [placeholder]="label"
-                
               />
             </ng-container>
           </div>
@@ -118,11 +127,21 @@ export class EditableFieldComponent {
   @Output() search = new EventEmitter<any>();
 
   isEditing = signal(false);
-  tempValue: string | number | null | undefined = '';
+  tempValue: any = '';
   private host = inject(ElementRef<HTMLElement>);
 
   startEditing() {
-    this.tempValue = this.value;
+    // For date fields, format incoming value to yyyy-MM-dd string for native date input
+    if (this.type === 'date') {
+      const v = this.value as any;
+      if (!v) this.tempValue = '';
+      else {
+        const d = v instanceof Date ? v : new Date(v);
+        this.tempValue = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+      }
+    } else {
+      this.tempValue = this.value;
+    }
     this.isEditing.set(true);
     // Focus the first input inside the component after it enters edit mode.
     setTimeout(() => {
@@ -143,10 +162,21 @@ export class EditableFieldComponent {
   }
 
   onSave() {
-    if (this.tempValue !== this.value) {
-      this.save.emit(this.tempValue ?? '');
+    if (this.type === 'date') {
+      const prev = this.value as any;
+      const prevStr = prev ? (prev instanceof Date ? prev.toISOString().split('T')[0] : new Date(prev).toISOString().split('T')[0]) : '';
+      const currStr = this.tempValue ? String(this.tempValue) : '';
+      if (currStr !== prevStr) {
+        this.save.emit(this.tempValue ?? '');
+      } else {
+        this.cancel.emit();
+      }
     } else {
-      this.cancel.emit();
+      if (this.tempValue !== this.value) {
+        this.save.emit(this.tempValue ?? '');
+      } else {
+        this.cancel.emit();
+      }
     }
     this.isEditing.set(false);
   }

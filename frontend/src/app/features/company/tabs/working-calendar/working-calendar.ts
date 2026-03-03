@@ -1,6 +1,6 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -16,6 +16,7 @@ import { WorkingCalendar, CreateWorkingCalendarRequest, UpdateWorkingCalendarReq
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TranslateModule,
     ToastModule,
     CheckboxModule,
@@ -30,10 +31,37 @@ export class WorkingCalendarComponent implements OnInit {
   private readonly companyContextService = inject(CompanyContextService);
   private readonly messageService = inject(MessageService);
   private readonly translateService = inject(TranslateService);
+  private readonly fb = inject(FormBuilder);
 
   readonly workingCalendars = signal<WorkingCalendar[]>([]);
   readonly loading = signal<boolean>(false);
   readonly saving = signal<boolean>(false);
+
+  // Editable copy of week days for the UI (mutable)
+  readonly editableDays = signal<WorkingDay[]>([]);
+  // Snapshot of original days to detect changes
+  readonly originalEditableDays = signal<WorkingDay[]>([]);
+
+  // Compute whether UI has unsaved changes
+  readonly hasChanges = computed(() => {
+    const orig = this.originalEditableDays();
+    const cur = this.editableDays();
+    if (orig.length !== cur.length) return true;
+    for (let i = 0; i < cur.length; i++) {
+      const a = orig[i];
+      const b = cur[i];
+      if (!a && b) return true;
+      if (!b && a) return true;
+      // compare key properties
+      if ((a?.isWorkingDay ?? false) !== (b?.isWorkingDay ?? false)) return true;
+      if ((a?.startTime ?? null) !== (b?.startTime ?? null)) return true;
+      if ((a?.endTime ?? null) !== (b?.endTime ?? null)) return true;
+    }
+    return false;
+  });
+
+  // Reactive form to control the Save button disabled state reliably
+  saveForm!: FormGroup;
 
   // Days of the week (0 = Sunday to 6 = Saturday)
   readonly daysOfWeek = computed<WorkingDay[]>(() => {
@@ -69,6 +97,22 @@ export class WorkingCalendarComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadWorkingCalendars();
+    // create reactive form and initialize save control; disabled will be managed by effect
+    this.saveForm = this.fb.group({
+      save: [{ value: null, disabled: !this.hasChanges() }]
+    });
+
+    // Keep the form control enabled/disabled in sync with hasChanges signal
+    effect(() => {
+      const changed = this.hasChanges();
+      const ctrl = this.saveForm.get('save');
+      if (!ctrl) return;
+      if (changed) {
+        ctrl.enable({ emitEvent: false });
+      } else {
+        ctrl.disable({ emitEvent: false });
+      }
+    });
   }
 
   loadWorkingCalendars(): void {
@@ -86,7 +130,25 @@ export class WorkingCalendarComponent implements OnInit {
     this.workingCalendarService.getByCompanyId(Number(companyId)).subscribe({
       next: (calendars) => {
         this.workingCalendars.set(calendars);
-        this.loading.set(false);
+            // Initialize editableDays from calendars (merge with defaults)
+            const defaults = this.daysOfWeek();
+            const merged = defaults.map(d => {
+              const existing = calendars.find(c => c.dayOfWeek === d.dayOfWeek);
+              if (existing) {
+                return {
+                  ...d,
+                  id: existing.id,
+                  isWorkingDay: existing.isWorkingDay,
+                  startTime: existing.startTime,
+                  endTime: existing.endTime
+                } as WorkingDay;
+              }
+              return d;
+            });
+            this.editableDays.set(merged);
+            // store original snapshot for change detection
+            this.originalEditableDays.set(JSON.parse(JSON.stringify(merged)));
+            this.loading.set(false);
       },
       error: (error) => {
         console.error('Error loading working calendars:', error);
@@ -139,7 +201,7 @@ export class WorkingCalendarComponent implements OnInit {
       return;
     }
 
-    const days = this.daysOfWeek();
+    const days = this.editableDays();
     
     // Validate all working days
     for (const day of days) {

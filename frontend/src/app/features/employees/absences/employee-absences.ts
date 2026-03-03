@@ -15,7 +15,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AbsenceService } from '@app/core/services/absence.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { EmployeeService } from '@app/core/services/employee.service';
+import { LeaveTypeLegalRuleService } from '@app/core/services/leave-type-legal-rule.service';
 import { Absence, AbsenceType, AbsenceDurationType, CreateAbsenceRequest } from '@app/core/models/absence.model';
+import { LeaveTypeLegalRule } from '@app/core/models';
 
 @Component({
   selector: 'app-employee-absences',
@@ -39,18 +41,27 @@ import { Absence, AbsenceType, AbsenceDurationType, CreateAbsenceRequest } from 
   styleUrl: './employee-absences.css'
 })
 
-
 export class EmployeeAbsencesComponent implements OnInit {
   private absenceService = inject(AbsenceService);
   private authService = inject(AuthService);
   private translate = inject(TranslateService);
   private employeeService = inject(EmployeeService);
+  private leaveTypeLegalRuleService = inject(LeaveTypeLegalRuleService);
 
   absences = signal<Absence[]>([]);
   isLoading = signal(false);
   showCreateDialog = signal(false);
   showDetailDialog = signal(false);
   selectedAbsence = signal<Absence | null>(null);
+  // Cancel confirmation dialog
+  showCancelDialog = signal(false);
+  cancelTargetId = signal<number | null>(null);
+  // Cancel error dialog
+  showCancelErrorDialog = signal(false);
+  cancelErrorMessage = signal<string | null>(null);
+  // General error dialog
+  showErrorDialog = signal(false);
+  errorMessage = signal<string | null>(null);
   
   stats = signal({
     totalAbsences: 0,
@@ -77,31 +88,42 @@ export class EmployeeAbsencesComponent implements OnInit {
     return null;
   });
 
-  absenceTypes: Array<{ label: string; value: AbsenceType }> = [];
+  legalLeaveRules = signal<LeaveTypeLegalRule[]>([]);
 
   durationTypes: Array<{ label: string; value: AbsenceDurationType }> = [];
 
   halfDayOptions: Array<{ label: string; value: boolean }> = [];
 
+  // Computed: Available absence types based on duration type
+  availableAbsenceTypes = computed(() => {
+    const durationType = this.newAbsence().durationType;
+    
+    // For HalfDay or Hourly: only justified/unjustified
+    if (durationType === 'HalfDay' || durationType === 'Hourly') {
+      return [
+        { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' as AbsenceType },
+        { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' as AbsenceType }
+      ];
+    }
+    
+    // For FullDay: legal leave rules + justified/unjustified
+    const legalRules = this.legalLeaveRules().map(rule => ({
+      label: rule.description,
+      value: rule.eventCaseCode as AbsenceType
+    }));
+    
+    return [
+      ...legalRules,
+      { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' as AbsenceType },
+      { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' as AbsenceType }
+    ];
+  });
+
   ngOnInit() {
     this.loadAbsences();
+    this.loadLegalLeaveRules();
 
     // Initialize translated labels for select options so the UI shows localized text
-    this.absenceTypes = [
-      { label: this.translate.instant('absences.types.annual_leave'), value: 'ANNUAL_LEAVE' },
-      { label: this.translate.instant('absences.types.sick'), value: 'SICK' },
-      { label: this.translate.instant('absences.types.maternity'), value: 'MATERNITY' },
-      { label: this.translate.instant('absences.types.paternity'), value: 'PATERNITY' },
-      { label: this.translate.instant('absences.types.unpaid'), value: 'UNPAID' },
-      { label: this.translate.instant('absences.types.mission'), value: 'MISSION' },
-      { label: this.translate.instant('absences.types.training'), value: 'TRAINING' },
-      { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' },
-      { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' },
-      { label: this.translate.instant('absences.types.accident_work'), value: 'ACCIDENT_WORK' },
-      { label: this.translate.instant('absences.types.exceptional'), value: 'EXCEPTIONAL' },
-      { label: this.translate.instant('absences.types.religious'), value: 'RELIGIOUS' }
-    ];
-
     this.durationTypes = [
       { label: this.translate.instant('absences.durations.fullDay'), value: 'FullDay' },
       { label: this.translate.instant('absences.durations.halfDay'), value: 'HalfDay' },
@@ -114,6 +136,19 @@ export class EmployeeAbsencesComponent implements OnInit {
     ];
   }
 
+  loadLegalLeaveRules() {
+    this.leaveTypeLegalRuleService.getAll().subscribe({
+      next: (rules) => {
+        this.legalLeaveRules.set(rules);
+      },
+      error: (err) => {
+        console.error('[EmployeeAbsences] Failed to load legal leave rules:', err);
+        // Si le chargement échoue, on continue sans les règles légales
+        this.legalLeaveRules.set([]);
+      }
+    });
+  }
+
   loadAbsences() {
     this.isLoading.set(true);
     
@@ -121,7 +156,6 @@ export class EmployeeAbsencesComponent implements OnInit {
     this.employeeService.getCurrentEmployee().subscribe({
       next: (employee) => {
         const employeeId = employee.id;
-        console.log('[EmployeeAbsences] Loading absences for employeeId:', employeeId);
         
         this.absenceService.getEmployeeAbsences(String(employeeId)).subscribe({
           next: (response) => {
@@ -148,29 +182,25 @@ export class EmployeeAbsencesComponent implements OnInit {
     
     if (!userId) {
       console.error('[EmployeeAbsences] No userId found');
-      alert('Erreur: Impossible de déterminer votre identité.');
+      this.showError('Erreur: Impossible de déterminer votre identité.');
       return;
     }
     
-    console.log('[EmployeeAbsences] Getting current employee for userId:', userId);
     
     // Use the new getCurrentEmployee endpoint - much more efficient!
     this.employeeService.getCurrentEmployee().subscribe({
       next: (employee) => {
         const employeeId = Number(employee.id);
-        console.log('[EmployeeAbsences] Current employee:', {
-          employeeId: employeeId,
-          name: `${employee.firstName} ${employee.lastName}`
-        });
+
         this.initializeNewAbsence(employeeId);
         this.showCreateDialog.set(true);
       },
       error: (err) => {
         console.error('[EmployeeAbsences] Failed to get current employee:', err);
         if (err.status === 404) {
-          alert(`Erreur: Aucun employé trouvé pour votre compte.\n\nVeuillez contacter l'administrateur pour créer votre fiche employé (lier UserId=${userId} à un employé).`);
+          this.showError(`Erreur: Aucun employé trouvé pour votre compte.\n\nVeuillez contacter l'administrateur pour créer votre fiche employé (lier UserId=${userId} à un employé).`);
         } else {
-          alert('Erreur lors de la récupération de vos informations employé.');
+          this.showError('Erreur lors de la récupération de vos informations employé.');
         }
       }
     });
@@ -184,7 +214,8 @@ export class EmployeeAbsencesComponent implements OnInit {
       absenceType: 'JUSTIFIED',
       reason: '',
       startTime: '08:00',
-      endTime: '17:00'
+      endTime: '17:00',
+      useLeaveBalance: false
     });
   }
 
@@ -205,31 +236,77 @@ export class EmployeeAbsencesComponent implements OnInit {
   }
 
   cancelAbsence(absenceId: number) {
-    if (!confirm(this.translate.instant('absences.confirmCancel'))) {
-      return;
-    }
+    // Open confirmation dialog instead of blocking confirm()
+    this.cancelTargetId.set(absenceId);
+    this.showCancelDialog.set(true);
+  }
 
-    this.absenceService.cancelAbsence(absenceId).subscribe({
+  confirmCancel() {
+    const id = this.cancelTargetId();
+    if (!id) return;
+
+    this.absenceService.cancelAbsence(id).subscribe({
       next: () => {
-        console.log('[EmployeeAbsences] Absence cancelled successfully');
+        this.showCancelDialog.set(false);
+        this.cancelTargetId.set(null);
         this.loadAbsences();
       },
       error: (err) => {
         console.error('[EmployeeAbsences] Failed to cancel absence:', err);
         const errorMessage = err?.error?.Message || err?.error?.message || 'Erreur lors de l\'annulation de l\'absence';
-        alert(`Erreur: ${errorMessage}`);
+        this.cancelErrorMessage.set(errorMessage);
+        this.showCancelDialog.set(false);
+        this.showCancelErrorDialog.set(true);
+      }
+    });
+  }
+
+  closeCancelDialog() {
+    this.showCancelDialog.set(false);
+    this.cancelTargetId.set(null);
+  }
+
+  closeCancelErrorDialog() {
+    this.showCancelErrorDialog.set(false);
+    this.cancelErrorMessage.set(null);
+  }
+
+  showError(message: string) {
+    this.errorMessage.set(message);
+    this.showErrorDialog.set(true);
+  }
+
+  closeErrorDialog() {
+    this.showErrorDialog.set(false);
+    this.errorMessage.set(null);
+  }
+
+  /**
+   * Submit a draft absence (change status from Draft to Submitted)
+   */
+  submitAbsence(absenceId: number) {
+    this.absenceService.submitAbsence(absenceId).subscribe({
+      next: () => {
+        this.loadAbsences();
+      },
+      error: (err) => {
+        console.error('[EmployeeAbsences] Failed to submit absence:', err);
+        const errorMessage = err?.error?.Message || err?.error?.message || 'Erreur lors de la soumission de l\'absence';
+        this.cancelErrorMessage.set(errorMessage);
+        this.showCancelErrorDialog.set(true);
       }
     });
   }
 
   canCancelAbsence(absence: Absence): boolean {
-    // Peut annuler si statut est Submitted ou Approved
-    return absence.status === 'Submitted' || absence.status === 'Approved';
+    // Peut annuler si statut est Draft, Submitted ou Approved
+    return absence.status === 'Draft' || absence.status === 'Submitted' || absence.status === 'Approved';
   }
 
   getStatusLabel(status?: string): string {
     if (!status) return 'absences.status.unknown';
     const statusMap: Record<string, string> = {
+      'Draft': 'absences.status.draft',
       'Submitted': 'absences.status.submitted',
       'Approved': 'absences.status.approved',
       'Rejected': 'absences.status.rejected',
@@ -242,6 +319,7 @@ export class EmployeeAbsencesComponent implements OnInit {
   getStatusSeverity(status?: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     if (!status) return 'secondary';
     const severityMap: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+      'Draft': 'secondary',
       'Submitted': 'info',
       'Approved': 'success',
       'Rejected': 'danger',
@@ -257,30 +335,34 @@ export class EmployeeAbsencesComponent implements OnInit {
     // Validate employee ID
     if (!request.employeeId || request.employeeId === 0) {
       console.error('[EmployeeAbsences] Invalid employeeId:', request.employeeId);
-      alert('Erreur: Identifiant d\'employé invalide.');
+      this.showError('Erreur: Identifiant d\'employé invalide.');
       return;
     }
     
     if (!request.absenceDate) {
-      alert('Veuillez sélectionner une date d\'absence.');
+      this.showError('Veuillez sélectionner une date d\'absence.');
       return;
     }
 
     // Validate based on duration type
     if (request.durationType === 'HalfDay' && request.isMorning === undefined) {
-      alert('Veuillez sélectionner matin ou après-midi.');
+      this.showError('Veuillez sélectionner matin ou après-midi.');
       return;
     }
     if (request.durationType === 'Hourly' && (!request.startTime || !request.endTime)) {
-      alert('Veuillez sélectionner l\'heure de début et de fin.');
+      this.showError('Veuillez sélectionner l\'heure de début et de fin.');
       return;
     }
 
-    console.log('[EmployeeAbsences] Submitting absence request:', request);
-    console.log('[EmployeeAbsences] EmployeeId being sent to backend:', request.employeeId);
+    // Ensure we explicitly request creation as Draft (status = 0)
+    const createRequest = { ...request, status: 0 } as any;
+    console.log('[EmployeeAbsences] Creating absence with status=0 (Draft):', createRequest);
 
-    this.absenceService.createAbsence(request).subscribe({
-      next: () => {
+    this.absenceService.createAbsence(createRequest).subscribe({
+      next: (response) => {
+        console.log('[EmployeeAbsences] Backend response:', response);
+        console.log('[EmployeeAbsences] Absence Status:', response.status, '- StatusDescription:', response.statusDescription);
+        // Created as draft by backend; close dialog and refresh list
         this.showCreateDialog.set(false);
         this.loadAbsences();
       },
@@ -305,7 +387,7 @@ export class EmployeeAbsencesComponent implements OnInit {
           errorMessage = `Employé non trouvé (ID: ${request.employeeId}). Votre compte utilisateur n'est pas lié à un employé valide dans le système. Veuillez contacter l'administrateur pour créer votre fiche employé.`;
         }
         
-        alert(`Erreur: ${errorMessage}`);
+        this.showError(errorMessage);
       }
     });
   }
@@ -317,7 +399,20 @@ export class EmployeeAbsencesComponent implements OnInit {
       'SICK': 'absences.types.sick',
       'MISSION': 'absences.types.mission'
     };
-    return typeMap[type] || type;
+    
+    // If type is in predefined map, return translation key
+    if (typeMap[type]) {
+      return typeMap[type]!;
+    }
+    
+    // Otherwise, check if it's a legal leave rule
+    const legalRule = this.legalLeaveRules().find(rule => rule.eventCaseCode === type);
+    if (legalRule) {
+      return legalRule.description;
+    }
+    
+    // Fallback to the type itself
+    return type;
   }
 
   getDurationLabel(absence: Absence): string {
@@ -372,7 +467,32 @@ export class EmployeeAbsencesComponent implements OnInit {
       }
     }
 
-    this.newAbsence.update(current => ({ ...current, [field]: normalized }));
+    this.newAbsence.update(current => {
+      let updated = { ...current, [field]: normalized };
+      // When duration type changes, reset absence type if current type is not available
+      if (field === 'durationType') {
+        const newDurationType = normalized as AbsenceDurationType;
+        const currentAbsenceType = current.absenceType;
+        const isHalfDayOrHourly = newDurationType === 'HalfDay' || newDurationType === 'Hourly';
+        // Only JUSTIFIED/UNJUSTIFIED allowed
+        if (isHalfDayOrHourly) {
+          if (currentAbsenceType !== 'JUSTIFIED' && currentAbsenceType !== 'UNJUSTIFIED') {
+            updated.absenceType = 'JUSTIFIED';
+          }
+        }
+        // Reset useLeaveBalance if not justified/unjustified
+        if (updated.absenceType !== 'JUSTIFIED' && updated.absenceType !== 'UNJUSTIFIED') {
+          updated.useLeaveBalance = false;
+        }
+      }
+      // When absenceType changes, reset useLeaveBalance if not justified/unjustified
+      if (field === 'absenceType') {
+        if (normalized !== 'JUSTIFIED' && normalized !== 'UNJUSTIFIED') {
+          updated.useLeaveBalance = false;
+        }
+      }
+      return updated;
+    });
   }
 
   get hoursList(): string[] {

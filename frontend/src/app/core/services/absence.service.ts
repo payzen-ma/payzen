@@ -69,7 +69,6 @@ export class AbsenceService {
    * Map backend DTO to frontend Absence model
    */
   private mapDtoToAbsence(dto: AbsenceReadDto): Absence {
-    console.log('[AbsenceService] Mapping DTO:', dto);
     
     const durationTypeMap: Record<number, AbsenceDurationType> = {
       1: 'FullDay',
@@ -82,6 +81,9 @@ export class AbsenceService {
     if (dto.status) {
       // Map by status number directly
       switch (dto.status) {
+        case 0 :
+          status = "Draft";
+           break;
         case 1:
           status = 'Submitted';
           break;
@@ -102,7 +104,9 @@ export class AbsenceService {
     // Fallback to StatusDescription if numeric mapping fails
     if (!status && dto.statusDescription) {
       const statusDesc = dto.statusDescription.toLowerCase();
-      if (statusDesc === 'submitted') {
+      if (statusDesc === 'draft') {
+        status = 'Draft';
+      } else if (statusDesc === 'submitted') {
         status = 'Submitted';
       } else if (statusDesc === 'approved') {
         status = 'Approved';
@@ -284,15 +288,20 @@ export class AbsenceService {
       payload.CompanyId = typeof companyId === 'string' ? parseInt(companyId, 10) : companyId;
     }
 
-    // Backend expects data wrapped in 'dto' field
-    console.log('[AbsenceService] Creating absence with payload:', JSON.stringify(payload, null, 2));
+    // If client provided a numeric status, forward it (e.g., 0 = Draft)
+    if (normalizeRequest.status !== undefined && normalizeRequest.status !== null) {
+      payload.Status = normalizeRequest.status;
+      console.log('[AbsenceService] Sending Status in payload:', payload.Status);
+    }
 
+    console.log('[AbsenceService] Final payload being sent to backend:', JSON.stringify(payload, null, 2));
     return this.http.post<Absence>(this.ABSENCE_URL, payload).pipe(
+      map(response => {
+        console.log('[AbsenceService] Response from backend after creation:', response);
+        return response;
+      }),
       catchError(err => {
-        console.error('Create absence error:', err);
-        console.error('Error details:', err?.error);
         if (err?.error?.errors) {
-          console.error('Validation errors:', JSON.stringify(err.error.errors, null, 2));
           // Log each field error
           Object.keys(err.error.errors).forEach(key => {
             console.error(`  - Field '${key}':`, err.error.errors[key]);
@@ -338,6 +347,13 @@ export class AbsenceService {
    */
   cancelAbsence(id: number): Observable<void> {
     return this.http.post<void>(`${this.ABSENCE_URL}/${id}/cancel`, {});
+  }
+
+  /**
+   * Submit an absence request (Draft -> Submitted)
+   */
+  submitAbsence(id: number): Observable<void> {
+    return this.http.post<void>(`${this.ABSENCE_URL}/${id}/submit`, {});
   }
 
   /**

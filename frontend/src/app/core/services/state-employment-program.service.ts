@@ -21,10 +21,8 @@ export class StateEmploymentProgramService {
   private apiUrl = `${environment.apiUrl}/state-employment-programs`;
 
   getAll(): Observable<StateEmploymentProgram[]> {
-    console.log('[StateEmploymentProgramService] Fetching from:', this.apiUrl);
     return this.http.get<any[]>(this.apiUrl).pipe(
       map(items => {
-        console.log('[StateEmploymentProgramService] Received:', items);
         return (items || []).map(i => this.normalize(i));
       })
     );

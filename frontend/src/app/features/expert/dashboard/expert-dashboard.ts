@@ -98,7 +98,6 @@ export class ExpertDashboard implements OnInit, OnDestroy {
     this.companyService.getManagedCompanies().subscribe({
       next: (companies) => {
         this.companies.set(companies);
-        console.log('[ExpertDashboard] mapped companies:', companies);
         console.debug('[ExpertDashboard] mapped companies:', companies);
 
         // Try to fetch per-company employee counts if backend didn't provide them
@@ -139,10 +138,8 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   loadDashboardSummary(): void {
     this.dashboardService.getDashboardSummary().subscribe({
       next: (summary) => {
-        console.log('[ExpertDashboard] expert summary mapped:', summary);
         this.totalClients.set(summary.totalCompanies);
         this.globalEmployeeCount.set(summary.totalEmployees);
-          console.log('[ExpertDashboard] globalEmployeeCount after set:', this.globalEmployeeCount(), 'computed totalEmployees():', this.totalEmployees());
       },
       error: (err) => {
         console.error('Failed to load dashboard summary', err);

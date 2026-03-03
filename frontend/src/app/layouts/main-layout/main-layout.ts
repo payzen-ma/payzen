@@ -19,7 +19,6 @@ import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcru
     Sidebar,
     Header,
     LanguageSwitcher,
-    BreadcrumbComponent,
     CommonModule,
     RouterModule,
     InputTextModule,

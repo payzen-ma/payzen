@@ -1,0 +1,623 @@
+<div class="salary-page">
+  <p-toast />
+  <p-confirmDialog />
+
+  <header class="page-header">
+    <div class="module-header__content">
+      <div class="module-header__icon">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="module-header__text">
+        <h1 class="page-title">{{ 'leave.hr.title' | translate }}</h1>
+        <p class="page-subtitle">{{ 'leave.hr.subtitle' | translate }}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="module-stats">
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'leave.status.pending' | translate }}</p>
+          <h3>{{ stats().pending }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-clock"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'leave.status.approved' | translate }}</p>
+          <h3>{{ stats().approved }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-check"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'leave.status.rejected' | translate }}</p>
+          <h3>{{ stats().rejected }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-times"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'leave.status.cancelled' | translate }}</p>
+          <h3>{{ stats().cancelled }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-ban"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'common.total' | translate }}</p>
+          <h3>{{ stats().total }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-list"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="surface">
+    <div class="module-table-card__header">
+      <h2>{{ 'overtime.hr.employees' | translate }}</h2>
+      <span class="p-input-icon-left w-64">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          [ngModel]="employeeTableSearch()"
+          (ngModelChange)="employeeTableSearch.set($event)"
+          [placeholder]="'overtime.filters.searchEmployee' | translate"
+          class="w-full"
+        />
+      </span>
+    </div>
+    <p-table [value]="filteredEmployeesForTable()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="saas-table-header">{{ 'employees.name' | translate }}</th>
+          <th class="saas-table-header">{{ 'employees.position' | translate }}</th>
+          <th class="saas-table-header">{{ 'employees.department' | translate }}</th>
+          <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-emp>
+        <tr class="saas-table-row">
+          <td class="px-6 py-4">{{ emp.firstName }} {{ emp.lastName }}</td>
+          <td class="px-6 py-4">{{ emp.position || '-' }}</td>
+          <td class="px-6 py-4">{{ emp.department || '-' }}</td>
+          <td class="px-6 py-4">
+            <p-button icon="pi pi-plus" [label]="'leave.hr.grantLeave' | translate" severity="success" size="small" (onClick)="openGrantLeaveForEmployee(emp)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center py-8">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-users text-4xl text-gray-400"></i>
+              <p class="text-gray-500">{{ 'employees.noEmployees' | translate }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="surface">
+      <!-- Tabs -->
+      <p-tabs 
+        [value]="activeTabValue" 
+        (onTabChange)="onTabChange($event)"
+        (activeItemChange)="onActiveItemChange($event)"
+        (onActiveTabChange)="onActiveTabChange($event)"
+        class="mb-6">
+        <p-tablist>
+          <p-tab value="pending" class="flex items-center gap-2" (click)="setActiveTab('pending')">
+            <i class="pi pi-clock"></i>
+            <span>{{ 'leave.status.pending' | translate }}</span>
+            <p-badge 
+              [value]="stats().pending" 
+              severity="warn" 
+              *ngIf="stats().pending > 0">
+            </p-badge>
+          </p-tab>
+          <p-tab value="approved" class="flex items-center gap-2" (click)="setActiveTab('approved')">
+            <i class="pi pi-check"></i>
+            <span>{{ 'leave.status.approved' | translate }}</span>
+          </p-tab>
+          <p-tab value="rejected" class="flex items-center gap-2" (click)="setActiveTab('rejected')">
+            <i class="pi pi-times"></i>
+            <span>{{ 'leave.status.rejected' | translate }}</span>
+          </p-tab>
+          <p-tab value="cancelled" class="flex items-center gap-2" (click)="setActiveTab('cancelled')">
+            <i class="pi pi-ban"></i>
+            <span>{{ 'leave.status.cancelled' | translate }}</span>
+          </p-tab>
+          <p-tab value="all" class="flex items-center gap-2" (click)="setActiveTab('all')">
+            <i class="pi pi-list"></i>
+            <span>{{ 'leave.status.all' | translate }}</span>
+          </p-tab>
+        </p-tablist>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ 'employees.employee' | translate }}:</label>
+            <p-select
+              [options]="employees()"
+              optionLabel="firstName"
+              optionValue="id"
+              [placeholder]="'employees.allEmployees' | translate"
+              [showClear]="true"
+              (onChange)="onEmployeeFilterChange($event.value)"
+              class="w-48">
+              <ng-template pTemplate="selectedItem" let-selectedEmployee>
+                {{ getEmployeeName(selectedEmployee) }}
+              </ng-template>
+              <ng-template pTemplate="item" let-employee>
+                {{ employee.firstName }} {{ employee.lastName }}
+              </ng-template>
+            </p-select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ 'leave.type' | translate }}:</label>
+            <p-select
+              [options]="availableLeaveTypes()"
+              optionLabel="LeaveName"
+              optionValue="Id"
+              [placeholder]="'leave.allTypes' | translate"
+              [showClear]="true"
+              (onChange)="onLeaveTypeFilterChange($event.value)"
+              class="w-48">
+            </p-select>
+          </div>
+
+          <div class="flex items-center gap-2" *ngIf="activeTab() === 'all'">
+            <label class="text-sm font-medium text-gray-700">{{ 'common.status' | translate }}:</label>
+            <p-select
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'common.allStatuses' | translate"
+              [showClear]="true"
+              (onChange)="onStatusFilterChange($event.value)"
+              class="w-48">
+            </p-select>
+          </div>
+
+          <p-button
+            [label]="'common.reset' | translate"
+            icon="pi pi-refresh"
+            [outlined]="true"
+            size="small"
+            (onClick)="clearFilters()"
+          />
+        </div>
+
+        <!-- Leave Requests Table -->
+        <p-tabpanels>
+          <p-tabpanel value="pending">
+            <ng-container [ngTemplateOutlet]="leaveRequestsTable"></ng-container>
+          </p-tabpanel>
+          <p-tabpanel value="approved">
+            <ng-container [ngTemplateOutlet]="leaveRequestsTable"></ng-container>
+          </p-tabpanel>
+          <p-tabpanel value="rejected">
+            <ng-container [ngTemplateOutlet]="leaveRequestsTable"></ng-container>
+          </p-tabpanel>
+          <p-tabpanel value="cancelled">
+            <ng-container [ngTemplateOutlet]="leaveRequestsTable"></ng-container>
+          </p-tabpanel>
+          <p-tabpanel value="all">
+            <ng-container [ngTemplateOutlet]="leaveRequestsTable"></ng-container>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+  </section>
+
+  <!-- Leave Requests Table Template -->
+  <ng-template #leaveRequestsTable>
+    <p-table
+      [value]="filteredRequests()"
+      [loading]="loading()"
+      styleClass="p-datatable-sm"
+      [tableStyle]="{'min-width': '50rem'}"
+      [scrollable]="true"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="saas-table-header">{{ 'leave.hr.table.employee' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.table.leaveType' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.hr.table.dates' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.table.duration' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.table.reason' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.table.status' | translate }}</th>
+          <th class="saas-table-header">{{ 'leave.table.createdAt' | translate }}</th>
+          <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-request>
+        <tr class="saas-table-row">
+          <!-- Employé -->
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="bg-status-info p-2 rounded-full">
+                <i class="pi pi-user text-sm"></i>
+              </div>
+              <div>
+                <p class="font-medium text-gray-900">{{ getEmployeeName(request.employeeId) }}</p>
+              </div>
+            </div>
+          </td>
+          <!-- Type de Congé -->
+          <td class="px-6 py-4">
+            <p-tag [value]="getLeaveTypeName(request.leaveTypeId)" severity="info"></p-tag>
+          </td>
+          <!-- Dates -->
+          <td class="px-6 py-4">
+            <div class="text-sm">
+              <p class="font-medium">{{ formatDisplayDate(request.startDate) }}</p>
+              <p class="text-gray-500">{{ 'leave.dateTo' | translate }} {{ formatDisplayDate(request.endDate) }}</p>
+            </div>
+          </td>
+          <!-- Durée -->
+          <td class="px-6 py-4">
+            <span class="font-semibold">{{ calculateDuration(request.startDate, request.endDate) }}</span>
+            <span class="text-gray-500 text-sm ml-1">jour(s)</span>
+          </td>
+          <!-- Motif -->
+          <td class="px-6 py-4">
+            <span [title]="request.reason || ('leave.noReasonSpecified' | translate)" class="text-sm">
+              {{ (request.reason && request.reason.trim()) ? 
+                 (request.reason.length > 30 ? (request.reason | slice:0:30) + '...' : request.reason) : 
+                 'Aucun motif' }}
+            </span>
+          </td>
+          <!-- Statut -->
+          <td class="px-6 py-4">
+            <p-tag 
+              [value]="getStatusLabel(request.status)" 
+              [severity]="getStatusSeverity(request.status)">
+            </p-tag>
+          </td>
+          <!-- Créée le -->
+          <td class="px-6 py-4 text-sm text-gray-500">
+            {{ formatDisplayDate(request.createdAt) }}
+          </td>
+          <!-- Actions -->
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <button
+                pButton
+                icon="pi pi-upload"
+                [pTooltip]="'leave.actions.submit' | translate"
+                tooltipPosition="top"
+                (click)="submitRequest(request)"
+                severity="primary"
+                [text]="true"
+                [rounded]="true"
+                *ngIf="canSubmit(request)">
+              </button>
+
+              <button 
+                pButton 
+                icon="pi pi-check" 
+                [pTooltip]="'leave.hr.approvalDialog.approve' | translate" 
+                tooltipPosition="top" 
+                (click)="approveRequest(request)" 
+                severity="success" 
+                [text]="true" 
+                [rounded]="true" 
+                *ngIf="canApprove(request)">
+              </button>
+              <button 
+                pButton 
+                icon="pi pi-times" 
+                [pTooltip]="'leave.hr.approvalDialog.reject' | translate" 
+                tooltipPosition="top" 
+                (click)="rejectRequest(request)" 
+                severity="danger" 
+                [text]="true" 
+                [rounded]="true" 
+                *ngIf="canReject(request)">
+              </button>
+              <button 
+                pButton 
+                icon="pi pi-ban" 
+                [pTooltip]="'common.cancel' | translate" 
+                tooltipPosition="top" 
+                (click)="cancelRequest(request)" 
+                severity="warn" 
+                [text]="true" 
+                [rounded]="true" 
+                *ngIf="canCancel(request)">
+              </button>
+              <button 
+                pButton 
+                icon="pi pi-eye" 
+                [pTooltip]="'leave.hr.viewDetails' | translate" 
+                tooltipPosition="top" 
+                severity="info" 
+                [text]="true" 
+                [rounded]="true">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center py-8">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-inbox text-4xl text-gray-500"></i>
+              <div class="text-gray-600">
+                <p class="font-medium mb-1">
+                  {{ getEmptyMessage() }}
+                </p>
+                <p class="text-sm text-gray-500">
+                  {{ getEmptySubMessage() }}
+                </p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-template>
+
+  <!-- Approval/Rejection Dialog -->
+  <p-dialog 
+    [(visible)]="showApprovalDialog" 
+    [modal]="true" 
+    [header]="'leave.hr.approvalDialog.title' | translate" 
+    [style]="{width: '800px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="app-dialog"
+    (onHide)="hideApprovalDialog()">
+    
+    <ng-container *ngIf="selectedRequest()">
+      <div class="approval-dialog">
+        <!-- Employee Info -->
+        <div class="info-section">
+          <h3>{{ 'leave.hr.approvalDialog.summary' | translate }}</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">{{ 'leave.hr.table.employee' | translate }}:</span>
+              <span class="value">{{ getEmployeeName(selectedRequest()!.employeeId) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">{{ 'leave.type' | translate }}:</span>
+              <span class="value">{{ getLeaveTypeName(selectedRequest()!.leaveTypeId) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leave Details -->
+        <div class="info-section">
+          <h3>{{ 'leave.hr.approvalDialog.details' | translate }}</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">{{ 'leave.hr.table.dates' | translate }}:</span>
+              <span class="value">{{ formatDisplayDate(selectedRequest()!.startDate) }} - {{ formatDisplayDate(selectedRequest()!.endDate) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">{{ 'leave.table.duration' | translate }}:</span>
+              <span class="value"><strong>{{ calculateDuration(selectedRequest()!.startDate, selectedRequest()!.endDate) }} {{ 'common.days' | translate }}</strong></span>
+            </div>
+            <div *ngIf="selectedRequest()!.reason" class="info-item full-width">
+              <span class="label">{{ 'leave.table.reason' | translate }}:</span>
+              <span class="value">{{ selectedRequest()!.reason }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comment -->
+        <form [formGroup]="approvalForm">
+          <div class="form-field">
+            <label for="approverNotes" class="form-label">
+              {{ 'leave.hr.approvalDialog.notes' | translate }}
+            </label>
+            <textarea 
+              id="approverNotes"
+              pTextarea 
+              formControlName="approverNotes"
+              rows="3"
+              [placeholder]="'leave.hr.approvalDialog.notesPlaceholder' | translate"
+              class="w-full">
+            </textarea>
+          </div>
+        </form>
+      </div>
+    </ng-container>
+    
+    <ng-template pTemplate="footer">
+      <div class="dialog-footer">
+        <p-button 
+          [label]="'common.cancel' | translate" 
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="hideApprovalDialog()">
+        </p-button>
+        <p-button 
+          [label]="'leave.hr.approvalDialog.reject' | translate" 
+          severity="danger"
+          icon="pi pi-times"
+          (onClick)="confirmRejection()">
+        </p-button>
+        <p-button 
+          [label]="'leave.hr.approvalDialog.approve' | translate" 
+          severity="success"
+          icon="pi pi-check"
+          (onClick)="confirmApproval()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Grant Leave Dialog -->
+  <p-dialog 
+    [(visible)]="showGrantLeaveDialog" 
+    [modal]="true" 
+    [header]="'leave.hr.grantDialog.title' | translate" 
+    [style]="{width: '800px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="app-dialog"
+    (onHide)="hideGrantLeaveForm()">
+    
+    <div class="approval-dialog">
+      <form [formGroup]="grantLeaveForm" (ngSubmit)="grantLeave()">
+        
+        <!-- Employee Selection -->
+        <div class="form-field">
+          <label for="grantEmployeeId" class="form-label required">{{ 'leave.hr.grantDialog.employee' | translate }}</label>
+          <p-select 
+            id="grantEmployeeId"
+            formControlName="employeeId"
+            [options]="employees()"
+            optionLabel="firstName"
+            optionValue="id"
+            [placeholder]="'leave.hr.grantDialog.selectEmployee' | translate"
+            [filter]="true"
+            filterBy="firstName,lastName"
+            class="w-full">
+            <ng-template pTemplate="item" let-employee>
+              {{ employee.firstName }} {{ employee.lastName }}
+            </ng-template>
+          </p-select>
+          <small 
+            *ngIf="grantLeaveForm.get('employeeId')?.invalid && grantLeaveForm.get('employeeId')?.touched" 
+            class="p-error">
+            {{ 'errors.required' | translate }}
+          </small>
+        </div><br>
+
+        <!-- Leave Type Selection -->
+        <div class="form-field">
+          <label for="grantLeaveType" class="form-label required">{{ 'leave.table.leaveType' | translate }}</label>
+          <p-select 
+            id="grantLeaveType"
+            formControlName="leaveTypeId"
+            [options]="availableLeaveTypes()"
+            optionLabel="LeaveName"
+            optionValue="Id"
+            [placeholder]="'leave.form.selectLeaveType' | translate"
+            class="w-full">
+          </p-select>
+          <small 
+            *ngIf="grantLeaveForm.get('leaveTypeId')?.invalid && grantLeaveForm.get('leaveTypeId')?.touched" 
+            class="p-error">
+            {{ 'leave.form.leaveTypeRequired' | translate }}
+          </small>
+        </div>
+
+        <!-- Date Range -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-field">
+            <label for="grantStartDate" class="form-label required">{{ 'leave.table.startDate' | translate }}</label>
+            <p-datepicker 
+              id="grantStartDate"
+              formControlName="startDate"
+              [placeholder]="'common.selectDate' | translate"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              class="w-full">
+            </p-datepicker>
+            <small 
+              *ngIf="grantLeaveForm.get('startDate')?.invalid && grantLeaveForm.get('startDate')?.touched" 
+              class="p-error">
+              {{ 'leave.form.startDateRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label for="grantEndDate" class="form-label required">{{ 'leave.table.endDate' | translate }}</label>
+            <p-datepicker 
+              id="grantEndDate"
+              formControlName="endDate"
+              [placeholder]="'common.selectDate' | translate"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              class="w-full">
+            </p-datepicker>
+            <small 
+              *ngIf="grantLeaveForm.get('endDate')?.invalid && grantLeaveForm.get('endDate')?.touched" 
+              class="p-error">
+              {{ 'leave.form.endDateRequired' | translate }}
+            </small>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="form-field">
+          <label for="grantReason" class="form-label required">{{ 'leave.table.reason' | translate }}</label>
+          <textarea 
+            id="grantReason"
+            pTextarea 
+            formControlName="reason"
+            rows="3"
+            [placeholder]="'leave.form.reasonPlaceholder' | translate"
+            class="w-full">
+          </textarea>
+          <small 
+            *ngIf="grantLeaveForm.get('reason')?.invalid && grantLeaveForm.get('reason')?.touched" 
+            class="p-error">
+            {{ 'leave.form.reasonRequired' | translate }}
+          </small>
+        </div>
+
+        <!-- Auto-approve option -->
+        <div class="form-field">
+          <div class="flex items-center gap-2">
+            <p-checkbox 
+              formControlName="autoApprove"
+              inputId="autoApprove"
+              [binary]="true">
+            </p-checkbox>
+            <label for="autoApprove" class="form-label">{{ 'leave.hr.grantDialog.autoApprove' | translate }}</label>
+          </div>
+          <small class="text-gray-600">{{ 'leave.hr.grantDialog.autoApproveHint' | translate }}</small>
+        </div>
+
+      </form>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <div class="dialog-footer">
+        <p-button 
+          [label]="'common.cancel' | translate" 
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="hideGrantLeaveForm()">
+        </p-button>
+        <p-button 
+          [label]="'leave.hr.grantDialog.grant' | translate" 
+          severity="success"
+          icon="pi pi-check"
+          [disabled]="grantLeaveForm.invalid"
+          (onClick)="grantLeave()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

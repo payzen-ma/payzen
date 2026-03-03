@@ -120,7 +120,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   private readonly TAB_IDS = ['0', '1', '2', '3', '4', '5', '6', '7'] as const;
   private readonly TAB_FIELD_MAP: Record<string, (keyof EmployeeProfileModel)[]> = {
-    '0': ['firstName', 'lastName', 'cin', 'maritalStatus', 'dateOfBirth', 'birthPlace'],
+    '0': ['firstName', 'lastName', 'cin', 'maritalStatus', 'dateOfBirth'],
     '1': ['personalEmail', 'phone', 'address', 'countryId', 'countryName', 'city', 'addressLine1', 'addressLine2', 'zipCode'],
     '2': [], // Family - Spouse & Children managed by separate component
     '3': ['position', 'department', 'manager', 'contractType', 'status', 'startDate', 'endDate', 'probationPeriod'],
@@ -174,7 +174,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     cin: 'National ID',
     maritalStatus: 'Marital Status',
     dateOfBirth: 'Date of Birth',
-    birthPlace: 'Place of Birth',
+    //birthPlace: 'Place of Birth',
     professionalEmail: 'Professional Email',
     personalEmail: 'Personal Email',
     phone: 'Phone',
@@ -285,27 +285,78 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.historySearchQuery() !== '' || this.selectedHistoryTypes().length > 0
   );
 
-  readonly historyTypeOptions = [
-    { label: 'Salary Change', value: 'salary_change' },
-    { label: 'Salary Increase', value: 'salary_increase' },
-    { label: 'Position Change', value: 'position_change' },
-    { label: 'Address Updated', value: 'address_updated' },
-    { label: 'General Update', value: 'general_update' },
-    { label: 'Note', value: 'note' }
-  ];
+  private _historyTypeOptions = computed(() => {
+    const types = Array.from(new Set(this.history().map(e => e.type).filter(Boolean)));
+    const humanize = (t: string) => {
+      return t.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+              .replace(/_/g, ' ')
+              .replace(/\b\w/g, ch => ch.toUpperCase());
+    };
 
-  readonly maritalStatusOptions: Array<{ id: number; label: string; value: EmployeeProfileModel['maritalStatus'] }> = [
-    { id: 1, label: 'Single', value: 'single' },
-    { id: 2, label: 'Married', value: 'married' },
-    { id: 3, label: 'Divorced', value: 'divorced' },
-    { id: 4, label: 'Widowed', value: 'widowed' }
-  ];
-  readonly maritalStatusMap: Record<string, string> = {
-    'single': 'Célibataire',
-    'married': 'Marié(e)',
-    'divorced': 'Divorcé(e)',
-    'widowed': 'Veuf(ve)'
-  };
+    return types.map(t => {
+      const key = `employees.history.types.${t}`;
+      const translated = this.translate.instant(key);
+      const label = (translated && translated !== key) ? translated : humanize(t);
+      return { label, value: t };
+    });
+  });
+
+  // Expose as plain array for template consumption
+  get historyTypeOptions(): { label: any; value: string }[] {
+    try {
+      return this._historyTypeOptions();
+    } catch {
+      return [];
+    }
+  }
+
+  private _maritalStatusOptions = computed(() => {
+    const formItems = this.formData()?.maritalStatuses ?? [];
+    const lang = (this.translate?.currentLang || 'fr').toLowerCase();
+    const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+    const capLang = cap(lang);
+    const getLabel = (o: any) => {
+      if (!o) return '';
+      return (
+        o[`name${capLang}`] ??
+        o[`Name${capLang}`] ??
+        o.label ??
+        o.name ??
+        o.Name ??
+        o.NameFr ??
+        o.NameEn ??
+        o.NameAr ??
+        o.nameFr ??
+        o.nameEn ??
+        o.nameAr ??
+        String(o.id ?? '')
+      );
+    };
+
+    if (formItems && formItems.length > 0) {
+      return formItems.map((o: any, idx: number) => ({
+        id: o.id ?? idx,
+        label: getLabel(o),
+        value: (o.code ?? o.value ?? String(o.id ?? idx)) as EmployeeProfileModel['maritalStatus']
+      }));
+    }
+
+    return [
+      { id: 1, label: this.translate.instant('employees.profile.maritalStatus.single'), value: 'single' as EmployeeProfileModel['maritalStatus'] },
+      { id: 2, label: this.translate.instant('employees.profile.maritalStatus.married'), value: 'married' as EmployeeProfileModel['maritalStatus'] },
+      { id: 3, label: this.translate.instant('employees.profile.maritalStatus.divorced'), value: 'divorced' as EmployeeProfileModel['maritalStatus'] },
+      { id: 4, label: this.translate.instant('employees.profile.maritalStatus.widowed'), value: 'widowed' as EmployeeProfileModel['maritalStatus'] }
+    ];
+  });
+
+  // Expose as a plain array for templates expecting `any[]`
+  get maritalStatusOptions(): { id: any; label: any; value: EmployeeProfileModel['maritalStatus'] }[] {
+    try {
+      return this._maritalStatusOptions();
+    } catch {
+      return [];
+    }
+  }
 
   readonly contractTypeOptions: Array<{ id: number; label: string; value: EmployeeProfileModel['contractType'] }> = [
     { id: 1, label: 'CDI', value: 'CDI' },
@@ -458,6 +509,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         this.loadFormData();
       });
 
+    // Refresh localized lookup labels (genders, statuses, etc.) when language changes
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        // Force reload so labels are mapped for the new language
+        this.loadFormData(true);
+      });
+
     // Also react directly to the companyId signal to ensure reload in all change paths
   }
 
@@ -469,14 +528,35 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       details: this.employeeService.getEmployeeDetails(id),
       salary: this.employeeService.getEmployeeSalaryDetails(id),
       statuses: this.employeeService.getStatuses(false),
+      form: this.employeeService.getEmployeeFormData(),
       spouse: this.familyService.getSpouse(id).pipe(catchError(() => of(null))),
       children: this.familyService.getChildren(id).pipe(catchError(() => of([]))),
+      history: this.employeeService.getEmployeeHistory(id).pipe(catchError(() => of([]))),
       assignment: this.employeeService.getActivePackageAssignment(id).pipe(catchError(() => of(null)))
     }).subscribe({
-      next: ({ details, salary, statuses, spouse, children, assignment }) => {
+      next: ({ details, salary, statuses, form, spouse, children, history, assignment }) => {
         console.log('[EmployeeProfile] loaded details, statuses from API:', statuses, 'currentLang:', this.translate?.currentLang);
         console.log('[EmployeeProfile] raw details for employee', id, ':', details);
         console.log('[EmployeeProfile] backend gender fields:', { GenderId: (details as any).GenderId, GenderName: (details as any).GenderName });
+        
+        // Replace the events in details with the proper history events
+        if (history && history.length > 0) {
+          details.events = history.map((event: any) => ({
+            type: event.eventName || event.EventName || event.type || 'general_update',
+            title: event.title ?? '',
+            date: event.createdAt ?? event.date,
+            description: event.newValue ? `→ ${event.newValue}` : '',
+            details: {
+              oldValue: event.oldValue ?? '',
+              newValue: event.newValue ?? ''
+            },
+            modifiedBy: {
+              name: 'admin admin', // You may need to fetch this from another field
+              role: 'Admin'
+            },
+            timestamp: event.createdAt
+          }));
+        }
         this.isRestoringDraft = true;
         
         // Convert single spouse to array for consistency
@@ -484,7 +564,11 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
         // Map backend PascalCase `details` to frontend camelCase employee shape
         const mappedDetails = this.mapBackendDetails(details);
-        console.log('[EmployeeProfile] mapped details (with gender):', mappedDetails);
+
+        // If lookup form data returned, populate formData so labels (eg. genders) are localized
+        if (form) {
+          this.formData.set(form);
+        }
 
         // Merge salary components with IDs
         const mergedEmployee = {
@@ -495,7 +579,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           children: children,
           assignedPackage: assignment
         } as EmployeeProfileModel;
-        console.log('[EmployeeProfile] final mergedEmployee:', { genderId: mergedEmployee.genderId, genderName: mergedEmployee.genderName });
 
         // We'll set the employee and try to enrich its `statusName` from referential statuses.
         this.employee.set(mergedEmployee);
@@ -526,6 +609,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               }
               if (match) break;
             }
+
             if (match) {
               finalEmployee = { ...mergedEmployee, statusName: match.label };
               this.employee.set(finalEmployee);
@@ -646,7 +730,15 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   getMaritalStatusLabel(): string {
-    return this.maritalStatusMap[this.employee().maritalStatus] || '';
+    const ms = this.employee().maritalStatus;
+    if (!ms) return '';
+    try {
+      const opts = this.maritalStatusOptions;
+      const found = (opts || []).find((o: any) => o.value === ms || String(o.id) === String(ms) || String(o.value) === String(ms));
+      return found?.label || '';
+    } catch (e) {
+      return '';
+    }
   }
 
   getPaymentMethodLabel(): string {
@@ -711,7 +803,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.cin = d.CinNumber ?? d.Cin ?? d.cin;
     out.maritalStatus = (d.MaritalStatus ?? d.MaritalStatusName ?? d.maritalStatus) as any;
     out.dateOfBirth = d.DateOfBirth ?? d.dateOfBirth;
-    out.birthPlace = d.BirthPlace ?? d.birthPlace;
+    //out.birthPlace = d.BirthPlace ?? d.birthPlace;
     out.professionalEmail = d.Email ?? d.ProfessionalEmail ?? d.professionalEmail;
     out.personalEmail = d.PersonalEmail ?? d.personalEmail;
     out.phone = d.Phone ?? d.phone;
@@ -782,13 +874,12 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       return;
     }
     this.isEditMode.update(v => !v);
-    console.log('[EmployeeProfile] isEditMode now', this.isEditMode());
     this.saveError.set(null);
     this.saveSuccess.set(null);
   }
 
-  loadFormData(): void {
-    if (this.formData().statuses.length > 0) {
+  loadFormData(force: boolean = false): void {
+    if (!force && this.formData().statuses.length > 0) {
       return;
     }
     this.isLoadingFormData.set(true);
@@ -841,8 +932,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       }
     });
   }
-
-
 
   private restoreDraftIfAvailable(): void {
     const latestDraft = this.getLatestDraft();
@@ -1022,8 +1111,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
       if (!currentCityId && currentCityName) {
         try {
-           console.log('Creating country with name:', currentCountryName);
-           console.log('Creating city with name:', currentCityName, 'and countryId:', currentCountryId);
            const newCity = await firstValueFrom(this.employeeService.createCity(currentCityName, currentCountryId));
            if (newCity) {
              this.updateField('cityId', newCity.id);
@@ -1283,17 +1370,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   uploadDocument(event: any, documentType: string): void {
     // TODO: Handle document upload
-    console.log('Uploading document:', documentType, event.files);
   }
 
   downloadDocument(doc: Document) {
     // TODO: Download document
-    console.log('Downloading:', doc);
   }
 
   deleteDocument(doc: Document) {
     // TODO: Delete document
-    console.log('Deleting:', doc);
   }
 
   getEventIcon(type: string): string {
@@ -1354,6 +1438,96 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(date);
+  }
+
+  // Return a raw backend title when it's meaningful and not generic.
+  getHistoryRawTitle(event: any): string | null {
+    if (!event) return null;
+    const rawTitle = (event.title ?? event.EventTitle ?? event.Name ?? '').toString().trim();
+    if (!rawTitle) return null;
+
+    // Don't use as raw title a value that looks like an i18n key (e.g. employees.history.titles.child_added).
+    if (/^[a-z0-9_.]+\.[a-z0-9_.]+$/i.test(rawTitle) || rawTitle.startsWith('employees.history.')) {
+      return null;
+    }
+
+    const specificTitles = [
+      /modification\s+de\s+l'email/i,
+      /modification\s+du\s+numéro\s+cnss/i,
+      /modification\s+du\s+numéro\s+cimr/i,
+      /ajout\s+d'adresse/i,
+      /nouveau\s+contrat/i,
+      /enfant\s+ajouté/i,
+      /email\s+modifié/i,
+      /prénom\s+modifié/i,
+      /statut\s+modifié/i
+    ];
+
+    if (specificTitles.some(p => p.test(rawTitle))) return rawTitle;
+
+    const genericPatterns: RegExp[] = [
+      /^modification$/i,
+      /^general(?:\s|_)?update$/i,
+      /^update$/i,
+      /^general_update$/i,
+      /^metadata\s*update$/i
+    ];
+
+    const isGeneric = genericPatterns.some(p => p.test(rawTitle));
+    if (!isGeneric) return rawTitle;
+
+    return null;
+  }
+
+  // Return a translation key for the event; template applies the translate pipe so it updates when language files load.
+  getHistoryTitleKey(event: any): string {
+    const type = event.type ?? event.eventName ?? event.EventName ?? event.Event ?? event.EventType;
+    if (!type) return 'audit.genericModification';
+
+    const normalized = String(type)
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
+    return `employees.history.titles.${normalized}`;
+  }
+
+  /** Returns the translated history event title, with fallbacks so the raw i18n key is never shown. */
+  getHistoryTitle(event: any): string {
+    const key = this.getHistoryTitleKey(event);
+    const normalized = key.replace(/^.*\.([^.]+)$/, '$1');
+    let translated = this.translate.instant(key);
+    if (translated === key) {
+      translated = this.translate.instant(`employees.profile.history.titles.${normalized}`);
+    }
+    if (translated === key || translated === `employees.profile.history.titles.${normalized}`) {
+      return this.getHistoryTitleFallback(normalized);
+    }
+    return translated;
+  }
+
+  /** Humanized fallback by current language when translation key is missing. */
+  private getHistoryTitleFallback(normalizedKey: string): string {
+    const isFr = (this.translate.currentLang || this.translate.defaultLang || '').startsWith('fr');
+    const fallbacksFr: Record<string, string> = {
+      child_added: 'Enfant ajouté',
+      email_changed: 'Email modifié',
+      cnss_changed: 'CNSS mis à jour',
+      cimr_changed: 'CIMR mis à jour',
+      user_account_created: 'Compte utilisateur créé',
+      salary_created: 'Salaire créé',
+      employee_created: 'Employé créé',
+      address_created: 'Adresse ajoutée',
+      contract_created: 'Contrat créé',
+      general_update: 'Modification',
+      firstname_changed: 'Prénom modifié',
+      status_changed: 'Statut modifié',
+      role_assigned : 'Rôle attribué',
+      role_revoked : 'Rôle révoqué',
+      role_removed: 'Rôle retiré'
+    };  
+    if (isFr && fallbacksFr[normalizedKey]) return fallbacksFr[normalizedKey];
+    return normalizedKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   getHistoryTooltipText(dateStr: string): string {
@@ -1457,12 +1631,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   private recomputeChangeTracking(): void {
-    if (!this.originalEmployee || !this.isEditMode()) {
+    const orig = this.originalEmployee;
+    const editMode = this.isEditMode?.();
+    if (!orig || !editMode) {
       return;
     }
 
     const changes = ChangeTracker.trackChanges(
-      this.originalEmployee,
+      orig,
       this.employee(),
       this.FIELD_LABELS,
       ['id', 'photo', 'missingDocuments']
@@ -1566,7 +1742,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       cin: '',
       maritalStatus: 'single',
       dateOfBirth: '',
-      birthPlace: '',
+      //birthPlace: '',
       professionalEmail: '',
       personalEmail: '',
       phone: '',

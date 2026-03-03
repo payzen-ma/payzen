@@ -1,84 +1,69 @@
-<div class="min-h-screen bg-gray-50">
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
-              <i class="pi pi-users text-2xl"></i>
-            </div>
-            <div>
-              <h1 class="heading">
-                {{ 'absences.teamTitle' | translate }}
-              </h1>
-              <p class="subheading mt-1">
-                {{ 'absences.teamSubtitle' | translate }}
-              </p>
-            </div>
-          </div>
+<div class="salary-page">
+  <header class="page-header">
+    <div class="module-header__content">
+      <div class="module-header__icon">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="module-header__text">
+        <h1 class="page-title">{{ 'absences.teamTitle' | translate }}</h1>
+        <p class="page-subtitle">{{ 'absences.teamSubtitle' | translate }}</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Team Stats Cards -->
+  <section class="module-stats">
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.stats.total' | translate }}</p>
+          <h3>{{ teamStats().totalAbsences }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-calendar"></i>
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="max-w-7xl mx-auto px-6 py-6">
-    <!-- Team Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.total' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ teamStats().totalAbsences }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-calendar text-(--primary) text-xl"></i>
-          </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.stats.totalDays' | translate }}</p>
+          <h3>{{ teamStats().totalDays }}</h3>
         </div>
-      </p-card>
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.totalDays' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ teamStats().totalDays }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-clock text-(--primary) text-xl"></i>
-          </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-clock"></i>
         </div>
-      </p-card>
-    </div>
-
-    <!-- Search -->
-    <div class="card mb-6">
-      <div class="flex items-center gap-4">
-        <span class="p-input-icon-left flex-1">
-          <i class="pi pi-search"></i>
-          <input
-            pInputText
-            type="text"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'absences.searchEmployee' | translate"
-            class="w-full"
-          />
-        </span>
       </div>
     </div>
+  </section>
 
-    <!-- Employees Table -->
-    <div class="card-compact relative">
-      <!-- Loading Overlay -->
-      @if (isLoading()) {
-        <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
-          <div class="flex flex-col items-center gap-3">
-            <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
-            <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
-          </div>
+  <!-- Search -->
+  <section class="module-search-card">
+    <div class="module-search-wrapper">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        [placeholder]="'absences.searchEmployee' | translate"
+      />
+    </div>
+  </section>
+
+  <!-- Employees Table -->
+  <section class="module-table-card">
+    <!-- Loading Overlay -->
+    @if (isLoading()) {
+      <div class="loading-overlay">
+        <div class="loading-overlay__content">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>{{ 'common.loading' | translate }}</p>
         </div>
-      }
+      </div>
+    }
 
-      <p-table
+    <p-table
         [value]="filteredEmployees()"
         styleClass="p-datatable-sm"
         [tableStyle]="{'min-width': '50rem'}"
@@ -115,11 +100,11 @@
             <!-- Employee Name -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-(--primary)/10 text-(--primary) font-semibold">
+                <div class="employee-avatar">
                   {{ getEmployeeInitials(employee.employeeName) }}
                 </div>
                 <div>
-                  <div class="font-medium text-(--text-primary)">{{ employee.employeeName }}</div>
+                  <div class="font-medium text-primary">{{ employee.employeeName }}</div>
                 </div>
               </div>
             </td>
@@ -127,7 +112,7 @@
             <!-- Total Absences -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+                <span class="count-badge">
                   {{ employee.totalAbsences }}
                 </span>
               </div>
@@ -136,9 +121,9 @@
             <!-- Total Days -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
-                <i class="pi pi-clock text-(--text-secondary)"></i>
+                <i class="pi pi-clock text-secondary"></i>
                 <span class="font-medium">{{ employee.totalDays }}</span>
-                <span class="text-(--text-secondary) text-sm">{{ 'absences.days' | translate }}</span>
+                <span class="text-secondary text-sm">{{ 'absences.days' | translate }}</span>
               </div>
             </td>
 
@@ -175,14 +160,13 @@
             <td colspan="4" class="text-center py-12">
               <div class="flex flex-col items-center gap-3">
                 <i class="pi pi-users text-gray-300 text-5xl"></i>
-                <p class="text-(--text-secondary) font-medium">{{ 'absences.noTeamMembers' | translate }}</p>
+                <p class="text-secondary font-medium">{{ 'absences.noTeamMembers' | translate }}</p>
               </div>
             </td>
           </tr>
         </ng-template>
       </p-table>
-    </div>
-  </div>
+  </section>
 </div>
 
 <!-- Grant Absence Dialog -->

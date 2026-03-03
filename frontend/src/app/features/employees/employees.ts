@@ -181,9 +181,7 @@ export class EmployeesPage implements OnInit {
           { label: this.t('employees.filter.allStatuses'), value: null },
           ...opts
         ]);
-        console.log('[EmployeesPage] statuses loaded from API:', items, 'mapped opts:', opts, 'currentLang:', (this as any).translate?.currentLang || null);
         // debug current employees and how they'll map
-        console.log('[EmployeesPage] before status enrichment, employees:', this.employees());
         // If employees are already loaded, populate their statusName from the referential labels
         const current = this.employees();
           if (current && current.length) {
@@ -233,7 +231,6 @@ export class EmployeesPage implements OnInit {
               { label: this.t('employees.filter.allContractTypes'), value: null },
               ...opts
             ]);
-            console.log('[EmployeesPage] contract types loaded:', opts);
           },
           error: () => {}
         });
@@ -259,7 +256,6 @@ export class EmployeesPage implements OnInit {
 
     this.employeeService.getEmployees(filters).subscribe({
       next: (response: EmployeesResponse) => {
-        console.log('[EmployeesPage] API response:', response);
         // Set employees
         const respEmployees = response.employees || [];
         // If we already have referential status options, enrich employees with statusName
@@ -278,8 +274,6 @@ export class EmployeesPage implements OnInit {
           return emp;
         });
         this.employees.set(enriched);
-        console.log('[EmployeesPage] mapped employees:', this.employees());
-        console.log('[EmployeesPage] statuses currently:', this.statuses());
         this.stats.set({ total: response.total, active: response.active });
         this.departments.set([
           { label: this.t('employees.filter.allDepartments'), value: null },
@@ -301,7 +295,6 @@ export class EmployeesPage implements OnInit {
           });
         }
         // Status options are loaded from the referential API in ngOnInit; do not overwrite here.
-        console.log('[EmployeesPage] after statuses enrichment, employees:', this.employees());
         this.isLoading.set(false);
       },
       error: (err) => {

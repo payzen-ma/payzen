@@ -104,7 +104,14 @@ export class Sidebar {
   readonly hasMultipleMemberships = computed(() => this.contextService.memberships().length > 1);
 
   // === Computed Route Prefix based on mode ===
-  readonly routePrefix = computed(() => this.isExpertMode() ? '/expert' : '/app');
+  readonly routePrefix = computed(() => {
+    // In expert mode, if viewing a client, use the standard '/app' routes
+    // so client-specific pages (salary-packages, leave, etc.) resolve correctly.
+    if (this.isExpertMode()) {
+      return this.isClientView() ? '/app' : '/expert';
+    }
+    return '/app';
+  });
 
   // === Computed width ===
   readonly currentWidth = computed(() =>
@@ -199,6 +206,14 @@ export class Sidebar {
       modes: ['expert-all'],
       requiresCompanyContext: false
     },
+    { 
+      label: 'nav.payroll', 
+      icon: 'pi pi-wallet', 
+      routerLink: '/payroll/bulletin',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
+      modes: ['expert-all'],
+      requiresCompanyContext: false
+    },
     
     // ─────────────────────────────────────────────────────────────
     // STANDARD MODE (Regular company users)
@@ -250,23 +265,30 @@ export class Sidebar {
       modes: ['standard']
     },
     {
+      label: 'nav.myLeaveRequests',
+      icon: 'pi pi-calendar-plus',
+      routerLink: '/my-leave-requests',
+      requiredRoles: [UserRole.EMPLOYEE],
+      modes: ['standard']
+    },
+    {
       label: 'nav.overtimeManagement',
       icon: 'pi pi-check-circle',
       routerLink: '/overtime-management',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
       modes: ['standard']
     },
-    { 
-      label: 'nav.leave', 
-      icon: 'pi pi-calendar', 
-      routerLink: '/leave',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE],
+    {
+      label: 'nav.hrLeaveManagement',
+      icon: 'pi pi-users',
+      routerLink: '/hr-leave-management',
+      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
       modes: ['standard']
     },
     { 
       label: 'nav.payroll', 
       icon: 'pi pi-wallet', 
-      routerLink: '/payroll',
+      routerLink: '/payroll/bulletin',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
       modes: ['standard']
     },
@@ -327,6 +349,11 @@ export class Sidebar {
           return false;
         }
 
+        // Hide Leave and Absences entirely in expert mode sidebar
+        if (isExpert && (item.label === 'nav.leave' || item.label === 'nav.absences')) {
+          return false;
+        }
+
         // 1. Check Mode
         if (item.modes) {
           // For expert-all, show if in any expert mode
@@ -373,12 +400,25 @@ export class Sidebar {
 
         return true;
       })
-      .map(item => ({
-        ...item,
-        routerLink: `${prefix}${item.routerLink}`,
-        // Keep track if this item requires company context
-        requiresCompanyContext: item.requiresCompanyContext ?? false
-      }));
+      .map(item => {
+        // Ensure salary-packages always point to the standard app routes
+        let finalPrefix = prefix;
+        if (item.routerLink && item.routerLink.startsWith('/salary-packages')) {
+          // If in expert mode but viewing portfolio (no client), the expert prefix
+          // would produce /expert/salary-packages which is not a valid route.
+          // Force the standard '/app' prefix so the Salary Packages page resolves.
+          if (isExpert && !isClientView) {
+            finalPrefix = '/app';
+          }
+        }
+
+        return {
+          ...item,
+          routerLink: `${finalPrefix}${item.routerLink}`,
+          // Keep track if this item requires company context
+          requiresCompanyContext: item.requiresCompanyContext ?? false
+        };
+      });
   });
 
   // === Check if navigation requires company selection ===
@@ -389,6 +429,18 @@ export class Sidebar {
     const isExpert = this.isExpertMode();
     const hasClient = this.isClientView();
     
+    // If in expert mode and trying to access certain pages from the portfolio (no client selected),
+    // redirect back to the expert dashboard instead of navigating to owner/package pages.
+    const target = item.routerLink || '';
+    if (isExpert && !hasClient) {
+      if (target.includes('/company')) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.router.navigate(['/expert/dashboard']);
+        return false;
+      }
+    }
+
     // If in expert mode and item requires company context but no client is selected
     if (isExpert && item.requiresCompanyContext && !hasClient) {
       event.preventDefault();

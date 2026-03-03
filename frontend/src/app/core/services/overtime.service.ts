@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import {
   Overtime,
@@ -42,7 +42,8 @@ interface OvertimeReadDto {
   providedIn: 'root'
 })
 export class OvertimeService {
-  private readonly OVERTIME_URL = `${environment.apiUrl}/overtimes`;
+  // Backend controller is mounted at /api/employee-overtimes
+  private readonly OVERTIME_URL = `${environment.apiUrl}/employee-overtimes`;
   private readonly http = inject(HttpClient);
   private readonly companyContextService = inject(CompanyContextService);
 
@@ -76,16 +77,32 @@ export class OvertimeService {
       params = params.set('pageSize', filters.pageSize.toString());
     }
 
-    return this.http.get<{ data: OvertimeReadDto[]; total: number; page: number; pageSize: number }>(
+    return this.http.get<any>(
       this.OVERTIME_URL,
       { params }
     ).pipe(
-      map(response => ({
-        data: response.data.map(dto => this.mapDtoToOvertime(dto)),
-        total: response.total,
-        page: response.page,
-        pageSize: response.pageSize
-      }))
+      map(response => {
+        // API may return either a paged object { data: [...] } or a raw array
+        if (Array.isArray(response)) {
+          return {
+            data: response.map((dto: OvertimeReadDto) => this.mapDtoToOvertime(dto)),
+            total: response.length,
+            page: 1,
+            pageSize: response.length
+          } as OvertimesResponse;
+        }
+
+        if (response && Array.isArray(response.data)) {
+          return {
+            data: response.data.map((dto: OvertimeReadDto) => this.mapDtoToOvertime(dto)),
+            total: response.total ?? response.data.length,
+            page: response.page ?? 1,
+            pageSize: response.pageSize ?? response.data.length
+          } as OvertimesResponse;
+        }
+
+        return { data: [], total: 0, page: 1, pageSize: 0 } as OvertimesResponse;
+      })
     );
   }
 
@@ -100,19 +117,22 @@ export class OvertimeService {
   /**
    * Create a new overtime declaration
    */
-  createOvertime(request: CreateOvertimeRequest): Observable<Overtime> {
+  createOvertime(request: CreateOvertimeRequest): Observable<Overtime | null> {
     const companyId = this.companyContextService.companyId();
     if (!companyId) {
       throw new Error('No company selected');
     }
 
-    const payload = {
-      ...request,
-      companyId
-    };
-
-    return this.http.post<OvertimeReadDto>(this.OVERTIME_URL, payload)
-      .pipe(map(dto => this.mapDtoToOvertime(dto)));
+    const payload = request; // send raw DTO (backend example uses unwrapped JSON)
+    return this.http.post<OvertimeReadDto | null>(this.OVERTIME_URL, payload).pipe(
+      map(dto => {
+        if (!dto) {
+          console.warn('[OvertimeService] POST returned null DTO');
+          return null;
+        }
+        return this.mapDtoToOvertime(dto);
+      })
+    );
   }
 
   /**
@@ -139,10 +159,20 @@ export class OvertimeService {
   }
 
   /**
+   * Submit an overtime (move from Draft -> Submitted)
+   */
+  submitOvertime(id: number): Observable<Overtime> {
+    return this.http.put<OvertimeReadDto>(`${this.OVERTIME_URL}/${id}/submit`, {})
+      .pipe(map(dto => this.mapDtoToOvertime(dto)));
+  }
+
+  /**
    * Approve an overtime declaration (for managers/RH)
    */
   approveOvertime(id: number, comment?: string): Observable<Overtime> {
-    return this.http.put<OvertimeReadDto>(`${this.OVERTIME_URL}/${id}/approve`, { comment })
+    // Backend expects EmployeeOvertimeApprovalDto { Status: Approved|Rejected, ManagerComment }
+    const payload = { status: OvertimeStatus.Approved, managerComment: comment } as any;
+    return this.http.put<OvertimeReadDto>(`${this.OVERTIME_URL}/${id}/approve`, payload)
       .pipe(map(dto => this.mapDtoToOvertime(dto)));
   }
 
@@ -150,7 +180,9 @@ export class OvertimeService {
    * Reject an overtime declaration (for managers/RH)
    */
   rejectOvertime(id: number, comment: string): Observable<Overtime> {
-    return this.http.put<OvertimeReadDto>(`${this.OVERTIME_URL}/${id}/reject`, { comment })
+    // The backend uses the same /approve endpoint and a DTO with Status=Rejected
+    const payload = { status: OvertimeStatus.Rejected, managerComment: comment } as any;
+    return this.http.put<OvertimeReadDto>(`${this.OVERTIME_URL}/${id}/approve`, payload)
       .pipe(map(dto => this.mapDtoToOvertime(dto)));
   }
 
@@ -174,28 +206,107 @@ export class OvertimeService {
   /**
    * Map backend DTO to frontend Overtime model
    */
-  private mapDtoToOvertime(dto: OvertimeReadDto): Overtime {
+  private mapDtoToOvertime(dto: any): Overtime {
+    const get = (camel: string, pascal: string) => dto?.[camel] ?? dto?.[pascal];
+
+    const id = get('id', 'Id');
+    const employeeId = get('employeeId', 'EmployeeId');
+    const employeeFullName = get('employeeFullName', 'EmployeeFullName') ?? get('employeeFirstName', 'EmployeeFirstName');
+    const overtimeDate = get('overtimeDate', 'OvertimeDate');
+    const overtimeTypeRaw = get('overtimeType', 'OvertimeType');
+    const overtimeType = this.mapOvertimeType(overtimeTypeRaw);
+    const startTime = get('startTime', 'StartTime');
+    const endTime = get('endTime', 'EndTime');
+    const totalHours = Number(get('totalHours', 'TotalHours')) || Number(get('durationInHours', 'DurationInHours')) || 0;
+    const reason = get('reason', 'Reason') ?? undefined;
+    const statusRaw = get('status', 'Status');
+    const status = this.mapOvertimeStatus(statusRaw);
+    const statusDescription = get('statusDescription', 'StatusDescription') ?? undefined;
+    const createdAt = get('createdAt', 'CreatedAt');
+    const overtimeTypeDescription = get('overtimeTypeDescription', 'OvertimeTypeDescription') ?? undefined;
+    const durationInHours = Number(get('durationInHours', 'DurationInHours')) || undefined;
+    const rateMultiplierApplied = Number(get('rateMultiplierApplied', 'RateMultiplierApplied')) || undefined;
+    const isProcessedInPayroll = get('isProcessedInPayroll', 'IsProcessedInPayroll');
+    const employeeComment = get('employeeComment', 'EmployeeComment') ?? undefined;
+
     return {
-      id: dto.id,
-      employeeId: dto.employeeId,
-      employeeFirstName: dto.employeeFirstName,
-      employeeLastName: dto.employeeLastName,
-      employeeFullName: dto.employeeFullName,
-      overtimeDate: dto.overtimeDate,
-      overtimeType: (dto as any).overtimeType || OvertimeType.Hourly,
-      startTime: dto.startTime,
-      endTime: dto.endTime,
-      totalHours: dto.totalHours,
-      reason: dto.reason || undefined,
-      status: dto.status as OvertimeStatus,
-      statusDescription: dto.statusDescription,
-      createdAt: dto.createdAt,
-      createdBy: dto.createdBy,
-      createdByName: dto.createdByName,
-      approvedAt: dto.approvedAt,
-      approvedBy: dto.approvedBy,
-      approvedByName: dto.approvedByName,
-      approvalComment: dto.approvalComment
+      id: id,
+      employeeId: employeeId,
+      employeeFirstName: undefined,
+      employeeLastName: undefined,
+      employeeFullName: employeeFullName,
+      overtimeDate: overtimeDate,
+      overtimeType: overtimeType as any,
+      startTime: startTime,
+      endTime: endTime,
+        totalHours: totalHours,
+        durationInHours: durationInHours,
+        overtimeTypeDescription: overtimeTypeDescription,
+        rateMultiplierApplied: rateMultiplierApplied,
+        isProcessedInPayroll: isProcessedInPayroll,
+        employeeComment: employeeComment,
+      reason: reason,
+      status: status as OvertimeStatus,
+      statusDescription: statusDescription,
+      createdAt: createdAt,
+      createdBy: get('createdBy', 'CreatedBy'),
+      createdByName: get('createdByName', 'CreatedByName'),
+      approvedAt: get('approvedAt', 'ApprovedAt'),
+      approvedBy: get('approvedBy', 'ApprovedBy'),
+      approvedByName: get('approvedByName', 'ApprovedByName'),
+      approvalComment: get('approvalComment', 'ApprovalComment')
     };
+  }
+
+  /**
+   * Map overtime type from string or number to OvertimeType enum
+   */
+  private mapOvertimeType(value: any): OvertimeType | undefined {
+    if (value == null) return undefined;
+    
+    // If it's already a number, return it
+    if (typeof value === 'number') return value as OvertimeType;
+    
+    // If it's a string, map it to the enum value
+    if (typeof value === 'string') {
+      const typeMap: { [key: string]: OvertimeType } = {
+        'None': OvertimeType.None,
+        'Standard': OvertimeType.Standard,
+        'PublicHoliday': OvertimeType.PublicHoliday,
+        'WeeklyRest': OvertimeType.WeeklyRest,
+        'Night': OvertimeType.Night
+      };
+      return typeMap[value] ?? OvertimeType.Standard;
+    }
+    
+    // Try to convert to number as fallback
+    const num = Number(value);
+    return isNaN(num) ? OvertimeType.Standard : num as OvertimeType;
+  }
+
+  /**
+   * Map overtime status from string or number to OvertimeStatus enum
+   */
+  private mapOvertimeStatus(value: any): OvertimeStatus {
+    if (value == null) return OvertimeStatus.Draft;
+    
+    // If it's already a number, return it
+    if (typeof value === 'number') return value as OvertimeStatus;
+    
+    // If it's a string, map it to the enum value
+    if (typeof value === 'string') {
+      const statusMap: { [key: string]: OvertimeStatus } = {
+        'Draft': OvertimeStatus.Draft,
+        'Submitted': OvertimeStatus.Submitted,
+        'Approved': OvertimeStatus.Approved,
+        'Rejected': OvertimeStatus.Rejected,
+        'Cancelled': OvertimeStatus.Cancelled
+      };
+      return statusMap[value] ?? OvertimeStatus.Draft;
+    }
+    
+    // Try to convert to number as fallback
+    const num = Number(value);
+    return isNaN(num) ? OvertimeStatus.Draft : num as OvertimeStatus;
   }
 }

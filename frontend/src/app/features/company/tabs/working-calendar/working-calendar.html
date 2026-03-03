@@ -16,12 +16,13 @@
         icon="pi pi-save"
         [loading]="saving()"
         (click)="saveWorkingCalendar()"
+        [disabled]="$any(saveForm.get('save')).disabled || saving()"
         class="btn-primary">
       </button>
     </div>
 
     <div class="calendar-grid">
-      @for (day of daysOfWeek(); track day.dayOfWeek) {
+      @for (day of editableDays(); track day.dayOfWeek) {
         <div class="day-card">
           <div class="day-header">
             <div class="day-info">

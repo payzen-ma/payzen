@@ -14,6 +14,11 @@ import { TextareaModule } from 'primeng/textarea';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { TabsModule } from 'primeng/tabs';
+import { BadgeModule } from 'primeng/badge';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { AbsenceService } from '@app/core/services/absence.service';
 import { EmployeeService } from '@app/core/services/employee.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
@@ -50,8 +55,13 @@ interface GrantAbsenceRequest extends CreateAbsenceRequest {
     TextareaModule,
     CardModule,
     TooltipModule,
-    RippleModule
+    RippleModule,
+    TabsModule,
+    BadgeModule,
+    ToastModule,
+    ConfirmDialogModule
   ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './hr-absences.html',
   styleUrl: './hr-absences.css'
 })
@@ -63,14 +73,39 @@ export class HrAbsencesComponent implements OnInit {
   private translate = inject(TranslateService);
 
   employees = signal<EmployeeAbsenceSummary[]>([]);
+  /** Raw list of all company employees for the first card (same layout as overtime-management). */
+  allEmployeesList = signal<any[]>([]);
   pendingAbsences = signal<Absence[]>([]);
   isLoading = signal(false);
   searchQuery = signal('');
 
-  // Pending absences filters
-  pendingEmployeeFilter = signal('');
-  pendingTypeFilter = signal<AbsenceType | ''>('');
-  pendingDurationFilter = signal<AbsenceDurationType | ''>('');
+  // Submitted absences filters
+  submittedEmployeeFilter = signal('');
+  submittedTypeFilter = signal<AbsenceType | ''>('');
+  submittedDurationFilter = signal<AbsenceDurationType | ''>('');
+
+  // Tab management
+  activeTabValue = 'submitted';
+
+  // Computed statistics
+  readonly submittedCount = computed(() => 
+    this.allAbsences().filter((a: any) => a.status === 'Submitted').length
+  );
+
+  readonly approvedCount = computed(() => 
+    this.allAbsences().filter((a: any) => a.status === 'Approved').length
+  );
+
+  readonly rejectedCount = computed(() => 
+    this.allAbsences().filter((a: any) => a.status === 'Rejected').length
+  );
+
+  readonly cancelledCount = computed(() =>
+    this.allAbsences().filter((a: any) => a.status === 'Cancelled').length
+  );
+
+  // All absences signal for statistics
+  allAbsences = signal<Absence[]>([]);
 
   // Grant absence dialog state
   showGrantDialog = signal(false);
@@ -99,18 +134,31 @@ export class HrAbsencesComponent implements OnInit {
   grantEndTime = computed(() => this.grantRequest()?.endTime ?? '');
   grantReason = computed(() => this.grantRequest()?.reason ?? '');
 
-  absenceTypes: Array<{ label: string; value: AbsenceType }> = [];
-  durationTypes: Array<{ label: string; value: AbsenceDurationType }> = [];
-  halfDayOptions: Array<{ label: string; value: boolean }> = [];
+  absenceTypes = signal<Array<{ label: string; value: AbsenceType }>>([]);
+  durationTypes = signal<Array<{ label: string; value: AbsenceDurationType }>>([]);
+  halfDayOptions = signal<Array<{ label: string; value: boolean }>>([]);
+
+  // Template-friendly plain-array accessors (Angular template type-checker requires arrays)
+  get absenceTypesOptions(): Array<{ label: string; value: AbsenceType }> {
+    return this.absenceTypes();
+  }
+
+  get durationTypesOptions(): Array<{ label: string; value: AbsenceDurationType }> {
+    return this.durationTypes();
+  }
+
+  get halfDayOptionsList(): Array<{ label: string; value: boolean }> {
+    return this.halfDayOptions();
+  }
 
   // Filter options with 'All' option
   absenceTypeFilterOptions = computed(() => [
-    { label: this.translate.instant('common.all'), value: '' },
-    ...this.absenceTypes
+    { label: this.translate.instant('absences.status.all'), value: '' },
+    ...this.absenceTypes()
   ]);
   durationTypeFilterOptions = computed(() => [
-    { label: this.translate.instant('common.all'), value: '' },
-    ...this.durationTypes
+    { label: this.translate.instant('absences.status.all'), value: '' },
+    ...this.durationTypes()
   ]);
 
   readonly routePrefix = signal('/app');
@@ -120,12 +168,12 @@ export class HrAbsencesComponent implements OnInit {
     totalDays: 0
   });
 
-  // Filtered pending absences
-  filteredPendingAbsences = computed(() => {
+  // Filtering submitted absences
+  filteredSubmittedAbsences = computed(() => {
     let filtered = this.pendingAbsences();
 
     // Filter by employee name
-    const nameFilter = this.pendingEmployeeFilter().toLowerCase().trim();
+    const nameFilter = this.submittedEmployeeFilter().toLowerCase().trim();
     if (nameFilter) {
       filtered = filtered.filter(a => 
         a.employeeName?.toLowerCase().includes(nameFilter)
@@ -133,13 +181,13 @@ export class HrAbsencesComponent implements OnInit {
     }
 
     // Filter by absence type
-    const typeFilter = this.pendingTypeFilter();
+    const typeFilter = this.submittedTypeFilter();
     if (typeFilter) {
       filtered = filtered.filter(a => a.absenceType === typeFilter);
     }
 
     // Filter by duration type
-    const durationFilter = this.pendingDurationFilter();
+    const durationFilter = this.submittedDurationFilter();
     if (durationFilter) {
       filtered = filtered.filter(a => a.durationType === durationFilter);
     }
@@ -152,36 +200,74 @@ export class HrAbsencesComponent implements OnInit {
     if (this.contextService.isExpertMode()) {
       this.routePrefix.set('/expert');
     }
-    // init translated option labels (populate options before any dialog opens)
-    this.absenceTypes = [
-      { label: this.translate.instant('absences.types.annual_leave'), value: 'ANNUAL_LEAVE' },
-      { label: this.translate.instant('absences.types.sick'), value: 'SICK' },
-      { label: this.translate.instant('absences.types.maternity'), value: 'MATERNITY' },
-      { label: this.translate.instant('absences.types.paternity'), value: 'PATERNITY' },
-      { label: this.translate.instant('absences.types.unpaid'), value: 'UNPAID' },
-      { label: this.translate.instant('absences.types.mission'), value: 'MISSION' },
-      { label: this.translate.instant('absences.types.training'), value: 'TRAINING' },
-      { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' },
-      { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' },
-      { label: this.translate.instant('absences.types.accident_work'), value: 'ACCIDENT_WORK' },
-      { label: this.translate.instant('absences.types.exceptional'), value: 'EXCEPTIONAL' },
-      { label: this.translate.instant('absences.types.religious'), value: 'RELIGIOUS' }
-    ];
+    // populate translated option labels (use get() so translations are resolved)
+    this.populateTranslatedOptions();
 
-    this.durationTypes = [
-      { label: this.translate.instant('absences.durations.fullDay'), value: 'FullDay' },
-      { label: this.translate.instant('absences.durations.halfDay'), value: 'HalfDay' },
-      { label: this.translate.instant('absences.durations.hourly'), value: 'Hourly' }
-    ];
+    // refresh translations when language changes
+    this.translate.onLangChange.subscribe(() => this.populateTranslatedOptions());
 
-    this.halfDayOptions = [
-      { label: this.translate.instant('absences.morning'), value: true },
-      { label: this.translate.instant('absences.afternoon'), value: false }
-    ];
-
-    // Now load employees (options are ready for immediate dialog use)
+    // Now load employees and absences (options are ready for immediate dialog use)
     this.loadEmployeesAbsences();
-    this.loadPendingAbsences();
+    this.loadAbsencesForTab();
+  }
+
+  /**
+   * Set active tab
+   */
+  setActiveTab(tab: string): void {
+    this.activeTabValue = tab;
+    this.loadAbsencesForTab();
+  }
+
+  /**
+   * Handle tab change event
+   */
+  onTabChange(event: any): void {
+    if (event.value) {
+      this.setActiveTab(event.value);
+    }
+  }
+
+  /**
+   * Load absences based on active tab
+   */
+  private loadAbsencesForTab(): void {
+    this.isLoading.set(true);
+    
+    // Load all absences using the existing getAbsences method
+    // The service automatically adds companyId from contextService
+    this.absenceService.getAbsences().subscribe({
+      next: (response: any) => {
+        const absences = response.absences || [];
+        this.allAbsences.set(absences);
+        
+        // Filter based on active tab
+        switch (this.activeTabValue) {
+          case 'submitted':
+            this.pendingAbsences.set(absences.filter((a: any) => a.status === 'Submitted'));
+            break;
+          case 'approved':
+            this.pendingAbsences.set(absences.filter((a: any) => a.status === 'Approved'));
+            break;
+          case 'rejected':
+            this.pendingAbsences.set(absences.filter((a: any) => a.status === 'Rejected'));
+            break;
+          case 'cancelled':
+            this.pendingAbsences.set(absences.filter((a: any) => a.status === 'Cancelled'));
+            break;
+          case 'all':
+          default:
+            this.pendingAbsences.set(absences);
+            break;
+        }
+        
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('Error loading absences:', err);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   openGrantDialog(employeeId: number, employeeName: string) {
@@ -215,14 +301,11 @@ export class HrAbsencesComponent implements OnInit {
     // Remove employeeName from the request as it's not part of the API
     const { employeeName, ...apiRequest } = req;
 
-    console.log('[HR submitGrant] Original request:', req);
-    console.log('[HR submitGrant] API request (before service):', apiRequest);
-
     this.absenceService.createAbsence(apiRequest).subscribe({
       next: () => {
         this.showGrantDialog.set(false);
         this.loadEmployeesAbsences();
-        this.loadPendingAbsences();
+        this.loadAbsencesForTab();
       },
       error: (err) => {
         console.error('Failed to grant absence', err);
@@ -276,7 +359,8 @@ export class HrAbsencesComponent implements OnInit {
     this.employeeService.getEmployees().subscribe({
       next: (response) => {
         const employees = response.employees || [];
-        
+        this.allEmployeesList.set(employees);
+
         // For each employee, get their absence stats
         const summaries: EmployeeAbsenceSummary[] = employees.map(emp => ({
           employeeId: Number(emp.id),
@@ -319,6 +403,71 @@ export class HrAbsencesComponent implements OnInit {
     });
   }
 
+  /**
+   * Populate translated labels for selects (and refresh on language change)
+   */
+  private populateTranslatedOptions() {
+    // Absence types (values kept as API enums, labels resolved from translations)
+    const typeValues = [
+      'ANNUAL_LEAVE', 'SICK', 'MATERNITY', 'PATERNITY', 'UNPAID', 'MISSION', 'TRAINING', 'JUSTIFIED', 'UNJUSTIFIED', 'ACCIDENT_WORK', 'EXCEPTIONAL', 'RELIGIOUS'
+    ] as AbsenceType[];
+
+    const typeKeys = typeValues.map(v => `absences.types.${v.toLowerCase()}`);
+
+    // Set instant translations synchronously for initial render
+    const instantTypes = typeValues.map(v => ({
+      label: this.translate.instant(`absences.types.${v.toLowerCase()}`) || `absences.types.${v.toLowerCase()}`,
+      value: v
+    }));
+    this.absenceTypes.set(instantTypes);
+
+    // Update asynchronously in case translations load later or language changes
+    this.translate.get(typeKeys).subscribe(trans => {
+      const updated = typeValues.map(v => ({
+        label: trans[`absences.types.${v.toLowerCase()}`] || this.translate.instant(`absences.types.${v.toLowerCase()}`) || `absences.types.${v.toLowerCase()}`,
+        value: v
+      }));
+      this.absenceTypes.set(updated);
+    });
+
+    // Duration types
+    const durValues = ['FullDay', 'HalfDay', 'Hourly'];
+    const durKeys = ['absences.durations.fullDay', 'absences.durations.halfDay', 'absences.durations.hourly'];
+    // Duration types - instant + async update
+    const instantDur = [
+      { label: this.translate.instant(durKeys[0]) || 'Full Day', value: 'FullDay' as AbsenceDurationType },
+      { label: this.translate.instant(durKeys[1]) || 'Half Day', value: 'HalfDay' as AbsenceDurationType },
+      { label: this.translate.instant(durKeys[2]) || 'Hourly', value: 'Hourly' as AbsenceDurationType }
+    ];
+    this.durationTypes.set(instantDur);
+    this.translate.get(durKeys).subscribe(trans => {
+      const updatedDur = [
+        { label: trans[durKeys[0]] || this.translate.instant(durKeys[0]) || 'Full Day', value: 'FullDay' as AbsenceDurationType },
+        { label: trans[durKeys[1]] || this.translate.instant(durKeys[1]) || 'Half Day', value: 'HalfDay' as AbsenceDurationType },
+        { label: trans[durKeys[2]] || this.translate.instant(durKeys[2]) || 'Hourly', value: 'Hourly' as AbsenceDurationType }
+      ];
+      this.durationTypes.set(updatedDur);
+    });
+
+    // Half day options
+    const halfKeys = ['absences.morning', 'absences.afternoon'];
+    // Half day options - instant + async update
+    const instantHalf = [
+      { label: this.translate.instant(halfKeys[0]) || 'Morning', value: true },
+      { label: this.translate.instant(halfKeys[1]) || 'Afternoon', value: false }
+    ];
+    console.debug('[HR] populateTranslatedOptions - instantHalf', this.translate.currentLang, instantHalf);
+    this.halfDayOptions.set(instantHalf);
+    this.translate.get(halfKeys).subscribe(trans => {
+      const updatedHalf = [
+        { label: trans[halfKeys[0]] || this.translate.instant(halfKeys[0]) || 'Morning', value: true },
+        { label: trans[halfKeys[1]] || this.translate.instant(halfKeys[1]) || 'Afternoon', value: false }
+      ];
+      console.debug('[HR] populateTranslatedOptions - async half', this.translate.currentLang, updatedHalf);
+      this.halfDayOptions.set(updatedHalf);
+    });
+  }
+
   viewEmployeeAbsences(employeeId: number | string) {
     this.router.navigate([`${this.routePrefix()}/absences/employee`, String(employeeId)]);
   }
@@ -347,6 +496,17 @@ export class HrAbsencesComponent implements OnInit {
     );
   }
 
+  /** Filtered list for the first card (all employees table), by search. */
+  filteredAllEmployees(): any[] {
+    const query = this.searchQuery().toLowerCase().trim();
+    const list = this.allEmployeesList();
+    if (!query) return list;
+    return list.filter((emp: any) => {
+      const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
+      return name.includes(query);
+    });
+  }
+
   getEmployeeInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
@@ -366,8 +526,6 @@ export class HrAbsencesComponent implements OnInit {
     // Remove seconds if present (HH:mm:ss -> HH:mm)
     return time.substring(0, 5);
   }
-
-
 
   /**
    * Load all pending absences for the company (HR view)
@@ -392,7 +550,7 @@ export class HrAbsencesComponent implements OnInit {
   approveAbsence(absenceId: number) {
     this.absenceService.approveAbsence(absenceId).subscribe({
       next: () => {
-        this.loadPendingAbsences();
+        this.loadAbsencesForTab();
         this.loadEmployeesAbsences();
       },
       error: (err) => {
@@ -421,7 +579,7 @@ export class HrAbsencesComponent implements OnInit {
         this.showRejectDialog.set(false);
         this.selectedAbsenceId.set(null);
         this.rejectReason.set('');
-        this.loadPendingAbsences();
+        this.loadAbsencesForTab();
         this.loadEmployeesAbsences();
       },
       error: (err) => {

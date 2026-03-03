@@ -65,7 +65,6 @@ export class AttendanceReportPage implements OnInit {
   private loadEmployees(): void {
     this.employeeService.getEmployees().subscribe({
       next: (res) => {
-        console.log('👥 Loaded Employees:', res.employees);
         this.employees.set(res.employees || []);
       },
       error: (err) => {
@@ -98,23 +97,17 @@ export class AttendanceReportPage implements OnInit {
 
     this.isLoading.set(true);
 
-    console.log('🔍 Generating report for employees:', list.map(e => ({ employeeId: e.id, userId: e.userId, name: `${e.firstName} ${e.lastName}` })));
-
     const requests = list.map(emp => {
       // Use userId because backend stores userId in the attendance employeeId field
       const idToUse = emp.userId || emp.id;
-      console.log(`API Call for ${emp.firstName} ${emp.lastName}: /employee-attendance/employee/${idToUse}`);
       return this.http.get<any[]>(`${environment.apiUrl}/employee-attendance/employee/${idToUse}?startDate=${startStr}&endDate=${endStr}`)
         .pipe(map(records => ({ emp, records })));
     });
 
     forkJoin(requests).subscribe({
       next: (results: Array<{ emp: Employee; records: any[] }>) => {
-        console.log('📊 API Response - All Employee Attendance Records:', results);
         const rows: ReportRow[] = results.map(r => {
           const totalWorked = (r.records || []).reduce((acc, x) => acc + (Number(x.workedHours ?? x.WorkedHours ?? 0) || 0), 0);
-          console.log("Calculating totals for employee:", r.emp.id, r.emp.firstName, r.emp.lastName);
-          console.log("Total Worked Hours Calculation:", r.records, "=>", totalWorked);
           const totalBreaks = (r.records || []).reduce((acc, x) => acc + (Number(x.breakMinutesApplied ?? x.BreakMinutesApplied ?? 0) || 0), 0);
           const totalWorkedDays = (r.records || []).reduce((acc, x) => {
             const worked = Number(x.workedHours ?? x.WorkedHours ?? 0);
@@ -132,7 +125,6 @@ export class AttendanceReportPage implements OnInit {
             totalBreakMinutes: totalBreaks
           };
         });
-        console.log('📋 Mapped Report Rows:', rows);
         this.reportRows.set(rows);
         this.isLoading.set(false);
       },

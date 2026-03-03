@@ -16,6 +16,8 @@ export class LanguageService {
   readonly availableLanguages = AVAILABLE_LANGUAGES;
 
   constructor(private translate: TranslateService) {
+    this.translate.addLangs([...AVAILABLE_LANGUAGES]);
+    this.translate.setDefaultLang(DEFAULT_LANGUAGE);
     this.initializeLanguage();
   }
 

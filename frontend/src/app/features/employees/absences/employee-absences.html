@@ -1,70 +1,60 @@
-<div class="min-h-screen bg-gray-50">
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-          <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
-            <i class="pi pi-calendar text-2xl"></i>
-          </div>
-          <div>
-            <h1 class="heading">
-              {{ 'absences.myAbsences' | translate }}
-            </h1>
-            <p class="subheading mt-1">
-              {{ 'absences.subtitle' | translate }}
-            </p>
-          </div>
-        </div>
-        <button
-          pButton
-          [label]="'absences.requestAbsence' | translate"
-          icon="pi pi-plus"
-          (click)="openCreateDialog()"
-        ></button>
+<div class="salary-page">
+  <header class="page-header">
+    <div class="module-header__content">
+      <div class="module-header__icon">
+        <i class="pi pi-calendar"></i>
+      </div>
+      <div class="module-header__text">
+        <h1 class="page-title">{{ 'absences.myAbsences' | translate }}</h1>
+        <p class="page-subtitle">{{ 'absences.subtitle' | translate }}</p>
       </div>
     </div>
-  </div>
+    <button
+      type="button"
+      class="btn btn-primary page-header__cta"
+      (click)="openCreateDialog()"
+    >
+      <i class="pi pi-plus"></i>
+      {{ 'absences.requestAbsence' | translate }}
+    </button>
+  </header>
 
-  <div class="max-w-7xl mx-auto px-6 py-6">
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.total' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalAbsences }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-calendar text-(--primary) text-xl"></i>
-          </div>
+  <!-- Stats Cards -->
+  <section class="module-stats">
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.stats.total' | translate }}</p>
+          <h3>{{ stats().totalAbsences }}</h3>
         </div>
-      </p-card>
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.totalDays' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalDays }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-clock text-(--primary) text-xl"></i>
-          </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-calendar"></i>
         </div>
-      </p-card>
+      </div>
     </div>
-
-    <!-- Absences Table -->
-    <div class="card-compact relative">
-      <!-- Loading Overlay -->
-      @if (isLoading()) {
-        <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
-          <div class="flex flex-col items-center gap-3">
-            <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
-            <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
-          </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.stats.totalDays' | translate }}</p>
+          <h3>{{ stats().totalDays }}</h3>
         </div>
-      }
+        <div class="stat-card-module__icon">
+          <i class="pi pi-clock"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Absences Table -->
+  <section class="surface" style="position: relative;">
+    @if (isLoading()) {
+      <div class="loading-overlay">
+        <div class="loading-overlay__content">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>{{ 'common.loading' | translate }}</p>
+        </div>
+      </div>
+    }
 
       <p-table
         [value]="absences()"
@@ -150,6 +140,18 @@
                   [text]="true"
                   [rounded]="true"
                 ></button>
+                @if (absence.status === 'Draft') {
+                  <button
+                    pButton
+                    icon="pi pi-check"
+                    [pTooltip]="'absences.submit' | translate"
+                    tooltipPosition="top"
+                    (click)="submitAbsence(absence.id)"
+                    severity="success"
+                    [text]="true"
+                    [rounded]="true"
+                  ></button>
+                }
                 @if (canCancelAbsence(absence)) {
                   <button
                     pButton
@@ -177,9 +179,122 @@
           </tr>
         </ng-template>
       </p-table>
+  </section>
+</div>
+
+<!-- Cancel Confirmation Dialog -->
+<p-dialog
+  [(visible)]="showCancelDialog"
+  [modal]="true"
+  [style]="{width: '28rem'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="'common.confirmation' | translate"
+  styleClass="app-dialog"
+  (onHide)="closeCancelDialog()"
+>
+  <div class="p-6">
+    <div class="flex items-start gap-3">
+      <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl flex-shrink-0"></i>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-(--text-primary) break-words">
+          {{ 'absences.confirmCancel' | translate }}
+        </p>
+      </div>
     </div>
   </div>
-</div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-3 justify-end px-6 pb-4">
+      <button
+        pButton
+        [label]="'common.cancel' | translate"
+        severity="secondary"
+        [outlined]="true"
+        (click)="closeCancelDialog()"
+        icon="pi pi-times"
+      ></button>
+      <button
+        pButton
+        [label]="'absences.cancelRequest' | translate"
+        severity="danger"
+        icon="pi pi-ban"
+        (click)="confirmCancel()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Cancel Error Dialog -->
+<p-dialog
+  [(visible)]="showCancelErrorDialog"
+  [modal]="true"
+  [style]="{width: '32rem'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="'common.error' | translate"
+  styleClass="app-dialog"
+  (onHide)="closeCancelErrorDialog()"
+>
+  <div class="p-6">
+    <div class="flex items-start gap-3">
+      <i class="pi pi-exclamation-circle text-red-500 text-2xl flex-shrink-0"></i>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-(--text-primary) break-words">
+          {{ 'Erreur' }}: {{ cancelErrorMessage() }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-3 justify-end px-6 pb-4">
+      <button
+        pButton
+        [label]="'common.close' | translate"
+        severity="secondary"
+        (click)="closeCancelErrorDialog()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- General Error Dialog -->
+<p-dialog
+  [(visible)]="showErrorDialog"
+  [modal]="true"
+  [style]="{width: '32rem'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="'common.error' | translate"
+  styleClass="app-dialog"
+  (onHide)="closeErrorDialog()"
+>
+  <div class="p-6">
+    <div class="flex items-start gap-3">
+      <i class="pi pi-exclamation-circle text-red-500 text-2xl flex-shrink-0"></i>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-(--text-primary) error-message-text">
+          {{ errorMessage() }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-3 justify-end px-6 pb-4">
+      <button
+        pButton
+        [label]="'common.close' | translate"
+        severity="secondary"
+        (click)="closeErrorDialog()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>
 
 <!-- Create Absence Dialog -->
 <p-dialog
@@ -231,22 +346,6 @@
       ></p-datepicker>
     </div>
 
-    <!-- Type Field -->
-    <div class="form-field">
-      <label class="form-label form-label-required">
-        {{ 'absences.form.type' | translate }}
-      </label>
-      <p-select
-        [options]="absenceTypes"
-        [ngModel]="newAbsence().absenceType"
-        (ngModelChange)="updateField('absenceType', $event)"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-        [placeholder]="'absences.form.type' | translate"
-      ></p-select>
-    </div>
-
     <!-- Duration Type Field -->
     <div class="form-field">
       <label class="form-label form-label-required">
@@ -262,6 +361,36 @@
         [placeholder]="'absences.form.durationType' | translate"
       ></p-select>
     </div>
+
+    <!-- Type Field -->
+    <div class="form-field">
+      <label class="form-label form-label-required">
+        {{ 'absences.form.type' | translate }}
+      </label>
+      <p-select
+        [options]="availableAbsenceTypes()"
+        [ngModel]="newAbsence().absenceType"
+        (ngModelChange)="updateField('absenceType', $event)"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+        [placeholder]="'absences.form.type' | translate"
+      ></p-select>
+    </div>
+
+    <!-- Use Leave Balance Checkbox: only for JUSTIFIED/UNJUSTIFIED, not legal leave rules -->
+    @if (newAbsence().absenceType === 'JUSTIFIED' || newAbsence().absenceType === 'UNJUSTIFIED') {
+      <div class="form-field checkbox-inline">
+        <input type="checkbox"
+               id="useLeaveBalance"
+               [checked]="newAbsence().useLeaveBalance"
+               (change)="updateField('useLeaveBalance', $event.target.checked)"
+        />
+        <label for="useLeaveBalance" class="form-label">
+          {{ 'absences.form.useLeaveBalance' | translate }}
+        </label>
+      </div>
+    }
 
     <!-- Period Field (Half Day) -->
     @if (newAbsence().durationType === 'HalfDay') {
@@ -349,9 +478,10 @@
         size="small"
         (onClick)="showCreateDialog.set(false)">
       </p-button>
-      <p-button 
-        [label]="'absences.requestAbsence' | translate" 
-        icon="pi pi-check"
+      <p-button
+        [label]="'common.save' | translate"
+        icon="pi pi-save"
+        severity="secondary"
         size="small"
         (onClick)="submitAbsenceRequest()">
       </p-button>
@@ -383,13 +513,6 @@
           {{ selectedAbsence()?.absenceDate | date: 'dd/MM/yyyy' }}
         </p>
       </div>
-      <button 
-        type="button" 
-        (click)="showDetailDialog.set(false)" 
-        class="shrink-0 size-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-        [attr.aria-label]="'common.close' | translate">
-        <i class="pi pi-times text-lg"></i>
-      </button>
     </div>
   </div>
 

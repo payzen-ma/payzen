@@ -1,6 +1,7 @@
 import { Component, signal, computed, inject, OnInit, effect, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -16,6 +17,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OvertimeService } from '@app/core/services/overtime.service';
+import { HolidayService } from '@app/core/services/holiday.service';
 import { EmployeeService } from '@app/core/services/employee.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { 
@@ -33,6 +35,7 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     TableModule,
     ButtonModule,
     DialogModule,
@@ -58,6 +61,7 @@ export class OvertimeComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
+  private readonly holidayService = inject(HolidayService);
   private readonly destroyRef = inject(DestroyRef);
 
   // Signals
@@ -67,7 +71,21 @@ export class OvertimeComponent implements OnInit {
   readonly isEditMode = signal<boolean>(false);
   readonly selectedOvertime = signal<Overtime | null>(null);
   readonly currentUserId = signal<number | null>(null);
-  readonly selectedOvertimeType = signal<OvertimeType>(OvertimeType.Hourly);
+  readonly selectedOvertimeType = signal<OvertimeType>(OvertimeType.Standard);
+  readonly holidays = signal<any[]>([]);
+  readonly selectedHolidayId = signal<number | null>(null);
+  readonly holidayYear = signal<number>(new Date().getFullYear());
+  readonly holidayOptions = computed(() => this.holidays().map(h => ({ label: h.nameFr || h.nameEn || h.name || '', value: h.id })));
+  
+  // Year options for holiday selection
+  readonly yearOptions = computed(() => {
+    const currentYear = new Date().getFullYear();
+    return [
+      { label: (currentYear - 1).toString(), value: currentYear - 1 },
+      { label: currentYear.toString(), value: currentYear },
+      { label: (currentYear + 1).toString(), value: currentYear + 1 }
+    ];
+  });
 
   // Expose enum for template
   readonly OvertimeType = OvertimeType;
@@ -78,8 +96,8 @@ export class OvertimeComponent implements OnInit {
 
   // Type options
   readonly typeOptions = computed(() => [
-    { label: this.translate.instant('overtime.type.hourly'), value: OvertimeType.Hourly },
-    { label: this.translate.instant('overtime.type.holiday'), value: OvertimeType.Holiday }
+    { label: this.translate.instant('overtime.type.hourly'), value: OvertimeType.Standard },
+    { label: this.translate.instant('overtime.type.holiday'), value: OvertimeType.PublicHoliday }
   ]);
 
   // Status options
@@ -100,9 +118,115 @@ export class OvertimeComponent implements OnInit {
     });
   }
 
+  applySelectedHoliday(): void {
+    const id = this.selectedHolidayId();
+    if (!id) {
+      this.messageService.add({ severity: 'warn', summary: this.translate.instant('common.error'), detail: this.translate.instant('overtime.errors.noHolidaySelected') });
+      return;
+    }
+
+    // find holiday in loaded list
+    const h = this.holidays().find(x => x.id === id);
+    if (!h) return;
+
+    // set form fields: date and reason/comment
+    this.overtimeForm.patchValue({
+      overtimeDate: this.parseToLocalDate(h.holidayDate),
+      reason: h.nameFr || h.nameEn || h.name || '',
+      startTime: '',
+      endTime: ''
+    });
+  }
+
+  /**
+   * Handle holiday selection change - auto-apply the selected holiday
+   */
+  onHolidayChange(holidayId: number | null): void {
+    this.selectedHolidayId.set(holidayId);
+    if (holidayId) {
+      const h = this.holidays().find(x => x.id === holidayId);
+      if (h) {
+        // Auto-populate form fields
+        this.overtimeForm.patchValue({
+          overtimeDate: this.parseToLocalDate(h.holidayDate),
+          reason: h.nameFr || h.nameEn || h.name || '',
+          startTime: '',
+          endTime: ''
+        });
+      }
+    }
+  }
+
   ngOnInit(): void {
     this.initForm();
-    this.loadOvertimes();
+
+    // Resolve current employee id: prefer the value on the authenticated user,
+    // otherwise attempt to fetch the employee record for the current user
+    // (GET /api/employee/current) and use its id. This prevents "Aucun employé trouvé"
+    // when the backend does not include employeeId in the auth payload.
+    if (this.currentUserId()) {
+      this.loadOvertimes();
+    } else {
+      this.employeeService.getCurrentEmployee()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (emp) => {
+            if (emp && (emp.id || (emp as any).Id)) {
+              const id = String((emp as any).id ?? (emp as any).Id);
+              this.currentUserId.set(Number(id));
+            }
+            this.loadOvertimes();
+          },
+          error: (err) => {
+            console.debug('[Overtime] no employee linked to current user', err);
+            this.loadOvertimes();
+          }
+        });
+    }
+
+    // load holidays for current year by default
+    this.loadHolidays(this.holidayYear());
+  }
+
+  loadHolidays(year: number): void {
+    this.holidayService.getCompanyHolidays(year)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => this.holidays.set(list || []),
+        error: (err) => {
+          console.error('Error loading holidays:', err);
+          this.holidays.set([]);
+        }
+      });
+  }
+
+  /**
+   * Parse a value into a local Date (avoid timezone shifts for YYYY-MM-DD strings)
+   */
+  private parseToLocalDate(value: any): Date {
+    if (!value) return new Date();
+    if (value instanceof Date) return value;
+    if (typeof value === 'string') {
+      const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) {
+        const y = Number(m[1]);
+        const mo = Number(m[2]) - 1;
+        const d = Number(m[3]);
+        return new Date(y, mo, d);
+      }
+    }
+    return new Date(value);
+  }
+
+  /**
+   * Format a date value as local YYYY-MM-DD without timezone conversion
+   */
+  private formatDateLocal(value: any): string {
+    const d = this.parseToLocalDate(value);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   /**
@@ -111,7 +235,7 @@ export class OvertimeComponent implements OnInit {
   private initForm(): void {
     this.overtimeForm = this.fb.group({
       overtimeDate: [null, Validators.required],
-      overtimeType: [OvertimeType.Hourly, Validators.required],
+      overtimeType: [OvertimeType.Standard, Validators.required],
       startTime: [''],
       endTime: [''],
       reason: ['']
@@ -123,7 +247,7 @@ export class OvertimeComponent implements OnInit {
       const startTimeControl = this.overtimeForm.get('startTime');
       const endTimeControl = this.overtimeForm.get('endTime');
       
-      if (type === OvertimeType.Hourly) {
+      if (type === OvertimeType.Standard) {
         startTimeControl?.setValidators([Validators.required]);
         endTimeControl?.setValidators([Validators.required]);
       } else {
@@ -176,12 +300,12 @@ export class OvertimeComponent implements OnInit {
     this.isEditMode.set(false);
     this.selectedOvertime.set(null);
     this.overtimeForm.reset({
-      overtimeType: OvertimeType.Hourly,
+      overtimeType: OvertimeType.Standard,
       startTime: '',
       endTime: '',
       reason: ''
     });
-    this.selectedOvertimeType.set(OvertimeType.Hourly);
+    this.selectedOvertimeType.set(OvertimeType.Standard);
     this.showDialog.set(true);
   }
 
@@ -193,17 +317,17 @@ export class OvertimeComponent implements OnInit {
     this.selectedOvertime.set(overtime);
     
     // Parse date and time
-    const overtimeDate = new Date(overtime.overtimeDate);
+    const overtimeDate = this.parseToLocalDate(overtime.overtimeDate ?? (overtime as any).OvertimeDate);
     
     this.overtimeForm.patchValue({
       overtimeDate: overtimeDate,
       overtimeType: overtime.overtimeType,
-      startTime: overtime.startTime || '',
-      endTime: overtime.endTime || '',
+      startTime: (overtime.startTime ?? (overtime as any).StartTime) ? String(overtime.startTime ?? (overtime as any).StartTime).slice(0,5) : '',
+      endTime: (overtime.endTime ?? (overtime as any).EndTime) ? String(overtime.endTime ?? (overtime as any).EndTime).slice(0,5) : '',
       reason: overtime.reason || ''
     });
     
-    this.selectedOvertimeType.set(overtime.overtimeType);
+    this.selectedOvertimeType.set(overtime.overtimeType ?? OvertimeType.Standard);
     this.showDialog.set(true);
   }
 
@@ -237,9 +361,8 @@ export class OvertimeComponent implements OnInit {
       return;
     }
 
-    // Format date to YYYY-MM-DD
-    const overtimeDate = new Date(formValue.overtimeDate);
-    const formattedDate = overtimeDate.toISOString().split('T')[0];
+    // Format date to local YYYY-MM-DD (avoid timezone shifts)
+    const formattedDate = this.formatDateLocal(formValue.overtimeDate);
 
     if (this.isEditMode()) {
       this.updateOvertime(formattedDate, formValue);
@@ -252,13 +375,36 @@ export class OvertimeComponent implements OnInit {
    * Create new overtime
    */
   private createOvertime(employeeId: number, overtimeDate: string, formValue: any): void {
+    // Determine entryMode expected by backend (numeric enum 1..3)
+    // Map: HoursRange=1, DurationOnly=2, FullDay=3
+    let entryModeNumeric: number;
+    let durationInHours: number | undefined = undefined;
+    let standardDayHours: number | undefined = undefined;
+
+    // Decide entry mode from supplied fields:
+    // - If user provided a duration value -> DurationOnly (2)
+    // - Else if startTime and endTime provided -> HoursRange (1)
+    // - Otherwise -> FullDay (3)
+    if (formValue.durationInHours || formValue.duration) {
+      entryModeNumeric = 2; // DurationOnly
+      durationInHours = Number(formValue.durationInHours ?? formValue.duration);
+    } else if (formValue.startTime && formValue.endTime) {
+      entryModeNumeric = 1; // HoursRange
+      // keep start/end as provided; optional: compute durationInHours from times
+    } else {
+      entryModeNumeric = 3; // FullDay
+      standardDayHours = formValue.standardDayHours ?? 8;
+    }
+
     const request: CreateOvertimeRequest = {
       employeeId: employeeId,
       overtimeDate: overtimeDate,
-      overtimeType: formValue.overtimeType,
-      startTime: formValue.overtimeType === OvertimeType.Hourly ? formValue.startTime : undefined,
-      endTime: formValue.overtimeType === OvertimeType.Hourly ? formValue.endTime : undefined,
-      reason: formValue.reason || undefined
+      entryMode: entryModeNumeric,
+      startTime: formValue.overtimeType === OvertimeType.Standard && formValue.startTime ? String(formValue.startTime).slice(0,5) : undefined,
+      endTime: formValue.overtimeType === OvertimeType.Standard && formValue.endTime ? String(formValue.endTime).slice(0,5) : undefined,
+      durationInHours: durationInHours,
+      standardDayHours: standardDayHours,
+      employeeComment: formValue.employeeComment || formValue.reason || undefined
     };
 
     this.overtimeService.createOvertime(request)
@@ -274,11 +420,13 @@ export class OvertimeComponent implements OnInit {
           this.loadOvertimes();
         },
         error: (error) => {
+          // Log detailed error and show API message when available
           console.error('Error creating overtime:', error);
+          const apiMsg = error?.error?.Message || error?.error?.message || error?.message || this.translate.instant('overtime.errors.createFailed');
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('common.error'),
-            detail: this.translate.instant('overtime.errors.createFailed')
+            detail: apiMsg
           });
         }
       });
@@ -293,10 +441,9 @@ export class OvertimeComponent implements OnInit {
 
     const request: UpdateOvertimeRequest = {
       overtimeDate: overtimeDate,
-      overtimeType: formValue.overtimeType,
-      startTime: formValue.overtimeType === OvertimeType.Hourly ? formValue.startTime : undefined,
-      endTime: formValue.overtimeType === OvertimeType.Hourly ? formValue.endTime : undefined,
-      reason: formValue.reason || undefined
+      startTime: formValue.overtimeType === OvertimeType.Standard ? formValue.startTime : undefined,
+      endTime: formValue.overtimeType === OvertimeType.Standard ? formValue.endTime : undefined,
+      employeeComment: formValue.reason || formValue.employeeComment || undefined
     };
 
     this.overtimeService.updateOvertime(overtime.id, request)
@@ -318,6 +465,31 @@ export class OvertimeComponent implements OnInit {
             summary: this.translate.instant('common.error'),
             detail: this.translate.instant('overtime.errors.updateFailed')
           });
+        }
+      });
+  }
+
+  /**
+   * Submit overtime (Draft -> Submitted)
+   */
+  submitOvertime(overtime: Overtime): void {
+    if (!overtime?.id) return;
+
+    this.overtimeService.submitOvertime(overtime.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: this.translate.instant('common.success'),
+            detail: this.translate.instant('overtime.messages.submitSuccess')
+          });
+          this.loadOvertimes();
+        },
+        error: (error) => {
+          console.error('Error submitting overtime:', error);
+          const apiMsg = error?.error?.Message || error?.error?.message || error?.message || this.translate.instant('overtime.errors.submitFailed');
+          this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: apiMsg });
         }
       });
   }
@@ -417,17 +589,54 @@ export class OvertimeComponent implements OnInit {
   /**
    * Get type label
    */
-  getTypeLabel(type: OvertimeType): string {
-    return type === OvertimeType.Hourly 
-      ? this.translate.instant('overtime.type.hourly')
-      : this.translate.instant('overtime.type.holiday');
+  getTypeLabel(type: OvertimeType | number | undefined): string {
+    if (type == null) return this.translate.instant('common.unknown');
+
+    // Known mappings from backend (French descriptions)
+    const map: Record<number, string> = {
+      0: 'Aucun',
+      1: 'Standard',
+      2: 'Repos hebdomadaire',
+      3: 'Standard + Repos hebdomadaire',
+      4: 'Jour férié',
+      5: 'Standard + Jour férié',
+      6: 'Jour férié / Repos hebdomadaire',
+      7: 'Standard + Jour férié / Repos',
+      8: 'Nuit',
+      9: 'Standard + Nuit',
+      10: 'Repos hebdomadaire + Nuit',
+      11: 'Standard + Repos hebdomadaire + Nuit',
+      12: 'Jour férié + Nuit',
+      13: 'Standard + Jour férié + Nuit',
+      14: 'Jour férié / Repos + Nuit',
+      15: 'Standard + Jour férié / Repos + Nuit'
+    };
+
+    const n = Number(type);
+    if (map[n]) return map[n];
+
+    // Fallback: build description from bits (priority PublicHoliday > WeeklyRest > Standard)
+    const parts: string[] = [];
+    const STANDARD = 1;
+    const WEEKLY = 2;
+    const PUBLIC = 4;
+    const NIGHT = 8;
+
+    if ((n & PUBLIC) !== 0) parts.push('Jour férié');
+    else if ((n & WEEKLY) !== 0) parts.push('Repos hebdomadaire');
+    else if ((n & STANDARD) !== 0) parts.push('Standard');
+
+    if ((n & NIGHT) !== 0) parts.push('Nuit');
+
+    return parts.length > 0 ? parts.join(' + ') : this.translate.instant('common.unknown');
   }
 
   /**
    * Check if overtime can be edited
    */
   canEdit(overtime: Overtime): boolean {
-    return overtime.status === OvertimeStatus.Submitted;
+    // Allow editing when the overtime is still a Draft
+    return overtime.status === OvertimeStatus.Draft;
   }
 
   /**

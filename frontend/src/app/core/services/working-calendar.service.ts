@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, forkJoin, of, switchMap } from 'rxjs';
+import { Observable, map, forkJoin, of, switchMap, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { WorkingCalendar, CreateWorkingCalendarRequest, UpdateWorkingCalendarRequest } from '../models/working-calendar.model';
 
@@ -53,8 +53,14 @@ export class WorkingCalendarService {
    * Create a new working calendar entry
    */
   create(request: CreateWorkingCalendarRequest): Observable<WorkingCalendar> {
+    console.debug('[WorkingCalendarService] create() payload:', request);
     return this.http.post<any>(this.apiUrl, request).pipe(
-      map(response => response.value || response)
+      tap({ error: (err) => console.error('[WorkingCalendarService] create() error response:', err?.error ?? err) }),
+      map(response => response.value || response),
+      catchError(err => {
+        console.error('[WorkingCalendarService] create() caught error:', err?.error ?? err);
+        return throwError(() => err);
+      })
     );
   }
 
@@ -62,12 +68,18 @@ export class WorkingCalendarService {
    * Update an existing working calendar entry
    */
   update(id: number, request: UpdateWorkingCalendarRequest): Observable<WorkingCalendar> {
+    console.debug(`[WorkingCalendarService] update() id=${id} payload:`, request);
     return this.http.put<any>(`${this.apiUrl}/${id}`, request).pipe(
+      tap({ error: (err) => console.error(`[WorkingCalendarService] update() id=${id} error response:`, err?.error ?? err) }),
       map(response => {
         if (!response) {
           return this.getById(id);
         }
         return response.value || response;
+      }),
+      catchError(err => {
+        console.error(`[WorkingCalendarService] update() id=${id} caught error:`, err?.error ?? err);
+        return throwError(() => err);
       })
     );
   }
@@ -86,7 +98,6 @@ export class WorkingCalendarService {
    * @returns Observable of all created/updated working calendar entries
    */
   syncWorkingDaysWithTimes(companyId: number, calendars: any[]): Observable<any[]> {
-    console.log('[WorkingCalendarService] syncWorkingDaysWithTimes:', { companyId, calendars });
 
     if (!calendars || calendars.length === 0) {
       console.warn('[WorkingCalendarService] No calendars to sync');
@@ -98,11 +109,12 @@ export class WorkingCalendarService {
       if (cal.id) {
         // Update existing entry
         const updateRequest: UpdateWorkingCalendarRequest = {
+          companyId: companyId,
+          dayOfWeek: cal.dayOfWeek,
           isWorkingDay: cal.isWorkingDay,
           startTime: cal.isWorkingDay ? cal.startTime : undefined,
           endTime: cal.isWorkingDay ? cal.endTime : undefined
         };
-        console.log(`[WorkingCalendarService] Updating calendar ID ${cal.id}:`, updateRequest);
         return this.update(cal.id, updateRequest);
       } else {
         // Create new entry
@@ -113,7 +125,6 @@ export class WorkingCalendarService {
           startTime: cal.isWorkingDay ? cal.startTime : undefined,
           endTime: cal.isWorkingDay ? cal.endTime : undefined
         };
-        console.log(`[WorkingCalendarService] Creating calendar for day ${cal.dayOfWeek}:`, createRequest);
         return this.create(createRequest);
       }
     });
@@ -130,7 +141,6 @@ export class WorkingCalendarService {
    * @returns Observable of all created/updated working calendar entries
    */
   syncWorkingDays(companyId: number, selectedDays: string[], standardHoursPerDay: number): Observable<WorkingCalendar[]> {
-    console.log('[WorkingCalendarService] syncWorkingDays:', { companyId, selectedDays, standardHoursPerDay });
 
     // If no days selected, return empty array
     if (!selectedDays || selectedDays.length === 0) {
@@ -141,7 +151,6 @@ export class WorkingCalendarService {
     // Get existing working calendars for this company, then sync
     return this.getByCompanyId(companyId).pipe(
       switchMap(existingCalendars => {
-        console.log('[WorkingCalendarService] Existing calendars:', existingCalendars);
         
         // Calculate start and end times based on standard hours (e.g., 9:00 - 17:00 for 8 hours)
         const startTime = new Date();
@@ -151,8 +160,6 @@ export class WorkingCalendarService {
         
         const startTimeSpan = this.dateToTimeSpan(startTime);
         const endTimeSpan = this.dateToTimeSpan(endTime);
-
-        console.log('[WorkingCalendarService] Calculated times:', { startTimeSpan, endTimeSpan });
 
         // Create requests for all 7 days of the week
         const requests: Observable<WorkingCalendar>[] = [];
@@ -169,7 +176,6 @@ export class WorkingCalendarService {
               startTime: isWorkingDay ? startTimeSpan : undefined,
               endTime: isWorkingDay ? endTimeSpan : undefined
             };
-            console.log(`[WorkingCalendarService] Updating day ${dayName} (${dayOfWeek}):`, updateRequest);
             requests.push(this.update(existing.id, updateRequest));
           } else {
             // Create new entry
@@ -180,7 +186,6 @@ export class WorkingCalendarService {
               startTime: isWorkingDay ? startTimeSpan : undefined,
               endTime: isWorkingDay ? endTimeSpan : undefined
             };
-            console.log(`[WorkingCalendarService] Creating day ${dayName} (${dayOfWeek}):`, createRequest);
             requests.push(this.create(createRequest));
           }
         }

@@ -15,7 +15,7 @@
         <h3 class="form-section-title">
           {{ 'company.info.title' | translate }}
         </h3>
-        <p class="form-section-description">Please provide the legal information for the company.</p>
+        <p class="form-section-description">{{ 'company.info.subtitle' | translate }}</p>
       </div>
       
       <div class="form-grid">
@@ -26,13 +26,13 @@
           </label>
           <input pInputText formControlName="companyName" class="input" [class.ng-invalid]="form.get('companyName')?.invalid && form.get('companyName')?.touched"/>
           @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
-            <small class="form-error">This field is required</small>
+            <small class="form-error">{{ 'common.validation.required' | translate }}</small>
           }
         </div>
 
         <!-- ICE -->
         <div class="form-field">
-          <label class="form-label form-label-required">
+          <label class="form-label">
             {{ 'company.info.ice' | translate }}
           </label>
           <input pInputText formControlName="ice" class="input" />
@@ -56,7 +56,7 @@
 
         <!-- CNSS -->
         <div class="form-field">
-          <label class="form-label form-label-required">
+          <label class="form-label">
             {{ 'company.info.cnss' | translate }}
           </label>
           <input pInputText formControlName="cnss" class="input" />
@@ -81,8 +81,8 @@
             optionValue="label"
             variant="autocomplete"
             [creatable]="true"
-            [createLabel]="'Create city'"
-            [placeholder]="'Type to search or create a city'"
+            [createLabel]="'company.info.createCity' | translate"
+            [placeholder]="'company.info.cityPlaceholder' | translate"
             [showClear]="true"
             (searchQuery)="onCitySearch($event)"
             (create)="onCreateCity($event)"
@@ -99,13 +99,13 @@
 
         <!-- IF -->
         <div class="form-field">
-          <label class="form-label">IF</label>
+          <label class="form-label">{{ 'company.info.identifiantFiscal' | translate }}</label>
           <input pInputText formControlName="if" class="input" />
         </div>
 
         <!-- RIB -->
         <div class="form-field">
-          <label class="form-label">RIB</label>
+          <label class="form-label">{{ 'company.info.rib' | translate }}</label>
           <input pInputText formControlName="rib" class="input" />
         </div>
       </div>
@@ -115,32 +115,32 @@
     @if (mode === 'create') {
       <section class="form-section form-divider">
         <div class="form-section-header">
-          <h3 class="form-section-title">Admin User</h3>
-          <p class="form-section-description">Create an administrator account for this company.</p>
+          <h3 class="form-section-title">{{ 'expert.client.adminUser' | translate }}</h3>
+          <p class="form-section-description">{{ 'expert.client.adminDescription' | translate }}</p>
         </div>
         
         <div class="form-grid">
           <!-- First Name -->
           <div class="form-field">
-            <label class="form-label form-label-required">First Name</label>
+            <label class="form-label form-label-required">{{ 'common.firstName' | translate }}</label>
             <input pInputText formControlName="adminFirstName" class="input" />
           </div>
 
           <!-- Last Name -->
           <div class="form-field">
-            <label class="form-label form-label-required">Last Name</label>
+            <label class="form-label form-label-required">{{ 'common.lastName' | translate }}</label>
             <input pInputText formControlName="adminLastName" class="input" />
           </div>
 
           <!-- Admin Email -->
           <div class="form-field">
-            <label class="form-label form-label-required">Admin Email</label>
+            <label class="form-label form-label-required">{{ 'company.info.email' | translate }}</label>
             <input pInputText formControlName="adminEmail" class="input" />
           </div>
 
           <!-- Admin Phone -->
           <div class="form-field">
-            <label class="form-label form-label-required">Admin Phone</label>
+            <label class="form-label form-label-required">{{ 'common.phone' | translate }}</label>
             <input pInputText formControlName="adminPhone" class="input" />
           </div>
 
@@ -149,14 +149,14 @@
             <div class="form-info-box-gray">
               <div class="flex items-center gap-2">
                 <p-checkbox formControlName="generatePassword" [binary]="true" inputId="genPass"></p-checkbox>
-                <label for="genPass" class="form-label cursor-pointer select-none">Auto-generate secure password</label>
+                <label for="genPass" class="form-label cursor-pointer select-none">{{ 'expert.client.autoGeneratePassword' | translate }}</label>
               </div>
               
               <!-- Manual Password (if not generated) -->
               @if (!form.get('generatePassword')?.value) {
                 <div class="form-field mt-3 pl-7">
-                  <label class="form-label">Password</label>
-                  <input pInputText type="password" formControlName="adminPassword" class="input" placeholder="Enter password" />
+                  <label class="form-label">{{ 'auth.password' | translate }}</label>
+                  <input pInputText type="password" formControlName="adminPassword" class="input" placeholder="{{ 'auth.passwordPlaceholder' | translate }}" />
                 </div>
               }
             </div>
@@ -170,7 +170,7 @@
       <button 
         pButton 
         type="button" 
-        label="Cancel" 
+        [label]="'common.cancel' | translate" 
         class="btn-secondary-outline" 
         (click)="onCancel()"
         [disabled]="isLoading()">
@@ -178,7 +178,7 @@
       <button 
         pButton 
         type="submit" 
-        [label]="mode === 'create' ? 'Create Client' : 'Save Changes'" 
+        [label]="mode === 'create' ? ('common.create' | translate) : ('common.save' | translate)" 
         class="btn-primary"
         [loading]="isLoading()">
       </button>

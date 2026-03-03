@@ -7,6 +7,7 @@ export interface Company {
   rc?: string;                     // Registre de Commerce
   patente?: string;                // Patente
   legalForm?: string;
+  foundingDate?: Date;             // Founding date / Date de création (datetime)
   cnss: string;                    // CNSS number
   address: string;
   city: string;

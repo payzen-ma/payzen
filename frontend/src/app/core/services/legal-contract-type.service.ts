@@ -21,10 +21,8 @@ export class LegalContractTypeService {
   private apiUrl = `${environment.apiUrl}/legal-contract-types`;
 
   getAll(): Observable<LegalContractType[]> {
-    console.log('[LegalContractTypeService] Fetching from:', this.apiUrl);
     return this.http.get<any[]>(this.apiUrl).pipe(
       map(items => {
-        console.log('[LegalContractTypeService] Received:', items);
         return (items || []).map(i => this.normalize(i));
       })
     );

@@ -61,7 +61,7 @@
       
       <ng-template pTemplate="caption">
         <div class="flex items-center justify-between p-4">
-          <h2 class="text-lg font-semibold text-gray-800">Client Portfolio</h2>
+          <h2 class="text-lg font-semibold text-gray-800">{{ 'expert.dashboard.viewingClient' | translate }}</h2>
           <p-iconField iconPosition="left">
             <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
             <input 
@@ -188,9 +188,10 @@
   <!-- Client Form Dialog -->
   <p-dialog 
     [(visible)]="isClientFormVisible" 
-    [header]="clientFormMode() === 'create' ? 'Add New Client' : 'Edit Client'"
+    [header]="clientFormMode() === 'create' ? ('expert.dashboard.newClient' | translate) : ('expert.dashboard.editClient' | translate)"
     [modal]="true"
-    [style]="{ width: '90vw', maxWidth: '800px' }"
+    styleClass="client-dialog"
+    [style]="{ width: '90vw', maxWidth: '720px' }"
     [draggable]="false" 
     [resizable]="false">
     @if (isClientFormVisible()) {

@@ -163,6 +163,9 @@
             
             <!-- Status -->
             <td class="px-6 py-4">
+              @if (absence.status === 'Draft') {
+                <p-tag [value]="'absences.status.draft' | translate" severity="secondary"></p-tag>
+              }
               @if (absence.status === 'Submitted') {
                 <p-tag [value]="'absences.status.submitted' | translate" severity="info"></p-tag>
               }
@@ -185,7 +188,41 @@
             
             <!-- Actions -->
             <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
+                @if (absence.status === 'Draft') {
+                  <button
+                    pButton
+                    icon="pi pi-send"
+                    [pTooltip]="'absences.submit' | translate"
+                    tooltipPosition="top"
+                    (click)="submitAbsence(absence.id); $event.stopPropagation()"
+                    severity="primary"
+                    [text]="true"
+                    [rounded]="true"
+                  ></button>
+                  <button
+                    pButton
+                    icon="pi pi-pencil"
+                    [pTooltip]="'common.edit' | translate"
+                    tooltipPosition="top"
+                    (click)="openEditDialog(absence); $event.stopPropagation()"
+                    severity="secondary"
+                    [text]="true"
+                    [rounded]="true"
+                  ></button>
+                }
+                @if (canDelete(absence.status)) {
+                  <button
+                    pButton
+                    icon="pi pi-trash"
+                    [pTooltip]="'common.delete' | translate"
+                    tooltipPosition="top"
+                    (click)="openDeleteDialog(absence.id); $event.stopPropagation()"
+                    severity="danger"
+                    [text]="true"
+                    [rounded]="true"
+                  ></button>
+                }
                 @if (absence.status === 'Submitted') {
                   <button
                     pButton
@@ -207,9 +244,6 @@
                     [text]="true"
                     [rounded]="true"
                   ></button>
-                }
-                @if (absence.status !== 'Submitted') {
-                  <span class="text-sm text-(--text-secondary)">-</span>
                 }
               </div>
             </td>
@@ -298,5 +332,91 @@
         [disabled]="!rejectReason().trim()"
       ></button>
     </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Delete confirmation dialog -->
+<p-dialog
+  [visible]="showDeleteDialog()"
+  [modal]="true"
+  [style]="{width: '420px'}"
+  [header]="'absences.deleteDialog.title' | translate"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="cancelDelete()"
+  styleClass="app-dialog"
+>
+  <p class="text-(--text-secondary) m-0">{{ 'absences.deleteDialog.message' | translate }}</p>
+  <ng-template pTemplate="footer">
+    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="cancelDelete()" icon="pi pi-times"></button>
+    <button pButton [label]="'common.delete' | translate" severity="danger" icon="pi pi-trash" (click)="confirmDelete()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Edit absence dialog -->
+<p-dialog
+  [visible]="showEditDialog()"
+  [modal]="true"
+  [style]="{width: 'min(28rem, 95vw)'}"
+  [header]="'absences.editDialog.title' | translate"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="cancelEdit()"
+  styleClass="app-dialog"
+>
+  @if (editedAbsence(); as a) {
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.date' | translate }}</label>
+        <input type="date" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceDate" (ngModelChange)="updateEditForm({ absenceDate: $event })" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.type' | translate }}</label>
+        <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceType" (ngModelChange)="updateEditForm({ absenceType: $event })">
+          @for (opt of absenceTypeOptions(); track opt.value) {
+            <option [value]="opt.value">{{ opt.label | translate }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.duration' | translate }}</label>
+        <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().durationType" (ngModelChange)="onEditDurationChange($event)">
+          @for (opt of durationTypeOptions(); track opt.value) {
+            <option [value]="opt.value">{{ opt.label | translate }}</option>
+          }
+        </select>
+      </div>
+      @if (editForm().durationType === 'HalfDay') {
+        <div>
+          <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.morning' | translate }} / {{ 'absences.afternoon' | translate }}</label>
+          <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().isMorning" (ngModelChange)="updateEditForm({ isMorning: $event })">
+            <option [ngValue]="true">{{ 'absences.morning' | translate }}</option>
+            <option [ngValue]="false">{{ 'absences.afternoon' | translate }}</option>
+          </select>
+        </div>
+      }
+      @if (editForm().durationType === 'Hourly') {
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.startTime' | translate }}</label>
+            <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().startTime" (ngModelChange)="updateEditForm({ startTime: $event })" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.endTime' | translate }}</label>
+            <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().endTime" (ngModelChange)="updateEditForm({ endTime: $event })" />
+          </div>
+        </div>
+      }
+      <div>
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.reason' | translate }}</label>
+        <textarea pTextarea [ngModel]="editForm().reason" (ngModelChange)="updateEditForm({ reason: $event })" rows="2" class="w-full"></textarea>
+      </div>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="cancelEdit()" icon="pi pi-times"></button>
+    <button pButton [label]="'common.save' | translate" icon="pi pi-check" (click)="saveEdit()" [disabled]="!canSaveEdit()"></button>
   </ng-template>
 </p-dialog>

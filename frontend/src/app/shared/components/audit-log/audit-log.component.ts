@@ -130,8 +130,8 @@ export class AuditLogComponent implements OnInit, OnChanges {
     { labelKey: 'audit.eventTypes.COMPANY_DELETED', value: AuditEventType.COMPANY_DELETED },
     { labelKey: 'audit.eventTypes.EMPLOYEE_CREATED', value: AuditEventType.EMPLOYEE_CREATED },
     { labelKey: 'audit.eventTypes.EMPLOYEE_UPDATED', value: AuditEventType.EMPLOYEE_UPDATED },
-    { labelKey: 'audit.eventTypes.USER_ROLE_ASSIGNED', value: AuditEventType.USER_ROLE_ASSIGNED },
-    { labelKey: 'audit.eventTypes.USER_ROLE_REVOKED', value: AuditEventType.USER_ROLE_REVOKED }
+    { labelKey: 'audit.eventTypes.USER_ROLE_ASSIGNED', value: AuditEventType.ROLE_ASSIGNED },
+    { labelKey: 'audit.eventTypes.USER_ROLE_REVOKED', value: AuditEventType.ROLE_REVOKED }
   ];
 
   getEventTypeLabel(type: AuditEventType): string {

@@ -66,7 +66,8 @@ export class LoginPage {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.error.set(err.error?.message || 'Login failed. Please check your credentials.');
+        const msg = err?.error?.Message || err?.error?.message || err?.Message || err?.message || (typeof err === 'string' ? err : null) || 'Login failed. Please check your credentials.';
+        this.error.set(msg);
       }
     });
   }

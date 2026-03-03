@@ -31,12 +31,12 @@
       </div>
       
       <!-- Action Button -->
-      <p-button 
+      <!-- <p-button 
         icon="pi pi-plus" 
         [label]="'company.contractTypes.add' | translate"
         size="small"
         (onClick)="openCreateDialog()">
-      </p-button>
+      </p-button> On desactive ajout d'une nouovelle entré pour les clients-->
     </header>
 
     <!-- Main Content Card -->
@@ -89,12 +89,13 @@
             <p class="text-sm text-gray-500 mb-6">
               {{ 'company.contractTypes.empty.description' | translate }}
             </p>
-            <p-button 
+            <!-- <p-button 
               icon="pi pi-plus" 
               [label]="'company.contractTypes.add' | translate"
               size="small"
               (onClick)="openCreateDialog()">
-            </p-button>
+            </p-button> -->
+
           </div>
         </div>
       } @else {
@@ -125,7 +126,7 @@
                 </div>
                 
                 @if (contractType.companyId) {
-                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <!-- <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       (click)="openEditDialog(contractType)"
@@ -140,7 +141,7 @@
                       [attr.aria-label]="'common.delete' | translate">
                       <i class="pi pi-trash text-sm"></i>
                     </button>
-                  </div>
+                  </div> On interdit la mise a jour ou suppression des type de contrat pour les client-->
                 } @else {
                   <div class="text-gray-400 text-sm px-3">
                     <i class="pi pi-lock text-xs"></i>
@@ -281,13 +282,13 @@
               </p>
               <div class="flex flex-wrap gap-1.5">
                 <button type="button" (click)="contractTypeForm.patchValue({contractTypeName: 'Full-Time'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  Full-Time
+                  {{ 'company.contractTypes.examplesList.fullTime' | translate }}
                 </button>
                 <button type="button" (click)="contractTypeForm.patchValue({contractTypeName: 'Part-Time'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  Part-Time
+                  {{ 'company.contractTypes.examplesList.partTime' | translate }}
                 </button>
                 <button type="button" (click)="contractTypeForm.patchValue({contractTypeName: 'Freelance'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  Freelance
+                  {{ 'company.contractTypes.examplesList.freelance' | translate }}
                 </button>
               </div>
             </div>

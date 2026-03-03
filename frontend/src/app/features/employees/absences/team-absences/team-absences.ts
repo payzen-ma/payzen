@@ -114,7 +114,7 @@ export class TeamAbsencesComponent implements OnInit {
       { label: this.translate.instant('absences.types.training'), value: 'TRAINING' },
       { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' },
       { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' },
-      { label: this.translate.instant('absences.types.accident_work'), value: 'ACCIDENT_WORK' },
+      { label: this.translate.instant('absences.types.accidentWork'), value: 'ACCIDENT_WORK' },
       { label: this.translate.instant('absences.types.exceptional'), value: 'EXCEPTIONAL' },
       { label: this.translate.instant('absences.types.religious'), value: 'RELIGIOUS' }
     ];

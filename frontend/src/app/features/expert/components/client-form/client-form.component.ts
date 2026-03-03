@@ -10,6 +10,7 @@ import { CompanyService } from '@app/core/services/company.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { EmployeeService, CityLookupOption } from '@app/core/services/employee.service';
 import { SelectFieldComponent } from '@app/shared/components/form-controls/select-field';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-client-form',
@@ -35,6 +36,7 @@ export class ClientFormComponent implements OnInit {
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
   private employeeService = inject(EmployeeService);
+  private translate = inject(TranslateService);
 
   @Input() mode: 'create' | 'edit' = 'create';
   @Input() company?: Company;
@@ -94,7 +96,7 @@ export class ClientFormComponent implements OnInit {
         this.citiesLoading.set(false);
       },
       error: (err) => {
-        this.errorMessage.set('Failed to create city. Please try again.');
+        this.errorMessage.set(this.translate.instant('errors.createFailed'));
         this.citiesLoading.set(false);
       }
     });
@@ -108,7 +110,7 @@ export class ClientFormComponent implements OnInit {
       phone: ['', [Validators.required]],
       address: ['', [Validators.required]],
       city: ['', [Validators.required]],
-      ice: ['', [Validators.required]],
+      ice: [''],
       cnss: ['', [Validators.required]],
       rc: [''],
       if: [''],
@@ -175,7 +177,7 @@ export class ClientFormComponent implements OnInit {
     const expertCompanyId = this.authService.currentUser()?.companyId;
     
     if (!expertCompanyId) {
-      this.errorMessage.set('Expert company ID not found');
+      this.errorMessage.set(this.translate.instant('errors.createFailed'));
       this.isLoading.set(false);
       return;
     }
@@ -211,10 +213,10 @@ export class ClientFormComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error creating company:', err);
-        let msg = 'Failed to create company. Please try again.';
+        let msg = this.translate.instant('errors.createFailed');
         
         if (err.status === 409) {
-          msg = 'A company with this ICE, CNSS, or Email already exists, or the Admin Email is already in use.';
+          msg = this.translate.instant('errors.createFailed');
           if (typeof err.error === 'string') {
               msg = err.error;
           } else if (err.error?.message) {

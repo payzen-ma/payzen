@@ -65,7 +65,7 @@ export interface Employee {
   cin: string;
   maritalStatus: 'single' | 'married' | 'divorced' | 'widowed';
   dateOfBirth: string;
-  birthPlace: string;
+  //birthPlace: string;
   professionalEmail: string;
   personalEmail: string;
   phone: string;

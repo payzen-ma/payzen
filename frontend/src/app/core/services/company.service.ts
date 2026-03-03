@@ -32,6 +32,7 @@ interface CompanyDto {
   email: string;
   createdAt: string;
   website?: string;
+  foundingDate?: string;
   taxRegime?: string;
   // Add other fields as needed based on backend response
 }
@@ -46,9 +47,13 @@ interface CompanyUpdateDto {
   IceNumber?: string;
   RcNumber?: string;
   Patente?: string;
+  PatenteNumber?: string;
+  patenteNumber?: string;
+  FoundingDate?: string;
   CnssNumber?: string;
   IfNumber?: string;
   RibNumber?: string;
+  ribNumber?: string;
   TaxRegime?: string;
   WebsiteUrl?: string;
   LegalForm?: string;
@@ -65,6 +70,7 @@ const COMPANY_FIELD_MAP: Partial<Record<keyof Company, keyof CompanyUpdateDto>> 
   ice: 'IceNumber',
   rc: 'RcNumber',
   patente: 'Patente',
+  foundingDate: 'FoundingDate',
   cnss: 'CnssNumber',
   if: 'IfNumber',
   rib: 'RibNumber',
@@ -134,7 +140,6 @@ export class CompanyService {
     const companyId = company.id || this.contextService.companyId() || this.authService.currentUser()?.companyId;
     
     if (!companyId) {
-      console.log('UpdateCompany: No company ID found');
       return throwError(() => new Error('Company ID is required for update'));
     }
 
@@ -170,10 +175,54 @@ export class CompanyService {
       if (frontendKey in company) {
         const backendKey = COMPANY_FIELD_MAP[frontendKey];
         if (backendKey) {
-          updateDto[backendKey] = company[frontendKey] as string;
+          const raw = (company as any)[frontendKey];
+          // Format Date values to ISO strings for backend
+          if (raw instanceof Date) {
+            updateDto[backendKey] = raw.toISOString();
+          } else if (frontendKey === 'foundingDate' && typeof raw === 'string') {
+            const parsed = new Date(raw);
+            if (!isNaN(parsed.getTime())) {
+              updateDto[backendKey] = parsed.toISOString();
+            } else {
+              updateDto[backendKey] = raw as any;
+            }
+          } else {
+            updateDto[backendKey] = raw as any;
+          }
         }
       }
     });
+
+    // Backwards-compatibility: some backends expect lowercase 'patente'
+    // as the field name while others expect 'Patente'. Ensure both are sent
+    // when the frontend 'patente' field is present.
+    if ('patente' in company) {
+      const val = (company as any).patente;
+      (updateDto as any).Patente = val;
+      (updateDto as any).patente = val;
+      // Some backend models expect `PatenteNumber` as the field name
+      (updateDto as any).PatenteNumber = val;
+      (updateDto as any).patenteNumber = val;
+    }
+
+    // Ensure RIB is sent under both pascal and camel case keys
+    if ('rib' in company) {
+      const val = (company as any).rib;
+      (updateDto as any).RibNumber = val;
+      (updateDto as any).ribNumber = val;
+    }
+
+    // If foundingDate is provided directly on the payload, ensure common keys are set
+    if ('foundingDate' in company) {
+      const val = (company as any).foundingDate;
+      let iso: any = val;
+      if (val instanceof Date) iso = val.toISOString();
+      else if (typeof val === 'string') {
+        const p = new Date(val);
+        if (!isNaN(p.getTime())) iso = p.toISOString();
+      }
+      (updateDto as any).FoundingDate = iso;
+    }
 
     return updateDto;
   }
@@ -250,7 +299,13 @@ export class CompanyService {
       cnss: dto.cnssNumber,
       if: dto.ifNumber,
       rib: dto.ribNumber,
-      patente: (dto as any).patente || (dto as any).Patente || (dto as any).patent || (dto as any).patenteNumber || '',
+      patente: (dto as any).patente || (dto as any).Patente || (dto as any).patent || (dto as any).patenteNumber || (dto as any).PatenteNumber || '',
+      foundingDate: (() => {
+        const raw = (dto as any).foundingDate || (dto as any).FoundingDate || (dto as any).founding_date || null;
+        if (!raw) return undefined;
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? undefined : d;
+      })(),
       address: dto.companyAddress,
       city: dto.cityName,
       country: dto.countryName || 'Maroc', // Default if missing

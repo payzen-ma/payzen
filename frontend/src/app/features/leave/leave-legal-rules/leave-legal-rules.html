@@ -1,0 +1,209 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      <p-toast />
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
+              <i class="pi pi-file-text text-2xl"></i>
+            </div>
+            <div>
+              <h1 class="heading">
+                {{ 'leave.legalRules.title' | translate }}
+              </h1>
+              <p class="subheading mt-1">
+                {{ 'leave.legalRules.subtitle' | translate }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          pButton
+          type="button"
+          [label]="'common.refresh' | translate"
+          class="btn btn-secondary"
+          icon="pi pi-refresh"
+          (click)="refresh()"
+          [loading]="isLoading()"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-6 py-6">
+    <!-- Error Message -->
+    @if (error()) {
+      <div class="flex flex-row items-center justify-center card alert-error alert gap-3 mb-4">
+        <div>
+          <i class="pi pi-exclamation-circle text-xl self-center"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="font-semibold mb-1">{{ 'common.error' | translate }}</h3>
+          <p class="text-sm">{{ error() }}</p>
+        </div>
+        <div>
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            class="btn btn-danger"
+            [label]="'common.retry' | translate"
+            (click)="refresh()"
+          ></button>
+        </div>
+      </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      @for (card of statCards; track card.label) {
+        <div class="stat-card flex items-center justify-between">
+          <div>
+            <p class="stat-label">{{ card.label | translate }}</p>
+            <p class="stat-value">{{ card.accessor(stats()) }}</p>
+          </div>
+          <div class="stat-card-icon" [ngClass]="card.iconColor">
+            <i [class]="card.icon"></i>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Search -->
+    <div class="card card-compact mb-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full flex-1 min-w-0">
+          <p-iconfield iconPosition="left" class="w-full search-field">
+            <p-inputicon class="pi pi-search text-gray-400"></p-inputicon>
+            <input
+              pInputText
+              type="text"
+              class="w-full input"
+              [(ngModel)]="searchQueryModel"
+              [placeholder]="'leave.legalRules.searchPlaceholder' | translate"
+            />
+          </p-iconfield>
+        </div>
+
+        @if (searchQuery()) {
+          <button
+            pButton
+            type="button"
+            icon="pi pi-times"
+            [label]="'common.clear' | translate"
+            class="shrink-0 btn btn-secondary"
+            (click)="clearSearch()"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <!-- Legal Rules Table -->
+    <div class="card-compact relative">
+      <!-- Loading Overlay -->
+      @if (isLoading()) {
+        <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
+            <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
+          </div>
+        </div>
+      }
+
+      <p-table
+        [value]="filteredLegalRules()"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{'min-width': '80rem'}"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="saas-table-header">{{ 'leave.legalRules.table.eventCode' | translate }}</th>
+            <th class="saas-table-header">{{ 'leave.legalRules.table.description' | translate }}</th>
+            <th class="saas-table-header text-center">{{ 'leave.legalRules.table.daysGranted' | translate }}</th>
+            <th class="saas-table-header">{{ 'leave.legalRules.table.legalArticle' | translate }}</th>
+            <th class="saas-table-header text-center">{{ 'leave.legalRules.table.discontinuous' | translate }}</th>
+            <th class="saas-table-header text-center">{{ 'leave.legalRules.table.timeLimit' | translate }}</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-rule>
+          <tr class="saas-table-row">
+            <!-- Event Case Code -->
+            <td class="px-6 py-4">
+              <span class="event-code-chip">{{ rule.eventCaseCode }}</span>
+            </td>
+
+            <!-- Description -->
+            <td class="px-6 py-4 max-w-xs">
+              <span class="text-(--text-primary)" [title]="rule.description">
+                {{ rule.description }}
+              </span>
+            </td>
+
+            <!-- Days Granted -->
+            <td class="px-6 py-4 text-center">
+              <span class="days-granted-highlight">
+                {{ rule.daysGranted }}
+                @if (rule.daysGranted === 1) {
+                  {{ 'common.day' | translate }}
+                } @else {
+                  {{ 'common.days' | translate }}
+                }
+              </span>
+            </td>
+
+            <!-- Legal Article -->
+            <td class="px-6 py-4">
+              <span class="legal-article-badge">{{ rule.legalArticle }}</span>
+            </td>
+
+            <!-- Can Be Discontinuous -->
+            <td class="px-6 py-4 text-center">
+              @if (rule.canBeDiscontinuous) {
+                <span class="discontinuous-badge">
+                  <i class="pi pi-check text-xs mr-1"></i>
+                  {{ 'leave.legalRules.discontinuous' | translate }}
+                </span>
+              } @else {
+                <span class="text-gray-400">
+                  <i class="pi pi-minus text-xs"></i>
+                </span>
+              }
+            </td>
+
+            <!-- Must Be Used Within Days -->
+            <td class="px-6 py-4 text-center">
+              @if (rule.mustBeUsedWithinDays) {
+                <span class="time-limit-warning">
+                  <i class="pi pi-clock text-xs mr-1"></i>
+                  {{ formatTimeLimit(rule.mustBeUsedWithinDays) }}
+                </span>
+              } @else {
+                <span class="text-gray-400">
+                  <i class="pi pi-minus text-xs"></i>
+                </span>
+              }
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center py-12">
+              <app-empty-state
+                icon="pi pi-file-text"
+                title="Aucune règle légale"
+                message="Aucune règle légale n'a été configurée pour les types de congé."
+              >
+              </app-empty-state>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

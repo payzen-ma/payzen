@@ -335,14 +335,14 @@
                   }
                 </div>
 
-                <div class="form-field">
+                <!-- <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.identity.birthPlace' | translate }}</label>
                   @if (isEditMode()) {
                     <input pInputText [ngModel]="employee().birthPlace" (ngModelChange)="updateField('birthPlace', $event)" class="w-full input" title="{{ 'employees.profile.identity.birthPlace' | translate }}" />
                   } @else {
                     <p class="read-only-value">{{ employee().birthPlace }}</p>
                   }
-                </div>
+                </div> -->
               </div>
             </div>
           </p-tabpanel>
@@ -928,7 +928,7 @@
 
           <!-- Tab 8: Historique (Enhanced) -->
           <p-tabpanel value="7">
-            <div class="p-6 history-container" role="region" aria-label="Employee history">
+            <div class="p-6 history-container" role="region" [attr.aria-label]="'employees.profile.history.ariaLabel' | translate">
               <!-- Header Section -->
               <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
@@ -1070,7 +1070,14 @@
                     <article class="pb-6">
                       <div class="card p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ease-in-out border border-(--border-color-subtle)">
                         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2">
-                          <h4 class="font-semibold text-(--text-primary) text-base mb-1 sm:mb-0">{{ event.title }}</h4>
+                          <h4 class="font-semibold text-(--text-primary) text-base mb-1 sm:mb-0">
+                            <ng-container *ngIf="getHistoryRawTitle(event) as rawTitle; else translatedTitle">
+                              {{ rawTitle }}
+                            </ng-container>
+                            <ng-template #translatedTitle>
+                              {{ getHistoryTitle(event) }}
+                            </ng-template>
+                          </h4>
                           <time 
                             class="text-xs text-(--text-muted) whitespace-nowrap sm:ml-4" 
                             [attr.datetime]="event.timestamp"
@@ -1162,12 +1169,7 @@
               }
             </div>
           </p-tabpanel>
-          <!-- Tab 8: Spouse & Children -->
-          <p-tabpanel value="7">
-            <div class="p-6">
-              <app-spouse-children [employeeId]="employee().id"></app-spouse-children>
-            </div>
-          </p-tabpanel>
+          
         </p-tabpanels>
       </p-tabs>
     </div>

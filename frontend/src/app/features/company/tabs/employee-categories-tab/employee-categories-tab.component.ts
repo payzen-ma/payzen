@@ -7,7 +7,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { EmployeeCategoryService, EmployeeCategory } from '@app/core/services/employee-category.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 
@@ -22,9 +23,10 @@ import { CompanyContextService } from '@app/core/services/companyContext.service
     InputTextModule,
     DialogModule,
     ToastModule,
-    TooltipModule
+    TooltipModule,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './employee-categories-tab.component.html',
   styleUrls: ['./employee-categories-tab.component.css']
 })
@@ -33,6 +35,7 @@ export class EmployeeCategoriesTabComponent implements OnInit {
   private readonly categoryService = inject(EmployeeCategoryService);
   private readonly contextService = inject(CompanyContextService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
 
   readonly categories = signal<EmployeeCategory[]>([]);

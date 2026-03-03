@@ -69,6 +69,12 @@
             <span>{{ 'company.tabs.holidays' | translate }}</span>
           </div>
         </p-tab>
+        <p-tab value="leaves" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-briefcase"></i>
+            <span>{{ 'company.tabs.leaves' | translate }}</span>
+          </div>
+        </p-tab>
         
         <p-tab value="users" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
           <div class="flex items-center gap-2">
@@ -110,6 +116,9 @@
         </p-tabpanel>
         <p-tabpanel value="holidays">
           <app-holidays></app-holidays>
+        </p-tabpanel>
+        <p-tabpanel value="leaves">
+          <app-leave></app-leave>
         </p-tabpanel>
         
         <p-tabpanel value="users">

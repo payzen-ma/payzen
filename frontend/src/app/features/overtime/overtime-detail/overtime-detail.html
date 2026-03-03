@@ -1,0 +1,11 @@
+<div class="max-w-4xl mx-auto px-6 py-6">
+  <p-card *ngIf="overtime() as o">
+    <h2>{{ o.employeeFullName }}</h2>
+    <p>{{ 'overtime.table.date' | translate }}: {{ o.overtimeDate }}</p>
+    <p>{{ 'overtime.table.type' | translate }}: {{ o.overtimeTypeDescription || o.overtimeType }}</p>
+    <p>{{ 'overtime.table.startTime' | translate }}: {{ o.startTime }}</p>
+    <p>{{ 'overtime.table.endTime' | translate }}: {{ o.endTime }}</p>
+    <p>{{ 'overtime.table.totalHours' | translate }}: {{ o.totalHours }}h</p>
+    <p>{{ 'overtime.table.reason' | translate }}: {{ o.reason }}</p>
+  </p-card>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, switchMap, startWith } from 'rxjs/operators';
+import { map, switchMap, startWith, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { Employee as EmployeeProfileModel, EmployeeSalaryPackageAssignment } from '@app/core/models/employee.model';
@@ -19,6 +19,10 @@ export interface Employee {
   statusRaw?: string;
   // localized label coming from backend (NameFr/NameEn/NameAr)
   statusName?: string;
+  // Role information (preserve raw role fields from backend)
+  roleName?: any;
+  role?: any;
+  roles?: any;
   startDate: string;
   missingDocuments: number;
   contractType: string;
@@ -172,6 +176,7 @@ export interface CreateEmployeeRequest {
   cimrNumber?: string | null;
   attendanceTypeId?: number | null;
   employeeCategoryId?: number | null;
+  companyId?: number | null;
 }
 
 interface DashboardEmployee {
@@ -419,10 +424,22 @@ export class EmployeeService {
   getEmployeeDetails(id: string): Observable<EmployeeProfileModel> {
     return this.http
       .get<EmployeeDetailsResponse>(`${this.EMPLOYEE_URL}/${id}/details`)
-      .pipe(map(response => {
-        console.log('[EmployeeService] API response for employee details:', response);
+      .pipe(map(response => {      
         return this.mapEmployeeDetailsResponse(response);
       }));
+  }
+
+  /**
+   * Fetch employee history/events separately
+   */
+  getEmployeeHistory(id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.EMPLOYEE_URL}/${id}/history`).pipe(
+      tap((events: any[]) => {
+        events.forEach((event: any, index: number) => {
+          
+        });
+      })
+    );
   }
 
   getEmployeeFormData(): Observable<EmployeeFormData> {
@@ -448,17 +465,17 @@ export class EmployeeService {
 
     return this.http.get<any[]>(`${environment.apiUrl}/statuses`, { params }).pipe(
       map(items => {
-        console.log('[EmployeeService] /api/statuses response:', items, 'lang:', this.translate?.currentLang);
         return (items || []).map(i => {
-        const it: any = i;
-        const label = this.getLocalizedLabel(it);
-        const value = it.Code ?? it.code ?? String(it.Id ?? it.id);
-        return {
-          id: it.Id ?? it.id,
-          label,
-          value: value
-        } as LookupOption & { value: string };
-        });
+            const it: any = i;
+            const label = this.getLocalizedLabel(it);
+            const rawVal = it.Code ?? it.code ?? it.Id ?? it.id ?? '';
+            const value = String(rawVal).toLowerCase();
+            return {
+              id: it.Id ?? it.id,
+              label,
+              value: value
+            } as LookupOption & { value: string };
+            });
       })
     );
   }
@@ -689,6 +706,8 @@ export class EmployeeService {
         departmentName: item.departementName
       }));
 
+      
+
     return {
       statuses: toLookupOption(response?.statuses),
       genders: toLookupOption(response?.genders),
@@ -722,7 +741,7 @@ export class EmployeeService {
         const lang = (this.translate?.currentLang || (this.translate?.getBrowserLang && this.translate.getBrowserLang()) || 'fr').toString().toLowerCase();
         const suffix = lang.startsWith('fr') ? 'Fr' : lang.startsWith('ar') ? 'Ar' : 'En';
         const label = it[`Name${suffix}`] ?? it[`name${suffix}`] ?? it.Name ?? it.name ?? it.NameEn ?? it.NameFr ?? it.NameAr ?? String(value);
-        return { id: it.Id ?? it.id ?? idx, label, value: String(value) } as LookupOption;
+        return { id: it.Id ?? it.id ?? idx, label, value: String(value).toLowerCase() } as LookupOption;
       }
       return { id: idx, label: String(s), value: String(s).toLowerCase() } as LookupOption;
     });
@@ -749,7 +768,11 @@ export class EmployeeService {
       missingDocuments: this.toNumberValue(employee.missingDocuments || employee.MissingDocuments),
         contractType: this.mapContractType(employee.contractType || employee.ContractType),
         manager: employee.manager || employee.Manager || undefined,
-        userId: employee.userId ?? employee.UserId ?? employee.user_id ?? employee.User_Id ?? undefined
+        userId: employee.userId ?? employee.UserId ?? employee.user_id ?? employee.User_Id ?? undefined,
+        // Preserve any role information the backend might include so callers can derive display roles
+        roleName: employee.roleName ?? employee.RoleName ?? employee.RoleName ?? undefined,
+        role: employee.role ?? employee.Role ?? undefined,
+        roles: employee.roles ?? employee.Roles ?? undefined
     };
   }
 
@@ -793,15 +816,9 @@ export class EmployeeService {
       amount: c.amount
     }));
     
-    // Debug address object structure
-    console.log('[EmployeeService] Address payload:', {
-      'payload.address': payload.address,
-      '(payload as any).Address': (payload as any).Address,
-      'full payload keys': Object.keys(payload)
-    });
+    
     
     const addressPayload = payload.address || (payload as any).Address;
-    console.log('[EmployeeService] Extracted addressPayload:', addressPayload);
     
     const cityName = addressPayload?.cityName || addressPayload?.CityName || '';
     const countryName = addressPayload?.countryName || addressPayload?.CountryName || '';
@@ -809,37 +826,14 @@ export class EmployeeService {
     const addressLine2 = addressPayload?.addressLine2 || addressPayload?.AddressLine2 || '';
     const zipCode = addressPayload?.zipCode || addressPayload?.ZipCode || '';
     
-    console.log('[EmployeeService] Extracted address fields:', {
-      cityName,
-      countryName,
-      addressLine1,
-      addressLine2,
-      zipCode
-    });
 
-    // Debug CNSS and CIMR values
-    console.log('[EmployeeService] CNSS raw values:', {
-      'payload.cnss': payload.cnss,
-      '(payload as any).Cnss': (payload as any).Cnss,
-      '(payload as any).CNSS': (payload as any).CNSS,
-      'coalesced': payload.cnss ?? (payload as any).Cnss ?? (payload as any).CNSS
-    });
-    console.log('[EmployeeService] CIMR raw values:', {
-      'payload.cimr': payload.cimr,
-      '(payload as any).Cimr': (payload as any).Cimr,
-      '(payload as any).CIMR': (payload as any).CIMR,
-      'coalesced': payload.cimr ?? (payload as any).Cimr ?? (payload as any).CIMR
-    });
 
     const cnssValue = this.toStringValue(payload.cnss ?? (payload as any).Cnss ?? (payload as any).CNSS);
     const amoValue = this.toStringValue(payload.amo ?? (payload as any).Amo ?? (payload as any).AMO);
     const cimrValue = this.toStringValue(payload.cimr ?? (payload as any).Cimr ?? (payload as any).CIMR);
 
-    console.log('[EmployeeService] After toStringValue:', {
-      cnss: cnssValue,
-      amo: amoValue,
-      cimr: cimrValue
-    });
+    // Extract birthPlace from payload if it exists (separate from address city)
+    //const birthPlace = (payload as any).birthPlace || (payload as any).BirthPlace || ''; Birthplace is not necessarily required
 
     const detail: EmployeeProfileModel = {
       id: this.toStringValue(payload.id),
@@ -848,7 +842,7 @@ export class EmployeeService {
       photo: undefined,
       cin: payload.cinNumber ?? '',
       maritalStatus: this.mapMaritalStatus(payload.maritalStatusName),
-      birthPlace: cityName,
+      //birthPlace: birthPlace,
       professionalEmail: payload.email ?? '',
       personalEmail: payload.email ?? '',
       phone: this.composePhone(payload.countryPhoneCode, payload.phone),
@@ -898,36 +892,28 @@ export class EmployeeService {
       updatedAt: payload.updatedAt ? new Date(payload.updatedAt) : undefined,
       dateOfBirth: this.formatForDateInput(payload.dateOfBirth),
       startDate: this.formatForDateInput(payload.contractStartDate),
-      events: (payload.events || []).map(event => ({
-        type: event.type,
-        title: event.title,
-        date: event.date,
-        description: event.description,
-        details: event.details,
-        modifiedBy: event.modifiedBy ? {
-          name: event.modifiedBy.name,
-          role: event.modifiedBy.role
-        } : undefined,
-        timestamp: event.timestamp
-      }))
+      events: (payload.events || []).map((event: any) => {
+        
+        const mappedEvent = {
+          type: event.eventName || event.EventName || event.type || event.Event || event.EventType || 'general_update',
+          title: event.title ?? event.EventTitle ?? event.Title ?? '',
+          date: event.date ?? event.createdAt ?? event.CreatedAt ?? event.timestamp,
+          description: event.description ?? event.Description ?? (event.newValue ? `→ ${event.newValue}` : ''),
+          details: event.details ?? {
+            oldValue: event.oldValue ?? event.OldValue ?? (event.OldValue === '' ? '(vide)' : event.OldValue),
+            newValue: event.newValue ?? event.NewValue
+          },
+          modifiedBy: event.modifiedBy ?? (event.CreatorFullName ? {
+            name: event.CreatorFullName,
+            role: 'Admin'
+          } : undefined),
+          timestamp: event.timestamp ?? event.createdAt ?? event.CreatedAt
+        };
+        
+        return mappedEvent;
+      })
     };
-
-    console.log('[EmployeeService] Mapped employeeCategoryId:', detail.employeeCategoryId, 'from payload:', {
-      categoryId: (payload as any).categoryId,
-      CategoryId: (payload as any).CategoryId,
-      employeeCategoryId: (payload as any).employeeCategoryId
-    });
-    console.log('[EmployeeService] Mapped employeeCategoryName:', detail.employeeCategoryName, 'from payload:', {
-      categoryName: (payload as any).categoryName,
-      CategoryName: (payload as any).CategoryName
-    });
-    console.log('[EmployeeService] Final detail object with CNSS/CIMR:', {
-      cnss: detail.cnss,
-      cimr: detail.cimr,
-      amo: detail.amo
-    });
-
-    return detail;
+      return detail;
   }
 
   private mapEmployeeStatus(status?: string): Employee['status'] {

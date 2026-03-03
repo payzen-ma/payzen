@@ -60,8 +60,9 @@ export enum AuditEventType {
   // User/Permission events
   USER_CREATED = 'USER_CREATED',
   USER_UPDATED = 'USER_UPDATED',
-  USER_ROLE_ASSIGNED = 'USER_ROLE_ASSIGNED',
-  USER_ROLE_REVOKED = 'USER_ROLE_REVOKED',
+  ROLE_ASSIGNED = 'ROLE_ASSIGNED',
+  ROLE_REMOVED = 'ROLE_REMOVED',
+  ROLE_REVOKED = 'ROLE_REVOKED',
   PERMISSION_CREATED = 'PERMISSION_CREATED',
   PERMISSION_UPDATED = 'PERMISSION_UPDATED',
   ROLE_CREATED = 'ROLE_CREATED',
@@ -161,6 +162,7 @@ export interface AuditLogDisplayItem {
   entityId: number;
   entityName: string;
   eventType: AuditEventType;
+  eventKey?: string; // normalized key used for i18n lookup (e.g., COMPANY_NAME_CHANGED)
   description: string;
   details?: {
     fieldName?: string;

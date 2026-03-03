@@ -1,115 +1,230 @@
-<div class="min-h-screen bg-gray-50">
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
-              <i class="pi pi-calendar text-2xl"></i>
-            </div>
-            <div>
-              <h1 class="heading">
-                {{ 'absences.hrTitle' | translate }}
-              </h1>
-              <p class="subheading mt-1">
-                {{ 'absences.hrSubtitle' | translate }}
-              </p>
-            </div>
-          </div>
+<div class="salary-page">
+  <p-toast />
+  <p-confirmDialog />
+
+  <header class="page-header">
+    <div class="module-header__content">
+      <div class="module-header__icon">
+        <i class="pi pi-calendar"></i>
+      </div>
+      <div class="module-header__text">
+        <h1 class="page-title">{{ 'absences.hrTitle' | translate }}</h1>
+        <p class="page-subtitle">{{ 'absences.hrSubtitle' | translate }}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="module-stats">
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.status.submitted' | translate }}</p>
+          <h3>{{ submittedCount() }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-clock"></i>
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="max-w-7xl mx-auto px-6 py-6">
-    <!-- Company Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.total' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ companyStats().totalAbsences }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-calendar text-(--primary) text-xl"></i>
-          </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.status.approved' | translate }}</p>
+          <h3>{{ approvedCount() }}</h3>
         </div>
-      </p-card>
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.totalDays' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ companyStats().totalDays }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-clock text-(--primary) text-xl"></i>
-          </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-check"></i>
         </div>
-      </p-card>
+      </div>
     </div>
-
-    <!-- Pending Absences Section -->
-    @if (pendingAbsences().length > 0) {
-      <div class="card mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-(--text-primary)">
-            {{ 'absences.pendingRequests' | translate }}
-          </h2>
-          <p-tag [value]="filteredPendingAbsences().length + ' / ' + pendingAbsences().length + ' ' + ('absences.pending' | translate)" severity="warn"></p-tag>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.status.rejected' | translate }}</p>
+          <h3>{{ rejectedCount() }}</h3>
         </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-times"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'absences.status.cancelled' | translate }}</p>
+          <h3>{{ cancelledCount() }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-ban"></i>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card-module">
+      <div class="stat-card-module__inner">
+        <div class="stat-card-module__content">
+          <p>{{ 'common.total' | translate }}</p>
+          <h3>{{ companyStats().totalAbsences }}</h3>
+        </div>
+        <div class="stat-card-module__icon">
+          <i class="pi pi-list"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="surface">
+    <div class="module-table-card__header">
+      <h2>{{ 'absences.hr.employees' | translate }}</h2>
+      <span class="p-input-icon-left w-64">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          [placeholder]="'absences.searchEmployee' | translate"
+          class="w-full"
+        />
+      </span>
+    </div>
+    <p-table [value]="filteredAllEmployees()" [loading]="isLoading()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="saas-table-header">{{ 'employees.name' | translate }}</th>
+          <th class="saas-table-header">{{ 'employees.position' | translate }}</th>
+          <th class="saas-table-header">{{ 'employees.department' | translate }}</th>
+          <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-emp>
+        <tr class="saas-table-row">
+          <td class="px-6 py-4">{{ emp.firstName }} {{ emp.lastName }}</td>
+          <td class="px-6 py-4">{{ emp.position || '-' }}</td>
+          <td class="px-6 py-4">{{ emp.department || '-' }}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <button
+                pButton
+                icon="pi pi-eye"
+                [pTooltip]="'absences.viewDetails' | translate"
+                tooltipPosition="top"
+                (click)="viewEmployeeAbsences(emp.id)"
+                severity="info"
+                [text]="true"
+                [rounded]="true"
+              ></button>
+              <button
+                pButton
+                icon="pi pi-plus"
+                [pTooltip]="'absences.hrGrant' | translate"
+                tooltipPosition="top"
+                (click)="openGrantDialog(emp.id, (emp.firstName + ' ' + emp.lastName))"
+                severity="success"
+                [text]="true"
+                [rounded]="true"
+              ></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center py-8">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-users text-4xl text-gray-400"></i>
+              <p class="text-gray-500">{{ 'employees.noEmployees' | translate }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="surface">
+      <!-- Tabs -->
+      <p-tabs 
+        [value]="activeTabValue" 
+        (onTabChange)="onTabChange($event)"
+        class="mb-6">
+        <p-tablist>
+          <p-tab value="submitted" class="flex items-center gap-2" (click)="setActiveTab('submitted')">
+            <i class="pi pi-clock"></i>
+            <span>{{ 'absences.status.submitted' | translate }}</span>
+            <p-badge 
+              [value]="submittedCount()" 
+              severity="warn" 
+              *ngIf="submittedCount() > 0">
+            </p-badge>
+          </p-tab>
+          <p-tab value="approved" class="flex items-center gap-2" (click)="setActiveTab('approved')">
+            <i class="pi pi-check"></i>
+            <span>{{ 'absences.status.approved' | translate }}</span>
+          </p-tab>
+          <p-tab value="rejected" class="flex items-center gap-2" (click)="setActiveTab('rejected')">
+            <i class="pi pi-times"></i>
+            <span>{{ 'absences.status.rejected' | translate }}</span>
+          </p-tab>
+          <p-tab value="cancelled" class="flex items-center gap-2" (click)="setActiveTab('cancelled')">
+            <i class="pi pi-ban"></i>
+            <span>{{ 'absences.status.cancelled' | translate }}</span>
+            <p-badge 
+              [value]="cancelledCount()" 
+              severity="danger" 
+              *ngIf="cancelledCount() > 0">
+            </p-badge>
+          </p-tab>
+          <p-tab value="all" class="flex items-center gap-2" (click)="setActiveTab('all')">
+            <i class="pi pi-list"></i>
+            <span>{{ 'absences.status.all' | translate }}</span>
+          </p-tab>
+        </p-tablist>
 
         <!-- Filters -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <!-- Employee Name Filter -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-(--text-primary) mb-2">
-              {{ 'absences.table.employee' | translate }}
-            </label>
+        <div class="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.employee' | translate }}:</label>
             <input
               type="text"
               pInputText
-              [(ngModel)]="pendingEmployeeFilter"
+              [ngModel]="submittedEmployeeFilter()"
+              (ngModelChange)="submittedEmployeeFilter.set($event)"
               [placeholder]="'absences.filters.searchEmployee' | translate"
-              class="w-full"
+              class="w-48"
             />
           </div>
 
-          <!-- Absence Type Filter -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-(--text-primary) mb-2">
-              {{ 'absences.table.type' | translate }}
-            </label>
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.type' | translate }}:</label>
             <p-select
               [options]="absenceTypeFilterOptions()"
-              [(ngModel)]="pendingTypeFilter"
+              [ngModel]="submittedTypeFilter()"
+              (ngModelChange)="submittedTypeFilter.set($event)"
               optionLabel="label"
               optionValue="value"
               [placeholder]="'absences.filters.allTypes' | translate"
-              styleClass="w-full"
+              class="w-48"
             ></p-select>
           </div>
 
-          <!-- Duration Filter -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-(--text-primary) mb-2">
-              {{ 'absences.table.duration' | translate }}
-            </label>
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.duration' | translate }}:</label>
             <p-select
               [options]="durationTypeFilterOptions()"
-              [(ngModel)]="pendingDurationFilter"
+              [ngModel]="submittedDurationFilter()"
+              (ngModelChange)="submittedDurationFilter.set($event)"
               optionLabel="label"
               optionValue="value"
               [placeholder]="'absences.filters.allDurations' | translate"
-              styleClass="w-full"
+              class="w-48"
             ></p-select>
           </div>
         </div>
-        
+
+        <!-- Table -->
         <p-table
-          [value]="filteredPendingAbsences()"
+          [value]="filteredSubmittedAbsences()"
           styleClass="p-datatable-sm"
-          [tableStyle]="{'min-width': '50rem'}"
+          [tableStyle]="{'min-width': '70rem'}"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -124,7 +239,6 @@
 
           <ng-template pTemplate="body" let-absence>
             <tr class="saas-table-row">
-              <!-- Employee -->
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="flex items-center justify-center w-10 h-10 rounded-full bg-(--primary)/10 text-(--primary) font-semibold">
@@ -133,16 +247,10 @@
                   <span class="font-medium">{{ absence.employeeName }}</span>
                 </div>
               </td>
-
-              <!-- Date -->
               <td class="px-6 py-4">{{ absence.absenceDate | date: 'dd/MM/yyyy' }}</td>
-
-              <!-- Type -->
               <td class="px-6 py-4">
                 <p-tag [value]="getAbsenceTypeLabel(absence.absenceType) | translate" severity="info"></p-tag>
               </td>
-
-              <!-- Duration -->
               <td class="px-6 py-4">
                 @if (absence.durationType === 'FullDay') {
                   <span>{{ 'absences.durations.fullDay' | translate }}</span>
@@ -154,13 +262,9 @@
                   <span>{{ formatTime(absence.startTime) }} - {{ formatTime(absence.endTime) }}</span>
                 }
               </td>
-
-              <!-- Reason -->
               <td class="px-6 py-4">
                 <span class="text-sm text-(--text-secondary)">{{ absence.reason || '-' }}</span>
               </td>
-
-              <!-- Actions -->
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
                   <button
@@ -198,145 +302,8 @@
             </tr>
           </ng-template>
         </p-table>
-      </div>
-    }
-
-    <!-- Search -->
-    <div class="card mb-6">
-      <div class="flex items-center gap-4">
-        <span class="p-input-icon-left flex-1">
-          <i class="pi pi-search"></i>
-          <input
-            pInputText
-            type="text"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'absences.searchEmployee' | translate"
-            class="w-full"
-          />
-        </span>
-      </div>
-    </div>
-
-    <!-- Employees Table -->
-    <div class="card-compact relative">
-      <!-- Loading Overlay -->
-      @if (isLoading()) {
-        <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
-          <div class="flex flex-col items-center gap-3">
-            <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
-            <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
-          </div>
-        </div>
-      }
-
-      <p-table
-        [value]="filteredEmployees()"
-        styleClass="p-datatable-sm"
-        [tableStyle]="{'min-width': '50rem'}"
-        [paginator]="true"
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        dataKey="employeeId"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="employeeName" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.employee' | translate }}
-                <p-sortIcon field="employeeName"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="totalAbsences" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.totalAbsences' | translate }}
-                <p-sortIcon field="totalAbsences"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="totalDays" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.totalDays' | translate }}
-                <p-sortIcon field="totalDays"></p-sortIcon>
-              </div>
-            </th>
-            <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="body" let-employee>
-          <tr class="saas-table-row">
-            <!-- Employee Name -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-(--primary)/10 text-(--primary) font-semibold">
-                  {{ getEmployeeInitials(employee.employeeName) }}
-                </div>
-                <div>
-                  <div class="font-medium text-(--text-primary)">{{ employee.employeeName }}</div>
-                </div>
-              </div>
-            </td>
-
-            <!-- Total Absences -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
-                  {{ employee.totalAbsences }}
-                </span>
-              </div>
-            </td>
-
-            <!-- Total Days -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-clock text-(--text-secondary)"></i>
-                <span class="font-medium">{{ employee.totalDays }}</span>
-                <span class="text-(--text-secondary) text-sm">{{ 'absences.days' | translate }}</span>
-              </div>
-            </td>
-
-            <!-- Actions -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <button
-                  pButton
-                  icon="pi pi-eye"
-                  [pTooltip]="'absences.viewDetails' | translate"
-                  tooltipPosition="top"
-                  (click)="viewEmployeeAbsences(employee.employeeId)"
-                  severity="info"
-                  [text]="true"
-                  [rounded]="true"
-                ></button>
-                <button
-                  pButton
-                  icon="pi pi-plus"
-                  [pTooltip]="'absences.hrGrant' | translate"
-                  tooltipPosition="top"
-                  (click)="openGrantDialog(employee.employeeId, employee.employeeName)"
-                  severity="success"
-                  [text]="true"
-                  [rounded]="true"
-                ></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="4" class="text-center py-12">
-              <div class="flex flex-col items-center gap-3">
-                <i class="pi pi-users text-gray-300 text-5xl"></i>
-                <p class="text-(--text-secondary) font-medium">{{ 'absences.noEmployees' | translate }}</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </div>
-</div>
+      </p-tabs>
+  </section>
 
 <!-- Grant Absence Dialog -->
 <p-dialog
@@ -385,7 +352,7 @@
         dateFormat="dd/mm/yy"
         [showIcon]="true"
         styleClass="w-full"
-      ></p-datepicker>
+      ></p-datepicker><br>
     </div>
 
     <!-- Type Field -->
@@ -394,7 +361,7 @@
         {{ 'absences.form.type' | translate }}
       </label>
       <p-select
-        [options]="absenceTypes"
+        [options]="absenceTypesOptions"
         [ngModel]="grantAbsenceType()"
         (ngModelChange)="updateGrantField('absenceType', $event)"
         optionLabel="label"
@@ -402,7 +369,7 @@
         styleClass="w-full"
         [placeholder]="'absences.form.type' | translate"
       ></p-select>
-    </div>
+    </div><br>
 
     <!-- Duration Type Field -->
     <div class="form-field">
@@ -410,7 +377,7 @@
         {{ 'absences.form.durationType' | translate }}
       </label>
       <p-select
-        [options]="durationTypes"
+        [options]="durationTypesOptions"
         [ngModel]="grantDurationType()"
         (ngModelChange)="updateGrantField('durationType', $event)"
         optionLabel="label"
@@ -418,7 +385,7 @@
         styleClass="w-full"
         [placeholder]="'absences.form.durationType' | translate"
       ></p-select>
-    </div>
+    </div><br>
 
     <!-- Period Field (Half Day) -->
     @if (grantDurationType() === 'HalfDay') {
@@ -427,7 +394,7 @@
           {{ 'absences.form.period' | translate }}
         </label>
         <p-select
-          [options]="halfDayOptions"
+          [options]="halfDayOptionsList"
           [ngModel]="grantIsMorning()"
           (ngModelChange)="updateGrantField('isMorning', $event)"
           optionLabel="label"
@@ -435,7 +402,7 @@
           styleClass="w-full"
           [placeholder]="'absences.form.period' | translate"
         ></p-select>
-      </div>
+      </div><br>
     }
 
     <!-- Time Range (Hourly) -->

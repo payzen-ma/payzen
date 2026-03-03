@@ -243,13 +243,13 @@
               </p>
               <div class="flex flex-wrap gap-1.5">
                 <button type="button" (click)="jobPositionForm.patchValue({name: 'Software Engineer'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  Software Engineer
+                  {{ 'company.jobPositions.examplesList.softwareEngineer' | translate }}
                 </button>
                 <button type="button" (click)="jobPositionForm.patchValue({name: 'Project Manager'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  Project Manager
+                  {{ 'company.jobPositions.examplesList.projectManager' | translate }}
                 </button>
                 <button type="button" (click)="jobPositionForm.patchValue({name: 'HR Specialist'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
-                  HR Specialist
+                  {{ 'company.jobPositions.examplesList.hrSpecialist' | translate }}
                 </button>
               </div>
             </div>

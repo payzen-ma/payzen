@@ -78,7 +78,6 @@ export class DashboardService {
 
     return this.http.get<any>(url).pipe(
       map(raw => {
-        console.log('[DashboardService] expert summary raw response:', raw);
         const totalCompanies = raw?.TotalClients ?? raw?.TotalCompanies ?? raw?.totalClients ?? raw?.totalCompanies ?? 0;
         const totalEmployees = raw?.TotalEmployees ?? raw?.totalEmployees ?? raw?.TotalEmployeesCount ?? raw?.totalEmployeesCount ?? 0;
         const avg = totalCompanies ? (totalEmployees / totalCompanies) : 0;

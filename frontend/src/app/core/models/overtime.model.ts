@@ -1,15 +1,59 @@
 export interface Overtime {
+  // Primary identifiers
   id?: number;
   employeeId: number;
+
+  // Employee display names (keep both granular and combined forms)
   employeeFirstName?: string;
   employeeLastName?: string;
+  // Friendly combined name used in UI (alias for employeeFullName)
   employeeFullName?: string;
+  // Convenience field matching absence model naming
+  employeeName?: string;
+
+  // Date/time fields
+  // `overtimeDate` is a DateOnly string (YYYY-MM-DD)
   overtimeDate: string;
-  overtimeType: OvertimeType;
+  // overtimeType is a flag enum
+  overtimeType?: OvertimeType;
+  overtimeTypeDescription?: string;
+  entryMode?: OvertimeEntryMode;
+  
+  // Holiday work
+  holidayId?: number;
+  holidayName?: string;
+  
+  // TimeOnly values from backend (HH:mm:ss or HH:mm)
   startTime?: string;
   endTime?: string;
-  totalHours: number;
+  crossesMidnight?: boolean;
+
+  // Duration / totals
+  totalHours?: number;
+  durationInHours?: number;
+  standardDayHours?: number;
+
+  // Rate rule (snapshot)
+  rateRuleId?: number;
+  rateRuleCodeApplied?: string;
+  rateRuleNameApplied?: string;
+  rateMultiplierApplied?: number;
+  multiplierCalculationDetails?: string;
+  
+  // Split batching
+  splitBatchId?: string;
+  splitSequence?: number;
+  splitTotalSegments?: number;
+  
+  // Workflow
+  isProcessedInPayroll?: boolean;
+  payrollBatchId?: number;
+  processedInPayrollAt?: string;
+  employeeComment?: string;
+  managerComment?: string;
   reason?: string;
+
+  // Status & audit
   status: OvertimeStatus;
   statusDescription?: string;
   createdAt?: string;
@@ -22,11 +66,21 @@ export interface Overtime {
 }
 
 export enum OvertimeType {
-  Hourly = 1,
-  Holiday = 2
+  None = 0,
+  Standard = 1,
+  PublicHoliday = 2,
+  WeeklyRest = 4,
+  Night = 8
+}
+
+export enum OvertimeEntryMode {
+  HoursRange = 1,
+  DurationOnly = 2,
+  FullDay = 3
 }
 
 export enum OvertimeStatus {
+  Draft = 0,
   Submitted = 1,
   Approved = 2,
   Rejected = 3,
@@ -35,19 +89,28 @@ export enum OvertimeStatus {
 
 export interface CreateOvertimeRequest {
   employeeId: number;
-  overtimeDate: string;
-  overtimeType: OvertimeType;
+  overtimeDate: string; // DateOnly string (YYYY-MM-DD)
+  entryMode: OvertimeEntryMode;
+  
+  // HoursRange Mode
   startTime?: string;
   endTime?: string;
-  reason?: string;
+  
+  // DurationOnly Mode  
+  durationInHours?: number;
+  
+  // FullDay Mode
+  standardDayHours?: number;
+  
+  employeeComment?: string;
 }
 
 export interface UpdateOvertimeRequest {
-  overtimeDate: string;
-  overtimeType: OvertimeType;
+  overtimeDate?: string;
   startTime?: string;
   endTime?: string;
-  reason?: string;
+  durationInHours?: number;
+  employeeComment?: string;
 }
 
 export interface OvertimeFilters {

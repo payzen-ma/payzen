@@ -223,7 +223,6 @@ export class AuthService {
         next: (companyDto) => {
           const name = companyDto?.companyName || companyDto?.legalName || companyDto?.name || `Company #${response.user.companyId}`;
           response.user.companyName = name;
-          console.log('Fetched company name for user:', name);
           this.storeUser(response.user);
           this.currentUser.set(response.user);
           proceedWithMemberships(response.user as User);
@@ -435,14 +434,40 @@ export class AuthService {
    * Handle authentication errors
    */
   private handleAuthError(error: any): void {
-    const errorMessage = error.error?.message || error.message || 'Authentication failed';
-    
+    const errorMessage = this.extractErrorMessage(error);
+
     this.isLoading.set(false);
     this.updateAuthState({
       ...this.authStateSubject.value,
       isLoading: false,
       error: errorMessage
     });
+  }
+
+  /**
+   * Extract a human readable message from various backend error shapes
+   */
+  private extractErrorMessage(error: any): string {
+    try {
+      const candidates = [
+        error?.error?.Message,
+        error?.error?.message,
+        error?.Message,
+        error?.message,
+        typeof error === 'string' ? error : null,
+        error?.statusText
+      ];
+
+      for (const c of candidates) {
+        if (c !== null && c !== undefined && String(c).trim() !== '') {
+          return String(c);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    return 'Authentication failed';
   }
 
   /**

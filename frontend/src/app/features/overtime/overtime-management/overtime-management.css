@@ -1,72 +1,162 @@
-/* Dialog styles */
-.approval-dialog {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+/* ============================================
+   Overtime Management - Dialog & form overrides only.
+   Page layout (salary-page, page-header, surface, module-stats, etc.)
+   is in src/styles.css (global). Do not duplicate here.
+   ============================================ */
 
-.info-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info-section h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--surface-border);
-  color: var(--text-color);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-item.full-width {
-  grid-column: 1 / -1;
-}
-
-.info-item .label {
-  font-size: 0.875rem;
-  color: var(--text-color-secondary);
-  font-weight: 500;
-}
-
-.info-item .value {
-  font-size: 0.95rem;
-  color: var(--text-color);
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-@media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
+/* Modal Styles (app-dialog) - component-specific dialog skin */
+:host ::ng-deep .app-dialog {
+  .p-dialog {
+    background-color: #d1d5db;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
+
+  .p-dialog-content {
+    padding: 0;
+  }
+
+  .bg-gradient-to-br {
+    background: linear-gradient(to bottom right, #3b82f6, #2563eb);
+  }
+
+  .form-field {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-label-required::after {
+    content: " *";
+    color: #ef4444;
+  }
+
+  .p-datepicker input,
+  .p-select,
+  .p-inputtext,
+  .p-textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .p-datepicker input:focus,
+  .p-select:focus,
+  .p-inputtext:focus,
+  .p-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+
+  .ng-invalid.ng-touched {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+  }
+
+  .p-error {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  small.text-gray-500 {
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  .p-button {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .p-button-secondary {
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+  }
+
+  .p-button-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .p-button:not(.p-button-secondary) {
+    background: #3b82f6;
+    border: 1px solid #3b82f6;
+    color: white;
+  }
+
+  .p-button:not(.p-button-secondary):hover {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .p-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* .dialog-footer, .info-section, .info-grid, .info-item, .employee-avatar → in styles.css (global) */
+
+/* Overtime requests table: fixed column widths so layout does not change */
+:host ::ng-deep .overtime-requests-table .p-datatable-table {
+  table-layout: fixed;
+  width: 100%;
+}
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-employee,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-employee { width: 13%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-date,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-date { width: 9%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-description,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-description { width: 12%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-start,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-start { width: 6%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-end,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-end { width: 6%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-total,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-total { width: 7%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-rate,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-rate { width: 7%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-payroll,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-payroll { width: 8%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-status,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-status { width: 9%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-created,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-created { width: 12%; }
+:host ::ng-deep .overtime-requests-table .p-datatable-thead th.overtime-th-col-actions,
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-actions { width: 13%; }
+/* Prevent long text from breaking layout; allow actions column to show buttons */
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td:not(.overtime-td-col-actions) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-employee .flex {
+  min-width: 0;
+}
+:host ::ng-deep .overtime-requests-table .p-datatable-tbody td.overtime-td-col-employee .font-medium {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -66,9 +66,7 @@ export class SpouseChildrenComponent {
     // Load genders
     this.referenceDataService.getGenders().subscribe({
       next: (data) => {
-        console.log('[SpouseChildren] Loaded genders from API:', data);
         this.genders.set(data);
-        console.log('[SpouseChildren] Gender options computed:', this.genderOptions());
       },
       error: (err) => {
         console.error('[SpouseChildren] Failed to load genders:', err);
@@ -125,7 +123,6 @@ export class SpouseChildrenComponent {
     const payload = this.editingSpouse();
     if (!payload) return;
     
-    console.log('[SpouseChildren] Emitting spouse change:', payload);
     const currentSpouses = [...this.spousesSignal()];
     
     if (payload.id) {
@@ -146,7 +143,6 @@ export class SpouseChildrenComponent {
 
   deleteSpouse(spouse: Spouse) {
     if (!confirm('Supprimer le conjoint ?')) return;
-    console.log('[SpouseChildren] Emitting spouse deletion');
     const currentSpouses = this.spousesSignal().filter(s => s.id !== spouse.id);
     this.spousesSignal.set(currentSpouses);
     this.spousesChange.emit(currentSpouses);
@@ -173,7 +169,6 @@ export class SpouseChildrenComponent {
     const payload = this.editingChild();
     if (!payload) return;
     
-    console.log('[SpouseChildren] Emitting child change:', payload);
     const currentChildren = [...this.childrenSignal()];
     
     if (payload.id) {
@@ -194,7 +189,6 @@ export class SpouseChildrenComponent {
 
   deleteChild(child: Child) {
     if (!confirm('Supprimer l\'enfant ?')) return;
-    console.log('[SpouseChildren] Emitting child deletion');
     const currentChildren = this.childrenSignal().filter(c => c.id !== child.id);
     this.childrenSignal.set(currentChildren);
     this.childrenChange.emit(currentChildren);

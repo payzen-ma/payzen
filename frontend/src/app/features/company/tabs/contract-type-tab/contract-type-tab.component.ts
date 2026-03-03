@@ -87,7 +87,6 @@ export class ContractTypeTabComponent implements OnInit {
   }
 
   private loadReferentialData() {
-    console.log('[ContractTypeTab] Loading referential data...');
     forkJoin({
       legalTypes: this.legalContractTypeService.getOptions().pipe(catchError((err) => {
         console.error('[ContractTypeTab] Error loading legal types:', err);
@@ -99,8 +98,6 @@ export class ContractTypeTabComponent implements OnInit {
       }))
     }).subscribe({
       next: ({ legalTypes, programs }) => {
-        console.log('[ContractTypeTab] Legal types loaded:', legalTypes);
-        console.log('[ContractTypeTab] Programs loaded:', programs);
         this.legalContractTypeOptions.set(legalTypes);
         this.stateEmploymentProgramOptions.set(programs);
       },
