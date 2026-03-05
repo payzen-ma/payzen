@@ -34,7 +34,51 @@
     "overtime": "Overtime",
     "overtimeManagement": "Overtime Approval",
     "holidays": "Holidays",
-    "salaryPackages": "Salary Packages"
+    "salaryPackages": "Salary Packages",
+    "myPayslip": "My Payslip"
+  },
+  "payslip": {
+    "title": "Payslip",
+    "subtitleEmployee": "Download your payslip for the selected period.",
+    "subtitleHR": "Generate an employee payslip for",
+    "formTitle": "Generation parameters",
+    "selectEmployee": "Employee",
+    "placeholderEmployee": "Select an employee",
+    "selectMonth": "Month",
+    "placeholderMonth": "Select a month",
+    "selectYear": "Year",
+    "placeholderYear": "Select a year",
+    "myself": "Me",
+    "periodSummary": "Selected period:",
+    "generate": "Generate payslip",
+    "loadingEmployees": "Loading employees...",
+    "infoTitle": "How does it work?",
+    "infoBody": "Select the desired period then click \"Generate\". The payslip will be automatically downloaded as a PDF.",
+    "success": {
+      "generated": "The payslip has been successfully generated and downloaded."
+    },
+    "error": {
+      "noEmployee": "Please select an employee.",
+      "noEmployeeId": "Your account is not linked to an employee record. Please contact HR.",
+      "notFound": "No payslip found for this period. Make sure the payroll has been calculated.",
+      "payrollError": "The payslip has an error. Please recalculate the payroll.",
+      "generic": "An error occurred during generation. Please try again.",
+      "notFoundEMP": "No payslip found for this employee and period. Make sure the payroll has been calculated."
+    },
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    }
   },
   "payrollBulletin": {
     "title": "Pay Slips",

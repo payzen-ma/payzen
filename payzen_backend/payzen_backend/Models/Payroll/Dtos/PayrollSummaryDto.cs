@@ -15,8 +15,11 @@ namespace payzen_backend.Models.Payroll.Dtos
 
         // --- Employee Deductions ---
         public decimal CnssEmployee { get; set; }
+        public decimal CnssBase { get; set; }
         public decimal AmoEmployee { get; set; }
+        public decimal AmoBase { get; set; }
         public decimal CimrEmployee { get; set; }
+        public decimal CimrBase { get; set; }
         public decimal TotalEmployeeDeductions { get; set; }
 
         // --- Taxable Income Calculation ---

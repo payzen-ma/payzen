@@ -165,10 +165,13 @@ export const guestGuard: CanActivateFn = (route, state) => {
 
 /**
  * Role Guard Factory - Creates guards for specific roles
+ * Cabinet-expert employees (isCabinetExpert = true) in expert mode are
+ * treated as RH-level users and bypass the role restriction.
  */
 export const createRoleGuard = (allowedRoles: string[]): CanActivateFn => {
   return (route, state) => {
     const authService = inject(AuthService);
+    const contextService = inject(CompanyContextService);
     const router = inject(Router);
 
     if (!authService.isAuthenticated()) {
@@ -180,6 +183,12 @@ export const createRoleGuard = (allowedRoles: string[]): CanActivateFn => {
 
     const user = authService.getCurrentUser();
     if (user && allowedRoles.includes(user.role)) {
+      return true;
+    }
+
+    // An employee from a cabinet comptable (isCabinetExpert) operating in
+    // expert mode has the same access level as RH across all protected routes.
+    if (user?.isCabinetExpert && contextService.isExpertMode()) {
       return true;
     }
 

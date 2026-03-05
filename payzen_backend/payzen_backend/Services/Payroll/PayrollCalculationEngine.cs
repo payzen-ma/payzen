@@ -372,15 +372,18 @@ public class PayrollCalculationEngine
         switch (ctx.RegimeCimr)
         {
             case RegimeCimr.AUCUN:
+                ctx.BaseCimr = 0;
                 ctx.CimrSalarial = 0;
                 ctx.CimrPatronal = 0;
                 break;
             case RegimeCimr.AL_KAMIL:
+                ctx.BaseCimr = ctx.SalaireBrutImposable;
                 ctx.CimrSalarial = Round(ctx.SalaireBrutImposable * ctx.CimrTauxSalarial, 2);
                 ctx.CimrPatronal = Round(ctx.SalaireBrutImposable * ctx.CimrTauxPatronal, 2);
                 break;
             case RegimeCimr.AL_MOUNASSIB:
                 var baseMounassib = Math.Max(0, ctx.SalaireBrutImposable - PayrollConstants.PLAFOND_CNSS_MENSUEL);
+                ctx.BaseCimr = baseMounassib;
                 ctx.CimrSalarial = Round(baseMounassib * ctx.CimrTauxSalarial, 2);
                 ctx.CimrPatronal = Round(baseMounassib * ctx.CimrTauxPatronal, 2);
                 break;
@@ -510,11 +513,17 @@ public class PayrollCalculationEngine
         result.AmoSalarial = ctx.CnssAmoSalarial;
         result.CimrSalarial = ctx.CimrSalarial;
         result.MutuelleSalariale = ctx.MutuelleSalarialeAmount;
+
+        result.CnssBase = ctx.BaseCnssRg;
+        result.AmoBase = ctx.DisableAmo ? 0 : ctx.SalaireBrutImposable;
+        result.CimrBase = ctx.BaseCimr;
+        result.MutuelleBase = ctx.SalaireBrutImposable;
         result.TotalCotisationsSalariales = ctx.TotalCnssSalarial + ctx.CimrSalarial + ctx.MutuelleSalarialeAmount;
 
         result.FraisProfessionnels = ctx.MontantFp;
         result.RevenuNetImposable = ctx.RevenuNetImposable;
         result.IR = ctx.IrFinal;
+        result.IrTaux = ctx.TauxIr;
 
         result.SalaireNetAvantArrondi = ctx.SalaireNet;
         result.SalaireNet = Math.Ceiling(ctx.SalaireNet);
@@ -613,6 +622,11 @@ public class PayrollCalculationResult
     public decimal CimrSalarial { get; set; }
     public decimal MutuelleSalariale { get; set; }
     public decimal TotalCotisationsSalariales { get; set; }
+    public decimal CnssBase { get; set; }
+    public decimal AmoBase { get; set; }
+    public decimal CimrBase { get; set; }
+    public decimal MutuelleBase { get; set; }
+    public decimal IrTaux { get; set; }
     public decimal FraisProfessionnels { get; set; }
     public decimal RevenuNetImposable { get; set; }
     public decimal IR { get; set; }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using payzen_backend.Data;
 
@@ -11,9 +12,11 @@ using payzen_backend.Data;
 namespace payzen_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304141341_AddCnss_Cimr_Base")]
+    partial class AddCnss_Cimr_Base
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2562,9 +2565,6 @@ namespace payzen_backend.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("InteretSurLogement")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("IrTaux")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("JoursFeries")

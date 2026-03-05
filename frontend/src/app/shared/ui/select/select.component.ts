@@ -57,7 +57,8 @@ export interface SelectOption {
                       type="text"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
                       placeholder="Rechercher..."
-                      [(ngModel)]="searchTerm"
+                      [ngModel]="searchTerm()"
+                      (ngModelChange)="searchTerm.set($event)"
                       (click)="$event.stopPropagation()"
                     />
                   </div>
@@ -156,7 +157,7 @@ export class SelectComponent implements ControlValueAccessor {
 
   @Output() valueChange = new EventEmitter<any>();
   @Output() blurred = new EventEmitter<void>();
-  searchTerm = '';
+  readonly searchTerm = signal('');
   readonly isOpen = signal(false);
 
   private onChange: (value: any) => void = () => {};
@@ -178,10 +179,10 @@ export class SelectComponent implements ControlValueAccessor {
   });
 
   readonly filteredOptions = computed(() => {
-    if (!this.searchTerm.trim()) {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) {
       return this._options();
     }
-    const term = this.searchTerm.toLowerCase();
     return this._options().filter(opt =>
       opt.label.toLowerCase().includes(term)
     );
@@ -198,7 +199,7 @@ export class SelectComponent implements ControlValueAccessor {
       this.value = option.value;
       this.onValueChange(option.value);
       this.isOpen.set(false);
-      this.searchTerm = '';
+      this.searchTerm.set('');
     }
   }
 
@@ -206,6 +207,7 @@ export class SelectComponent implements ControlValueAccessor {
     // Vérifier si le clic est à l'extérieur du composant
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.isOpen.set(false);
+      this.searchTerm.set('');
     }
   }
 

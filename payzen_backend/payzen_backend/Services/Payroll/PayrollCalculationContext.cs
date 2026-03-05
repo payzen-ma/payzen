@@ -96,6 +96,7 @@ public class PayrollCalculationContext
     public decimal TotalCnssPatronal { get; set; }
 
     // MODULE 07 — CIMR
+    public decimal BaseCimr { get; set; }
     public decimal CimrSalarial { get; set; }
     public decimal CimrPatronal { get; set; }
 

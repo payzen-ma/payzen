@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -10,30 +10,22 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService } from 'primeng/api';
+import { SelectModule } from 'primeng/select';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { CompanyService } from '@app/core/services/company.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { CompanyDocuments } from '@app/core/models/company.model';
+import { CompanyDocumentService } from '@app/core/services/company-document.service';
+import { CompanyDocumentDto } from '@app/core/models/company.model';
+import { WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
-
-interface DocumentRow {
-  name: string;
-  type: string;
-  url: string | null;
-  status: 'uploaded' | 'missing';
-  date?: Date;
-}
-
-interface ExpectedDocument {
-  key: string;
-  label: string;
-}
 
 @Component({
   selector: 'app-documents-tab',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     TranslateModule,
     TableModule,
@@ -43,15 +35,19 @@ interface ExpectedDocument {
     InputTextModule,
     ToastModule,
     TagModule,
-    TooltipModule
+    TooltipModule,
+    SelectModule,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './documents-tab.component.html'
 })
 export class DocumentsTabComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly companyService = inject(CompanyService);
+  private readonly companyDocumentService = inject(CompanyDocumentService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly contextService = inject(CompanyContextService);
   private readonly translate = inject(TranslateService);
   private contextSub?: Subscription;
@@ -61,48 +57,52 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
   formSubmitted = false;
 
   // State
-  documents = signal<DocumentRow[]>([]);
+  documents = signal<CompanyDocumentDto[]>([]);
   loading = signal(false);
+  uploading = signal(false);
+  /** Tracks which image type is currently being uploaded (signature | stamp | logo) */
+  uploadingImageType = signal<'signature' | 'stamp' | 'logo' | null>(null);
   signatureUrl = signal<string | null>(null);
   stampUrl = signal<string | null>(null);
-  selectedDocType = signal<string | null>(null);
+  logoUrl = signal<string | null>(null);
 
-  // Document configuration
-  private readonly expectedDocs: ExpectedDocument[] = [
-    { key: 'cnss_attestation', label: 'company.documents.cnss_attestation' },
-    { key: 'amo', label: 'company.documents.amo' },
-    { key: 'rib', label: 'company.info.rib' },
-    { key: 'rc', label: 'company.info.rc' },
-    { key: 'patente', label: 'company.info.patente' }
+  // Upload dialog state
+  showUploadDialog = signal(false);
+  selectedFile: File | null = null;
+  selectedFileName = signal<string | null>(null);
+  uploadDocumentType: string | null = null;
+
+  // Document type options for the dropdown
+  readonly documentTypes = [
+    { label: 'Attestation CNSS', value: 'cnss_attestation' },
+    { label: 'Attestation AMO', value: 'amo' },
+    { label: 'RIB Bancaire', value: 'rib' },
+    { label: 'Registre de Commerce', value: 'rc' },
+    { label: 'Patente', value: 'patente' },
+    { label: 'Signature', value: 'signature' },
+    { label: 'Cachet / Tampon', value: 'stamp' },
+    { label: 'Logo', value: 'logo' },
+    { label: 'Autre', value: 'other' }
   ];
+
+  /** Object URLs created from blobs — revoked on destroy to avoid memory leaks */
+  private blobUrls: string[] = [];
 
   ngOnInit() {
     this.initForm();
     this.loadData();
-    
-    // Subscribe to context changes
-    this.contextSub = this.contextService.contextChanged$.subscribe(() => {
-      this.loadData();
-    });
+    this.contextSub = this.contextService.contextChanged$.subscribe(() => this.loadData());
   }
 
   ngOnDestroy() {
-    if (this.contextSub) {
-      this.contextSub.unsubscribe();
-    }
+    this.contextSub?.unsubscribe();
+    // Release any blob object URLs created for image previews
+    this.blobUrls.forEach(u => URL.revokeObjectURL(u));
   }
 
-  /** Check if a form field is invalid and should show error */
   isFieldInvalid(fieldName: string): boolean {
     const control = this.signatoryForm.get(fieldName);
     return !!(control?.invalid && (control.touched || this.formSubmitted));
-  }
-
-  /** Get status badge classes based on document status */
-  getStatusClasses(status: 'uploaded' | 'missing'): string {
-    return status === 'uploaded'
-      ? 'bg-green-100 text-green-700'
-      : 'bg-amber-100 text-amber-700';
   }
 
   private initForm() {
@@ -113,75 +113,142 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
   }
 
   loadData() {
+    const companyId = this.contextService.companyId();
+    if (!companyId) return;
+
     this.loading.set(true);
+
+    // Load signatory data from company service
     this.companyService.getCompany().subscribe({
-      next: (company) => {
-        this.documents.set(this.mapDocuments(company.documents));
-        this.loadSignatoryData(company);
+      next: (company) => this.loadSignatoryData(company),
+      error: (err) => console.error('Error loading company signatory:', err)
+    });
+
+    // Load documents from the dedicated API
+    this.companyDocumentService.getByCompany(Number(companyId)).subscribe({
+      next: (docs) => {
+        this.documents.set(docs);
+        this.extractImageUrls(docs);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading company data:', err);
-        this.showToast(
-          'error',
+        console.error('Error loading documents:', err);
+        this.showToast('error',
           this.translate.instant('common.error'),
-          this.translate.instant('company.documents.messages.loadError')
-        );
+          this.translate.instant('company.documents.messages.loadError'));
         this.loading.set(false);
       }
     });
   }
 
   private loadSignatoryData(company: any) {
-    if (company.signatory) {
+    if (company?.signatory) {
       this.signatoryForm.patchValue({
         signatoryName: company.signatory.name,
         signatoryTitle: company.signatory.title
       });
-      this.signatureUrl.set(company.signatory.signatureUrl);
-      this.stampUrl.set(company.signatory.stampUrl);
     }
   }
 
-  private mapDocuments(docs: CompanyDocuments): DocumentRow[] {
-    return this.expectedDocs.map(doc => {
-      const url = (docs as unknown as Record<string, string | undefined>)[doc.key];
-      return {
-        name: doc.label,
-        type: doc.key,
-        url: url || null,
-        status: url ? 'uploaded' : 'missing',
-        date: url ? new Date() : undefined
-      };
+  /** Derive signature / stamp / logo preview URLs from the documents list via the download API */
+  private extractImageUrls(docs: CompanyDocumentDto[]) {
+    const latest = (type: string) =>
+      docs.filter(d => d.documentType === type)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    this.loadImagePreview(latest('signature'), this.signatureUrl);
+    this.loadImagePreview(latest('stamp'), this.stampUrl);
+    this.loadImagePreview(latest('logo'), this.logoUrl);
+  }
+
+  /** Fetch a document blob and set an object URL on the given signal */
+  private loadImagePreview(doc: CompanyDocumentDto | undefined, urlSignal: WritableSignal<string | null>) {
+    if (!doc) {
+      urlSignal.set(null);
+      return;
+    }
+    this.companyDocumentService.download(doc.id).subscribe({
+      next: (blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        this.blobUrls.push(objectUrl);
+        urlSignal.set(objectUrl);
+      },
+      error: () => urlSignal.set(null)
+    });
+  }
+
+  // ─── Official Images upload ───────────────────────────────────────
+  private uploadImageDoc(file: File, type: 'signature' | 'stamp' | 'logo') {
+    const companyId = this.contextService.companyId();
+    if (!companyId) return;
+
+    const formData = new FormData();
+    formData.append('companyId', companyId);
+    formData.append('file', file, file.name);
+    formData.append('documentType', type);
+
+    this.uploadingImageType.set(type);
+    this.companyDocumentService.upload(formData).subscribe({
+      next: (doc) => {
+        this.documents.update(docs => [doc, ...docs]);
+        this.extractImageUrls([doc, ...this.documents()]);
+        this.uploadingImageType.set(null);
+        this.showToast('success',
+          this.translate.instant('common.success'),
+          this.translate.instant(`company.documents.messages.${type}Uploaded`));
+      },
+      error: (err) => {
+        console.error(`Error uploading ${type}:`, err);
+        this.uploadingImageType.set(null);
+        this.showToast('error',
+          this.translate.instant('common.error'),
+          this.translate.instant('company.documents.messages.uploadError'));
+      }
+    });
+  }
+
+  private removeImageDoc(type: 'signature' | 'stamp' | 'logo') {
+    const doc = this.documents()
+      .filter(d => d.documentType === type)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    if (!doc) {
+      // Nothing on server yet – just clear the local preview
+      if (type === 'signature') this.signatureUrl.set(null);
+      if (type === 'stamp') this.stampUrl.set(null);
+      if (type === 'logo') this.logoUrl.set(null);
+      return;
+    }
+    this.companyDocumentService.delete(doc.id).subscribe({
+      next: () => {
+        this.documents.update(docs => docs.filter(d => d.id !== doc.id));
+        if (type === 'signature') this.signatureUrl.set(null);
+        if (type === 'stamp') this.stampUrl.set(null);
+        if (type === 'logo') this.logoUrl.set(null);
+        this.showToast('info',
+          this.translate.instant('common.success'),
+          this.translate.instant(`company.documents.messages.${type}Removed`));
+      },
+      error: (err) => {
+        console.error('Remove image error:', err);
+        this.showToast('error',
+          this.translate.instant('common.error'),
+          this.translate.instant('company.documents.messages.deleteError'));
+      }
     });
   }
 
   onUploadSignature(event: { files: File[] }) {
     const file = event.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => this.signatureUrl.set(e.target?.result as string);
-    reader.readAsDataURL(file);
-    this.showToast(
-      'success',
-      this.translate.instant('common.success'),
-      this.translate.instant('company.documents.messages.signatureUploaded')
-    );
+    if (file) this.uploadImageDoc(file, 'signature');
   }
 
   onUploadStamp(event: { files: File[] }) {
     const file = event.files[0];
-    if (!file) return;
+    if (file) this.uploadImageDoc(file, 'stamp');
+  }
 
-    const reader = new FileReader();
-    reader.onload = (e) => this.stampUrl.set(e.target?.result as string);
-    reader.readAsDataURL(file);
-    this.showToast(
-      'success',
-      this.translate.instant('common.success'),
-      this.translate.instant('company.documents.messages.stampUploaded')
-    );
+  onUploadLogo(event: { files: File[] }) {
+    const file = event.files[0];
+    if (file) this.uploadImageDoc(file, 'logo');
   }
 
   onSubmit() {
@@ -190,60 +257,129 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
       this.signatoryForm.markAllAsTouched();
       return;
     }
-
     this.loading.set(true);
-    // Mock save - replace with actual API call
+    // Placeholder – wire to a real API endpoint when available
     setTimeout(() => {
       this.loading.set(false);
       this.formSubmitted = false;
-      this.showToast(
-        'success',
+      this.showToast('success',
         this.translate.instant('common.success'),
-        this.translate.instant('company.documents.messages.signatorySaved')
-      );
+        this.translate.instant('company.documents.messages.signatorySaved'));
     }, 1000);
   }
 
-  onDocumentUpload(event: { files: File[] }) {
-    const docType = this.selectedDocType();
-    if (!docType) return;
+  removeSignature() { this.removeImageDoc('signature'); }
+  removeStamp()     { this.removeImageDoc('stamp'); }
+  removeLogo()      { this.removeImageDoc('logo'); }
 
-    this.documents.update(docs =>
-      docs.map(d =>
-        d.type === docType
-          ? { ...d, status: 'uploaded' as const, url: 'mock-url.pdf', date: new Date() }
-          : d
-      )
-    );
-    this.showToast(
-      'success',
-      this.translate.instant('common.success'),
-      this.translate.instant('company.documents.messages.documentUploaded')
-    );
+  // ─── Upload document dialog ───────────────────────────────────────
+  openUploadDialog() {
+    this.selectedFile = null;
+    this.selectedFileName.set(null);
+    this.uploadDocumentType = null;
+    this.showUploadDialog.set(true);
   }
 
-  download(doc: DocumentRow) {
-    if (doc.url) {
-      window.open(doc.url, '_blank', 'noopener,noreferrer');
+  /** Capture the file when user selects it (auto=true, customUpload=true) */
+  onFileSelected(event: { files: File[] }) {
+    this.selectedFile = event.files[0] ?? null;
+    this.selectedFileName.set(this.selectedFile?.name ?? null);
+  }
+
+  confirmUpload() {
+    if (!this.selectedFile) return;
+    const companyId = this.contextService.companyId();
+    if (!companyId) return;
+
+    const formData = new FormData();
+    formData.append('companyId', companyId);
+    formData.append('file', this.selectedFile, this.selectedFile.name);
+    if (this.uploadDocumentType) {
+      formData.append('documentType', this.uploadDocumentType);
     }
+
+    this.uploading.set(true);
+    this.companyDocumentService.upload(formData).subscribe({
+      next: (doc) => {
+        this.documents.update(docs => [doc, ...docs]);
+        this.showUploadDialog.set(false);
+        this.uploading.set(false);
+        this.showToast('success',
+          this.translate.instant('common.success'),
+          this.translate.instant('company.documents.messages.documentUploaded'));
+      },
+      error: (err) => {
+        console.error('Upload error:', err);
+        this.uploading.set(false);
+        this.showToast('error',
+          this.translate.instant('common.error'),
+          this.translate.instant('company.documents.messages.uploadError'));
+      }
+    });
   }
 
-  removeSignature() {
-    this.signatureUrl.set(null);
-    this.showToast(
-      'info',
-      this.translate.instant('common.success'),
-      this.translate.instant('company.documents.messages.signatureRemoved')
-    );
+  // ─── Document actions ─────────────────────────────────────────────
+  downloadDocument(doc: CompanyDocumentDto) {
+    this.companyDocumentService.download(doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+        this.showToast('error',
+          this.translate.instant('common.error'),
+          this.translate.instant('company.documents.messages.downloadError'));
+      }
+    });
   }
 
-  removeStamp() {
-    this.stampUrl.set(null);
-    this.showToast(
-      'info',
-      this.translate.instant('common.success'),
-      this.translate.instant('company.documents.messages.stampRemoved')
-    );
+  deleteDocument(doc: CompanyDocumentDto) {
+    this.confirmationService.confirm({
+      message: this.translate.instant('company.documents.messages.deleteConfirm', { name: doc.name }),
+      header: this.translate.instant('common.confirm'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.companyDocumentService.delete(doc.id).subscribe({
+          next: () => {
+            this.documents.update(docs => docs.filter(d => d.id !== doc.id));
+            this.showToast('success',
+              this.translate.instant('common.success'),
+              this.translate.instant('company.documents.messages.deleteSuccess'));
+          },
+          error: (err) => {
+            console.error('Delete error:', err);
+            this.showToast('error',
+              this.translate.instant('common.error'),
+              this.translate.instant('company.documents.messages.deleteError'));
+          }
+        });
+      }
+    });
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────
+  getDocumentTypeLabel(type: string | null): string {
+    if (!type) return '—';
+    return this.documentTypes.find(t => t.value === type)?.label ?? type;
+  }
+
+  getFileIcon(name: string): string {
+    const ext = name.split('.').pop()?.toLowerCase() ?? '';
+    switch (ext) {
+      case 'pdf': return 'pi pi-file-pdf text-red-500';
+      case 'jpg': case 'jpeg': case 'png': return 'pi pi-image text-blue-400';
+      case 'doc': case 'docx': return 'pi pi-file text-blue-600';
+      case 'xls': case 'xlsx': return 'pi pi-file text-green-600';
+      default: return 'pi pi-file text-gray-400';
+    }
   }
 
   private showToast(severity: 'success' | 'error' | 'info', summary: string, detail: string) {

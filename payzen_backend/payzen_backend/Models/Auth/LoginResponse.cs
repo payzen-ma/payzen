@@ -21,6 +21,7 @@ namespace payzen_backend.Models.Auth
         public List<string> Roles { get; set; } = new();
         public List<string> Permissions { get; set; } = new();
         public bool isCabinetExpert { get; set; }
+        public int? EmployeeId { get; set; }
         public int? EmployeeCategoryId { get; set; }
         public string? Mode { get; set; }
         public int companyId { get; set; }

@@ -214,6 +214,14 @@ export class Sidebar {
       modes: ['expert-all'],
       requiresCompanyContext: false
     },
+    {
+      label: 'nav.myPayslip',
+      icon: 'pi pi-file-pdf',
+      routerLink: '/payroll/payslip',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
+      modes: ['expert-all'],
+      requiresCompanyContext: false
+    },
     
     // ─────────────────────────────────────────────────────────────
     // STANDARD MODE (Regular company users)
@@ -290,6 +298,13 @@ export class Sidebar {
       icon: 'pi pi-wallet', 
       routerLink: '/payroll/bulletin',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
+      modes: ['standard']
+    },
+    {
+      label: 'nav.myPayslip',
+      icon: 'pi pi-file-pdf',
+      routerLink: '/payroll/payslip',
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.ADMIN, UserRole.RH],
       modes: ['standard']
     },
     { 
@@ -384,10 +399,11 @@ export class Sidebar {
 
         // 4. Check Employee Mode restrictions
         // Show only the appropriate page based on mode
-        // NOTE: Admin and RH should still see both Attendance and Absences regardless of personal mode
+        // NOTE: Admin, RH and users in expert mode bypass these restrictions
+        // since they manage all employees rather than viewing their own data.
         if (user?.mode) {
           const userMode = user.mode.toLowerCase();
-          const isPrivilegedRole = effectiveRole === UserRole.ADMIN || effectiveRole === UserRole.RH;
+          const isPrivilegedRole = effectiveRole === UserRole.ADMIN || effectiveRole === UserRole.RH || isExpert;
           // Mode 'attendance' or 'presence' = attendance only (hide absence menu)
           if ((userMode === 'attendance' || userMode === 'presence') && item.routerLink?.includes('/absences')) {
             if (!isPrivilegedRole) return false;
@@ -401,20 +417,9 @@ export class Sidebar {
         return true;
       })
       .map(item => {
-        // Ensure salary-packages always point to the standard app routes
-        let finalPrefix = prefix;
-        if (item.routerLink && item.routerLink.startsWith('/salary-packages')) {
-          // If in expert mode but viewing portfolio (no client), the expert prefix
-          // would produce /expert/salary-packages which is not a valid route.
-          // Force the standard '/app' prefix so the Salary Packages page resolves.
-          if (isExpert && !isClientView) {
-            finalPrefix = '/app';
-          }
-        }
-
         return {
           ...item,
-          routerLink: `${finalPrefix}${item.routerLink}`,
+          routerLink: `${prefix}${item.routerLink}`,
           // Keep track if this item requires company context
           requiresCompanyContext: item.requiresCompanyContext ?? false
         };

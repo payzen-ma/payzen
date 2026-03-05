@@ -100,6 +100,22 @@ export interface CompanyDocument {
 
 export type DocumentType = 'cnss_attestation' | 'amo' | 'logo' | 'rib' | 'other';
 
+// DTO matching the backend CompanyDocumentReadDto
+export interface CompanyDocumentDto {
+  id: number;
+  companyId: number;
+  companyName: string;
+  name: string;
+  filePath: string;
+  documentType: string | null;
+  createdAt: Date;
+}
+
+export interface CompanyDocumentUpdatePayload {
+  name?: string;
+  documentType?: string;
+}
+
 // Company event for history tracking
 export interface CompanyEvent {
   type: string;

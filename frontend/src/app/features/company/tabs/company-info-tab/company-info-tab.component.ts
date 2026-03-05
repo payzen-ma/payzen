@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InputTextModule } from 'primeng/inputtext';
@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 import { CompanyService } from '@app/core/services/company.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { CompanyDocumentService } from '@app/core/services/company-document.service';
 import { Company } from '@app/core/models/company.model';
 import { EditableFieldComponent } from '@app/shared/components/editable-field/editable-field.component';
 import { ReadonlyFieldComponent } from '@app/shared/components/readonly-field/readonly-field.component';
@@ -49,6 +50,7 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly authService = inject(AuthService);
   private readonly contextService = inject(CompanyContextService);
+  private readonly companyDocumentService = inject(CompanyDocumentService);
   private readonly translate = inject(TranslateService);
   private contextSub?: Subscription;
 
@@ -60,6 +62,10 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
   company = signal<Company | null>(null);
   infoExpanded = signal(false);
   citySuggestions = signal<string[]>([]);
+  logoUrl = signal<string | null>(null);
+
+  /** Blob object URLs to revoke on destroy */
+  private logoBlobUrl: string | null = null;
 
   // Field configurations for DRY template
   readonly legalFields: FieldConfig[] = [
@@ -96,6 +102,9 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     if (this.contextSub) {
       this.contextSub.unsubscribe();
     }
+    if (this.logoBlobUrl) {
+      URL.revokeObjectURL(this.logoBlobUrl);
+    }
   }
 
   toggleInfoBanner() {
@@ -121,12 +130,35 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     return (val as string) ?? '';
   }
 
+  private loadLogoPreview() {
+    const companyId = this.contextService.companyId();
+    if (!companyId) return;
+    this.companyDocumentService.getByCompany(+companyId).subscribe({
+      next: (docs) => {
+        const latest = docs
+          .filter(d => d.documentType === 'logo')
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        if (!latest) { this.logoUrl.set(null); return; }
+        this.companyDocumentService.download(latest.id).subscribe({
+          next: (blob) => {
+            if (this.logoBlobUrl) URL.revokeObjectURL(this.logoBlobUrl);
+            this.logoBlobUrl = URL.createObjectURL(blob);
+            this.logoUrl.set(this.logoBlobUrl);
+          },
+          error: () => this.logoUrl.set(null)
+        });
+      },
+      error: () => this.logoUrl.set(null)
+    });
+  }
+
   private loadCompanyData() {
     this.loading.set(true);
     this.companyService.getCompany().subscribe({
       next: (data) => {
         this.company.set(data);
         this.loading.set(false);
+        this.loadLogoPreview();
       },
       error: (err) => {
         console.error('Error loading company data:', err);
@@ -144,14 +176,22 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     const file = event.files[0];
     if (!file) return;
 
-    this.companyService.updateLogo(file).subscribe({
+    const companyId = this.contextService.companyId();
+    if (!companyId) return;
+
+    const formData = new FormData();
+    formData.append('companyId', companyId);
+    formData.append('file', file, file.name);
+    formData.append('documentType', 'logo');
+
+    this.companyDocumentService.upload(formData).subscribe({
       next: () => {
         this.showToast(
           'success',
           this.translate.instant('common.success'),
           this.translate.instant('company.info.messages.logoUpdated')
         );
-        this.loadCompanyData(); // Refresh to get new logo URL
+        this.loadLogoPreview();
       },
       error: () => {
         this.showToast(

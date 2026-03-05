@@ -63,10 +63,14 @@
             <div class="flex flex-col items-center">
               <!-- Logo -->
               <div class="relative size-28 mb-4 rounded-full overflow-hidden bg-gray-50 border-2 border-gray-200 grid place-items-center">
-                <img 
-                  [src]="company()?.logoUrl || 'assets/images/placeholder-company.png'" 
-                  [attr.alt]="'company.info.logoAlt' | translate" 
-                  class="object-contain size-full" />
+                @if (logoUrl()) {
+                  <img 
+                    [src]="logoUrl()!" 
+                    [attr.alt]="'company.info.logoAlt' | translate" 
+                    class="object-contain size-full" />
+                } @else {
+                  <i class="pi pi-building text-4xl text-gray-300"></i>
+                }
               </div>
               
               <!-- Upload Button -->

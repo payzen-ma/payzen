@@ -34,7 +34,51 @@
     "overtime": "ساعات إضافية",
     "overtimeManagement": "الموافقة على الساعات الإضافية",
     "holidays": "أيام العطل",
-    "salaryPackages": "حزم الرواتب"
+    "salaryPackages": "حزم الرواتب",
+    "myPayslip": "كشف راتبي"
+  },
+  "payslip": {
+    "title": "كشف الراتب",
+    "subtitleEmployee": "قم بتنزيل كشف راتبك للفترة المحددة.",
+    "subtitleHR": "إنشاء كشف راتب موظف لـ",
+    "formTitle": "معاملات الإنشاء",
+    "selectEmployee": "الموظف",
+    "placeholderEmployee": "اختر موظفاً",
+    "selectMonth": "الشهر",
+    "placeholderMonth": "اختر شهراً",
+    "selectYear": "السنة",
+    "placeholderYear": "اختر سنة",
+    "myself": "أنا",
+    "periodSummary": "الفترة المختارة:",
+    "generate": "إنشاء كشف الراتب",
+    "loadingEmployees": "جارٍ تحميل الموظفين...",
+    "infoTitle": "كيف يعمل؟",
+    "infoBody": "اختر الفترة المطلوبة ثم انقر على \"إنشاء\". سيتم تنزيل كشف الراتب تلقائياً بصيغة PDF.",
+    "success": {
+      "generated": "تم إنشاء كشف الراتب وتنزيله بنجاح."
+    },
+    "error": {
+      "noEmployee": "يرجى اختيار موظف.",
+      "noEmployeeId": "حسابك غير مرتبط بملف موظف. يرجى التواصل مع قسم الموارد البشرية.",
+      "notFound": "لم يُعثر على كشف راتب لهذه الفترة. تأكد من أن الرواتب قد تم احتسابها.",
+      "payrollError": "كشف الراتب يحتوي على خطأ. يرجى إعادة احتساب الرواتب.",
+      "generic": "حدث خطأ أثناء الإنشاء. يرجى المحاولة مجدداً.",
+      "notFoundEMP": "لا توجد كشف راتب لهذه الفترة. يرجى التواصل مع قسم الموارد البشرية."
+    },
+    "months": {
+      "january": "يناير",
+      "february": "فبراير",
+      "march": "مارس",
+      "april": "أبريل",
+      "may": "ماي",
+      "june": "يونيو",
+      "july": "يوليو",
+      "august": "أغسطس",
+      "september": "سبتمبر",
+      "october": "أكتوبر",
+      "november": "نوفمبر",
+      "december": "ديسمبر"
+    }
   },
   "payrollBulletin": {
     "title": "كشوف الرواتب",

@@ -1,102 +1,74 @@
 /* ============================================
    LEAVE REQUESTS COMPONENT STYLES
-   Using global design tokens and consistent styling
+   Uses global design tokens from styles.css
    ============================================ */
 
-/* Override and enhance global .card class for leave requests */
-:host ::ng-deep .card {
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: var(--card-border-radius) !important;
-  box-shadow: var(--card-shadow) !important;
-  padding: var(--card-padding) !important;
-  margin-bottom: var(--leave-header-spacing);
-}
-
-/* Form styles - matching overtime component */
-.overtime-form {
+/* Dialog form layout — single-column stacked fields */
+.form-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--leave-form-gap);
+  gap: var(--space-4);
   padding: var(--space-4) 0;
 }
 
-.form-field {
+.field {
   display: flex;
   flex-direction: column;
-  gap: var(--leave-field-gap);
+  gap: var(--space-2);
 }
 
-.form-label {
-  font-weight: var(--label-font-weight);
-  font-size: 0.95rem;
+.field label {
+  font-weight: var(--font-weight-medium);
+  font-size: 0.875rem;
   color: var(--text-primary);
 }
 
+.field label.required::after,
 .form-label.required::after {
   content: " *";
   color: var(--danger);
 }
 
+.field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+/* Dialog footer actions */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--dialog-footer-gap);
-  margin-top: var(--dialog-footer-margin);
-  padding-top: var(--dialog-footer-padding);
-  border-top: 1px solid var(--border-color);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color-subtle);
 }
 
-/* Header styling with global design tokens */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--leave-header-spacing);
-}
-
-.header-section h2 {
-  margin: 0;
-  color: var(--primary);
-  font-weight: var(--title-font-weight);
-}
-
-/* Table Styles */
-.p-datatable {
-  border-radius: var(--table-border-radius);
-  overflow: hidden;
-  box-shadow: var(--table-shadow);
-}
-
+/* Table action-button row */
 .action-buttons {
   display: flex;
-  gap: var(--leave-action-gap);
+  gap: var(--space-2);
+  align-items: center;
 }
 
-.action-buttons .p-button {
-  width: var(--leave-button-size);
-  height: var(--leave-button-size);
-}
-
-/* Enhanced table styling using global design tokens */
+/* PrimeNG table overrides */
 :host ::ng-deep .p-datatable {
-  border: 1px solid var(--border-color);
-  border-radius: var(--table-border-radius) !important;
-  box-shadow: var(--table-shadow) !important;
+  border: 1px solid var(--border-color-subtle);
+  border-radius: var(--rads-xl) !important;
+  box-shadow: var(--shadow-xs) !important;
   overflow: hidden;
 }
 
 :host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
-  background: var(--bg-subtle);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color-subtle);
   color: var(--text-primary);
-  font-weight: var(--label-font-weight);
-  padding: var(--space-3) var(--table-cell-padding);
+  font-weight: var(--font-weight-medium);
 }
 
 :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
-  padding: var(--space-3) var(--table-cell-padding);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-color-subtle);
 }
 
 :host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
@@ -104,107 +76,29 @@
 }
 
 :host ::ng-deep .p-datatable .p-datatable-emptymessage > td {
-  padding: var(--table-empty-padding);
+  padding: var(--space-8);
   text-align: center;
   color: var(--text-secondary);
+  font-style: italic;
 }
 
-/* Enhanced tag styling */
+/* Tag styling */
 :host ::ng-deep .p-tag {
-  font-weight: var(--tag-font-weight);
-  padding: var(--space-1) var(--space-3);
+  font-weight: var(--font-weight-semibold);
   border-radius: var(--rads-md);
 }
 
-/* Container and layout improvements */
-.leave-requests-container {
-  padding: var(--leave-container-padding);
-  max-width: 100%;
-}
-
-/* Custom form grid styling */
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--leave-form-gap);
-  padding: var(--space-4) 0;
-}
-
-.field-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--leave-field-gap);
-}
-
-/* Enhanced dialog styling */
+/* Dialog shell */
 :host ::ng-deep .p-dialog .p-dialog-content {
   padding: var(--space-6) !important;
 }
 
 :host ::ng-deep .p-dialog .p-dialog-header {
-  background: var(--bg-subtle);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color-subtle);
 }
 
-.text-center {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--text-secondary);
-}
-
-/* Form Styles */
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--leave-form-gap);
-  padding: var(--space-4) 0;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--leave-field-gap);
-}
-
-.field label {
-  font-weight: var(--label-font-weight);
-  color: var(--text-primary);
-}
-
-.field label.required::after {
-  content: " *";
-  color: var(--danger);
-}
-
-.field-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-@media (max-width: 768px) {
-  .field-group {
-    grid-template-columns: 1fr;
-  }
-  
-  .header-section {
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: stretch;
-  }
-  
-  .action-buttons {
-    justify-content: center;
-  }
-}
-
-/* Form Validation Styles */
+/* Validation */
 .p-error {
   color: var(--danger);
   font-size: 0.875rem;
@@ -214,142 +108,31 @@
   border-color: var(--danger) !important;
 }
 
-/* Status Tags */
-.p-tag {
-  font-weight: var(--tag-font-weight);
-}
+/* Status badge colours */
+.status-pending  { background-color: var(--warning-light);  color: var(--warning-dark);  }
+.status-approved { background-color: var(--success-light);  color: var(--success-dark);  }
+.status-rejected { background-color: var(--danger-light);   color: var(--danger-dark);   }
+.status-draft    { background-color: var(--bg-hover);       color: var(--text-secondary); }
+.status-submitted{ background-color: var(--info-light);     color: var(--info-dark);     }
 
-/* Card Styles */
-.p-card {
-  border-radius: var(--card-border-radius);
-  box-shadow: var(--card-shadow);
-  border: none;
-}
-
-.p-card .p-card-content {
-  padding: var(--card-padding);
-}
-
-/* Table responsive */
-@media (max-width: 992px) {
-  .p-datatable .p-datatable-tbody > tr > td {
-    padding: var(--table-cell-padding);
-    font-size: 0.875rem;
-  }
-  
-  .p-datatable .p-datatable-thead > tr > th {
-    padding: var(--table-cell-padding);
-    font-size: 0.875rem;
-  }
-}
-
-/* Loading state */
-.p-datatable .p-datatable-loading-overlay {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-/* Empty state */
-.p-datatable .p-datatable-emptymessage td {
-  padding: var(--table-empty-padding);
-  text-align: center;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-/* Button states */
-.p-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Tooltip styles */
-.p-tooltip .p-tooltip-text {
-  font-size: 0.875rem;
-}
-
-/* ============================================
-   LEAVE REQUEST STATUS STYLES
-   ============================================ */
-
-/* Status-specific styling using design tokens */
-.status-pending {
-  background-color: var(--warning-light);
-  color: var(--warning-dark);
-}
-
-.status-approved {
-  background-color: var(--success-light);
-  color: var(--success-dark);
-}
-
-.status-rejected {
-  background-color: var(--danger-light);
-  color: var(--danger-dark);
-}
-
-.status-draft {
-  background-color: var(--bg-hover);
-  color: var(--text-secondary);
-}
-
-.status-submitted {
-  background-color: var(--info-light);
-  color: var(--info-dark);
-}
-
-/* ============================================
-   PRIORITY AND URGENCY INDICATORS
-   ============================================ */
-
-.priority-high {
-  border-left: var(--space-1) solid var(--danger);
-}
-
-.priority-medium {
-  border-left: var(--space-1) solid var(--warning);
-}
-
-.priority-low {
-  border-left: var(--space-1) solid var(--success);
-}
-
-/* ============================================
-   ACCESSIBILITY ENHANCEMENTS
-   ============================================ */
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Focus styles */
+/* Focus ring */
 .p-button:focus,
-.p-inputtext:focus,
-.p-dropdown:focus,
-.p-calendar:focus {
+.p-inputtext:focus {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .p-tag {
-    border: 2px solid currentColor;
+@media (max-width: 768px) {
+  .field-group {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    justify-content: center;
   }
   
-  .status-pending,
-  .status-approved,
-  .status-rejected,
-  .status-draft,
-  .status-submitted {
-    border: 2px solid currentColor;
+  .action-buttons {
+    justify-content: center;
   }
 }

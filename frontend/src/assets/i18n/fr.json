@@ -34,7 +34,51 @@
     "overtime": "Heures Supplémentaires",
     "overtimeManagement": "Validation Heures Sup",
     "holidays": "Jours Fériés",
-    "salaryPackages": "Packages Salariaux"
+    "salaryPackages": "Packages Salariaux",
+    "myPayslip": "Ma Fiche de Paie"
+  },
+  "payslip": {
+    "title": "Fiche de Paie",
+    "subtitleEmployee": "Téléchargez votre fiche de paie pour la période souhaitée.",
+    "subtitleHR": "Générez la fiche de paie d'un employé pour",
+    "formTitle": "Paramètres de génération",
+    "selectEmployee": "Employé",
+    "placeholderEmployee": "Sélectionner un employé",
+    "selectMonth": "Mois",
+    "placeholderMonth": "Sélectionner un mois",
+    "selectYear": "Année",
+    "placeholderYear": "Sélectionner une année",
+    "myself": "Moi",
+    "periodSummary": "Période sélectionnée :",
+    "generate": "Générer la fiche de paie",
+    "loadingEmployees": "Chargement des employés...",
+    "infoTitle": "Comment ça marche ?",
+    "infoBody": "Sélectionnez la période souhaitée puis cliquez sur \"Générer\". La fiche de paie sera téléchargée automatiquement en PDF.",
+    "success": {
+      "generated": "La fiche de paie a été générée et téléchargée avec succès."
+    },
+    "error": {
+      "noEmployee": "Veuillez sélectionner un employé.",
+      "noEmployeeId": "Votre compte n'est pas lié à un dossier employé. Contactez votre RH.",
+      "notFound": "Aucune fiche de paie trouvée pour cette période. Assurez-vous que la paie a été calculée.",
+      "payrollError": "La fiche de paie est en erreur. Veuillez recalculer la paie.",
+      "generic": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
+      "notFoundEMP" : "Aucune fiche de paie trouvée pour cette période. Contactez votre département RH."
+    },
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    }
   },
   "payrollBulletin": {
     "title": "Bulletins de Paie",
@@ -396,8 +440,6 @@
     "reset": "Réinitialiser",
     "status": "Statut",
     "allStatuses": "Tous les statuts",
-    "selectDate": "Sélectionner une date",
-    "confirmation": "Confirmation",
     "unknown": "Inconnu",
     "total": "Total",
     "create": "Créer",
@@ -428,7 +470,6 @@
     "replace": "Remplacer",
     "back": "Retour",
     "clear": "Effacer",
-    "reset": "Réinitialiser",
     "retry": "Réessayer",
     "apply": "Appliquer",
     "ok": "OK",
@@ -487,13 +528,7 @@
       "daysAgo": "Il y a {{count}}j"
     },
     "confirmation": "Confirmation",
-    "now": "maintenant",
-    "table": {
-      "showing": "Affichage de {first} à {last} sur {totalRecords} entrées"
-    },
-    "validation": {
-      "required": "Ce champ est obligatoire"
-    }
+    "now": "maintenant"
   },
   "errors": {
     "required": "Ce champ est requis",
@@ -792,8 +827,11 @@
       "officialImages": "Images Officielles",
       "signature": "Signature Scannée",
       "noSignature": "Aucune signature téléchargée",
-      "stamp": "Cachet de l'Entreprise",
+      "stamp": "Cachet / Tampon",
       "noStamp": "Aucun cachet téléchargé",
+      "logo": "Logo de l'Entreprise",
+      "noLogo": "Aucun logo téléchargé",
+      "logoAlt": "Logo",
       "otherDocs": "Autres Documents",
       "previousVersions": "Versions précédentes",
       "name": "Nom du Document",
@@ -814,13 +852,31 @@
       "signatureAlt": "Signature",
       "stampAlt": "Cachet",
       "messages": {
-        "loadError": "Failed to load company documents",
-        "signatureUploaded": "Signature uploaded successfully",
-        "stampUploaded": "Stamp uploaded successfully",
-        "signatorySaved": "Signatory information saved successfully",
-        "documentUploaded": "Document uploaded successfully",
-        "signatureRemoved": "Signature removed",
-        "stampRemoved": "Stamp removed"
+        "loadError": "Échec du chargement des documents",
+        "signatureUploaded": "Signature téléversée avec succès",
+        "stampUploaded": "Cachet téléversé avec succès",
+        "logoUploaded": "Logo téléversé avec succès",
+        "signatorySaved": "Informations du signataire enregistrées",
+        "documentUploaded": "Document téléversé avec succès",
+        "uploadError": "Erreur lors du téléversement du document",
+        "downloadError": "Erreur lors du téléchargement du document",
+        "deleteSuccess": "Document supprimé avec succès",
+        "deleteError": "Erreur lors de la suppression du document",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer « {{name}} » ?",
+        "signatureRemoved": "Signature supprimée",
+        "stampRemoved": "Cachet supprimé",
+        "logoRemoved": "Logo supprimé"
+      },
+      "addDocument": "Ajouter un document",
+      "uploadDialogTitle": "Téléverser un document",
+      "docType": "Type de document",
+      "selectDocType": "Sélectionner un type…",
+      "selectFile": "Choisir un fichier",
+      "noDocuments": "Aucun document pour le moment",
+      "stats": {
+        "title": "Résumé des documents",
+        "total": "document(s) enregistré(s)",
+        "lastUpload": "Dernier ajout"
       }
     },
     "history": {

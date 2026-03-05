@@ -104,6 +104,17 @@ export class PayrollService {
   }
 
   /**
+   * Télécharge la fiche de paie PDF pour un employé et une période.
+   * GET: /api/payslip/employee/{employeeId}/period/{year}/{month}
+   */
+  downloadPayslip(employeeId: number, year: number, month: number): Observable<Blob> {
+    return this.http.get(
+      `${environment.apiUrl}/payslip/employee/${employeeId}/period/${year}/${month}`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /**
    * Récupère les mois disponibles (helper)
    */
   getMonths(): { value: number; label: string }[] {

@@ -161,6 +161,7 @@ namespace payzen_backend.Controllers.Auth
                     LastName = user.Employee?.LastName ?? "",
                     Roles = userRoles,
                     Permissions = userPermissions,
+                    EmployeeId = user.Employee?.Id,
                     EmployeeCategoryId = user.Employee?.CategoryId,
                     Mode = mode,
                     isCabinetExpert = isCabinetExpert ?? false,

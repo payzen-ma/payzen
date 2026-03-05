@@ -39,6 +39,30 @@ namespace payzen_backend.Controllers.Employee
         }
 
         /// <summary>
+        /// Récupère l'employé lié à l'utilisateur authentifié.
+        /// Utilisé par le frontend pour résoudre l'ID employé d'une session sans employee_id dans le token.
+        /// </summary>
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
+        {
+            var userId = User.GetUserId();
+            var user = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.Employee)
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive && u.DeletedAt == null);
+
+            if (user?.Employee == null)
+                return NotFound(new { message = "Aucun dossier employé lié à ce compte." });
+
+            return Ok(new
+            {
+                employeeId = user.Employee.Id,
+                firstName  = user.Employee.FirstName,
+                lastName   = user.Employee.LastName
+            });
+        }
+
+        /// <summary>
         /// Récupère tous les employés actifs
         /// </summary>
         [HttpGet("summary")]

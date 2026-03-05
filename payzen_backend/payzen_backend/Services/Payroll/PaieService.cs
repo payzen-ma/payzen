@@ -727,6 +727,12 @@ namespace payzen_backend.Services.Payroll
                 CimrPartSalariale = nativeResult.CimrSalarial,
                 MutuellePartSalariale = nativeResult.MutuelleSalariale,
                 TotalCotisationsSalariales = nativeResult.TotalCotisationsSalariales,
+
+                // Bases des cotisations
+                CnssBase = nativeResult.CnssBase,
+                AmoBase = nativeResult.AmoBase,
+                CimrBase = nativeResult.CimrBase,
+                MutuelleBase = nativeResult.MutuelleBase,
                 
                 // Cotisations patronales
                 CnssPartPatronale = nativeResult.CnssRgPatronal,
@@ -740,6 +746,7 @@ namespace payzen_backend.Services.Payroll
                 
                 // IR et net
                 ImpotRevenu = nativeResult.IR,
+                IrTaux = nativeResult.IrTaux,
                 NetImposable = nativeResult.RevenuNetImposable,
                 TotalNet = nativeResult.SalaireNetAvantArrondi,
                 TotalNet2 = nativeResult.SalaireNet,

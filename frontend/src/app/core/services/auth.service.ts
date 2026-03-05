@@ -51,7 +51,19 @@ export class AuthService {
   isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN || this.currentUser()?.role === UserRole.ADMIN_PAYZEN);
   isRH = computed(() => this.currentUser()?.role === UserRole.RH);
   isManager = computed(() => this.currentUser()?.role === UserRole.MANAGER);
-  isEmployee = computed(() => this.currentUser()?.role === UserRole.EMPLOYEE);
+  /**
+   * Returns true only if the user is a plain employee WITHOUT elevated access.
+   * An employee from a cabinet comptable (isCabinetExpert) behaves like RH/HR
+   * when they have selected the expert-mode context, so this returns false in
+   * that case to give them the full HR experience across all components.
+   */
+  isEmployee = computed(() => {
+    const user = this.currentUser();
+    if (!user || user.role !== UserRole.EMPLOYEE) return false;
+    // Cabinet-expert employee in expert mode → not a "simple" employee
+    if (user.isCabinetExpert && this.contextService.isExpertMode()) return false;
+    return true;
+  });
   isCabinet = computed(() => this.currentUser()?.role === UserRole.CABINET);
   isAdminPayZen = computed(() => this.currentUser()?.role === UserRole.ADMIN_PAYZEN);
   isManagerWithTeam = computed(() => this.hasSubordinates());

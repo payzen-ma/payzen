@@ -298,6 +298,16 @@ export class EmployeeService {
   }
 
   /**
+   * Récupère l'employé lié à l'utilisateur authentifié.
+   * Utilisé comme fallback quand employee_id n'est pas dans le token.
+   */
+  getMyEmployee(): Observable<{ employeeId: number; firstName: string; lastName: string }> {
+    return this.http.get<{ employeeId: number; firstName: string; lastName: string }>(
+      `${this.EMPLOYEE_URL}/me`
+    );
+  }
+
+  /**
    * Get all employees with optional filters.
    * INTELLIGENT ROUTING FIX:
    * 1. If a specific companyId is requested, use /api/employee/company/{id}

@@ -257,6 +257,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/bulletin/bulletin.component').then(m => m.BulletinComponent),
         canActivate: [rhGuard],
         title: 'Bulletins de Paie - PayZen'
+      },
+
+      // Payroll - Fiche de Paie (accessible à tous les employés)
+      {
+        path: 'payroll/payslip',
+        loadComponent: () => import('./features/payroll/payslip/payslip.component').then(m => m.PayslipComponent),
+        canActivate: [authGuard],
+        title: 'Ma Fiche de Paie - PayZen'
       }
     ]
   },
@@ -385,6 +393,137 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/bulletin/bulletin.component').then(m => m.BulletinComponent),
         data: { expertMode: true },
         title: 'Bulletins de Paie - PayZen'
+      },
+
+      // Payroll - Fiche de Paie (Expert Mode)
+      {
+        path: 'payroll/payslip',
+        loadComponent: () => import('./features/payroll/payslip/payslip.component').then(m => m.PayslipComponent),
+        data: { expertMode: true },
+        title: 'Fiche de Paie - PayZen'
+      },
+
+      // Leave Management (Expert Mode)
+      {
+        path: 'leave',
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent),
+            data: { expertMode: true }
+          },
+          {
+            path: 'types',
+            loadComponent: () => import('./features/leave/leave-types/leave-types').then(m => m.LeaveTypesPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'types/create',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-form/leave-type-form').then(m => m.LeaveTypeFormPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'types/:id',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-detail/leave-type-detail').then(m => m.LeaveTypeDetailPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'types/:id/edit',
+            loadComponent: () => import('./features/leave/leave-types/leave-type-form/leave-type-form').then(m => m.LeaveTypeFormPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'policies',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policies').then(m => m.LeavePoliciesPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'policies/create',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'policies/configure/:leaveTypeId',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'policies/:id',
+            loadComponent: () => import('./features/leave/leave-policies/leave-policy-form/leave-policy-form').then(m => m.LeavePolicyFormPage),
+            data: { expertMode: true }
+          },
+          {
+            path: 'legal-rules',
+            loadComponent: () => import('./features/leave/leave-legal-rules/leave-legal-rules').then(m => m.LeaveLegalRulesPage),
+            data: { expertMode: true }
+          }
+        ]
+      },
+
+      // Salary Packages (Expert Mode)
+      {
+        path: 'salary-packages',
+        loadComponent: () => import('./features/salary-packages/salary-packages').then(m => m.SalaryPackagesPage),
+        data: { expertMode: true },
+        title: 'Packages de Rémunération - PayZen'
+      },
+      {
+        path: 'salary-packages/create',
+        loadComponent: () => import('./features/salary-packages/components/salary-package-create/salary-package-create').then(m => m.SalaryPackageCreateComponent),
+        data: { expertMode: true },
+        title: 'Nouveau Package - PayZen'
+      },
+      {
+        path: 'salary-packages/:id',
+        loadComponent: () => import('./features/salary-packages/components/salary-package-view/salary-package-view').then(m => m.SalaryPackageViewComponent),
+        data: { expertMode: true },
+        title: 'Détails Package - PayZen'
+      },
+      {
+        path: 'salary-packages/:id/edit',
+        loadComponent: () => import('./features/salary-packages/components/salary-package-create/salary-package-create').then(m => m.SalaryPackageCreateComponent),
+        data: { expertMode: true },
+        title: 'Modifier Package - PayZen'
+      },
+
+      // Overtime (Expert Mode)
+      {
+        path: 'overtime-management',
+        loadComponent: () => import('./features/overtime/overtime-management/overtime-management').then(m => m.OvertimeManagementComponent),
+        data: { expertMode: true }
+      },
+      {
+        path: 'overtime/hr',
+        loadComponent: () => import('./features/overtime/hr-employees/hr-employees').then(m => m.HrEmployeesComponent),
+        data: { expertMode: true }
+      },
+      {
+        path: 'overtime/detail/:id',
+        loadComponent: () => import('./features/overtime/overtime-detail/overtime-detail').then(m => m.OvertimeDetailComponent),
+        data: { expertMode: true }
+      },
+
+      // HR Leave Management (Expert Mode)
+      {
+        path: 'hr-leave-management',
+        loadComponent: () => import('./features/leave/hr-leave-management/hr-leave-management.component').then(m => m.HrLeaveManagementComponent),
+        data: { expertMode: true },
+        title: 'Gestion des Congés RH - PayZen'
+      },
+
+      // Permissions (Expert Mode)
+      {
+        path: 'permissions',
+        loadComponent: () => import('./features/permissions/permission-management.component').then(m => m.PermissionManagementComponent),
+        data: { expertMode: true },
+        title: 'Permission Management - PayZen'
+      },
+
+      // Reports (Expert Mode)
+      {
+        path: 'reports/attendance',
+        loadComponent: () => import('./features/reports/attendance-report/attendance-report').then(m => m.AttendanceReportPage),
+        data: { expertMode: true }
       }
     ]
   },

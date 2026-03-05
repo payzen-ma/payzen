@@ -1,21 +1,22 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using payzen_backend.Data;
-using payzen_backend.Services;
 using payzen_backend.Seeding;
-using Microsoft.Extensions.Logging;
-using payzen_backend.Services.Convergence;
-using payzen_backend.Services.Dashboard;
-using payzen_backend.Services.Validation;
-using System.Text;
-using payzen_backend.Services.Leave;
-using payzen_backend.Services.Company.Defaults.Seeders;
+using payzen_backend.Services;
+using payzen_backend.Services.Company;
 using payzen_backend.Services.Company.Defaults;
+using payzen_backend.Services.Company.Defaults.Seeders;
 using payzen_backend.Services.Company.Interfaces;
 using payzen_backend.Services.Company.Onboarding;
+using payzen_backend.Services.Convergence;
+using payzen_backend.Services.Dashboard;
+using payzen_backend.Services.Leave;
 using payzen_backend.Services.Llm;
 using payzen_backend.Services.Payroll;
+using payzen_backend.Services.Validation;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +82,7 @@ builder.Services.AddScoped<WorkingDaysCalculator>();
 builder.Services.AddScoped<LeaveBalanceService>();
 builder.Services.AddScoped<IMoroccanPayrollService, MoroccanPayrollService>();
 builder.Services.AddScoped<EmployeePayrollDataService>();
+builder.Services.AddScoped<ICompanyDocumentService, CompanyDocumentService>();
 
 // Service LLM : Mock / Claude / Gemini
 var useMock = builder.Configuration.GetValue<bool>("Anthropic:UseMock");
@@ -136,6 +138,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// ── IronPDF : initialisation de la licence (une seule fois au démarrage) ──
+IronPdf.License.LicenseKey = app.Configuration["IronPdf.LicenseKey"] ?? "";
 
 // Afficher le mode LLM utilisé
 var useMockClaude = app.Configuration.GetValue<bool>("Anthropic:UseMock");
