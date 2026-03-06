@@ -8,7 +8,7 @@ import { CompanyContextService } from '@app/core/services/companyContext.service
 
 import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /** État de chargement par export */
 type ExportKey = 'journal' | 'cnss' | 'ir';
@@ -29,6 +29,7 @@ type ExportKey = 'journal' | 'cnss' | 'ir';
 export class PayrollExportsComponent implements OnInit {
   private readonly exportService   = inject(PayrollExportService);
   private readonly contextService  = inject(CompanyContextService);
+  private readonly translate       = inject(TranslateService);
 
   // ── Formulaire ─────────────────────────────────────────────────────────
   selectedYear  = signal<number>(new Date().getFullYear());
@@ -65,7 +66,7 @@ export class PayrollExportsComponent implements OnInit {
   private download(key: ExportKey, filename: string): void {
     const companyId = Number(this.contextService.companyId());
     if (!companyId) {
-      this.errorMessage.set('Aucune entreprise sélectionnée.');
+      this.errorMessage.set(this.translate.instant('payrollExportsPage.messages.noCompany'));
       return;
     }
 
@@ -81,12 +82,14 @@ export class PayrollExportsComponent implements OnInit {
       .subscribe({
         next: (blob) => {
           PayrollExportService.triggerDownload(blob, filename);
-          this.successMessage.set(`${filename} téléchargé avec succès.`);
+          this.successMessage.set(this.translate.instant('payrollExportsPage.messages.downloadSuccess', { filename }));
         },
         error: (err) => {
           const msg = err?.status === 404
-            ? 'Aucun bulletin validé trouvé pour cette période.'
-            : `Erreur lors de l'export : ${err?.statusText ?? 'Erreur inconnue'}`;
+            ? this.translate.instant('payrollExportsPage.messages.noBulletins')
+            : this.translate.instant('payrollExportsPage.messages.errorGeneric', { 
+                error: err?.statusText ?? this.translate.instant('payrollExportsPage.messages.errorUnknown')
+              });
           this.errorMessage.set(msg);
         }
       });
@@ -111,10 +114,15 @@ export class PayrollExportsComponent implements OnInit {
   }
 
   private buildMonthOptions(): SelectOption[] {
-    const names = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    const monthKeys = [
+      'payslip.months.january', 'payslip.months.february', 'payslip.months.march',
+      'payslip.months.april', 'payslip.months.may', 'payslip.months.june',
+      'payslip.months.july', 'payslip.months.august', 'payslip.months.september',
+      'payslip.months.october', 'payslip.months.november', 'payslip.months.december'
     ];
-    return names.map((label, index) => ({ value: index + 1, label }));
+    return monthKeys.map((key, index) => ({ 
+      value: index + 1, 
+      label: this.translate.instant(key) 
+    }));
   }
 }

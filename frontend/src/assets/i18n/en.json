@@ -37,6 +37,7 @@
     "salaryPackages": "Salary Packages",
     "myPayslip": "My Payslip",
     "payrollExports": "Payroll Exports",
+    "simulation": "Payroll Simulator",
     "groups": {
       "dashboard": "Dashboard",
       "company": "Company",
@@ -89,6 +90,79 @@
       "october": "October",
       "november": "November",
       "december": "December"
+    }
+  },
+  "simulation": {
+    "title": "Payroll Simulator",
+    "emptyState": {
+      "title": "How can I help you?",
+      "description": "Describe the desired net salary and I'll optimize 3 payroll formulas for you."
+    },
+    "suggestions": {
+      "suggestion1": "I want a net salary of 10,000 DH",
+      "suggestion2": "Suggest formulas for a net of 15,000 DH",
+      "suggestion3": "Simulate a net salary of 8,500 DH with tax optimization"
+    },
+    "messages": {
+      "analyzing": "Analyzing…",
+      "formulasIntro": "Here are <strong>{{count}} formulas</strong> optimized according to your criteria:"
+    },
+    "elementTypes": {
+      "base": "Base",
+      "prime": "Bonus",
+      "deduction": "Deduction",
+      "avantage": "Benefit",
+      "ni": "Non-taxable"
+    },
+    "labels": {
+      "brutImposable": "Taxable gross",
+      "totalRetenues": "Total deductions",
+      "coutEmployeur": "Employer cost",
+      "netAPayer": "NET PAY",
+      "avantages": "Advantages",
+      "pointsAttention": "Points of attention"
+    },
+    "input": {
+      "placeholder": "Describe the desired net salary…",
+      "sendButton": "Send (Enter)",
+      "hint": "Enter to send · Shift+Enter for new line"
+    },
+    "errors": {
+      "invalidFormat": "Error parsing response. Invalid JSON format.",
+      "generic": "An error occurred. Please try again."
+    }
+  },
+  "payrollExportsPage": {
+    "title": "Payroll Exports",
+    "subtitle": "Payroll Journal &bull; CNSS Statement (Damancom) &bull; IR Statement",
+    "periodSelection": "Period Selection",
+    "month": "Month",
+    "year": "Year",
+    "journal": {
+      "title": "Payroll Journal",
+      "format": "Excel Format (.xlsx)",
+      "description": "All payroll lines for the month: salaries, bonuses, contributions, IR and net pay.",
+      "button": "Export Journal"
+    },
+    "cnss": {
+      "title": "CNSS Statement",
+      "format": "CSV Damancom Format",
+      "description": "Damancom-compatible CNSS declaration (UTF-8 BOM, semicolon separator).",
+      "button": "CNSS Statement"
+    },
+    "ir": {
+      "title": "IR Statement",
+      "format": "Excel Format (.xlsx)",
+      "description": "Monthly summary of income tax withheld at source.",
+      "button": "IR Statement"
+    },
+    "notice": "Only bulletins with status <strong>Calculated (OK)</strong> are included in exports.",
+    "messages": {
+      "noCompany": "No company selected.",
+      "downloadSuccess": "{{filename}} downloaded successfully.",
+      "noBulletins": "No approved bulletins found for this period.",
+      "errorGeneric": "Export error: {{error}}",
+      "errorUnknown": "Unknown error"
     }
   },
   "payrollBulletin": {

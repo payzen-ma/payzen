@@ -14,7 +14,7 @@
 .chat-header {
   flex-shrink: 0;
   padding: 0.875rem 1.5rem;
-  background: var(--bg-card);
+  background: var(--bg-element);
   border-bottom: 1px solid var(--border-color-subtle);
   box-shadow: var(--shadow-sm);
   z-index: 10;
@@ -55,7 +55,7 @@
 
 .chat-header-subtitle {
   font-size: 0.7rem;
-  color: var(--text-tertiary, var(--text-secondary));
+  color: var(--text-muted);
   margin: 0;
   margin-top: 0.1rem;
 }
@@ -129,11 +129,11 @@
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-card);
+  background: var(--bg-element);
   border: 1px solid var(--border-color-medium);
   border-radius: var(--rads-full);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
   white-space: nowrap;
 }
 
@@ -190,8 +190,8 @@
 }
 
 .msg-avatar--user {
-  background: var(--primary, #6366f1);
-  color: #fff;
+  background: var(--primary);
+  color: var(--text-inverse);
 }
 
 .msg-avatar--ai {
@@ -210,16 +210,16 @@
 }
 
 .msg-bubble--user {
-  background: var(--primary, #6366f1);
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-bottom-right-radius: var(--rads-sm);
 }
 
 .msg-bubble--ai {
-  background: var(--bg-card);
+  background: var(--bg-element);
   color: var(--text-primary);
   border: 1px solid var(--border-color-subtle);
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: var(--rads-sm);
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -286,7 +286,7 @@
 .typing-dots span {
   width: 7px;
   height: 7px;
-  background: var(--text-tertiary, var(--text-secondary));
+  background: var(--text-muted);
   border-radius: 50%;
   animation: typingBounce 1.2s infinite ease-in-out;
 }
@@ -311,10 +311,10 @@
   color: var(--text-secondary);
   margin-bottom: 1rem;
   padding: 0.625rem 0.875rem;
-  background: var(--bg-card);
+  background: var(--bg-element);
   border: 1px solid var(--border-color-subtle);
   border-radius: var(--rads-lg);
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: var(--rads-sm);
 }
 
 /* ── Compositions grid ── */
@@ -326,17 +326,17 @@
 
 /* ── Composition card ── */
 .composition-card {
-  background: var(--bg-card);
+  background: var(--bg-element);
   border: 1px solid var(--border-color-subtle);
   border-top: 3px solid transparent;
   border-radius: var(--rads-xl);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-top-color 0.2s ease;
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-top-color var(--transition-base);
   animation: fadeInUp 0.4s ease-out both;
 }
 
 .composition-card:nth-child(1) { animation-delay: 0.05s; border-top-color: var(--success); }
-.composition-card:nth-child(2) { animation-delay: 0.15s; border-top-color: var(--info, #3b82f6); }
+.composition-card:nth-child(2) { animation-delay: 0.15s; border-top-color: var(--info); }
 .composition-card:nth-child(3) { animation-delay: 0.25s; border-top-color: var(--warning); }
 
 .composition-card:hover {
@@ -355,7 +355,7 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem 1rem 0.875rem;
-  background: linear-gradient(135deg, var(--bg-card) 60%, var(--success-light));
+  background: linear-gradient(135deg, var(--bg-element) 60%, var(--success-light));
   border-bottom: 1px solid var(--border-color-subtle);
   position: relative;
 }
@@ -364,7 +364,7 @@
   font-size: 2.5rem;
   font-weight: 900;
   line-height: 1;
-  color: rgba(148, 163, 184, 0.25);
+  color: var(--border-color-subtle);
   flex-shrink: 0;
   margin-top: -2px;
 }
@@ -427,7 +427,7 @@
   padding: 0.1rem 0.4rem;
   font-size: 0.67rem;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: var(--rads-sm);
   border: 1px solid;
   width: fit-content;
 }
@@ -522,9 +522,9 @@
 .chat-input-area {
   flex-shrink: 0;
   padding: 0.75rem 1rem 0.875rem;
-  background: var(--bg-card);
+  background: var(--bg-element);
   border-top: 1px solid var(--border-color-subtle);
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .input-suggestions {
@@ -554,7 +554,7 @@
   background: var(--bg-page);
   border: 1.5px solid var(--border-color-medium);
   border-radius: var(--rads-xl);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   overflow-y: auto;
   font-family: inherit;
 }
@@ -579,7 +579,7 @@
   color: var(--text-secondary);
   border: none;
   cursor: not-allowed;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
 }
 
 .send-btn svg {
@@ -589,7 +589,7 @@
 
 .send-btn--active {
   background: var(--success);
-  color: #fff;
+  color: var(--text-inverse);
   cursor: pointer;
   box-shadow: var(--shadow-md);
 }
@@ -644,9 +644,9 @@
 .text-red-800 { color: var(--danger-dark); }
 .border-red-200 { border-color: var(--danger); }
 
-.bg-purple-100  { background: #f3e8ff; }
-.text-purple-800 { color: #6b21a8; }
-.border-purple-200 { border-color: #c084fc; }
+.bg-purple-100  { background: var(--primary-light); }
+.text-purple-800 { color: var(--primary-dark); }
+.border-purple-200 { border-color: var(--primary); }
 
 .bg-blue-100  { background: var(--info-light); }
 .text-blue-800 { color: var(--info-dark); }
@@ -665,175 +665,3 @@
   .compositions-grid { grid-template-columns: 1fr; }
   .chat-header-subtitle { display: none; }
 }
-
-
-.composition-card:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.composition-card:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hover effect for composition cards */
-.composition-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-  border-top-color: var(--success) !important;
-}
-
-/* Custom scrollbar using global tokens */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--bg-page);
-  border-radius: var(--rads-lg);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-color-medium);
-  border-radius: var(--rads-lg);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--border-color-strong);
-}
-
-/* Suggestion chip hover effects */
-button[type="button"]:not(.btn):hover:not(:disabled) {
-  background: var(--success-light) !important;
-  color: var(--success-dark) !important;
-  border-color: var(--success) !important;
-}
-
-/* Accordion smooth rotation */
-.rotate-180 {
-  transform: rotate(180deg);
-}
-
-/* Amount color classes */
-.text-red-600 {
-  color: var(--danger);
-}
-
-.text-green-600 {
-  color: var(--success);
-}
-
-/* Type badge variants using global tokens */
-.bg-green-100 {
-  background: var(--success-light);
-}
-
-.text-green-800 {
-  color: var(--success-dark);
-}
-
-.border-green-200 {
-  border-color: var(--success);
-}
-
-.bg-yellow-100 {
-  background: var(--warning-light);
-}
-
-.text-yellow-800 {
-  color: var(--warning-dark);
-}
-
-.border-yellow-200 {
-  border-color: var(--warning);
-}
-
-.bg-red-100 {
-  background: var(--danger-light);
-}
-
-.text-red-800 {
-  color: var(--danger-dark);
-}
-
-.border-red-200 {
-  border-color: var(--danger);
-}
-
-.bg-purple-100 {
-  background: #f3e8ff;
-}
-
-.text-purple-800 {
-  color: #6b21a8;
-}
-
-.border-purple-200 {
-  border-color: #c084fc;
-}
-
-.bg-blue-100 {
-  background: var(--info-light);
-}
-
-.text-blue-800 {
-  color: var(--info-dark);
-}
-
-.border-blue-200 {
-  border-color: var(--info);
-}
-
-/* Loading animation */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Spinner animation */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Print optimizations */
-@media print {
-  .composition-card {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .composition-number {
-    font-size: 4rem !important;
-  }
-}
-

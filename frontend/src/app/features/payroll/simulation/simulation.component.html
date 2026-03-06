@@ -10,7 +10,7 @@
         </svg>
       </div>
       <div>
-        <h1 class="chat-header-title">Simulateur de Paie</h1>
+        <h1 class="chat-header-title">{{ 'simulation.title' | translate }}</h1>
       </div>
     </div>
   </div>
@@ -26,8 +26,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>
           </svg>
         </div>
-        <h2 class="chat-empty-title">Comment puis-je vous aider ?</h2>
-        <p class="chat-empty-desc">Décrivez le salaire net souhaité et j'optimise 3 formules de paie pour vous.</p>
+        <h2 class="chat-empty-title">{{ 'simulation.emptyState.title' | translate }}</h2>
+        <p class="chat-empty-desc">{{ 'simulation.emptyState.description' | translate }}</p>
         <div class="chat-suggestions">
           @for (s of suggestions; track s) {
             <button type="button" class="suggestion-chip" (click)="useSuggestion(s)">
@@ -74,7 +74,7 @@
                 <div class="typing-dots">
                   <span></span><span></span><span></span>
                 </div>
-                <span class="typing-label">Analyse en cours…</span>
+                <span class="typing-label">{{ 'simulation.messages.analyzing' | translate }}</span>
               </div>
             }
 
@@ -107,9 +107,7 @@
 
             <!-- Success: composition cards -->
             @if (msg.type === 'success' && msg.compositions) {
-              <div class="ai-intro-text">
-                Voici <strong>{{ msg.compositions.length }} formules</strong> optimisées selon vos critères&nbsp;:
-              </div>
+              <div class="ai-intro-text" [innerHTML]="'simulation.messages.formulasIntro' | translate: {count: msg.compositions.length}"></div>
               <div class="compositions-grid">
                 @for (comp of msg.compositions; track comp.titre; let idx = $index) {
                   <div class="composition-card">
@@ -144,20 +142,20 @@
                     <div class="comp-footer">
                       <div class="comp-totals">
                         <div class="comp-total-row">
-                          <span>Brut imposable</span>
+                          <span>{{ 'simulation.labels.brutImposable' | translate }}</span>
                           <span class="font-mono font-semibold">{{ formatAmount(comp.brut_imposable) }}</span>
                         </div>
                         <div class="comp-total-row" style="color: var(--danger);">
-                          <span>Total retenues</span>
+                          <span>{{ 'simulation.labels.totalRetenues' | translate }}</span>
                           <span class="font-mono font-semibold">− {{ formatAmount(comp.total_retenues) }}</span>
                         </div>
                         <div class="comp-total-row">
-                          <span>Coût employeur</span>
+                          <span>{{ 'simulation.labels.coutEmployeur' | translate }}</span>
                           <span class="font-mono font-semibold">{{ formatAmount(comp.cout_employeur) }}</span>
                         </div>
                       </div>
                       <div class="comp-net">
-                        <span class="comp-net-label">NET À PAYER</span>
+                        <span class="comp-net-label">{{ 'simulation.labels.netAPayer' | translate }}</span>
                         <span class="comp-net-value">{{ formatAmount(comp.salaire_net) }}</span>
                       </div>
 
@@ -168,7 +166,7 @@
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Avantages
+                            {{ 'simulation.labels.avantages' | translate }}
                           </h4>
                           <ul>
                             @for (a of comp.avantages; track a) {
@@ -183,7 +181,7 @@
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                             </svg>
-                            Points d'attention
+                            {{ 'simulation.labels.pointsAttention' | translate }}
                           </h4>
                           <ul>
                             @for (i of comp.inconvenients; track i) {
@@ -221,7 +219,7 @@
         [(ngModel)]="inputText"
         rows="1"
         class="chat-textarea"
-        placeholder="Décrivez le salaire net souhaité…"
+        [placeholder]="'simulation.input.placeholder' | translate"
         (keydown)="onKeyDown($event)"
         (input)="$any($event.target).style.height = 'auto'; $any($event.target).style.height = $any($event.target).scrollHeight + 'px'"
       ></textarea>
@@ -231,14 +229,14 @@
         [class.send-btn--active]="inputText.trim()"
         (click)="sendMessage()"
         [disabled]="!inputText.trim()"
-        title="Envoyer (Entrée)"
+        [title]="'simulation.input.sendButton' | translate"
       >
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/>
         </svg>
       </button>
     </div>
-    <p class="input-hint">Entrée pour envoyer · Maj+Entrée pour nouvelle ligne</p>
+    <p class="input-hint">{{ 'simulation.input.hint' | translate }}</p>
   </div>
 
 </div>

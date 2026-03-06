@@ -1,6 +1,7 @@
 import { Component, signal, inject, ViewChild, ElementRef, AfterViewChecked, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SalarySimulationService } from '@app/core/services/salary-simulation.service';
 
 interface PayElement {
@@ -51,7 +52,7 @@ interface ChatMessage {
 @Component({
   selector: 'app-simulation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './simulation.component.html',
   styleUrls: ['./simulation.component.css']
 })
@@ -60,17 +61,29 @@ export class SimulationComponent implements AfterViewChecked {
 
   private simulationService = inject(SalarySimulationService);
   private zone = inject(NgZone);
+  private translate = inject(TranslateService);
 
   messages = signal<ChatMessage[]>([]);
   inputText = '';
   private messageCounter = 0;
   private shouldScroll = false;
 
-  suggestions = [
-    'Je veux un salaire net de 10 000 DH',
-    'Proposer des formules pour un net de 15 000 DH',
-    'Simuler un salaire net de 8 500 DH avec optimisation fiscale'
-  ];
+  suggestions: string[] = [];
+
+  constructor() {
+    // Load suggestions from translations
+    this.translate.get([
+      'simulation.suggestions.suggestion1',
+      'simulation.suggestions.suggestion2',
+      'simulation.suggestions.suggestion3'
+    ]).subscribe(translations => {
+      this.suggestions = [
+        translations['simulation.suggestions.suggestion1'],
+        translations['simulation.suggestions.suggestion2'],
+        translations['simulation.suggestions.suggestion3']
+      ];
+    });
+  }
 
   ngAfterViewChecked(): void {
     if (this.shouldScroll) {
@@ -265,7 +278,7 @@ export class SimulationComponent implements AfterViewChecked {
         id: loadingId,
         role: 'assistant',
         type: 'error',
-        error: 'Erreur lors de l\'analyse de la réponse. Format JSON invalide.',
+        error: this.translate.instant('simulation.errors.invalidFormat'),
         timestamp: new Date()
       });
     }
@@ -300,6 +313,10 @@ export class SimulationComponent implements AfterViewChecked {
   }
 
   formatAmount(amount: number): string {
+    // Handle undefined, null, or NaN values
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return '0.00 DH';
+    }
     return new Intl.NumberFormat('fr-MA', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -318,14 +335,8 @@ export class SimulationComponent implements AfterViewChecked {
   }
 
   getTypeLabel(type: PayElement['type']): string {
-    const labels = {
-      base: 'Base',
-      prime: 'Prime',
-      deduction: 'Retenue',
-      avantage: 'Avantage',
-      ni: 'Non imposable'
-    };
-    return labels[type];
+    const labelKey = `simulation.elementTypes.${type}`;
+    return this.translate.instant(labelKey);
   }
 
   getAmountClass(amount: number): string {

@@ -306,6 +306,11 @@ IMPORTANT :
 - Pour les erreurs, utilise ce format : {{""error"": ""titre"", ""message"": ""détails"", ""instructions"": ""aide""}}
 - Tous les montants doivent être arrondis à 2 décimales
 - Inclus tous les éléments de paie : base, primes, déductions (CNSS, AMO, IR, etc.)
+- ⚠️ OBLIGATOIRE : Chaque scénario DOIT contenir ces champs numériques :
+  * brut_imposable (nombre)
+  * total_retenues (nombre positif, somme des déductions)
+  * cout_employeur (nombre, brut + charges patronales)
+  * salaire_net (nombre, résultat final)
 - Calcule le coût total employeur avec les charges patronales
 - Liste les avantages et inconvénients de chaque formule
 - Si tu approches de la limite de tokens, simplifie les descriptions mais GARDE LE JSON VALIDE ET COMPLET";

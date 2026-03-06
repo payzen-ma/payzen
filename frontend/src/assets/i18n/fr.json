@@ -37,6 +37,7 @@
     "salaryPackages": "Packages Salariaux",
     "myPayslip": "Ma Fiche de Paie",
     "payrollExports": "Exports de Paie",
+    "simulation": "Simulation de Paie",
     "groups": {
       "dashboard": "Tableau de Bord",
       "company": "Entreprise",
@@ -89,6 +90,79 @@
       "october": "Octobre",
       "november": "Novembre",
       "december": "Décembre"
+    }
+  },
+  "simulation": {
+    "title": "Simulateur de Paie",
+    "emptyState": {
+      "title": "Comment puis-je vous aider ?",
+      "description": "Décrivez le salaire net souhaité et j'optimise 3 formules de paie pour vous."
+    },
+    "suggestions": {
+      "suggestion1": "Je veux un salaire net de 10 000 DH",
+      "suggestion2": "Proposer des formules pour un net de 15 000 DH",
+      "suggestion3": "Simuler un salaire net de 8 500 DH avec optimisation fiscale"
+    },
+    "messages": {
+      "analyzing": "Analyse en cours…",
+      "formulasIntro": "Voici <strong>{{count}} formules</strong> optimisées selon vos critères&nbsp;:"
+    },
+    "elementTypes": {
+      "base": "Base",
+      "prime": "Prime",
+      "deduction": "Retenue",
+      "avantage": "Avantage",
+      "ni": "Non imposable"
+    },
+    "labels": {
+      "brutImposable": "Brut imposable",
+      "totalRetenues": "Total retenues",
+      "coutEmployeur": "Coût employeur",
+      "netAPayer": "NET À PAYER",
+      "avantages": "Avantages",
+      "pointsAttention": "Points d'attention"
+    },
+    "input": {
+      "placeholder": "Décrivez le salaire net souhaité…",
+      "sendButton": "Envoyer (Entrée)",
+      "hint": "Entrée pour envoyer · Maj+Entrée pour nouvelle ligne"
+    },
+    "errors": {
+      "invalidFormat": "Erreur lors de l'analyse de la réponse. Format JSON invalide.",
+      "generic": "Une erreur est survenue. Veuillez réessayer."
+    }
+  },
+  "payrollExportsPage": {
+    "title": "Exports de Paie",
+    "subtitle": "Journal de Paie &bull; État CNSS (Damancom) &bull; État IR",
+    "periodSelection": "Sélection de la période",
+    "month": "Mois",
+    "year": "Année",
+    "journal": {
+      "title": "Journal de Paie",
+      "format": "Format Excel (.xlsx)",
+      "description": "Toutes les lignes de paie du mois : salaires, primes, cotisations, IR et net à payer.",
+      "button": "Exporter Journal"
+    },
+    "cnss": {
+      "title": "État CNSS",
+      "format": "Format CSV Damancom",
+      "description": "Déclaration CNSS compatible Damancom (UTF-8 BOM, séparateur point-virgule).",
+      "button": "État CNSS"
+    },
+    "ir": {
+      "title": "État IR",
+      "format": "Format Excel (.xlsx)",
+      "description": "Récapitulatif mensuel de l'impôt sur le revenu retenu à la source.",
+      "button": "État IR"
+    },
+    "notice": "Seuls les bulletins au statut <strong>Calculé (OK)</strong> sont inclus dans les exports.",
+    "messages": {
+      "noCompany": "Aucune entreprise sélectionnée.",
+      "downloadSuccess": "{{filename}} téléchargé avec succès.",
+      "noBulletins": "Aucun bulletin validé trouvé pour cette période.",
+      "errorGeneric": "Erreur lors de l'export : {{error}}",
+      "errorUnknown": "Erreur inconnue"
     }
   },
   "payrollBulletin": {

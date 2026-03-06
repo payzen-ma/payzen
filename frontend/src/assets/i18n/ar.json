@@ -37,6 +37,7 @@
     "salaryPackages": "حزم الرواتب",
     "myPayslip": "كشف راتبي",
     "payrollExports": "تصدير كشوف الرواتب",
+    "simulation": "محاكي الأجور",
     "groups": {
       "dashboard": "لوحة التحكم",
       "company": "الشركة",
@@ -89,6 +90,79 @@
       "october": "أكتوبر",
       "november": "نوفمبر",
       "december": "ديسمبر"
+    }
+  },
+  "simulation": {
+    "title": "محاكي الأجور",
+    "emptyState": {
+      "title": "كيف يمكنني مساعدتك؟",
+      "description": "صف الراتب الصافي المطلوب وسأقوم بتحسين 3 صيغ للأجور من أجلك."
+    },
+    "suggestions": {
+      "suggestion1": "أريد راتباً صافياً قدره 10,000 درهم",
+      "suggestion2": "اقترح صيغاً لراتب صافي قدره 15,000 درهم",
+      "suggestion3": "محاكاة راتب صافي قدره 8,500 درهم مع تحسين ضريبي"
+    },
+    "messages": {
+      "analyzing": "جارٍ التحليل…",
+      "formulasIntro": "إليك <strong>{{count}} صيغة</strong> محسنة حسب معاييرك:"
+    },
+    "elementTypes": {
+      "base": "أساسي",
+      "prime": "علاوة",
+      "deduction": "خصم",
+      "avantage": "ميزة",
+      "ni": "غير خاضع للضريبة"
+    },
+    "labels": {
+      "brutImposable": "الإجمالي الخاضع للضريبة",
+      "totalRetenues": "إجمالي الخصومات",
+      "coutEmployeur": "تكلفة صاحب العمل",
+      "netAPayer": "صافي الأجر المستحق",
+      "avantages": "المزايا",
+      "pointsAttention": "نقاط الانتباه"
+    },
+    "input": {
+      "placeholder": "صف الراتب الصافي المطلوب…",
+      "sendButton": "إرسال (Enter)",
+      "hint": "Enter للإرسال · Shift+Enter لسطر جديد"
+    },
+    "errors": {
+      "invalidFormat": "خطأ في تحليل الاستجابة. تنسيق JSON غير صالح.",
+      "generic": "حدث خطأ. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "payrollExportsPage": {
+    "title": "تصدير كشوف الرواتب",
+    "subtitle": "دفتر الأجور &bull; كشف الضمان الاجتماعي (Damancom) &bull; كشف الضريبة",
+    "periodSelection": "اختيار الفترة",
+    "month": "الشهر",
+    "year": "السنة",
+    "journal": {
+      "title": "دفتر الأجور",
+      "format": "تنسيق Excel (.xlsx)",
+      "description": "جميع سطور كشف الرواتب للشهر: الرواتب، العلاوات، الاشتراكات، الضريبة وصافي الأجر.",
+      "button": "تصدير الدفتر"
+    },
+    "cnss": {
+      "title": "كشف الضمان الاجتماعي",
+      "format": "تنسيق CSV Damancom",
+      "description": "تصريح الضمان الاجتماعي متوافق مع Damancom (UTF-8 BOM، فاصل فاصلة منقوطة).",
+      "button": "كشف الضمان الاجتماعي"
+    },
+    "ir": {
+      "title": "كشف الضريبة",
+      "format": "تنسيق Excel (.xlsx)",
+      "description": "ملخص شهري لضريبة الدخل المحتجزة عند المصدر.",
+      "button": "كشف الضريبة"
+    },
+    "notice": "فقط كشوف الرواتب بحالة <strong>محسوب (صحيح)</strong> مشمولة في التصدير.",
+    "messages": {
+      "noCompany": "لم يتم اختيار شركة.",
+      "downloadSuccess": "تم تنزيل {{filename}} بنجاح.",
+      "noBulletins": "لم يتم العثور على كشوف رواتب موافق عليها لهذه الفترة.",
+      "errorGeneric": "خطأ في التصدير: {{error}}",
+      "errorUnknown": "خطأ غير معروف"
     }
   },
   "payrollBulletin": {

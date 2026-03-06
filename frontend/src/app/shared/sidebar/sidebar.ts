@@ -224,7 +224,7 @@ export class Sidebar {
       groupe: 'payroll' // Grouping payroll-related items together
     },
       {
-      label: 'Simulation de Paie',
+      label: 'nav.simulation',
       icon: 'pi pi-calculator',
       routerLink: '/payroll/simulation',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
@@ -355,7 +355,7 @@ export class Sidebar {
       groupe: 'payroll' // Grouping payroll-related items together
     },
     {
-      label: 'Simulation de Paie',
+      label: 'nav.simulation',
       icon: 'pi pi-calculator',
       routerLink: '/payroll/simulation',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],

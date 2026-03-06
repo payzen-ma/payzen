@@ -8,9 +8,8 @@
           <i class="pi pi-file-export text-2xl"></i>
         </div>
         <div>
-          <h1 class="heading">Exports de Paie</h1>
-          <p class="subheading mt-1">
-            Journal de Paie &bull; État CNSS (Damancom) &bull; État IR
+          <h1 class="heading">{{ 'payrollExportsPage.title' | translate }}</h1>
+          <p class="subheading mt-1" [innerHTML]="'payrollExportsPage.subtitle' | translate">
           </p>
         </div>
       </div>
@@ -44,22 +43,22 @@
     <!-- ===== Sélection de la période =================================== -->
     <div class="card">
       <h2 class="text-base font-semibold text-(--text-primary) mb-5">
-        Sélection de la période
+        {{ 'payrollExportsPage.periodSelection' | translate }}
       </h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <app-select
-          label="Mois"
+          [label]="'payrollExportsPage.month' | translate"
           [options]="monthOptions"
           [value]="selectedMonth()"
-          placeholder="Mois"
+          [placeholder]="'payrollExportsPage.month' | translate"
           (valueChange)="selectedMonth.set($event)"
         />
         <app-select
-          label="Année"
+          [label]="'payrollExportsPage.year' | translate"
           [options]="yearOptions"
           [value]="selectedYear()"
-          placeholder="Année"
+          [placeholder]="'payrollExportsPage.year' | translate"
           (valueChange)="selectedYear.set($event)"
         />
       </div>
@@ -75,12 +74,12 @@
             <i class="pi pi-table text-lg text-(--primary)"></i>
           </span>
           <div>
-            <p class="text-sm font-semibold text-(--text-primary)">Journal de Paie</p>
-            <p class="text-xs text-(--text-muted)">Format Excel (.xlsx)</p>
+            <p class="text-sm font-semibold text-(--text-primary)">{{ 'payrollExportsPage.journal.title' | translate }}</p>
+            <p class="text-xs text-(--text-muted)">{{ 'payrollExportsPage.journal.format' | translate }}</p>
           </div>
         </div>
         <p class="text-xs text-(--text-secondary) flex-1">
-          Toutes les lignes de paie du mois : salaires, primes, cotisations, IR et net à payer.
+          {{ 'payrollExportsPage.journal.description' | translate }}
         </p>
         <app-button
           variant="primary"
@@ -91,7 +90,7 @@
           class="w-full"
         >
           <i class="pi pi-download me-2"></i>
-          Exporter Journal
+          {{ 'payrollExportsPage.journal.button' | translate }}
         </app-button>
       </div>
 
@@ -102,12 +101,12 @@
             <i class="pi pi-file text-lg text-(--warning)"></i>
           </span>
           <div>
-            <p class="text-sm font-semibold text-(--text-primary)">État CNSS</p>
-            <p class="text-xs text-(--text-muted)">Format CSV Damancom</p>
+            <p class="text-sm font-semibold text-(--text-primary)">{{ 'payrollExportsPage.cnss.title' | translate }}</p>
+            <p class="text-xs text-(--text-muted)">{{ 'payrollExportsPage.cnss.format' | translate }}</p>
           </div>
         </div>
         <p class="text-xs text-(--text-secondary) flex-1">
-          Déclaration CNSS compatible Damancom (UTF-8 BOM, séparateur point-virgule).
+          {{ 'payrollExportsPage.cnss.description' | translate }}
         </p>
         <app-button
           variant="secondary"
@@ -118,7 +117,7 @@
           class="w-full"
         >
           <i class="pi pi-download me-2"></i>
-          État CNSS
+          {{ 'payrollExportsPage.cnss.button' | translate }}
         </app-button>
       </div>
 
@@ -129,12 +128,12 @@
             <i class="pi pi-percentage text-lg text-(--success)"></i>
           </span>
           <div>
-            <p class="text-sm font-semibold text-(--text-primary)">État IR</p>
-            <p class="text-xs text-(--text-muted)">Format Excel (.xlsx)</p>
+            <p class="text-sm font-semibold text-(--text-primary)">{{ 'payrollExportsPage.ir.title' | translate }}</p>
+            <p class="text-xs text-(--text-muted)">{{ 'payrollExportsPage.ir.format' | translate }}</p>
           </div>
         </div>
         <p class="text-xs text-(--text-secondary) flex-1">
-          Récapitulatif mensuel de l'impôt sur le revenu retenu à la source.
+          {{ 'payrollExportsPage.ir.description' | translate }}
         </p>
         <app-button
           variant="secondary"
@@ -145,15 +144,14 @@
           class="w-full"
         >
           <i class="pi pi-download me-2"></i>
-          État IR
+          {{ 'payrollExportsPage.ir.button' | translate }}
         </app-button>
       </div>
 
     </div>
 
     <!-- ===== Note légale =============================================== -->
-    <p class="text-xs text-(--text-muted) text-center">
-      Seuls les bulletins au statut <strong class="text-(--text-secondary)">Calculé (OK)</strong> sont inclus dans les exports.
+    <p class="text-xs text-(--text-muted) text-center" [innerHTML]="'payrollExportsPage.notice' | translate">
     </p>
 
   </div>
