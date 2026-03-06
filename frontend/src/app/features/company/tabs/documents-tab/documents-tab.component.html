@@ -1,7 +1,7 @@
 <!-- Loading Skeleton -->
 @if (loading() && documents().length === 0) {
   <div class="animate-pulse p-6">
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-gray-200 rounded-xl h-48"></div>
@@ -17,7 +17,7 @@
 <!-- Main Content -->
 @if (!loading() || documents().length > 0) {
   <div class="p-4 sm:p-6 space-y-6">
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
 
       <!-- ── Top row: Signatory form + Stats card ── -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

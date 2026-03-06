@@ -34,6 +34,8 @@ interface CompanyDto {
   website?: string;
   foundingDate?: string;
   taxRegime?: string;
+  signatoryName?: string;
+  signatoryTitle?: string;
   // Add other fields as needed based on backend response
 }
 
@@ -57,6 +59,8 @@ interface CompanyUpdateDto {
   TaxRegime?: string;
   WebsiteUrl?: string;
   LegalForm?: string;
+  SignatoryName?: string;
+  SignatoryTitle?: string;
 }
 
   // Mapping configuration from frontend model to backend DTO
@@ -76,6 +80,8 @@ const COMPANY_FIELD_MAP: Partial<Record<keyof Company, keyof CompanyUpdateDto>> 
   rib: 'RibNumber',
   legalForm: 'LegalForm',
   website: 'WebsiteUrl',
+  signatoryName: 'SignatoryName',
+  signatoryTitle: 'SignatoryTitle',
 };
 
 @Injectable({
@@ -337,6 +343,8 @@ export class CompanyService {
         other: []
       },
       isActive: true,
+      signatoryName: (dto as any).signatoryName || (dto as any).SignatoryName || undefined,
+      signatoryTitle: (dto as any).signatoryTitle || (dto as any).SignatoryTitle || undefined,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.createdAt)
     };

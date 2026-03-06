@@ -179,13 +179,13 @@ namespace payzen_backend.Controllers.SystemData
             }
 
             // Validate business sector exists and is active
-            var sectorExists = await _db.BusinessSectors
+            /*var sectorExists = await _db.BusinessSectors
                 .AnyAsync(bs => bs.Id == dto.BusinessSectorId && bs.DeletedAt == null);
 
             if (!sectorExists)
             {
                 return BadRequest(new { Message = "Secteur d'activité invalide" });
-            }
+            }*/
 
             var nameExists = await _db.SalaryPackages
                 .AnyAsync(sp => sp.Name == name && sp.CompanyId == dto.CompanyId && sp.DeletedAt == null);

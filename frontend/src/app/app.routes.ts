@@ -265,6 +265,22 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/payslip/payslip.component').then(m => m.PayslipComponent),
         canActivate: [authGuard],
         title: 'Ma Fiche de Paie - PayZen'
+      },
+
+      // Payroll - Exports (Journal, CNSS, IR)
+      {
+        path: 'payroll/exports',
+        loadComponent: () => import('./features/payroll/exports/payroll-exports.component').then(m => m.PayrollExportsComponent),
+        canActivate: [rhGuard],
+        title: 'Exports de Paie - PayZen'
+      },
+
+      // Payroll - Simulation de Paie
+      {
+        path: 'payroll/simulation',
+        loadComponent: () => import('./features/payroll/simulation/simulation.component').then(m => m.SimulationComponent),
+        canActivate: [authGuard],
+        title: 'Simulateur de Paie - PayZen'
       }
     ]
   },
@@ -401,6 +417,22 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/payslip/payslip.component').then(m => m.PayslipComponent),
         data: { expertMode: true },
         title: 'Fiche de Paie - PayZen'
+      },
+
+      // Payroll - Exports (Expert Mode)
+      {
+        path: 'payroll/exports',
+        loadComponent: () => import('./features/payroll/exports/payroll-exports.component').then(m => m.PayrollExportsComponent),
+        data: { expertMode: true },
+        title: 'Exports de Paie - PayZen'
+      },
+
+      // Payroll - Simulation de Paie (Expert Mode)
+      {
+        path: 'payroll/simulation',
+        loadComponent: () => import('./features/payroll/simulation/simulation.component').then(m => m.SimulationComponent),
+        data: { expertMode: true },
+        title: 'Simulateur de Paie - PayZen'
       },
 
       // Leave Management (Expert Mode)

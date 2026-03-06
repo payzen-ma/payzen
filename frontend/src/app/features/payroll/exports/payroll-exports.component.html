@@ -1,0 +1,160 @@
+<div class="min-h-screen bg-gray-50">
+
+  <!-- ===== En-tête de page ============================================= -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
+          <i class="pi pi-file-export text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="heading">Exports de Paie</h1>
+          <p class="subheading mt-1">
+            Journal de Paie &bull; État CNSS (Damancom) &bull; État IR
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Contenu principal =========================================== -->
+  <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6">
+
+    <!-- ===== Alertes =================================================== -->
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <i class="pi pi-exclamation-circle text-lg shrink-0"></i>
+        <span>{{ errorMessage() }}</span>
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="errorMessage.set(null)">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <i class="pi pi-check-circle text-lg shrink-0"></i>
+        <span>{{ successMessage() }}</span>
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="successMessage.set(null)">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    <!-- ===== Sélection de la période =================================== -->
+    <div class="card">
+      <h2 class="text-base font-semibold text-(--text-primary) mb-5">
+        Sélection de la période
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <app-select
+          label="Mois"
+          [options]="monthOptions"
+          [value]="selectedMonth()"
+          placeholder="Mois"
+          (valueChange)="selectedMonth.set($event)"
+        />
+        <app-select
+          label="Année"
+          [options]="yearOptions"
+          [value]="selectedYear()"
+          placeholder="Année"
+          (valueChange)="selectedYear.set($event)"
+        />
+      </div>
+    </div>
+
+    <!-- ===== Cards export ============================================== -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <!-- Journal de Paie -->
+      <div class="card card-compact flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-(--rads-lg) bg-(--primary)/10">
+            <i class="pi pi-table text-lg text-(--primary)"></i>
+          </span>
+          <div>
+            <p class="text-sm font-semibold text-(--text-primary)">Journal de Paie</p>
+            <p class="text-xs text-(--text-muted)">Format Excel (.xlsx)</p>
+          </div>
+        </div>
+        <p class="text-xs text-(--text-secondary) flex-1">
+          Toutes les lignes de paie du mois : salaires, primes, cotisations, IR et net à payer.
+        </p>
+        <app-button
+          variant="primary"
+          size="sm"
+          [loading]="loading()['journal']"
+          [disabled]="loading()['journal']"
+          (click)="onExportJournal()"
+          class="w-full"
+        >
+          <i class="pi pi-download me-2"></i>
+          Exporter Journal
+        </app-button>
+      </div>
+
+      <!-- État CNSS -->
+      <div class="card card-compact flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-(--rads-lg) bg-(--warning)/10">
+            <i class="pi pi-file text-lg text-(--warning)"></i>
+          </span>
+          <div>
+            <p class="text-sm font-semibold text-(--text-primary)">État CNSS</p>
+            <p class="text-xs text-(--text-muted)">Format CSV Damancom</p>
+          </div>
+        </div>
+        <p class="text-xs text-(--text-secondary) flex-1">
+          Déclaration CNSS compatible Damancom (UTF-8 BOM, séparateur point-virgule).
+        </p>
+        <app-button
+          variant="secondary"
+          size="sm"
+          [loading]="loading()['cnss']"
+          [disabled]="loading()['cnss']"
+          (click)="onExportCnss()"
+          class="w-full"
+        >
+          <i class="pi pi-download me-2"></i>
+          État CNSS
+        </app-button>
+      </div>
+
+      <!-- État IR -->
+      <div class="card card-compact flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-(--rads-lg) bg-(--success)/10">
+            <i class="pi pi-percentage text-lg text-(--success)"></i>
+          </span>
+          <div>
+            <p class="text-sm font-semibold text-(--text-primary)">État IR</p>
+            <p class="text-xs text-(--text-muted)">Format Excel (.xlsx)</p>
+          </div>
+        </div>
+        <p class="text-xs text-(--text-secondary) flex-1">
+          Récapitulatif mensuel de l'impôt sur le revenu retenu à la source.
+        </p>
+        <app-button
+          variant="secondary"
+          size="sm"
+          [loading]="loading()['ir']"
+          [disabled]="loading()['ir']"
+          (click)="onExportIr()"
+          class="w-full"
+        >
+          <i class="pi pi-download me-2"></i>
+          État IR
+        </app-button>
+      </div>
+
+    </div>
+
+    <!-- ===== Note légale =============================================== -->
+    <p class="text-xs text-(--text-muted) text-center">
+      Seuls les bulletins au statut <strong class="text-(--text-secondary)">Calculé (OK)</strong> sont inclus dans les exports.
+    </p>
+
+  </div>
+</div>

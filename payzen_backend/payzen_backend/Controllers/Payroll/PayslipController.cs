@@ -18,14 +18,19 @@ namespace payzen_backend.Controllers.Payroll
     {
         private readonly AppDbContext _db;
         private readonly ILogger<PayslipController> _logger;
-        // FIX: camelCase convention
         private readonly LeaveBalanceService _leaveBalanceService;
+        private readonly IWebHostEnvironment _environment;
 
-        public PayslipController(AppDbContext db, ILogger<PayslipController> logger, LeaveBalanceService leaveBalanceService)
+        public PayslipController(
+            AppDbContext db, 
+            ILogger<PayslipController> logger, 
+            LeaveBalanceService leaveBalanceService,
+            IWebHostEnvironment environment)
         {
             _db = db;
             _logger = logger;
             _leaveBalanceService = leaveBalanceService;
+            _environment = environment;
         }
 
         /// <summary>
@@ -48,6 +53,9 @@ namespace payzen_backend.Controllers.Payroll
                     .Include(pr => pr.Employee)
                         .ThenInclude(e => e.Company)
                             .ThenInclude(c => c.City)
+                    .Include(pr => pr.Employee)
+                        .ThenInclude(e => e.Company)
+                            .ThenInclude(c => c.Documents)
                     .Include(pr => pr.Employee)
                         .ThenInclude(e => e.Departement)
                     .Include(pr => pr.Employee)
@@ -217,9 +225,44 @@ namespace payzen_backend.Controllers.Payroll
 <body>
 ");
             // ── HEADER ──────────────────────────────────────────────────────
+            // Récupérer le logo de l'entreprise (type "logo")
+            var companyLogo = payroll.Employee.Company.Documents?
+                .FirstOrDefault(d => d.DocumentType == "logo" && d.DeletedAt == null);
+
+            string logoHtml = "";
+            if (companyLogo != null && !string.IsNullOrWhiteSpace(companyLogo.FilePath))
+            {
+                // Convertir le chemin relatif en chemin absolu ou en base64
+                var logoPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, companyLogo.FilePath);
+
+                if (System.IO.File.Exists(logoPath))
+                {
+                    try
+                    {
+                        var logoBytes = System.IO.File.ReadAllBytes(logoPath);
+                        var logoBase64 = Convert.ToBase64String(logoBytes);
+                        var extension = Path.GetExtension(companyLogo.FilePath).ToLowerInvariant();
+                        var mimeType = extension switch
+                        {
+                            ".png" => "image/png",
+                            ".jpg" or ".jpeg" => "image/jpeg",
+                            ".gif" => "image/gif",
+                            _ => "image/png"
+                        };
+                        logoHtml = $"<img src='data:{mimeType};base64,{logoBase64}' alt='Logo' style='max-height: 80px; max-width: 150px; margin-bottom: 8px;' />";
+                        _logger.LogWarning($"Logo Generated {logoHtml}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Impossible de charger le logo pour la fiche de paie");
+                    }
+                }
+            }
+
             sb.Append($@"
 <div class='header-row'>
   <div class='header-left'>
+    {logoHtml}
     <h1>{H(payroll.Employee.Company.CompanyName)}</h1>
     <div>ICE N° : {H(payroll.Employee.Company.IceNumber ?? "N/A")}</div>
     <div>CNSS N° : {H(payroll.Employee.Company.CnssNumber ?? "N/A")}</div>
@@ -403,6 +446,21 @@ namespace payzen_backend.Controllers.Payroll
   </div>
 </div>
 ");
+
+            // ── Signature ───────────────────────────────────────────────────────
+            sb.Append($@"
+<div style='margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start;'>
+  <div style='flex: 1; text-align: left;'>
+    <div style='font-size: 9pt; margin-bottom: 4px;'>Fait à <b>{H(payroll.Employee.Company.City?.CityName ?? "N/A")}</b></div>
+    <div style='font-size: 9pt; margin-bottom: 30px;'>Le <b>{DateTime.Now:dd/MM/yyyy}</b></div>
+    <div style='font-size: 9pt; font-weight: bold; margin-bottom: 4px;'>Signature de l'employeur</div>
+    <div style='font-size: 8pt; color: #555; margin-top: 40px; border-top: 1px solid #999; padding-top: 4px; max-width: 200px;'>{H(payroll.Company.SignatoryName ?? "N/A")}</div>
+  </div>
+</div>
+</body>
+</html>
+");
+
             return sb.ToString();
         }
 

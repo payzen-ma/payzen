@@ -29,6 +29,9 @@ namespace payzen_backend.Models.Company.Dtos
         public string? BusinessSector { get; set; }
         public bool isActive { get; set; }
 
+        public string? SignatoryName { get; set; }
+        public string? SignatoryTitle { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -59,6 +59,14 @@ namespace payzen_backend.Models.Company
         [StringLength(50, ErrorMessage = "La forme juridique ne peut pas dépasser 50 caractères")]
         public string? LegalForm { get; set; }
 
+        // ========== SIGNATAIRE ==========
+
+        [StringLength(200, ErrorMessage = "Le nom du signataire ne peut pas dépasser 200 caractères")]
+        public string? SignatoryName { get; set; }
+
+        [StringLength(100, ErrorMessage = "Le titre du signataire ne peut pas dépasser 100 caractères")]
+        public string? SignatoryTitle { get; set; }
+
         public DateTime? FoundingDate { get; set; }
         public string? WebsiteUrl { get; set; }
 

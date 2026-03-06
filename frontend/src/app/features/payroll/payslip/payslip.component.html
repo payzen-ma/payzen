@@ -2,7 +2,7 @@
 
   <!-- ── En-tête de page ────────────────────────────────────────────────── -->
   <div>
-    <div class="max-w-3xl mx-auto px-6 pt-4">
+    <div class="max-w-7xl mx-auto px-6 pt-4">
       <div class="flex items-center gap-3 mb-2">
         <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
           <i class="pi pi-file-pdf text-2xl"></i>
@@ -24,14 +24,14 @@
   </div>
 
   <!-- ── Contenu principal ──────────────────────────────────────────────── -->
-  <div class="max-w-3xl mx-auto px-6 py-6 flex flex-col gap-6">
+  <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6">
 
     <!-- ── Message succès ────────────────────────────────────────────────── -->
     @if (successMessage()) {
-      <div class="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-(--rads-lg) text-sm">
-        <i class="pi pi-check-circle text-green-600 text-lg shrink-0"></i>
+      <div class="alert alert-success">
+        <i class="pi pi-check-circle text-lg shrink-0"></i>
         <span>{{ successMessage() }}</span>
-        <button class="ml-auto text-green-600 hover:text-green-800" (click)="successMessage.set(null)">
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="successMessage.set(null)">
           <i class="pi pi-times text-xs"></i>
         </button>
       </div>
@@ -39,10 +39,10 @@
 
     <!-- ── Message erreur ─────────────────────────────────────────────────── -->
     @if (errorMessage()) {
-      <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-(--rads-lg) text-sm">
-        <i class="pi pi-exclamation-circle text-red-600 text-lg shrink-0"></i>
+      <div class="alert alert-error">
+        <i class="pi pi-exclamation-circle text-lg shrink-0"></i>
         <span>{{ errorMessage() }}</span>
-        <button class="ml-auto text-red-600 hover:text-red-800" (click)="errorMessage.set(null)">
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="errorMessage.set(null)">
           <i class="pi pi-times text-xs"></i>
         </button>
       </div>
@@ -73,7 +73,7 @@
         <!-- Employé courant (mode EMPLOYEE) -->
         @if (isSimpleEmployee()) {
           <div>
-            <label class="block text-sm font-medium text-(--text-secondary) mb-1.5">
+            <label class="form-label mb-1.5">
               {{ 'payslip.selectEmployee' | translate }}
             </label>
             <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-(--rads) text-sm text-(--text-primary)">

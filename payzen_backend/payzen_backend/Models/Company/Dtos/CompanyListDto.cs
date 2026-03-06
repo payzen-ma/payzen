@@ -21,6 +21,8 @@ namespace payzen_backend.Models.Company.Dtos
         public string? LegalForm { get; set; }
         public bool? isActive { get; set; }
         public DateTime? FoundingDate { get; set; }
+        public string? SignatoryName { get; set; }
+        public string? SignatoryTitle { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

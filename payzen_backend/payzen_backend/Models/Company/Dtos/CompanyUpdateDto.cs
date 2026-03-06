@@ -61,5 +61,11 @@ namespace payzen_backend.Models.Company.Dtos
 
         public int? ManagedByCompanyId { get; set; }
         public bool? isActive { get; set; }
+
+        [StringLength(200)]
+        public string? SignatoryName { get; set; }
+
+        [StringLength(100)]
+        public string? SignatoryTitle { get; set; }
     }
 }

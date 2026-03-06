@@ -20,6 +20,7 @@ interface MenuItemConfig extends MenuItem {
   modes?: ('expert' | 'standard' | 'expert-client' | 'expert-all')[];
   requiresCompanyContext?: boolean; // New flag to indicate if company selection is needed
   id?: string; // Unique identifier for special filtering
+  groupe?: string; // Optional group for organizing menu items
 }
 
 @Component({
@@ -164,15 +165,18 @@ export class Sidebar {
       routerLink: '/dashboard',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'], // Show in both expert views (portfolio and client)
-      requiresCompanyContext: false // Dashboard doesn't require company selection
+      requiresCompanyContext: false, // Dashboard doesn't require company selection
+      groupe: 'dashboard'
     },
+    
     { 
       label: 'nav.company', 
       icon: 'pi pi-building', 
       routerLink: '/company',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false // Allow access to manage Cabinet or Client
+      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
+      groupe: 'company'
     },
     { 
       label: 'nav.employees', 
@@ -180,7 +184,8 @@ export class Sidebar {
       routerLink: '/employees',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false // Allow access to manage Cabinet or Client
+      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
+      groupe: 'employees'
     },
     {
       label: 'nav.absences',
@@ -188,7 +193,8 @@ export class Sidebar {
       routerLink: '/absences/hr',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false
+      requiresCompanyContext: false,
+      groupe: 'absences'
     },
     { 
       label: 'nav.leave', 
@@ -196,7 +202,8 @@ export class Sidebar {
       routerLink: '/leave',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false // Allow access to manage Cabinet or Client
+      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
+      groupe: 'absences'
     },
     { 
       label: 'nav.salaryPackages', 
@@ -204,7 +211,8 @@ export class Sidebar {
       routerLink: '/salary-packages',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false
+      requiresCompanyContext: false,
+      groupe: 'salaryPackages'
     },
     { 
       label: 'nav.payroll', 
@@ -212,7 +220,17 @@ export class Sidebar {
       routerLink: '/payroll/bulletin',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false
+      requiresCompanyContext: false,
+      groupe: 'payroll' // Grouping payroll-related items together
+    },
+      {
+      label: 'Simulation de Paie',
+      icon: 'pi pi-calculator',
+      routerLink: '/payroll/simulation',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
+      modes: ['expert-all'],
+      requiresCompanyContext: false,
+      groupe: 'payroll' // Grouping payroll-related items together
     },
     {
       label: 'nav.myPayslip',
@@ -220,7 +238,17 @@ export class Sidebar {
       routerLink: '/payroll/payslip',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
       modes: ['expert-all'],
-      requiresCompanyContext: false
+      requiresCompanyContext: false,
+      groupe: 'payroll' // Grouping payroll-related items together
+    },
+    {
+      label: 'nav.payrollExports',
+      icon: 'pi pi-download',
+      routerLink: '/payroll/exports',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
+      modes: ['expert-all'],
+      requiresCompanyContext: false,
+      groupe: 'payroll' // Grouping payroll-related items together
     },
     
     // ─────────────────────────────────────────────────────────────
@@ -232,14 +260,16 @@ export class Sidebar {
       icon: 'pi pi-home', 
       routerLink: '/dashboard',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'dashboard'
     },
     { 
       label: 'nav.employees', 
       icon: 'pi pi-users', 
       routerLink: '/employees',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'employees'
     },
     // Attendance menu removed per request (hidden from sidebar)
     {
@@ -247,7 +277,8 @@ export class Sidebar {
       icon: 'pi pi-calendar-times',
       routerLink: '/absences',
       requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     {
       label: 'nav.absencesTeam',
@@ -256,86 +287,126 @@ export class Sidebar {
       requiredRoles: [UserRole.MANAGER, UserRole.ADMIN, UserRole.RH],
       modes: ['standard'],
       // Will be filtered dynamically based on hasSubordinates
-      id: 'team-absences'
+      id: 'team-absences',
+      groupe: 'absences'
     },
     {
       label: 'nav.absences',
       icon: 'pi pi-calendar-times',
       routerLink: '/absences/hr',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     {
       label: 'nav.overtime',
       icon: 'pi pi-clock',
       routerLink: '/overtime',
       requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     {
       label: 'nav.myLeaveRequests',
       icon: 'pi pi-calendar-plus',
       routerLink: '/my-leave-requests',
       requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     {
       label: 'nav.overtimeManagement',
       icon: 'pi pi-check-circle',
       routerLink: '/overtime-management',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     {
       label: 'nav.hrLeaveManagement',
       icon: 'pi pi-users',
       routerLink: '/hr-leave-management',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'absences'
     },
     { 
       label: 'nav.payroll', 
       icon: 'pi pi-wallet', 
       routerLink: '/payroll/bulletin',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'payroll' // Grouping payroll-related items together
     },
     {
       label: 'nav.myPayslip',
       icon: 'pi pi-file-pdf',
       routerLink: '/payroll/payslip',
       requiredRoles: [UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.ADMIN, UserRole.RH],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'payroll' // Grouping payroll-related items together
+    },
+    {
+      label: 'nav.payrollExports',
+      icon: 'pi pi-download',
+      routerLink: '/payroll/exports',
+      requiredRoles: [UserRole.ADMIN, UserRole.RH],
+      modes: ['standard'],
+      groupe: 'payroll' // Grouping payroll-related items together
+    },
+    {
+      label: 'Simulation de Paie',
+      icon: 'pi pi-calculator',
+      routerLink: '/payroll/simulation',
+      requiredRoles: [UserRole.ADMIN, UserRole.RH],
+      modes: ['standard'],
+      groupe: 'payroll' // Grouping payroll-related items together
     },
     { 
       label: 'nav.salaryPackages', 
       icon: 'pi pi-money-bill', 
       routerLink: '/salary-packages',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'salaryPackages'
     },
     { 
       label: 'nav.reports', 
       icon: 'pi pi-chart-bar', 
       routerLink: '/reports',
       requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'reports'
     },
     { 
       label: 'nav.attendanceReport', 
       icon: 'pi pi-file', 
       routerLink: '/reports/attendance',
       requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'reports'
     },
     { 
       label: 'nav.userManagement', 
       icon: 'pi pi-users', 
       routerLink: '/permissions',
       requiredRoles: [UserRole.ADMIN],
-      modes: ['standard']
+      modes: ['standard'],
+      groupe: 'administration'
     }
   ];
+
+  // === Group configuration ===
+  private readonly groupConfig: Record<string, { label: string; order: number }> = {
+    'dashboard': { label: 'nav.groups.dashboard', order: 1 },
+    'company': { label: 'nav.groups.company', order: 2 },
+    'employees': { label: 'nav.groups.employees', order: 3 },
+    'absences': { label: 'nav.groups.absences', order: 4 },
+    'payroll': { label: 'nav.groups.payroll', order: 5 },
+    'salaryPackages': { label: 'nav.groups.salaryPackages', order: 6 },
+    'reports': { label: 'nav.groups.reports', order: 7 },
+    'administration': { label: 'nav.groups.administration', order: 8 }
+  };
 
   // === Filtered menu items based on user role with dynamic route prefix ===
   readonly menuItems = computed(() => {
@@ -424,6 +495,33 @@ export class Sidebar {
           requiresCompanyContext: item.requiresCompanyContext ?? false
         };
       });
+  });
+
+  // === Grouped menu items for display ===
+  readonly groupedMenuItems = computed(() => {
+    const items = this.menuItems();
+    const grouped = new Map<string, MenuItemConfig[]>();
+    
+    // Group items by their groupe property
+    items.forEach(item => {
+      const groupKey = item.groupe || 'ungrouped';
+      if (!grouped.has(groupKey)) {
+        grouped.set(groupKey, []);
+      }
+      grouped.get(groupKey)!.push(item);
+    });
+
+    // Convert to array and sort by group order
+    const result = Array.from(grouped.entries())
+      .map(([key, items]) => ({
+        key,
+        label: this.groupConfig[key]?.label || key,
+        order: this.groupConfig[key]?.order || 999,
+        items
+      }))
+      .sort((a, b) => a.order - b.order);
+
+    return result;
   });
 
   // === Check if navigation requires company selection ===

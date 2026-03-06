@@ -9,6 +9,66 @@
   transition: opacity 0.15s ease-out;
 }
 
+/* Sidebar Item Styling */
+:host .sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem; /* Reduced from default */
+  margin: 0.125rem 0; /* Reduced margin */
+  border-radius: 0.5rem;
+  color: rgb(75 85 99); /* gray-600 */
+  font-size: 0.8125rem; /* Reduced from 0.875rem (14px to 13px) */
+  transition: all 0.15s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:host .sidebar-item:hover {
+  background-color: rgb(243 244 246); /* gray-100 */
+}
+
+:host .sidebar-item.active {
+  background-color: rgb(239 246 255); /* blue-50 */
+  color: var(--primary);
+  font-weight: 500;
+}
+
+:host .sidebar-item i {
+  font-size: 1rem; /* Reduced from 1.125rem (18px to 16px) */
+}
+
+/* Sidebar Group Label */
+:host app-sidebar-group-label {
+  font-size: 0.6875rem; /* Reduced from 0.75rem (12px to 11px) */
+  padding: 0.25rem 0.75rem; /* Reduced padding */
+  margin-bottom: 0.25rem; /* Reduced margin */
+}
+
+/* Brand Section */
+:host .sidebar .flex.items-center.py-6 {
+  padding-top: 1rem; /* Reduced from 1.5rem */
+  padding-bottom: 1rem; /* Reduced from 1.5rem */
+}
+
+/* Navigation Container */
+:host nav {
+  gap: 0.125rem; /* Reduced gap between items */
+  padding-left: 0.5rem; /* Reduced from 0.75rem */
+  padding-right: 0.5rem; /* Reduced from 0.75rem */
+  padding-top: 0.5rem; /* Reduced */
+}
+
+:host nav.px-2 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+/* Group Separator */
+:host .border-t.border-gray-200 {
+  margin-top: 0.5rem; /* Reduced from 0.5rem */
+  margin-bottom: 0.5rem; /* Reduced from 0.5rem */
+}
+
 /* Profile Menu Styling */
 :host ::ng-deep .profile-menu {
   .p-menu-list {
@@ -29,4 +89,42 @@
     margin: 0;
     border-color: rgb(243 244 246); /* gray-100 */
   }
+
+  /* Reduce font sizes in menu items */
+  .p-menuitem-text {
+    font-size: 0.8125rem; /* 13px */
+  }
+
+  .p-menuitem-icon {
+    font-size: 0.875rem; /* 14px */
+  }
+}
+
+/* User Profile Section */
+:host .mt-auto.border-t {
+  padding: 0.625rem; /* Reduced from 1rem (10px) */
+}
+
+:host .mt-auto.border-t .p-1\.5 {
+  padding: 0.375rem; /* 6px */
+}
+
+/* Avatar size adjustment */
+:host p-avatar {
+  width: 2rem; /* 32px - slightly smaller */
+  height: 2rem;
+}
+
+:host p-avatar ::ng-deep .p-avatar {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.875rem;
+}
+
+/* Menu Group Label Text */
+:host app-sidebar-group-label span {
+  font-size: 0.6875rem; /* 11px - smaller than default */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }

@@ -35,7 +35,18 @@
     "overtimeManagement": "الموافقة على الساعات الإضافية",
     "holidays": "أيام العطل",
     "salaryPackages": "حزم الرواتب",
-    "myPayslip": "كشف راتبي"
+    "myPayslip": "كشف راتبي",
+    "payrollExports": "تصدير كشوف الرواتب",
+    "groups": {
+      "dashboard": "لوحة التحكم",
+      "company": "الشركة",
+      "employees": "إدارة الموظفين",
+      "absences": "الغيابات والإجازات",
+      "payroll": "الأجور وكشوف الرواتب",
+      "salaryPackages": "التعويضات",
+      "reports": "التقارير والتحليلات",
+      "administration": "الإدارة"
+    }
   },
   "payslip": {
     "title": "كشف الراتب",

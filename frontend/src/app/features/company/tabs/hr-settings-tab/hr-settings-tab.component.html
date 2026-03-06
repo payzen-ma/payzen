@@ -31,7 +31,7 @@
 <!-- Loading Skeleton -->
 @if (loading() && !company()) {
   <div class="animate-pulse p-6">
-    <div class="space-y-6 max-w-4xl mx-auto">
+    <div class="space-y-6 max-w-7xl mx-auto">
       @for (i of [1, 2, 3]; track i) {
         <div class="bg-gray-200 rounded-xl h-48"></div>
       }
@@ -42,7 +42,7 @@
 <!-- Main Content -->
 @if (!loading() || company()) {
   <div class="p-4 sm:p-6">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       
       <!-- Page Header -->
       <header class="flex items-center justify-between mb-6">

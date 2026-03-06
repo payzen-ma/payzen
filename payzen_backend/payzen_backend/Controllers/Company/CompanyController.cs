@@ -108,7 +108,8 @@ namespace payzen_backend.Controllers.Company
                     FoundingDate = c.FoundingDate,
                     isActive = c.isActive,
                     CnssNumber = c.CnssNumber,
-
+                    SignatoryName = c.SignatoryName,
+                    SignatoryTitle = c.SignatoryTitle,
                     CreatedAt = c.CreatedAt.DateTime
                 })
                 .FirstOrDefaultAsync();
@@ -1423,6 +1424,31 @@ namespace payzen_backend.Controllers.Company
                 company.isActive = dto.isActive.Value;
             }
 
+            // Mise à jour signataire
+            if (!string.IsNullOrWhiteSpace(dto.SignatoryName))
+            {
+                var trimmed = dto.SignatoryName.Trim();
+                if (trimmed != company.SignatoryName)
+                {
+                    await _companyEventLogService.LogEventAsync(
+                        company.Id, "SignatoryName_Changed",
+                        company.SignatoryName, null, trimmed, null, currentUserId);
+                    company.SignatoryName = trimmed;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.SignatoryTitle))
+            {
+                var trimmed = dto.SignatoryTitle.Trim();
+                if (trimmed != company.SignatoryTitle)
+                {
+                    await _companyEventLogService.LogEventAsync(
+                        company.Id, "SignatoryTitle_Changed",
+                        company.SignatoryTitle, null, trimmed, null, currentUserId);
+                    company.SignatoryTitle = trimmed;
+                }
+            }
+
             // ===== Audit =====
             company.ModifiedAt = DateTimeOffset.UtcNow;
             company.ModifiedBy = currentUserId;
@@ -1471,7 +1497,9 @@ namespace payzen_backend.Controllers.Company
                 FoundingDate = updated.FoundingDate,
                 BusinessSector = updated.BusinessSector,
                 isActive = updated.isActive,
-                CreatedAt = updated.CreatedAt.DateTime
+                CreatedAt = updated.CreatedAt.DateTime,
+                SignatoryName = updated.SignatoryName,
+                SignatoryTitle = updated.SignatoryTitle
             };
 
             return Ok(result);

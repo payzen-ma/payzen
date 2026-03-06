@@ -142,12 +142,10 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
   }
 
   private loadSignatoryData(company: any) {
-    if (company?.signatory) {
-      this.signatoryForm.patchValue({
-        signatoryName: company.signatory.name,
-        signatoryTitle: company.signatory.title
-      });
-    }
+    this.signatoryForm.patchValue({
+      signatoryName: company?.signatoryName || '',
+      signatoryTitle: company?.signatoryTitle || ''
+    });
   }
 
   /** Derive signature / stamp / logo preview URLs from the documents list via the download API */
@@ -258,14 +256,23 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading.set(true);
-    // Placeholder – wire to a real API endpoint when available
-    setTimeout(() => {
-      this.loading.set(false);
-      this.formSubmitted = false;
-      this.showToast('success',
-        this.translate.instant('common.success'),
-        this.translate.instant('company.documents.messages.signatorySaved'));
-    }, 1000);
+    const { signatoryName, signatoryTitle } = this.signatoryForm.value;
+    this.companyService.updateCompany({ signatoryName, signatoryTitle }).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.formSubmitted = false;
+        this.showToast('success',
+          this.translate.instant('common.success'),
+          this.translate.instant('company.documents.messages.signatorySaved'));
+      },
+      error: (err) => {
+        console.error('Error saving signatory:', err);
+        this.loading.set(false);
+        this.showToast('error',
+          this.translate.instant('common.error'),
+          this.translate.instant('company.documents.messages.signatorySaveError'));
+      }
+    });
   }
 
   removeSignature() { this.removeImageDoc('signature'); }

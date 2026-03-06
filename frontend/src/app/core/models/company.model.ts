@@ -25,6 +25,8 @@ export interface Company {
   status?: 'active' | 'suspended' | 'pending';
   logoUrl?: string;
   rib?: string;                    // Bank account number
+  signatoryName?: string;          // Nom du signataire
+  signatoryTitle?: string;         // Titre du signataire
   // Cabinet/Multi-company management fields
   managedByCompanyId?: number;     // Cabinet comptable managing this company
   managedByCompanyName?: string;   // Name of managing cabinet (enriched)

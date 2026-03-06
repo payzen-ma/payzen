@@ -5,11 +5,11 @@
   [ngClass]="className()"
 >
   <!-- Brand -->
-  <div class="flex items-center py-6" [class.px-6]="!isSidebarCollapsed()" [class.px-2]="isSidebarCollapsed()" [class.justify-between]="!isSidebarCollapsed()" [class.justify-center]="isSidebarCollapsed()">
+  <div class="flex items-center py-4" [class.px-4]="!isSidebarCollapsed()" [class.px-2]="isSidebarCollapsed()" [class.justify-between]="!isSidebarCollapsed()" [class.justify-center]="isSidebarCollapsed()">
     @if (!isSidebarCollapsed()) {
       <div class="flex items-center gap-2">
-        <span class="text-(--color-primary) font-bold text-2xl tracking-tight">{{ 'app.name' | translate }}</span>
-        <span class="bg-(--primary)/10 text-(--color-primary) text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+        <span class="text-(--color-primary) font-bold text-xl tracking-tight">{{ 'app.name' | translate }}</span>
+        <span class="bg-(--primary)/10 text-(--color-primary) text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
           {{ 'app.country' | translate }}
         </span>
       </div>
@@ -42,16 +42,16 @@
 
   <!-- Nav -->
   <nav
-    [class]="'flex-1 flex flex-col overflow-y-auto overflow-x-hidden ' + (isSidebarCollapsed() ? 'gap-1 px-2 pt-2' : 'gap-1 px-3 pt-2')"
+    [class]="'flex-1 flex flex-col overflow-y-auto overflow-x-hidden ' + (isSidebarCollapsed() ? 'gap-0.5 px-1.5 pt-1.5' : 'gap-0.5 px-2 pt-1.5')"
     role="navigation"
     [attr.aria-label]="'nav.mainMenu' | translate"
   >
     <app-sidebar-group>
       @if (!isSidebarCollapsed()) {
-        <app-sidebar-group-label class="px-3 mb-2 mt-2 whitespace-nowrap flex items-center justify-between">
-          <span>{{ menuGroupLabel() | translate }}</span>
+        <app-sidebar-group-label class="px-2 mb-1.5 mt-1.5 whitespace-nowrap flex items-center justify-between">
+          <span class="text-xs">{{ menuGroupLabel() | translate }}</span>
           @if (isExpertMode()) {
-            <span class="text-[10px] px-1.5 py-0.5 rounded border" 
+            <span class="text-[9px] px-1 py-0.5 rounded border" 
                   [class.bg-indigo-50]="isClientView()" 
                   [class.text-indigo-700]="isClientView()"
                   [class.border-indigo-200]="isClientView()"
@@ -64,38 +64,55 @@
         </app-sidebar-group-label>
       }
 
-      @for (item of menuItems(); track item.label) {
-        <a
-          [routerLink]="item.requiresCompanyContext && isExpertMode() && !isClientView() ? null : item.routerLink"
-          (click)="handleNavigation(item, $event)"
-          routerLinkActive="active"
-          class="sidebar-item group"
-          [class.justify-center]="isSidebarCollapsed()"
-          [class.justify-start]="!isSidebarCollapsed()"
-          [class.opacity-60]="item.requiresCompanyContext && isExpertMode() && !isClientView()"
-          [attr.aria-label]="item.label | translate"
-          [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.requiresCompanyContext && isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : '')"
-          tooltipPosition="right"
-        >
-          <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-3')" class="text-lg transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
+      @for (group of groupedMenuItems(); track group.key; let isFirst = $first) {
+        <!-- Group separator (not for the first group) -->
+        @if (!isFirst && !isSidebarCollapsed()) {
+          <div class="border-t border-gray-200 my-1.5"></div>
+        }
+        
+        <!-- Group label (only when not collapsed) -->
+        @if (!isSidebarCollapsed() && group.items.length > 0) {
+          <app-sidebar-group-label class="px-2 mb-0.5 mt-1.5">
+            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              {{ group.label | translate }}
+            </span>
+          </app-sidebar-group-label>
+        }
 
-          @if (!isSidebarCollapsed()) {
-            <span class="font-medium text-sm whitespace-nowrap">{{ item.label | translate }}</span>
-            @if (item.requiresCompanyContext && isExpertMode() && !isClientView()) {
-              <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
+        <!-- Group items -->
+        @for (item of group.items; track item.label) {
+          <a
+            [routerLink]="item.requiresCompanyContext && isExpertMode() && !isClientView() ? null : item.routerLink"
+            (click)="handleNavigation(item, $event)"
+            routerLinkActive="active"
+            class="sidebar-item group"
+            [class.justify-center]="isSidebarCollapsed()"
+            [class.justify-start]="!isSidebarCollapsed()"
+            [class.opacity-60]="item.requiresCompanyContext && isExpertMode() && !isClientView()"
+            [attr.aria-label]="item.label | translate"
+            [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.requiresCompanyContext && isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : '')"
+            tooltipPosition="right"
+          >
+            <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-2.5')" class="text-base transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
+
+            @if (!isSidebarCollapsed()) {
+              <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
+              @if (item.requiresCompanyContext && isExpertMode() && !isClientView()) {
+                <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
+              }
             }
-          }
-        </a>
+          </a>
+        }
       }
     </app-sidebar-group>
   </nav>
 
   <!-- User Profile -->
   <div class="mt-auto border-t border-gray-200">
-    <div class="p-4">
+    <div class="p-2.5">
       <div
         (click)="profileMenu.toggle($event)"
-        [class]="'w-full hover:bg-gray-50 flex cursor-pointer items-center rounded-lg transition-all duration-200 border border-transparent hover:border-gray-200 p-2 ' + (isSidebarCollapsed() ? 'justify-center' : 'gap-3')"
+        [class]="'w-full hover:bg-gray-50 flex cursor-pointer items-center rounded-lg transition-all duration-200 border border-transparent hover:border-gray-200 p-1.5 ' + (isSidebarCollapsed() ? 'justify-center' : 'gap-2.5')"
         [pTooltip]="isSidebarCollapsed() ? userDisplayName() : ''"
         tooltipPosition="right"
       >
@@ -110,10 +127,10 @@
 
         @if (!isSidebarCollapsed()) {
           <div class="flex-1 text-left overflow-hidden">
-            <div class="font-semibold text-sm text-gray-900 truncate">{{ userDisplayName() }}</div>
-            <div class="text-xs text-gray-500 truncate">{{ userRoleLabel() | translate }}</div>
+            <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
+            <div class="text-[11px] text-gray-500 truncate">{{ userRoleLabel() | translate }}</div>
           </div>
-          <i class="pi pi-chevron-up text-xs text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+          <i class="pi pi-chevron-up text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors"></i>
         }
       </div>
 
@@ -122,14 +139,14 @@
             @if (!item.separator) {
                 <!-- User Header -->
                 @if (item.id === 'user-header') {
-                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-(--primary)/10 flex items-center justify-center">
-                                <i class="pi pi-user text-(--primary)"></i>
+                    <div class="px-3 py-2 bg-gray-50 border-b border-gray-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-full bg-(--primary)/10 flex items-center justify-center">
+                                <i class="pi pi-user text-(--primary) text-sm"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-sm text-gray-900 truncate">{{ userDisplayName() }}</div>
-                                <div class="text-xs text-gray-500 truncate">{{ item.label }}</div>
+                                <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
+                                <div class="text-[11px] text-gray-500 truncate">{{ item.label }}</div>
                             </div>
                         </div>
                     </div>
@@ -137,20 +154,20 @@
                     <!-- Logout Item -->
                     <button 
                         type="button"
-                        class="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                        class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
                         (click)="logout(); profileMenu.hide()">
-                        <i [class]="item.icon" class="text-base"></i>
-                        <span class="font-medium text-sm">{{ item.label | translate }}</span>
+                        <i [class]="item.icon" class="text-sm"></i>
+                        <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
                     </button>
                 } @else {
                     <!-- Regular Menu Item -->
                     <a [routerLink]="item.routerLink" 
                        [attr.href]="item.url"
                        [attr.target]="item.target"
-                       class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-(--primary) no-underline transition-colors duration-150 cursor-pointer group"
+                       class="flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-(--primary) no-underline transition-colors duration-150 cursor-pointer group"
                        (click)="item.command ? item.command({originalEvent: $event, item: item}) : null; profileMenu.hide()">
-                        <i [class]="item.icon" class="text-base text-gray-400 group-hover:text-(--primary) transition-colors"></i>
-                        <span class="font-medium text-sm">{{ item.label | translate }}</span>
+                        <i [class]="item.icon" class="text-sm text-gray-400 group-hover:text-(--primary) transition-colors"></i>
+                        <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
                     </a>
                 }
             }

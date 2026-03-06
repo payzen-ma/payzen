@@ -103,6 +103,9 @@ else
     builder.Services.AddScoped<IClaudeService, ClaudeService>();
 }
 
+// Service de simulation Claude pour la paie
+builder.Services.AddScoped<IClaudeSimulationService, ClaudeSimulationService>();
+
 builder.Services.AddScoped<PaieService>();
 builder.Services.AddScoped<PayrollCalculationEngine>();
 
@@ -117,6 +120,8 @@ builder.Services.AddScoped<ICompanyDefaultsSeeder, CompanyDefaultsSeeder>();
 builder.Services.AddScoped<ICompanyOnboardingService, CompanyOnboardingService>();
 
 builder.Services.AddScoped<IElementRuleResolutionService, ElementRuleResolutionService>();
+builder.Services.AddScoped<payzen_backend.Services.Payroll.IPayrollExportService,
+                            payzen_backend.Services.Payroll.PayrollExportService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDashboardHrService, DashboardHrService>();
 

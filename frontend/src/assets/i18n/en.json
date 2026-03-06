@@ -35,7 +35,18 @@
     "overtimeManagement": "Overtime Approval",
     "holidays": "Holidays",
     "salaryPackages": "Salary Packages",
-    "myPayslip": "My Payslip"
+    "myPayslip": "My Payslip",
+    "payrollExports": "Payroll Exports",
+    "groups": {
+      "dashboard": "Dashboard",
+      "company": "Company",
+      "employees": "Employee Management",
+      "absences": "Absences & Leave",
+      "payroll": "Payroll & Payslips",
+      "salaryPackages": "Compensation",
+      "reports": "Reports & Analytics",
+      "administration": "Administration"
+    }
   },
   "payslip": {
     "title": "Payslip",

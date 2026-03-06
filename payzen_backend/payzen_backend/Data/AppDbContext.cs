@@ -545,6 +545,16 @@ namespace payzen_backend.Data
                     .HasColumnName("payment_method")
                     .HasMaxLength(100);
 
+                // ========== SIGNATAIRE ==========
+
+                entity.Property(c => c.SignatoryName)
+                    .HasColumnName("signatory_name")
+                    .HasMaxLength(200);
+
+                entity.Property(c => c.SignatoryTitle)
+                    .HasColumnName("signatory_title")
+                    .HasMaxLength(100);
+
                 // ========== GESTION MULTI-ENTREPRISES ==========
 
                 entity.Property(c => c.ManagedByCompanyId)

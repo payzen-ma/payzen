@@ -35,7 +35,18 @@
     "overtimeManagement": "Validation Heures Sup",
     "holidays": "Jours Fériés",
     "salaryPackages": "Packages Salariaux",
-    "myPayslip": "Ma Fiche de Paie"
+    "myPayslip": "Ma Fiche de Paie",
+    "payrollExports": "Exports de Paie",
+    "groups": {
+      "dashboard": "Tableau de Bord",
+      "company": "Entreprise",
+      "employees": "Gestion des Employés",
+      "absences": "Absences & Congés",
+      "payroll": "Paie & Bulletins",
+      "salaryPackages": "Rémunération",
+      "reports": "Rapports & Analyses",
+      "administration": "Administration"
+    }
   },
   "payslip": {
     "title": "Fiche de Paie",
@@ -857,6 +868,7 @@
         "stampUploaded": "Cachet téléversé avec succès",
         "logoUploaded": "Logo téléversé avec succès",
         "signatorySaved": "Informations du signataire enregistrées",
+        "signatorySaveError": "Erreur lors de l'enregistrement du signataire",
         "documentUploaded": "Document téléversé avec succès",
         "uploadError": "Erreur lors du téléversement du document",
         "downloadError": "Erreur lors du téléchargement du document",
