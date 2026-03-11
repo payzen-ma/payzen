@@ -139,6 +139,18 @@
     --breakpoint-lg: 1024px;
     --breakpoint-xl: 1280px;
     --breakpoint-2xl: 1536px;
+
+    /* ============================================
+       PAYZEN BRAND COLORS
+       ============================================ */
+    --brand-blue: #1800ac;
+    --brand-blue-dark: #1400a0;
+    --brand-blue-gradient-start: #1800ac;
+    --brand-blue-gradient-end: #2d1bb5;
+    --brand-orange: #fd751f;
+    --brand-orange-light: rgba(253, 117, 31, 0.1);
+    --brand-orange-medium: rgba(253, 117, 31, 0.5);
+    --brand-orange-hover: rgba(253, 117, 31, 0.6);
   }
 }
 
@@ -567,37 +579,115 @@
     /* overflow-y: auto; */
   }
 
-  /* Confirm Dialog Styling */
+  /* Confirm Dialog Styling — matches app-dialog (form/declaration box style) */
+  .p-confirmdialog,
   .app-confirm-dialog {
-    @apply rounded-lg shadow-xl;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    background-color: var(--border-color-medium);
   }
 
+  .p-confirmdialog .p-dialog-header,
   .app-confirm-dialog .p-dialog-header {
-    @apply px-6 py-4 bg-white border-b border-gray-200;
+    background-color: var(--bg-element);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color-subtle);
   }
 
+  .p-confirmdialog .p-dialog-title,
   .app-confirm-dialog .p-dialog-title {
-    @apply text-lg font-semibold text-gray-900;
+    color: var(--text-primary);
+    font-size: 1.0625rem;
+    font-weight: var(--font-weight-semibold);
   }
 
+  .p-confirmdialog .p-dialog-header-actions .p-dialog-close-button,
+  .app-confirm-dialog .p-dialog-header-actions .p-dialog-close-button {
+    color: var(--text-secondary);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .p-confirmdialog .p-dialog-header-actions .p-dialog-close-button:hover,
+  .app-confirm-dialog .p-dialog-header-actions .p-dialog-close-button:hover {
+    color: var(--text-primary);
+    background: var(--bg-active);
+  }
+
+  .p-confirmdialog .p-dialog-content,
   .app-confirm-dialog .p-dialog-content {
-    @apply px-6 py-6 bg-white;
+    background-color: var(--bg-element);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
   }
 
+  .p-confirmdialog .p-confirmdialog-icon,
   .app-confirm-dialog .p-confirmdialog-icon {
-    @apply text-amber-500 text-4xl mb-4;
+    font-size: 2.5rem;
+    color: var(--warning);
+    margin-bottom: 0.25rem;
   }
 
+  .p-confirmdialog .p-confirmdialog-message,
   .app-confirm-dialog .p-confirmdialog-message {
-    @apply text-base text-gray-700 block;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: var(--line-height-relaxed);
   }
 
+  .p-confirmdialog .p-dialog-footer,
   .app-confirm-dialog .p-dialog-footer {
-    @apply px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3;
+    background-color: var(--bg-hover);
+    border-top: 1px solid var(--border-color-subtle);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
   }
 
-  .app-confirm-dialog .p-dialog-close-button {
-    @apply text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors;
+  /* Reject / Non button — secondary outlined style */
+  .p-confirmdialog .p-confirmdialog-reject-button,
+  .app-confirm-dialog .p-confirmdialog-reject-button {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color-medium);
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all 0.2s;
+  }
+
+  .p-confirmdialog .p-confirmdialog-reject-button:hover,
+  .app-confirm-dialog .p-confirmdialog-reject-button:hover {
+    background: var(--bg-active);
+    border-color: var(--border-color-strong);
+    color: var(--text-primary);
+  }
+
+  /* Accept / Oui button — primary style */
+  .p-confirmdialog .p-confirmdialog-accept-button,
+  .app-confirm-dialog .p-confirmdialog-accept-button {
+    background: var(--brand-blue);
+    color: var(--text-inverse);
+    border: 1px solid var(--brand-blue);
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    transition: all 0.2s;
+  }
+
+  .p-confirmdialog .p-confirmdialog-accept-button:hover,
+  .app-confirm-dialog .p-confirmdialog-accept-button:hover {
+    background: var(--brand-blue-dark);
+    border-color: var(--brand-blue-dark);
   }
 
 

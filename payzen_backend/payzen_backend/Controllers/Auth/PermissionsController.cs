@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -18,7 +18,7 @@ namespace payzen_backend.Controllers.Auth
         public PermissionsController(AppDbContext db) => _db = db;
 
         /// <summary>
-        /// R√©cup√®re toutes les permissions actives
+        /// RÈcupËre toutes les permissions actives
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PermissionReadDto>>> GetAll()
@@ -43,7 +43,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re une permission par ID
+        /// RÈcupËre une permission par ID
         /// </summary>
         [HttpGet("{id}", Name = "GetPermissionById")]
         public async Task<ActionResult<PermissionReadDto>> GetById(int id)
@@ -54,7 +54,7 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (permission == null)
-                return NotFound(new { Message = "Permission non trouv√©e" });
+                return NotFound(new { Message = "Permission non trouvÈe" });
 
             var result = new PermissionReadDto
             {
@@ -69,7 +69,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Cr√©e une nouvelle permission
+        /// CrÈe une nouvelle permission
         /// </summary>
         [HttpPost]
         public async Task<ActionResult<PermissionReadDto>> Create([FromBody] PermissionCreateDto dto)
@@ -81,7 +81,7 @@ namespace payzen_backend.Controllers.Auth
 
             if (await _db.Permissions.AnyAsync(p => p.Name == dto.Name && p.DeletedAt == null))
             {
-                return Conflict(new { Message = "Une permission avec ce nom existe d√©j√†" });
+                return Conflict(new { Message = "Une permission avec ce nom existe dÈj‡" });
             }
 
             var permission = new Permissions
@@ -111,7 +111,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Met √† jour une permission
+        /// Met ‡ jour une permission
         /// </summary>
         [HttpPut("{id}")]
         public async Task<ActionResult<PermissionReadDto>> Update(int id, [FromBody] PermissionUpdateDto dto)
@@ -126,13 +126,13 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync();
 
             if (permission == null)
-                return NotFound(new { Message = "Permission non trouv√©e" });
+                return NotFound(new { Message = "Permission non trouvÈe" });
 
             if (dto.Name != null && dto.Name != permission.Name)
             {
                 if (await _db.Permissions.AnyAsync(p => p.Name == dto.Name && p.Id != id && p.DeletedAt == null))
                 {
-                    return Conflict(new { Message = "Une permission avec ce nom existe d√©j√†" });
+                    return Conflict(new { Message = "Une permission avec ce nom existe dÈj‡" });
                 }
                 permission.Name = dto.Name;
             }
@@ -171,15 +171,15 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync();
 
             if (permission == null)
-                return NotFound(new { Message = "Permission non trouv√©e" });
+                return NotFound(new { Message = "Permission non trouvÈe" });
 
-            // V√©rifier si la permission est assign√©e √† des r√¥les
+            // VÈrifier si la permission est assignÈe ‡ des rÙles
             var isAssigned = await _db.RolesPermissions
                 .AnyAsync(rp => rp.PermissionId == id && rp.DeletedAt == null);
 
             if (isAssigned)
             {
-                return BadRequest(new { Message = "Impossible de supprimer cette permission car elle est assign√©e √† des r√¥les" });
+                return BadRequest(new { Message = "Impossible de supprimer cette permission car elle est assignÈe ‡ des rÙles" });
             }
 
             permission.DeletedAt = DateTimeOffset.UtcNow;

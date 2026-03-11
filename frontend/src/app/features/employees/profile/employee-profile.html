@@ -707,44 +707,79 @@
                   <div class="space-y-3">
                     @for (comp of employee().salaryComponents; track $index) {
                       @if (isEditMode()) {
-                        <div class="flex items-start gap-3 group">
-                          <div class="flex-1">
-                            <input 
-                              pInputText 
-                              [ngModel]="comp.type" 
-                              (ngModelChange)="updateSalaryComponent($index, 'type', $event)" 
-                              class="w-full input" 
-                              placeholder="Component Name"
-                              aria-label="Component Name"
-                            />
+                        <div class="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <div class="flex items-start gap-3 group">
+                            <div class="flex-1">
+                              <input 
+                                pInputText 
+                                [ngModel]="comp.type" 
+                                (ngModelChange)="updateSalaryComponent($index, 'type', $event)" 
+                                class="w-full input" 
+                                placeholder="Component Name"
+                                aria-label="Component Name"
+                              />
+                            </div>
+                            <div class="w-40">
+                              <p-inputnumber 
+                                [ngModel]="comp.amount" 
+                                (ngModelChange)="updateSalaryComponent($index, 'amount', $event)" 
+                                mode="currency" 
+                                currency="MAD" 
+                                locale="fr-MA" 
+                                styleClass="w-full"
+                                inputStyleClass="w-full input"
+                                placeholder="0.00"
+                                title="Amount"
+                              ></p-inputnumber>
+                            </div>
+                            <button 
+                              pButton 
+                              type="button" 
+                              icon="pi pi-trash" 
+                              class="p-button-text p-button-danger p-button-rounded" 
+                              (click)="removeSalaryComponent($index)"
+                              title="Remove"
+                              aria-label="Remove salary component"
+                            ></button>
                           </div>
-                          <div class="w-40">
-                            <p-inputnumber 
-                              [ngModel]="comp.amount" 
-                              (ngModelChange)="updateSalaryComponent($index, 'amount', $event)" 
-                              mode="currency" 
-                              currency="MAD" 
-                              locale="fr-MA" 
-                              styleClass="w-full"
-                              inputStyleClass="w-full input"
-                              placeholder="0.00"
-                              title="Amount"
-                            ></p-inputnumber>
+                          <div class="flex items-center gap-2 pl-1">
+                            <p-checkbox 
+                              [ngModel]="comp.isTaxable" 
+                              (ngModelChange)="updateSalaryComponent($index, 'isTaxable', $event)" 
+                              [binary]="true"
+                              inputId="taxable_{{$index}}"
+                            ></p-checkbox>
+                            <label [for]="'taxable_' + $index" class="text-sm font-medium text-gray-700 cursor-pointer">
+                              {{ 'employees.profile.salary.taxable' | translate }}
+                            </label>
+                            @if (comp.isTaxable) {
+                              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full ml-2">
+                                {{ 'employees.profile.salary.taxableStatus' | translate }}
+                              </span>
+                            } @else {
+                              <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full ml-2">
+                                {{ 'employees.profile.salary.nonTaxableStatus' | translate }}
+                              </span>
+                            }
                           </div>
-                          <button 
-                            pButton 
-                            type="button" 
-                            icon="pi pi-trash" 
-                            class="p-button-text p-button-danger p-button-rounded" 
-                            (click)="removeSalaryComponent($index)"
-                            title="Remove"
-                            aria-label="Remove salary component"
-                          ></button>
                         </div>
                       } @else {
-                        <div class="flex items-center justify-between p-3 bg-(--bg-page) rounded-md border border-(--border-color-subtle)">
-                          <span class="text-(--text-secondary) font-medium">{{ comp.type }}</span>
-                          <span class="text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                        <div class="p-3 bg-(--bg-page) rounded-md border border-(--border-color-subtle) space-y-2">
+                          <div class="flex items-center justify-between">
+                            <span class="text-(--text-secondary) font-medium">{{ comp.type }}</span>
+                            <span class="text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            @if (comp.isTaxable) {
+                              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                {{ 'employees.profile.salary.taxableStatus' | translate }}
+                              </span>
+                            } @else {
+                              <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                                {{ 'employees.profile.salary.nonTaxableStatus' | translate }}
+                              </span>
+                            }
+                          </div>
                         </div>
                       }
                     }

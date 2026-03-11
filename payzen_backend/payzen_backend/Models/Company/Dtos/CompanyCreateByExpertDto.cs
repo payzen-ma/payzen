@@ -1,10 +1,10 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace payzen_backend.Models.Company.Dtos
 {
     /// <summary>
-    /// DTO utilisÃ© par un cabinet expert pour crÃ©er une entreprise cliente.
-    /// Structure proche de CompanyCreateDto mais inclut l'identifiant du cabinet qui gÃ¨re la sociÃ©tÃ©.
+    /// DTO utilisé par un cabinet expert pour créer une entreprise cliente.
+    /// Structure proche de CompanyCreateDto mais inclut l'identifiant du cabinet qui gère la société.
     /// </summary>
     public class CompanyCreateByExpertDto
     {
@@ -19,7 +19,7 @@ namespace payzen_backend.Models.Company.Dtos
         [StringLength(500)]
         public required string CompanyEmail { get; set; }
 
-        [Required(ErrorMessage = "Le numÃ©ro de tÃ©lÃ©phone est requis")]
+        [Required(ErrorMessage = "Le numéro de téléphone est requis")]
         [StringLength(20)]
         public required string CompanyPhoneNumber { get; set; }
 
@@ -39,12 +39,12 @@ namespace payzen_backend.Models.Company.Dtos
         [StringLength(500)]
         public string? CityName { get; set; }
 
-        [Required(ErrorMessage = "Le numÃ©ro CNSS employeur est requis")]
+        [Required(ErrorMessage = "Le numéro CNSS employeur est requis")]
         [StringLength(100)]
         public required string CnssNumber { get; set; }
 
         /// <summary>
-        /// Indique si l'entitÃ© crÃ©Ã©e est elle-mÃªme un cabinet expert.
+        /// Indique si l'entité créée est elle-même un cabinet expert.
         /// </summary>
         public bool IsCabinetExpert { get; set; } = false;
 
@@ -78,15 +78,15 @@ namespace payzen_backend.Models.Company.Dtos
         public string? PaymentMethod { get; set; }
 
         /// <summary>
-        /// Identifiant du cabinet expert qui gÃ¨re cette entreprise cliente.
-        /// Requis car la crÃ©ation est faite "par expert".
+        /// Identifiant du cabinet expert qui gère cette entreprise cliente.
+        /// Requis car la création est faite "par expert".
         /// </summary>
         [Required(ErrorMessage = "Identifiant du cabinet expert requis")]
         public required int ManagedByCompanyId { get; set; }
 
         // ========== INFORMATIONS DE L'ADMINISTRATEUR ==========
 
-        [Required(ErrorMessage = "Le prÃ©nom de l'administrateur est requis")]
+        [Required(ErrorMessage = "Le prénom de l'administrateur est requis")]
         [StringLength(100, MinimumLength = 2)]
         public required string AdminFirstName { get; set; }
 
@@ -99,18 +99,18 @@ namespace payzen_backend.Models.Company.Dtos
         [StringLength(500)]
         public required string AdminEmail { get; set; }
 
-        [Required(ErrorMessage = "Le tÃ©lÃ©phone de l'administrateur est requis")]
+        [Required(ErrorMessage = "Le téléphone de l'administrateur est requis")]
         [StringLength(20)]
         public required string AdminPhone { get; set; }
 
         /// <summary>
-        /// Si true, gÃ©nÃ¨re un mot de passe temporaire automatiquement.
-        /// Si false, le mot de passe doit Ãªtre fourni dans AdminPassword.
+        /// Si true, génère un mot de passe temporaire automatiquement.
+        /// Si false, le mot de passe doit être fourni dans AdminPassword.
         /// </summary>
         public bool GeneratePassword { get; set; } = true;
 
         /// <summary>
-        /// Mot de passe personnalisÃ© (requis si GeneratePassword = false)
+        /// Mot de passe personnalisé (requis si GeneratePassword = false)
         /// </summary>
         [StringLength(100, MinimumLength = 8)]
         public string? AdminPassword { get; set; }

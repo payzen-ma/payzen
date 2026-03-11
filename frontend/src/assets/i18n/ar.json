@@ -38,15 +38,29 @@
     "myPayslip": "كشف راتبي",
     "payrollExports": "تصدير كشوف الرواتب",
     "simulation": "محاكي الأجور",
+    "compliance": "الامتثال والتنبيهات",
+    "hrIndicators": "مؤشرات الموارد البشرية",
+    "socialDeclarations": "التصريحات الاجتماعية",
+    "workTime": "وقت العمل",
+    "performance": "الأداء",
+    "expenseReports": "ملاحظات النفقات",
+    "aiCopilot": "مساعد الذكاء الاصطناعي",
+    "payLang": "PayLang",
+    "legalRepository": "المرجع القانوني",
+    "hrProcedures": "إجراءات الموارد البشرية",
+    "import": "الاستيراد",
+    "history": "السجل",
     "groups": {
+      "overview": "نظرة عامة",
+      "payroll": "الأجور",
+      "employees": "الموظفون",
+      "intelligence": "الذكاء",
+      "administration": "الإدارة",
       "dashboard": "لوحة التحكم",
       "company": "الشركة",
-      "employees": "إدارة الموظفين",
       "absences": "الغيابات والإجازات",
-      "payroll": "الأجور وكشوف الرواتب",
       "salaryPackages": "التعويضات",
-      "reports": "التقارير والتحليلات",
-      "administration": "الإدارة"
+      "reports": "التقارير والتحليلات"
     }
   },
   "payslip": {
@@ -115,6 +129,8 @@
       "ni": "غير خاضع للضريبة"
     },
     "labels": {
+      "salaireBrut": "الراتب الإجمالي",
+      "totalIndemnites": "التعويضات",
       "brutImposable": "الإجمالي الخاضع للضريبة",
       "totalRetenues": "إجمالي الخصومات",
       "coutEmployeur": "تكلفة صاحب العمل",
@@ -1289,7 +1305,10 @@
         "noPackageAssigned": "لم يتم تخصيص حزمة راتب",
         "noPackageAssignedDescription": "قم بتخصيص حزمة من وحدة حزم الرواتب",
         "assignPackage": "تخصيص حزمة",
-        "assignPackageTooltip": "انتقل إلى وحدة حزم الرواتب للتخصيص"
+        "assignPackageTooltip": "انتقل إلى وحدة حزم الرواتب للتخصيص",
+        "taxable": "خاضع للضريبة",
+        "taxableStatus": "خاضع للضريبة",
+        "nonTaxableStatus": "غير خاضع للضريبة"
       },
       "legal": {
         "cnss": "CNSS",
@@ -1715,6 +1734,7 @@
       "noComponentFound": "لم يتم العثور على عناصر",
       "noComponents": "لم تتم إضافة أي عنصر أجر",
       "addComponent": "إضافة عنصر",
+      "taxableLabel": "خاضع للضريبة",
       "componentsCount": "المكونات",
       "categories": {
         "cadres": "الأطر",

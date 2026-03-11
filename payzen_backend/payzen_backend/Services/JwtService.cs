@@ -1,4 +1,4 @@
-ï»¿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using payzen_backend.Data;
@@ -29,14 +29,14 @@ namespace payzen_backend.Services
         }
 
         /// <summary>
-        /// GÃ©nÃ¨re un token JWT pour un utilisateur avec ses permissions
+        /// Génère un token JWT pour un utilisateur avec ses permissions
         /// </summary>
         /// <param name="userId">ID de l'utilisateur</param>
         /// <param name="email">Email de l'utilisateur</param>
-        /// <returns>Token JWT signÃ© avec les permissions</returns>
+        /// <returns>Token JWT signé avec les permissions</returns>
         public async Task<string> GenerateTokenAsync(int userId, string email)
         {
-            // RÃ©cupÃ©rer les permissions de l'utilisateur via ses rÃ´les
+            // Récupérer les permissions de l'utilisateur via ses rôles
             var permissions = await _db.UsersRoles
                 .Where(ur => ur.UserId == userId && ur.DeletedAt == null)
                 .Include(ur => ur.Role)

@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -18,7 +18,7 @@ namespace payzen_backend.Controllers.SystemData
         public ContractTypesController(AppDbContext db) => _db = db;
 
         /// <summary>
-        /// RÃ©cupÃ¨re tous les types de contrat actifs
+        /// Récupère tous les types de contrat actifs
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ContractTypeReadDto>>> GetAll()
@@ -49,7 +49,7 @@ namespace payzen_backend.Controllers.SystemData
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re un type de contrat par ID
+        /// Récupère un type de contrat par ID
         /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<ContractTypeReadDto>> GetById(int id)
@@ -63,7 +63,7 @@ namespace payzen_backend.Controllers.SystemData
                 .FirstOrDefaultAsync(ct => ct.Id == id);
 
             if (contractType == null)
-                return NotFound(new { Message = "Type de contrat non trouvÃ©" });
+                return NotFound(new { Message = "Type de contrat non trouvé" });
 
             var result = new ContractTypeReadDto
             {
@@ -82,7 +82,7 @@ namespace payzen_backend.Controllers.SystemData
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re tous les types de contrat d'une sociÃ©tÃ©
+        /// Récupère tous les types de contrat d'une société
         /// </summary>
         [HttpGet("by-company/{companyId}")]
         public async Task<ActionResult<IEnumerable<ContractTypeReadDto>>> GetByCompany(int companyId)
@@ -91,7 +91,7 @@ namespace payzen_backend.Controllers.SystemData
                 .AnyAsync(c => c.Id == companyId && c.DeletedAt == null);
 
             if (!companyExists)
-                return NotFound(new { Message = "SociÃ©tÃ© non trouvÃ©e" });
+                return NotFound(new { Message = "Société non trouvée" });
 
             var contractTypes = await _db.ContractTypes
                 .AsNoTracking()
@@ -117,7 +117,7 @@ namespace payzen_backend.Controllers.SystemData
         }
 
         /// <summary>
-        /// CrÃ©e un nouveau type de contrat
+        /// Crée un nouveau type de contrat
         /// </summary>
         [HttpPost]
         public async Task<ActionResult<ContractTypeReadDto>> Create([FromBody] ContractTypeCreateDto dto)
@@ -127,21 +127,21 @@ namespace payzen_backend.Controllers.SystemData
 
             var userId = User.GetUserId();
 
-            // VÃ©rifier que la sociÃ©tÃ© existe
+            // Vérifier que la société existe
             var companyExists = await _db.Companies
                 .AnyAsync(c => c.Id == dto.CompanyId && c.DeletedAt == null);
 
             if (!companyExists)
-                return NotFound(new { Message = "SociÃ©tÃ© non trouvÃ©e" });
+                return NotFound(new { Message = "Société non trouvée" });
 
-            // VÃ©rifier que le nom du type de contrat n'existe pas dÃ©jÃ  pour cette sociÃ©tÃ©
+            // Vérifier que le nom du type de contrat n'existe pas déjà pour cette société
             var nameExists = await _db.ContractTypes
                 .AnyAsync(ct => ct.ContractTypeName == dto.ContractTypeName && 
                                ct.CompanyId == dto.CompanyId && 
                                ct.DeletedAt == null);
 
             if (nameExists)
-                return Conflict(new { Message = "Un type de contrat avec ce nom existe dÃ©jÃ  pour cette sociÃ©tÃ©" });
+                return Conflict(new { Message = "Un type de contrat avec ce nom existe déjà pour cette société" });
 
             var contractType = new ContractType
             {
@@ -156,7 +156,7 @@ namespace payzen_backend.Controllers.SystemData
             _db.ContractTypes.Add(contractType);
             await _db.SaveChangesAsync();
 
-            // RÃ©cupÃ©rer le type de contrat crÃ©Ã© avec ses relations
+            // Récupérer le type de contrat créé avec ses relations
             var createdContractType = await _db.ContractTypes
                 .AsNoTracking()
                 .Include(ct => ct.Company)
@@ -181,7 +181,7 @@ namespace payzen_backend.Controllers.SystemData
         }
 
         /// <summary>
-        /// Met Ã  jour un type de contrat
+        /// Met à jour un type de contrat
         /// </summary>
         [HttpPut("{id}")]
         public async Task<ActionResult<ContractTypeReadDto>> Update(int id, [FromBody] ContractTypeUpdateDto dto)
@@ -196,12 +196,12 @@ namespace payzen_backend.Controllers.SystemData
                 .FirstOrDefaultAsync();
 
             if (contractType == null)
-                return NotFound(new { Message = "Type de contrat non trouvÃ©" });
+                return NotFound(new { Message = "Type de contrat non trouvé" });
 
-            // Mettre Ã  jour le nom si fourni
+            // Mettre à jour le nom si fourni
             if (dto.ContractTypeName != null && dto.ContractTypeName != contractType.ContractTypeName)
             {
-                // VÃ©rifier que le nouveau nom n'existe pas dÃ©jÃ  pour cette sociÃ©tÃ©
+                // Vérifier que le nouveau nom n'existe pas déjà pour cette société
                 var nameExists = await _db.ContractTypes
                     .AnyAsync(ct => ct.ContractTypeName == dto.ContractTypeName && 
                                    ct.CompanyId == contractType.CompanyId && 
@@ -209,7 +209,7 @@ namespace payzen_backend.Controllers.SystemData
                                    ct.DeletedAt == null);
 
                 if (nameExists)
-                    return Conflict(new { Message = "Un type de contrat avec ce nom existe dÃ©jÃ  pour cette sociÃ©tÃ©" });
+                    return Conflict(new { Message = "Un type de contrat avec ce nom existe déjà pour cette société" });
 
                 contractType.ContractTypeName = dto.ContractTypeName;
             }
@@ -226,7 +226,7 @@ namespace payzen_backend.Controllers.SystemData
 
             await _db.SaveChangesAsync();
 
-            // RÃ©cupÃ©rer le type de contrat mis Ã  jour avec ses relations
+            // Récupérer le type de contrat mis à jour avec ses relations
             var updatedContractType = await _db.ContractTypes
                 .AsNoTracking()
                 .Include(ct => ct.Company)
@@ -261,14 +261,14 @@ namespace payzen_backend.Controllers.SystemData
                 .FirstOrDefaultAsync();
 
             if (contractType == null)
-                return NotFound(new { Message = "Type de contrat non trouvÃ©" });
+                return NotFound(new { Message = "Type de contrat non trouvé" });
 
-            // VÃ©rifier si le type de contrat est utilisÃ© dans des contrats d'employÃ©s
+            // Vérifier si le type de contrat est utilisé dans des contrats d'employés
             var hasEmployeeContracts = await _db.EmployeeContracts
                 .AnyAsync(ec => ec.ContractTypeId == id && ec.DeletedAt == null);
 
             if (hasEmployeeContracts)
-                return BadRequest(new { Message = "Impossible de supprimer ce type de contrat car il est utilisÃ© dans des contrats d'employÃ©s" });
+                return BadRequest(new { Message = "Impossible de supprimer ce type de contrat car il est utilisé dans des contrats d'employés" });
 
             // Soft delete
             contractType.DeletedAt = DateTimeOffset.UtcNow;

@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -21,7 +21,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// R√©cup√®re tous les types de contrats l√©gaux actifs
+        /// RÈcupËre tous les types de contrats lÈgaux actifs
         /// GET /api/legal-contract-types
         /// </summary>
         [HttpGet]
@@ -44,7 +44,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// R√©cup√®re un type de contrat l√©gal par ID
+        /// RÈcupËre un type de contrat lÈgal par ID
         /// GET /api/legal-contract-types/{id}
         /// </summary>
         [HttpGet("{id}")]
@@ -63,13 +63,13 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync();
 
             if (legalContractType == null)
-                return NotFound(new { Message = "Type de contrat l√©gal non trouv√©" });
+                return NotFound(new { Message = "Type de contrat lÈgal non trouvÈ" });
 
             return Ok(legalContractType);
         }
 
         /// <summary>
-        /// Cr√©e un nouveau type de contrat l√©gal
+        /// CrÈe un nouveau type de contrat lÈgal
         /// POST /api/legal-contract-types
         /// </summary>
         [HttpPost]
@@ -81,13 +81,13 @@ namespace payzen_backend.Controllers.Referentiel
 
             var userId = User.GetUserId();
 
-            // V√©rifier l'unicit√© du code
+            // VÈrifier l'unicitÈ du code
             if (await _db.LegalContractTypes.AnyAsync(l => l.Code == dto.Code && l.DeletedAt == null))
-                return Conflict(new { Message = "Un type de contrat l√©gal avec ce code existe d√©j√†" });
+                return Conflict(new { Message = "Un type de contrat lÈgal avec ce code existe dÈj‡" });
 
-            // V√©rifier l'unicit√© du nom
+            // VÈrifier l'unicitÈ du nom
             if (await _db.LegalContractTypes.AnyAsync(l => l.Name == dto.Name && l.DeletedAt == null))
-                return Conflict(new { Message = "Un type de contrat l√©gal avec ce nom existe d√©j√†" });
+                return Conflict(new { Message = "Un type de contrat lÈgal avec ce nom existe dÈj‡" });
 
             var legalContractType = new LegalContractType
             {
@@ -111,7 +111,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// Met √† jour un type de contrat l√©gal
+        /// Met ‡ jour un type de contrat lÈgal
         /// PUT /api/legal-contract-types/{id}
         /// </summary>
         [HttpPut("{id}")]
@@ -127,27 +127,27 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync(l => l.Id == id && l.DeletedAt == null);
 
             if (legalContractType == null)
-                return NotFound(new { Message = "Type de contrat l√©gal non trouv√©" });
+                return NotFound(new { Message = "Type de contrat lÈgal non trouvÈ" });
 
             bool hasChanges = false;
 
-            // Mise √† jour du code
+            // Mise ‡ jour du code
             if (!string.IsNullOrWhiteSpace(dto.Code) && dto.Code.Trim().ToUpper() != legalContractType.Code)
             {
                 var newCode = dto.Code.Trim().ToUpper();
                 if (await _db.LegalContractTypes.AnyAsync(l => l.Code == newCode && l.Id != id && l.DeletedAt == null))
-                    return Conflict(new { Message = "Un type de contrat l√©gal avec ce code existe d√©j√†" });
+                    return Conflict(new { Message = "Un type de contrat lÈgal avec ce code existe dÈj‡" });
 
                 legalContractType.Code = newCode;
                 hasChanges = true;
             }
 
-            // Mise √† jour du nom
+            // Mise ‡ jour du nom
             if (!string.IsNullOrWhiteSpace(dto.Name) && dto.Name.Trim() != legalContractType.Name)
             {
                 var newName = dto.Name.Trim();
                 if (await _db.LegalContractTypes.AnyAsync(l => l.Name == newName && l.Id != id && l.DeletedAt == null))
-                    return Conflict(new { Message = "Un type de contrat l√©gal avec ce nom existe d√©j√†" });
+                    return Conflict(new { Message = "Un type de contrat lÈgal avec ce nom existe dÈj‡" });
 
                 legalContractType.Name = newName;
                 hasChanges = true;
@@ -171,7 +171,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// Supprime un type de contrat l√©gal (soft delete)
+        /// Supprime un type de contrat lÈgal (soft delete)
         /// DELETE /api/legal-contract-types/{id}
         /// </summary>
         [HttpDelete("{id}")]
@@ -183,14 +183,14 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync(l => l.Id == id && l.DeletedAt == null);
 
             if (legalContractType == null)
-                return NotFound(new { Message = "Type de contrat l√©gal non trouv√©" });
+                return NotFound(new { Message = "Type de contrat lÈgal non trouvÈ" });
 
-            // V√©rifier si le type est utilis√© par des ContractTypes
+            // VÈrifier si le type est utilisÈ par des ContractTypes
             var isUsed = await _db.ContractTypes
                 .AnyAsync(c => c.LegalContractTypeId == id && c.DeletedAt == null);
 
             if (isUsed)
-                return BadRequest(new { Message = "Impossible de supprimer ce type de contrat l√©gal car il est utilis√© par des types de contrats" });
+                return BadRequest(new { Message = "Impossible de supprimer ce type de contrat lÈgal car il est utilisÈ par des types de contrats" });
 
             legalContractType.DeletedAt = DateTimeOffset.UtcNow;
             legalContractType.DeletedBy = userId;

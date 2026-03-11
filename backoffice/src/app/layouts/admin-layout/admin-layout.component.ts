@@ -41,9 +41,7 @@ import { AuthService } from '../../services/auth.service';
         <nav class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden" 
              [class]="isCollapsed() ? 'gap-1 px-2 pt-2' : 'gap-1 px-3 pt-2'">
           
-          <div *ngIf="!isCollapsed()" class="px-3 mb-2 mt-2 text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
-            Menu Principal
-          </div>
+
 
           <a *ngFor="let item of menuItems"
              [href]="item.link"

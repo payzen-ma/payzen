@@ -1,4 +1,4 @@
-ï»¿using payzen_backend.Models.Common.LeaveStatus;
+using payzen_backend.Models.Common.LeaveStatus;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,11 +17,11 @@ namespace payzen_backend.Models.Leave
         public int LeaveTypeId { get; set; }
         public LeaveType LeaveType { get; set; } = null!;
 
-        // Cas lÃ©gal choisi (Mariage salariÃ© vs enfant etc.)
+        // Cas légal choisi (Mariage salarié vs enfant etc.)
         public int? LegalRuleId { get; set; }
         public LeaveTypeLegalRule? LegalRule { get; set; }
 
-        // Snapshot de policy utilisÃ©e lors du calcul
+        // Snapshot de policy utilisée lors du calcul
         public int? PolicyId { get; set; }
         public LeaveTypePolicy? Policy { get; set; }
 

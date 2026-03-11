@@ -1,14 +1,14 @@
 <section class="hr-dashboard-page">
   <div class="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6 lg:px-8">
     <header class="space-y-2">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">{{ store.appTitle() }}</h1>
-      <p class="text-sm text-gray-600 md:text-base">{{ store.appSubtitle() }}</p>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-600 md:text-4xl">{{ store.appTitle() }}</h1>
+      <p class="text-sm text-gray-600">{{ store.appSubtitle() }}</p>
     </header>
 
     <div class="hr-dashboard-meta" aria-live="polite">
       <div class="hr-dashboard-controls">
         <div class="hr-filter-picker">
-          <label class="hr-filter-picker__label" for="dashboard-department-filter">Departements</label>
+          <label class="hr-filter-picker__label" for="dashboard-department-filter">Départements</label>
           <p-multiSelect
             inputId="dashboard-department-filter"
             [options]="departmentOptions()"
@@ -19,12 +19,13 @@
             [maxSelectedLabels]="1"
             [showToggleAll]="true"
             [showClear]="true"
-            defaultLabel="Tous"
+            placeholder="Tous"
+            selectedItemsLabel="{0} départements"
             styleClass="hr-filter-picker__multi"
           />
         </div>
         <div class="hr-filter-picker">
-          <label class="hr-filter-picker__label" for="dashboard-parity-filter">Parite</label>
+          <label class="hr-filter-picker__label" for="dashboard-parity-filter">Parité</label>
           <p-select
             inputId="dashboard-parity-filter"
             [options]="parityOptions()"
@@ -37,7 +38,7 @@
           />
         </div>
         <div class="hr-month-picker">
-          <label class="hr-month-picker__label" for="dashboard-month-select">Periode</label>
+          <label class="hr-month-picker__label" for="dashboard-month-select">Période</label>
           <p-select
             inputId="dashboard-month-select"
             [options]="store.monthOptions()"
@@ -57,8 +58,8 @@
     </div>
 
     @if (store.isLoading()) {
-      <article class="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-        Chargement des dashboards RH...
+      <article class="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-600">
+        <p class="text-sm">Chargement des dashboards RH...</p>
       </article>
     } @else if (store.error()) {
       <article class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -67,7 +68,7 @@
     } @else {
       @if (store.hasWarnings()) {
         <article class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <p class="font-semibold">Donnees partielles detectees</p>
+          <p class="font-semibold">Données partielles détectées</p>
           <ul class="mt-2 list-disc pl-5">
             @for (warning of store.warnings(); track warning) {
               <li>{{ warning }}</li>
@@ -90,33 +91,43 @@
 
         <p-tabpanels>
           <p-tabpanel value="vue-globale" class="pt-6">
-            @if (store.vueGlobaleData(); as data) {
-              <app-vue-globale-tab [data]="data" />
-            }
+            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              @if (store.vueGlobaleData(); as data) {
+                <app-vue-globale-tab [data]="data" />
+              }
+            </article>
           </p-tabpanel>
 
           <p-tabpanel value="mouvements-rh" class="pt-6">
-            @if (store.mouvementsRhData(); as data) {
-              <app-mouvements-tab [data]="data" />
-            }
+            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              @if (store.mouvementsRhData(); as data) {
+                <app-mouvements-tab [data]="data" />
+              }
+            </article>
           </p-tabpanel>
 
           <p-tabpanel value="masse-salariale" class="pt-6">
-            @if (store.masseSalarialeData(); as data) {
-              <app-masse-salariale-tab [data]="data" />
-            }
+            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              @if (store.masseSalarialeData(); as data) {
+                <app-masse-salariale-tab [data]="data" />
+              }
+            </article>
           </p-tabpanel>
 
           <p-tabpanel value="parite-diversite" class="pt-6">
-            @if (store.pariteDiversiteData(); as data) {
-              <app-parite-diversite-tab [data]="data" />
-            }
+            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              @if (store.pariteDiversiteData(); as data) {
+                <app-parite-diversite-tab [data]="data" />
+              }
+            </article>
           </p-tabpanel>
 
           <p-tabpanel value="conformite-sociale" class="pt-6">
-            @if (store.conformiteSocialeData(); as data) {
-              <app-conformite-sociale-tab [data]="data" />
-            }
+            <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              @if (store.conformiteSocialeData(); as data) {
+                <app-conformite-sociale-tab [data]="data" />
+              }
+            </article>
           </p-tabpanel>
         </p-tabpanels>
       </p-tabs>

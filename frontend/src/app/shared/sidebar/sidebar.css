@@ -24,13 +24,31 @@
 }
 
 :host .sidebar-item:hover {
-  background-color: rgb(243 244 246); /* gray-100 */
+  background-color: rgba(253, 117, 31, 0.15); /* orange background #fd751f */
+  color: #1800ac; /* blue text */
+}
+
+:host .sidebar-item:hover i {
+  color: #1800ac; /* blue icon */
 }
 
 :host .sidebar-item.active {
   background-color: rgb(239 246 255); /* blue-50 */
   color: var(--primary);
   font-weight: 500;
+}
+
+/* Disabled/Not Implemented items */
+:host .sidebar-item.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+:host .sidebar-item.pointer-events-none {
+  pointer-events: none;
+}
+
+:host .sidebar-item.opacity-50 {
+  opacity: 0.5;
 }
 
 :host .sidebar-item i {

@@ -19,11 +19,13 @@ interface Composition {
   titre: string;
   description: string;
   elements: PayElement[];
-  brut_imposable: number;
-  total_retenues: number;
-  cout_employeur: number;
-  salaire_net: number;
-  calcul_steps: CalculStep[];
+  salaireBrut: number;
+  totalIndemnites: number;
+  brutImposable: number;
+  totalRetenues: number;
+  coutEmployeur: number;
+  salaireNet: number;
+  calculSteps: CalculStep[];
   avantages?: string[];
   inconvenients?: string[];
 }
@@ -165,8 +167,11 @@ export class SimulationComponent implements AfterViewChecked {
     this.simulationService.simulateStream(
       text,
       (chunk: string) => {
+        console.log('💬 [Component] Chunk reçu:', chunk);
+        console.log('📊 [Component] Type du chunk:', typeof chunk);
         this.zone.run(() => {
           accumulatedText += chunk;
+          console.log('📄 [Component] Texte accumulé:', accumulatedText);
           // Update the streaming message with accumulated text
           this.replaceMessage(loadingId, {
             id: loadingId,
@@ -183,14 +188,17 @@ export class SimulationComponent implements AfterViewChecked {
         });
       },
       () => {
+        console.log('✅ [Component] Streaming terminé');
         this.zone.run(() => {
           if (!cardsDisplayed) {
+            console.log('🎴 [Component] Finalisation de l\'affichage des cartes');
             this.finalizeCardDisplay(loadingId, accumulatedText);
           }
           this.shouldScroll = true;
         });
       },
       (error: string) => {
+        console.error('❌ [Component] Erreur reçue:', error);
         this.zone.run(() => {
           this.replaceMessage(loadingId, {
             id: loadingId,
@@ -210,13 +218,22 @@ export class SimulationComponent implements AfterViewChecked {
   }
 
   private tryParseAndDisplayCards(loadingId: number, text: string, onDisplayed: () => void): void {
+    console.log('🧪 [tryParseAndDisplayCards] Tentative de parsing du texte:', text.substring(0, 200) + '...');
     try {
       const cleanedJson = this.cleanJsonResponse(text);
-      if (!cleanedJson.endsWith('}}') && !cleanedJson.endsWith('}]}')) return;
+      console.log('🧹 [tryParseAndDisplayCards] JSON nettoyé:', cleanedJson.substring(0, 200) + '...');
+      
+      if (!cleanedJson.endsWith('}}') && !cleanedJson.endsWith('}]}')) {
+        console.log('⏳ [tryParseAndDisplayCards] JSON incomplet, en attente de plus de données');
+        return;
+      }
+      
       const jsonData: any = JSON.parse(cleanedJson);
+      console.log('✅ [tryParseAndDisplayCards] JSON parsé avec succès:', jsonData);
       
       // Check if Claude returned an error response (unclear request)
       if (jsonData.error) {
+        console.log('⚠️ [tryParseAndDisplayCards] Réponse d\'erreur détectée:', jsonData.error);
         const errorMsg = this.extractClaudeErrorMessage(jsonData);
         this.replaceMessage(loadingId, {
           id: loadingId,
@@ -231,26 +248,91 @@ export class SimulationComponent implements AfterViewChecked {
       }
       
       if (jsonData.scenarios && Array.isArray(jsonData.scenarios) && jsonData.scenarios.length > 0) {
+        console.log('✅ [tryParseAndDisplayCards] Scénarios détectés:', jsonData.scenarios.length);
+        
+        // Normaliser les scénarios
+        const normalizedScenarios = jsonData.scenarios.map((scenario: any) => this.normalizeScenario(scenario));
+        console.log('🔄 [tryParseAndDisplayCards] Scénarios normalisés:', normalizedScenarios);
+        
         this.replaceMessage(loadingId, {
           id: loadingId,
           role: 'assistant',
           type: 'success',
-          compositions: jsonData.scenarios,
+          compositions: normalizedScenarios,
           timestamp: new Date()
         });
         onDisplayed();
         this.shouldScroll = true;
       }
-    } catch { /* wait for more data */ }
+    } catch (error) {
+      console.log('⏳ [tryParseAndDisplayCards] Erreur de parsing (en attente):', error);
+      /* wait for more data */
+    }
+  }
+
+  /**
+   * Normalise un scénario Gemini vers le format attendu par le frontend
+   */
+  private normalizeScenario(scenario: any): Composition {
+    console.log('🔍 [normalizeScenario] Propriétés du scénario:', Object.keys(scenario));
+    console.log('🔍 [normalizeScenario] Valeurs:', {
+      brutImposable: scenario.brutImposable,
+      totalRetenues: scenario.totalRetenues,
+      totalRetenuesSalariales: scenario.totalRetenuesSalariales,
+      coutEmployeur: scenario.coutEmployeur,
+      coutEmployeurTotal: scenario.coutEmployeurTotal,
+      salaireNet: scenario.salaireNet
+    });
+    const elements: PayElement[] = scenario.elements || [];
+    const brutImposable = scenario.brutImposable || 0;
+    const totalRetenues = scenario.totalRetenuesSalariales || scenario.totalRetenues || 0;
+    // Total indemnités = somme des éléments non imposables (type 'ni')
+    const totalIndemnites = elements
+      .filter((el: PayElement) => el.type === 'ni')
+      .reduce((sum: number, el: PayElement) => sum + Math.abs(el.montant), 0);
+    // Salaire brut = brut imposable + indemnités non imposables
+    const salaireBrut = brutImposable + totalIndemnites;
+    // NET à payer = Brut imposable - Total retenues + Indemnités NI
+    // (car les indemnités NI ne sont pas soumises aux retenues)
+    const salaireNet = brutImposable - totalRetenues + totalIndemnites;
+
+    console.log('📊 [normalizeScenario] Calculs:', {
+      salaireBrut,
+      totalIndemnites,
+      brutImposable,
+      totalRetenues,
+      salaireNetCalculé: salaireNet,
+      salaireNetGemini: scenario.salaireNet
+    });
+
+    return {
+      titre: scenario.titre || '',
+      description: scenario.description || '',
+      elements,
+      salaireBrut,
+      totalIndemnites,
+      brutImposable,
+      totalRetenues,
+      coutEmployeur: scenario.coutEmployeurTotal || scenario.coutEmployeur || 0,
+      salaireNet,
+      calculSteps: scenario.calculSteps || [],
+      avantages: scenario.avantages || [],
+      inconvenients: scenario.inconvenients || []
+    };
   }
 
   private finalizeCardDisplay(loadingId: number, text: string): void {
+    console.log('🎯 [finalizeCardDisplay] Finalisation avec le texte:', text.substring(0, 200) + '...');
     try {
       const cleanedJson = this.cleanJsonResponse(text);
+      console.log('🧹 [finalizeCardDisplay] JSON nettoyé:', cleanedJson.substring(0, 200) + '...');
+      
       const jsonData: any = JSON.parse(cleanedJson);
+      console.log('✅ [finalizeCardDisplay] JSON parsé:', jsonData);
       
       // Check if Claude returned an error response (unclear request)
       if (jsonData.error) {
+        console.log('⚠️ [finalizeCardDisplay] Erreur détectée:', jsonData.error);
         const errorMsg = this.extractClaudeErrorMessage(jsonData);
         this.replaceMessage(loadingId, {
           id: loadingId,
@@ -263,17 +345,26 @@ export class SimulationComponent implements AfterViewChecked {
       }
       
       if (jsonData.scenarios && Array.isArray(jsonData.scenarios)) {
+        console.log('✅ [finalizeCardDisplay] Affichage de', jsonData.scenarios.length, 'scénarios');
+        
+        // Normaliser les scénarios pour mapper les propriétés Gemini vers le format attendu
+        const normalizedScenarios = jsonData.scenarios.map((scenario: any) => this.normalizeScenario(scenario));
+        console.log('🔄 [finalizeCardDisplay] Scénarios normalisés:', normalizedScenarios);
+        
         this.replaceMessage(loadingId, {
           id: loadingId,
           role: 'assistant',
           type: 'success',
-          compositions: jsonData.scenarios,
+          compositions: normalizedScenarios,
           timestamp: new Date()
         });
       } else {
+        console.error('❌ [finalizeCardDisplay] Scénarios manquants dans:', jsonData);
         throw new Error('scenarios manquant');
       }
-    } catch {
+    } catch (error) {
+      console.error('❌ [finalizeCardDisplay] Erreur lors du parsing:', error);
+      console.error('📄 [finalizeCardDisplay] Texte problématique:', text);
       this.replaceMessage(loadingId, {
         id: loadingId,
         role: 'assistant',
@@ -285,6 +376,7 @@ export class SimulationComponent implements AfterViewChecked {
   }
 
   private cleanJsonResponse(text: string): string {
+    console.log('🧼 [cleanJsonResponse] Texte original:', text.substring(0, 100) + '...');
     let cleaned = text.trim();
     if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
     else if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
@@ -292,7 +384,9 @@ export class SimulationComponent implements AfterViewChecked {
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
     if (firstBrace !== -1 && lastBrace !== -1) cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-    return cleaned.trim();
+    const result = cleaned.trim();
+    console.log('✨ [cleanJsonResponse] Texte nettoyé:', result.substring(0, 100) + '...');
+    return result;
   }
 
   private extractClaudeErrorMessage(errorData: ClaudeErrorResponse): string {

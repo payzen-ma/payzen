@@ -97,7 +97,7 @@ public class PayrollCalculationEngine
 
         // Primes imposables (SalaryComponents + PackageItems)
         var primes = new List<PrimeImposableItem>();
-        foreach (var c in data.SalaryComponents?.Where(c => c.Istaxable) ?? Array.Empty<PayrollSalaryComponentDto>())
+        foreach (var c in data.SalaryComponents?.Where(c => c.IsTaxable) ?? Array.Empty<PayrollSalaryComponentDto>())
             primes.Add(new PrimeImposableItem { Label = c.ComponentType, Montant = c.Amount });
         foreach (var i in data.PackageItems?.Where(i => i.IsTaxable) ?? Array.Empty<PayrollPackageItemDto>())
             primes.Add(new PrimeImposableItem { Label = i.Label, Montant = i.DefaultValue });
@@ -119,7 +119,7 @@ public class PayrollCalculationEngine
         }
 
         // Indemnités non imposables (NI) — mapping par libellé
-        var compos = data.SalaryComponents?.Where(c => !c.Istaxable).ToList() ?? new List<PayrollSalaryComponentDto>();
+        var compos = data.SalaryComponents?.Where(c => !c.IsTaxable).ToList() ?? new List<PayrollSalaryComponentDto>();
         var items = data.PackageItems?.Where(i => !i.IsTaxable).ToList() ?? new List<PayrollPackageItemDto>();
         foreach (var c in compos)
             MapNiToContext(ctx, c.ComponentType, c.Amount, data.BaseSalary, ctx.JoursTravailles);
@@ -260,6 +260,10 @@ public class PayrollCalculationEngine
         };
 
         ctx.PrimeAnciennete = Round(ctx.SalaireBase26j * ctx.TauxAnciennete, 2);
+        ctx.PrimeAnciennteRate = ctx.TauxAnciennete;
+        Console.WriteLine($"Prime AnciennteRate {ctx.PrimeAnciennteRate}");
+
+
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -501,6 +505,7 @@ public class PayrollCalculationEngine
         }).ToList();
         result.HeuresSupplementaires = ctx.TotalHsupp;
         result.PrimeAnciennete = ctx.PrimeAnciennete;
+        result.PrimeAncienneteRate = ctx.TauxAnciennete;
 
         result.BrutImposable = ctx.SalaireBrutImposable;
         result.BrutImposableAjuste = ctx.SalaireBrutImposable;
@@ -540,7 +545,7 @@ public class PayrollCalculationEngine
     private static List<IndemniteDetail> BuildIndemnitesDetail(EmployeePayrollDto data, PayrollCalculationContext ctx)
     {
         var list = new List<IndemniteDetail>();
-        var compos = data.SalaryComponents?.Where(c => !c.Istaxable).ToList() ?? new List<PayrollSalaryComponentDto>();
+        var compos = data.SalaryComponents?.Where(c => !c.IsTaxable).ToList() ?? new List<PayrollSalaryComponentDto>();
         var items = data.PackageItems?.Where(i => !i.IsTaxable).ToList() ?? new List<PayrollPackageItemDto>();
         decimal plafondTransport = PayrollConstants.PLAFOND_NI_TRANSPORT;
         decimal plafondPanier = PayrollConstants.PLAFOND_NI_PANIER_JOUR * Math.Max(1, ctx.JoursTravailles);
@@ -612,6 +617,7 @@ public class PayrollCalculationResult
     public List<PrimeDetail> PrimesImposablesDetail { get; set; } = new();
     public decimal HeuresSupplementaires { get; set; }
     public decimal PrimeAnciennete { get; set; }
+    public decimal PrimeAncienneteRate { get; set; } 
     public decimal BrutImposable { get; set; }
     public decimal BrutImposableAjuste { get; set; }
     public decimal IndemnitesNonImposables { get; set; }

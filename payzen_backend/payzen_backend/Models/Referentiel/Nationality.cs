@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Referentiel
+namespace payzen_backend.Models.Referentiel
 {
     public class Nationality
     {

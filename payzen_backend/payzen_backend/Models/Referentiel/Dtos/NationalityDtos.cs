@@ -1,9 +1,9 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace payzen_backend.Models.Referentiel.Dtos
 {
     /// <summary>
-    /// DTO pour la lecture d'une nationalitÃ©
+    /// DTO pour la lecture d'une nationalité
     /// </summary>
     public class NationalityReadDto
     {
@@ -12,21 +12,21 @@ namespace payzen_backend.Models.Referentiel.Dtos
     }
 
     /// <summary>
-    /// DTO pour la crÃ©ation d'une nationalitÃ©
+    /// DTO pour la création d'une nationalité
     /// </summary>
     public class NationalityCreateDto
     {
-        [Required(ErrorMessage = "Le nom de la nationalitÃ© est requis")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le nom doit contenir entre 2 et 100 caractÃ¨res")]
+        [Required(ErrorMessage = "Le nom de la nationalité est requis")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le nom doit contenir entre 2 et 100 caractères")]
         public required string Name { get; set; }
     }
 
     /// <summary>
-    /// DTO pour la mise Ã  jour d'une nationalitÃ©
+    /// DTO pour la mise à jour d'une nationalité
     /// </summary>
     public class NationalityUpdateDto
     {
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le nom doit contenir entre 2 et 100 caractÃ¨res")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le nom doit contenir entre 2 et 100 caractères")]
         public string? Name { get; set; }
     }
 }

@@ -14,6 +14,11 @@ import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { UserRole } from '@app/core/models/user.model';
 
+interface BadgeConfig {
+  count: number;
+  color: string;
+}
+
 interface MenuItemConfig extends MenuItem {
   requiredRoles?: UserRole[];
   requiredPermissions?: string[];
@@ -21,6 +26,9 @@ interface MenuItemConfig extends MenuItem {
   requiresCompanyContext?: boolean; // New flag to indicate if company selection is needed
   id?: string; // Unique identifier for special filtering
   groupe?: string; // Optional group for organizing menu items
+  itemBadge?: BadgeConfig | null; // Badge configuration (renamed to avoid conflict with PrimeNG MenuItem)
+  highlight?: boolean; // Highlight menu item (used for special features)
+  notImplemented?: boolean; // Flag to mark items that are not yet implemented
 }
 
 @Component({
@@ -156,256 +164,288 @@ export class Sidebar {
   // === Menu Items Template (routes will be prefixed dynamically) ===
   private readonly menuItemsTemplate: MenuItemConfig[] = [
     // ─────────────────────────────────────────────────────────────
-    // EXPERT MODE - PERSISTENT MENU ITEMS (Always visible for CABINET)
-    // Dashboard, Société, Salariés, Congés always visible
+    // VUE D'ENSEMBLE
     // ─────────────────────────────────────────────────────────────
     { 
       label: 'nav.dashboard', 
       icon: 'pi pi-home', 
       routerLink: '/dashboard',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'], // Show in both expert views (portfolio and client)
-      requiresCompanyContext: false, // Dashboard doesn't require company selection
-      groupe: 'dashboard'
-    },
-    
-    { 
-      label: 'nav.company', 
-      icon: 'pi pi-building', 
-      routerLink: '/company',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
-      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
-      groupe: 'company'
-    },
-    { 
-      label: 'nav.employees', 
-      icon: 'pi pi-users', 
-      routerLink: '/employees',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
-      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
-      groupe: 'employees'
-    },
-    {
-      label: 'nav.absences',
-      icon: 'pi pi-calendar-times',
-      routerLink: '/absences/hr',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'absences'
+      groupe: 'overview',
+      itemBadge: null
     },
     { 
-      label: 'nav.leave', 
-      icon: 'pi pi-calendar', 
-      routerLink: '/leave',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
-      requiresCompanyContext: false, // Allow access to manage Cabinet or Client
-      groupe: 'absences'
-    },
-    { 
-      label: 'nav.salaryPackages', 
-      icon: 'pi pi-money-bill', 
-      routerLink: '/salary-packages',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+      label: 'nav.compliance', 
+      icon: 'pi pi-shield', 
+      routerLink: '/compliance',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'salaryPackages'
+      groupe: 'overview',
+      itemBadge: null,
+      notImplemented: true
     },
+    { 
+      label: 'nav.hrIndicators', 
+      icon: 'pi pi-chart-line', 
+      routerLink: '/hr-indicators',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'overview',
+      itemBadge: null,
+      notImplemented: true
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // PAIE
+    // ─────────────────────────────────────────────────────────────
     { 
       label: 'nav.payroll', 
       icon: 'pi pi-wallet', 
       routerLink: '/payroll/bulletin',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'payroll' // Grouping payroll-related items together
+      groupe: 'payroll',
     },
-      {
-      label: 'nav.simulation',
-      icon: 'pi pi-calculator',
-      routerLink: '/payroll/simulation',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+    {
+      label: 'nav.payslips',
+      icon: 'pi pi-file-pdf',
+      routerLink: '/payroll/payslip',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'payroll' // Grouping payroll-related items together
+      groupe: 'payroll',
+      itemBadge: null
     },
     {
       label: 'nav.myPayslip',
       icon: 'pi pi-file-pdf',
       routerLink: '/payroll/payslip',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+      requiredRoles: [UserRole.EMPLOYEE],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'payroll' // Grouping payroll-related items together
+      groupe: 'payroll',
+      itemBadge: null
+    },
+    {
+      label: 'nav.simulation',
+      icon: 'pi pi-calculator',
+      routerLink: '/payroll/simulation',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null
+    },
+    {
+      label: 'nav.socialDeclarations',
+      icon: 'pi pi-file-check',
+      routerLink: '/social-declarations',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null,
+      notImplemented: true
     },
     {
       label: 'nav.payrollExports',
       icon: 'pi pi-download',
       routerLink: '/payroll/exports',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
-      modes: ['expert-all'],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'payroll' // Grouping payroll-related items together
+      groupe: 'payroll',
+      itemBadge: null,
+      notImplemented: false
     },
-    
+
     // ─────────────────────────────────────────────────────────────
-    // STANDARD MODE (Regular company users)
-    // Shows: Dashboard, RH Core items, Reports, Permissions
+    // COLLABORATEURS
     // ─────────────────────────────────────────────────────────────
-    { 
-      label: 'nav.dashboard', 
-      icon: 'pi pi-home', 
-      routerLink: '/dashboard',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE],
-      modes: ['standard'],
-      groupe: 'dashboard'
-    },
     { 
       label: 'nav.employees', 
       icon: 'pi pi-users', 
       routerLink: '/employees',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard'],
-      groupe: 'employees'
-    },
-    // Attendance menu removed per request (hidden from sidebar)
-    {
-      label: 'nav.absences',
-      icon: 'pi pi-calendar-times',
-      routerLink: '/absences',
-      requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard'],
-      groupe: 'absences'
-    },
-    {
-      label: 'nav.absencesTeam',
-      icon: 'pi pi-users',
-      routerLink: '/absences/team',
-      requiredRoles: [UserRole.MANAGER, UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      // Will be filtered dynamically based on hasSubordinates
-      id: 'team-absences',
-      groupe: 'absences'
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null
     },
     {
       label: 'nav.absences',
       icon: 'pi pi-calendar-times',
       routerLink: '/absences/hr',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'absences'
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null
+    },
+    {
+      label: 'nav.leave',
+      icon: 'pi pi-calendar',
+      routerLink: '/hr-leave-management',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null
     },
     {
       label: 'nav.overtime',
       icon: 'pi pi-clock',
-      routerLink: '/overtime',
-      requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard'],
-      groupe: 'absences'
-    },
-    {
-      label: 'nav.myLeaveRequests',
-      icon: 'pi pi-calendar-plus',
-      routerLink: '/my-leave-requests',
-      requiredRoles: [UserRole.EMPLOYEE],
-      modes: ['standard'],
-      groupe: 'absences'
-    },
-    {
-      label: 'nav.overtimeManagement',
-      icon: 'pi pi-check-circle',
       routerLink: '/overtime-management',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard'],
-      groupe: 'absences'
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null
     },
     {
-      label: 'nav.hrLeaveManagement',
-      icon: 'pi pi-users',
-      routerLink: '/hr-leave-management',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard'],
-      groupe: 'absences'
-    },
-    { 
-      label: 'nav.payroll', 
-      icon: 'pi pi-wallet', 
-      routerLink: '/payroll/bulletin',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'payroll' // Grouping payroll-related items together
+      label: 'nav.workTime',
+      icon: 'pi pi-clock',
+      routerLink: '/work-time',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null,
+      notImplemented: true
     },
     {
-      label: 'nav.myPayslip',
-      icon: 'pi pi-file-pdf',
-      routerLink: '/payroll/payslip',
-      requiredRoles: [UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'payroll' // Grouping payroll-related items together
+      label: 'nav.performance',
+      icon: 'pi pi-chart-bar',
+      routerLink: '/performance',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null,
+      notImplemented: true
     },
     {
-      label: 'nav.payrollExports',
-      icon: 'pi pi-download',
-      routerLink: '/payroll/exports',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'payroll' // Grouping payroll-related items together
+      label: 'nav.expenseReports',
+      icon: 'pi pi-money-bill',
+      routerLink: '/expense-reports',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null,
+      notImplemented: true
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // INTELLIGENCE
+    // ─────────────────────────────────────────────────────────────
+    {
+      label: 'nav.aiCopilot',
+      icon: 'pi pi-sparkles',
+      routerLink: '/ai-copilot',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'intelligence',
+      itemBadge: null,
+      highlight: true,
+      notImplemented: true
     },
     {
-      label: 'nav.simulation',
-      icon: 'pi pi-calculator',
-      routerLink: '/payroll/simulation',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'payroll' // Grouping payroll-related items together
+      label: 'nav.payLang',
+      icon: 'pi pi-bolt',
+      routerLink: '/paylang',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'intelligence',
+      itemBadge: null,
+      highlight: true,
+      notImplemented: true
     },
-    { 
-      label: 'nav.salaryPackages', 
-      icon: 'pi pi-money-bill', 
-      routerLink: '/salary-packages',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'salaryPackages'
+    {
+      label: 'nav.legalRepository',
+      icon: 'pi pi-book',
+      routerLink: '/legal-repository',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'intelligence',
+      itemBadge: null,
+      notImplemented: true
     },
+
+    // ─────────────────────────────────────────────────────────────
+    // ADMINISTRATION
+    // ─────────────────────────────────────────────────────────────
     { 
       label: 'nav.reports', 
       icon: 'pi pi-chart-bar', 
       routerLink: '/reports',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH],
-      modes: ['standard'],
-      groupe: 'reports'
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'administration',
+      itemBadge: null,
+      notImplemented: true
+    },
+    {
+      label: 'nav.hrProcedures',
+      icon: 'pi pi-file',
+      routerLink: '/hr-procedures',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'administration',
+      itemBadge: null,
+      notImplemented: true
+    },
+    {
+      label: 'nav.import',
+      icon: 'pi pi-upload',
+      routerLink: '/import',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'administration',
+      itemBadge: null,
+      notImplemented: true
+    },
+    {
+      label: 'nav.history',
+      icon: 'pi pi-history',
+      routerLink: '/history',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'administration',
+      itemBadge: null,
+      notImplemented: true
     },
     { 
-      label: 'nav.attendanceReport', 
-      icon: 'pi pi-file', 
-      routerLink: '/reports/attendance',
-      requiredRoles: [UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
-      modes: ['standard'],
-      groupe: 'reports'
-    },
-    { 
-      label: 'nav.userManagement', 
-      icon: 'pi pi-users', 
-      routerLink: '/permissions',
-      requiredRoles: [UserRole.ADMIN],
-      modes: ['standard'],
-      groupe: 'administration'
+      label: 'nav.settings', 
+      icon: 'pi pi-cog', 
+      routerLink: '/company',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'administration',
+      itemBadge: null
     }
   ];
 
   // === Group configuration ===
   private readonly groupConfig: Record<string, { label: string; order: number }> = {
-    'dashboard': { label: 'nav.groups.dashboard', order: 1 },
-    'company': { label: 'nav.groups.company', order: 2 },
+    'overview': { label: 'nav.groups.overview', order: 1 },
+    'payroll': { label: 'nav.groups.payroll', order: 2 },
     'employees': { label: 'nav.groups.employees', order: 3 },
-    'absences': { label: 'nav.groups.absences', order: 4 },
-    'payroll': { label: 'nav.groups.payroll', order: 5 },
-    'salaryPackages': { label: 'nav.groups.salaryPackages', order: 6 },
-    'reports': { label: 'nav.groups.reports', order: 7 },
-    'administration': { label: 'nav.groups.administration', order: 8 }
+    'intelligence': { label: 'nav.groups.intelligence', order: 4 },
+    'administration': { label: 'nav.groups.administration', order: 5 }
   };
 
   // === Filtered menu items based on user role with dynamic route prefix ===
@@ -529,6 +569,13 @@ export class Sidebar {
 
   // === Navigation Handler for items requiring company context ===
   handleNavigation(item: MenuItemConfig, event: Event): boolean {
+    // Block navigation for not implemented items
+    if (item.notImplemented) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    
     const isExpert = this.isExpertMode();
     const hasClient = this.isClientView();
     

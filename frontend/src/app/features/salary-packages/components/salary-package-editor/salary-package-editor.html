@@ -377,6 +377,37 @@
                             />
                           </div>
                         </div>
+
+                        <!-- Row: Imposable Checkbox -->
+                        <div class="flex items-center gap-2 pt-1">
+                          <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative">
+                              <input
+                                type="checkbox"
+                                formControlName="isTaxable"
+                                class="peer sr-only"
+                                [disabled]="isReadOnly()"
+                              />
+                              <div class="w-5 h-5 border-2 border-gray-300 rounded transition-all peer-checked:border-primary peer-checked:bg-primary peer-disabled:opacity-50 peer-disabled:cursor-not-allowed group-hover:border-primary/50">
+                                <svg class="w-full h-full text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 select-none">
+                              {{ 'salaryPackages.editor.taxableLabel' | translate }}
+                            </span>
+                          </label>
+                          @if (item.get('isTaxable')?.value) {
+                            <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                              Imposable
+                            </span>
+                          } @else {
+                            <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                              Non imposable
+                            </span>
+                          }
+                        </div>
                       </div>
 
                       <!-- Delete Button -->

@@ -15,6 +15,8 @@ namespace payzen_backend.Models.Employee.Dtos
         [Required(ErrorMessage = "Le montant est requis")]
         public required decimal Amount { get; set; }
 
+        public bool IsTaxable { get; set; } = true;
+
         [Required(ErrorMessage = "La date d'effet est requise")]
         public required DateTime EffectiveDate { get; set; }
 

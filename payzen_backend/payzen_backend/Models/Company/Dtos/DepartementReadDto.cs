@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Company.Dtos
+namespace payzen_backend.Models.Company.Dtos
 {
     public class DepartementReadDto
     {

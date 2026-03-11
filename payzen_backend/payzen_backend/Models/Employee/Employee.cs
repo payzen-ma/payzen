@@ -1,4 +1,4 @@
-﻿using payzen_backend.Models.Company;
+using payzen_backend.Models.Company;
 using payzen_backend.Models.Referentiel;
 
 namespace payzen_backend.Models.Employee
@@ -6,6 +6,7 @@ namespace payzen_backend.Models.Employee
     public class Employee
     {
         public int Id { get; set; }
+        public int? Matricule { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
         public required string CinNumber { get; set; }

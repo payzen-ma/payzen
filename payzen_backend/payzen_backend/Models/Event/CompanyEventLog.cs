@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Event
+namespace payzen_backend.Models.Event
 {
     public class CompanyEventLog
     {

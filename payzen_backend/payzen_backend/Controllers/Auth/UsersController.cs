@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Authorization;
@@ -19,7 +19,7 @@ namespace payzen_backend.Controllers.Auth
         public UsersController(AppDbContext db) => _db = db;
 
         /// <summary>
-        /// RÃ©cupÃ¨re tous les utilisateurs actifs
+        /// Récupère tous les utilisateurs actifs
         /// </summary>
         [HttpGet]
         //[HasPermission("READ_USERS")]
@@ -44,7 +44,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re un utilisateur par ID
+        /// Récupère un utilisateur par ID
         /// </summary>
         [HttpGet("{id}")]
         //[HasPermission("VIEW_USERS")]
@@ -56,7 +56,7 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouvÃ©" });
+                return NotFound(new { Message = "Utilisateur non trouvé" });
 
             var result = new UserReadDto
             {
@@ -71,7 +71,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// CrÃ©e un nouvel utilisateur
+        /// Crée un nouvel utilisateur
         /// </summary>
         [HttpPost]
         //[HasPermission("CREATE_USERS")]
@@ -82,16 +82,16 @@ namespace payzen_backend.Controllers.Auth
 
             var userId = User.GetUserId();
 
-            // VÃ©rifier que l'email n'existe pas dÃ©jÃ 
+            // Vérifier que l'email n'existe pas déjà
             if (await _db.Users.AnyAsync(u => u.Email == dto.Email && u.DeletedAt == null))
             {
-                return Conflict(new { Message = "Un utilisateur avec cet email existe dÃ©jÃ " });
+                return Conflict(new { Message = "Un utilisateur avec cet email existe déjà" });
             }
 
-            // VÃ©rifier que le username n'existe pas dÃ©jÃ 
+            // Vérifier que le username n'existe pas déjà
             if (await _db.Users.AnyAsync(u => u.Username == dto.Username && u.DeletedAt == null))
             {
-                return Conflict(new { Message = "Un utilisateur avec ce nom d'utilisateur existe dÃ©jÃ " });
+                return Conflict(new { Message = "Un utilisateur avec ce nom d'utilisateur existe déjà" });
             }
 
             var user = new Users
@@ -120,7 +120,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Met Ã  jour un utilisateur
+        /// Met à jour un utilisateur
         /// </summary>
         [HttpPut("{id}")]
         //[HasPermission("EDIT_USERS")]
@@ -136,14 +136,14 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouvÃ©" });
+                return NotFound(new { Message = "Utilisateur non trouvé" });
 
-            // Mettre Ã  jour les champs si fournis
+            // Mettre à jour les champs si fournis
             if (dto.Email != null && dto.Email != user.Email)
             {
                 if (await _db.Users.AnyAsync(u => u.Email == dto.Email && u.Id != id && u.DeletedAt == null))
                 {
-                    return Conflict(new { Message = "Un utilisateur avec cet email existe dÃ©jÃ " });
+                    return Conflict(new { Message = "Un utilisateur avec cet email existe déjà" });
                 }
                 user.Email = dto.Email;
             }
@@ -152,7 +152,7 @@ namespace payzen_backend.Controllers.Auth
             {
                 if (await _db.Users.AnyAsync(u => u.Username == dto.Username && u.Id != id && u.DeletedAt == null))
                 {
-                    return Conflict(new { Message = "Un utilisateur avec ce nom d'utilisateur existe dÃ©jÃ " });
+                    return Conflict(new { Message = "Un utilisateur avec ce nom d'utilisateur existe déjà" });
                 }
                 user.Username = dto.Username;
             }
@@ -198,21 +198,21 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouvÃ©" });
+                return NotFound(new { Message = "Utilisateur non trouvé" });
 
-            // EmpÃªcher l'auto-suppression
+            // Empêcher l'auto-suppression
             if (user.Id == userId)
             {
                 return BadRequest(new { Message = "Vous ne pouvez pas supprimer votre propre compte" });
             }
 
-            // VÃ©rifier si l'utilisateur a des rÃ´les assignÃ©s
+            // Vérifier si l'utilisateur a des rôles assignés
             var hasRoles = await _db.UsersRoles
                 .AnyAsync(ur => ur.UserId == id && ur.DeletedAt == null);
 
             if (hasRoles)
             {
-                return BadRequest(new { Message = "Impossible de supprimer cet utilisateur car il a des rÃ´les assignÃ©s. Veuillez d'abord retirer ses rÃ´les." });
+                return BadRequest(new { Message = "Impossible de supprimer cet utilisateur car il a des rôles assignés. Veuillez d'abord retirer ses rôles." });
             }
 
             user.DeletedAt = DateTimeOffset.UtcNow;

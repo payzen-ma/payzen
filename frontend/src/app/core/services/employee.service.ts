@@ -211,6 +211,8 @@ interface EmployeeAddressResponse {
 interface SalaryComponentResponse {
   componentName: string;
   amount: number;
+  isTaxable?: boolean;
+  IsTaxable?: boolean; // Backend returns PascalCase
 }
 
 interface BackendEventResponse {
@@ -583,7 +585,8 @@ export class EmployeeService {
               id: c.id,
               employeeSalaryId: c.employeeSalaryId,
               type: c.componentType,
-              amount: c.amount
+              amount: c.amount,
+              isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true)
             }))
           }))
         );
@@ -823,7 +826,8 @@ export class EmployeeService {
   private mapEmployeeDetailsResponse(payload: EmployeeDetailsResponse): EmployeeProfileModel {
     const salaryComponents = (payload.salaryComponents ?? []).map(c => ({
       type: c.componentName,
-      amount: c.amount
+      amount: c.amount,
+      isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true)
     }));
     
     

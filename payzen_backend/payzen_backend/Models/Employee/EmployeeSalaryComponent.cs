@@ -8,7 +8,7 @@ namespace payzen_backend.Models.Employee
         public int Id { get; set; }
         public int EmployeeSalaryId { get; set; }
         public required string ComponentType { get; set; } // Prime, Indemnit�, D�duction, Bonus, etc.
-        public required bool Istaxable { get; set; }
+        public required bool IsTaxable { get; set; }
         public required bool IsSocial { get; set; }
         public required bool IsCIMR { get; set; }
         public decimal Amount { get; set; }

@@ -26,10 +26,6 @@
 
   <!-- Navigation Menu -->
   <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-2">
-    <div *ngIf="!isCollapsed()" class="px-3 py-2 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-      Menu Principal
-    </div>
-
     <a
       *ngFor="let item of menuItems"
       [routerLink]="item.routerLink"
@@ -44,11 +40,7 @@
   </nav>
 
   <!-- Active Menu Item Indicator -->
-  <style>
-    a.active {
-      @apply bg-primary-50 text-primary-500 border-l-4 border-primary-500 pl-3;
-    }
-  </style>
+
 
   <!-- User Profile Section -->
   <div class="border-t border-surface-200 p-4">

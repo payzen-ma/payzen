@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Company
+namespace payzen_backend.Models.Company
 {
     /// <summary>
     /// Calendrier de travail par entreprise (jours et horaires)

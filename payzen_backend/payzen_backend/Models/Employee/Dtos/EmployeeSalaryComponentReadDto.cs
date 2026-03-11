@@ -6,6 +6,7 @@ namespace payzen_backend.Models.Employee.Dtos
         public int EmployeeSalaryId { get; set; }
         public string ComponentType { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public bool IsTaxable { get; set; }
         public DateTime EffectiveDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime CreatedAt { get; set; }

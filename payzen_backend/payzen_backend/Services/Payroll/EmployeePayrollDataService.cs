@@ -79,11 +79,11 @@ namespace payzen_backend.Services.Payroll
             .OrderByDescending(spa => spa.EffectiveDate)
             .FirstOrDefaultAsync();
         
-        // 📊 SALARY COMPONENTS (ancien système)
+        // 📊id SALARY COMPONENTS (ancien système)
         if (salary?.Components != null && salary.Components.Any())
         {
-            var compImposables = salary.Components.Where(c => c.Istaxable).ToList();
-            var compNonImposables = salary.Components.Where(c => !c.Istaxable).ToList();
+            var compImposables = salary.Components.Where(c => c.IsTaxable).ToList();
+            var compNonImposables = salary.Components.Where(c => !c.IsTaxable).ToList();
         }
         
         // 📦 PACKAGE ITEMS (nouveau système)
@@ -141,7 +141,7 @@ namespace payzen_backend.Services.Payroll
         {
             ComponentType = c.ComponentType,
             Amount = c.Amount,
-            Istaxable = c.Istaxable,
+            IsTaxable = c.IsTaxable,
             IsSocial = c.IsSocial,
             IsCIMR = c.IsCIMR
         }).ToList() ?? new();

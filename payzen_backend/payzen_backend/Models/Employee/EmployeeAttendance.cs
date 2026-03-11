@@ -1,4 +1,4 @@
-ï»¿namespace payzen_backend.Models.Employee
+namespace payzen_backend.Models.Employee
 {
     public class EmployeeAttendance
     {
@@ -11,13 +11,13 @@
         public TimeOnly? CheckIn { get; set; }
         public TimeOnly? CheckOut { get; set; }
 
-        // Pause appliquÃ©e (depuis CompanyPolicyVersion)
+        // Pause appliquée (depuis CompanyPolicyVersion)
         public int BreakMinutesApplied { get; set; }
 
         public AttendanceStatus Status { get; set; }
         public AttendanceSource Source { get; set; }
 
-        // CalculÃ© automatiquement
+        // Calculé automatiquement
         public decimal WorkedHours { get; set; }
 
         // Audit

@@ -210,7 +210,7 @@ namespace payzen_backend.Controllers.Employees
                 {
                     ComponentType = i.Label,
                     Amount = i.DefaultValue,
-                    Istaxable = i.IsTaxable,
+                    IsTaxable = i.IsTaxable,
                     IsSocial = i.IsSocial,
                     IsCIMR = i.IsCIMR,
                     EffectiveDate = dto.EffectiveDate,

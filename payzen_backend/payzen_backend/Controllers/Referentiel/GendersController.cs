@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -23,19 +23,19 @@ namespace payzen_backend.Models.Referentiel.Dtos
     public class GenderCreateDto
     {
         [Required(ErrorMessage = "Le code est requis")]
-        [StringLength(50, ErrorMessage = "Le code ne peut pas dÃ©passer 50 caractÃ¨res")]
+        [StringLength(50, ErrorMessage = "Le code ne peut pas dépasser 50 caractères")]
         public required string Code { get; set; }
 
-        [Required(ErrorMessage = "Le libellÃ© franÃ§ais est requis")]
-        [StringLength(100, ErrorMessage = "Le libellÃ© FR ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [Required(ErrorMessage = "Le libellé français est requis")]
+        [StringLength(100, ErrorMessage = "Le libellé FR ne peut pas dépasser 100 caractères")]
         public required string NameFr { get; set; }
 
-        [Required(ErrorMessage = "Le libellÃ© arabe est requis")]
-        [StringLength(100, ErrorMessage = "Le libellÃ© AR ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [Required(ErrorMessage = "Le libellé arabe est requis")]
+        [StringLength(100, ErrorMessage = "Le libellé AR ne peut pas dépasser 100 caractères")]
         public required string NameAr { get; set; }
 
-        [Required(ErrorMessage = "Le libellÃ© anglais est requis")]
-        [StringLength(100, ErrorMessage = "Le libellÃ© EN ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [Required(ErrorMessage = "Le libellé anglais est requis")]
+        [StringLength(100, ErrorMessage = "Le libellé EN ne peut pas dépasser 100 caractères")]
         public required string NameEn { get; set; }
 
         public bool? IsActive { get; set; } = true;
@@ -43,16 +43,16 @@ namespace payzen_backend.Models.Referentiel.Dtos
 
     public class GenderUpdateDto
     {
-        [StringLength(50, ErrorMessage = "Le code ne peut pas dÃ©passer 50 caractÃ¨res")]
+        [StringLength(50, ErrorMessage = "Le code ne peut pas dépasser 50 caractères")]
         public string? Code { get; set; }
 
-        [StringLength(100, ErrorMessage = "Le libellÃ© FR ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [StringLength(100, ErrorMessage = "Le libellé FR ne peut pas dépasser 100 caractères")]
         public string? NameFr { get; set; }
 
-        [StringLength(100, ErrorMessage = "Le libellÃ© AR ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [StringLength(100, ErrorMessage = "Le libellé AR ne peut pas dépasser 100 caractères")]
         public string? NameAr { get; set; }
 
-        [StringLength(100, ErrorMessage = "Le libellÃ© EN ne peut pas dÃ©passer 100 caractÃ¨res")]
+        [StringLength(100, ErrorMessage = "Le libellé EN ne peut pas dépasser 100 caractères")]
         public string? NameEn { get; set; }
 
         public bool? IsActive { get; set; }
@@ -74,7 +74,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re tous les genres actifs (par dÃ©faut)
+        /// Récupère tous les genres actifs (par défaut)
         /// GET /api/genders
         /// </summary>
         [HttpGet]
@@ -105,7 +105,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re un genre par id
+        /// Récupère un genre par id
         /// </summary>
         [HttpGet("{id}")]
         //[HasPermission(READ_GENDERS)]
@@ -128,13 +128,13 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync();
 
             if (gender == null)
-                return NotFound(new { Message = "Genre non trouvÃ©" });
+                return NotFound(new { Message = "Genre non trouvé" });
 
             return Ok(gender);
         }
 
         /// <summary>
-        /// CrÃ©e un genre
+        /// Crée un genre
         /// </summary>
         [HttpPost]
         //[HasPermission(CREATE_GENDERS)]
@@ -151,7 +151,7 @@ namespace payzen_backend.Controllers.Referentiel
                 .AnyAsync(g => g.Code.ToLower() == code.ToLower());
 
             if (exists)
-                return Conflict(new { Message = "Un genre avec ce code existe dÃ©jÃ " });
+                return Conflict(new { Message = "Un genre avec ce code existe déjà" });
 
             var userId = User.GetUserId();
 
@@ -184,7 +184,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// Met Ã  jour un genre
+        /// Met à jour un genre
         /// </summary>
         [HttpPut("{id}")]
         //[HasPermission(UPDATE_GENDERS)]
@@ -196,7 +196,7 @@ namespace payzen_backend.Controllers.Referentiel
 
             var gender = await _db.Genders.FirstOrDefaultAsync(g => g.Id == id);
             if (gender == null)
-                return NotFound(new { Message = "Genre non trouvÃ©" });
+                return NotFound(new { Message = "Genre non trouvé" });
 
             // Code uniqueness check
             if (!string.IsNullOrWhiteSpace(dto.Code) && dto.Code.Trim() != gender.Code)
@@ -204,7 +204,7 @@ namespace payzen_backend.Controllers.Referentiel
                 var newCode = dto.Code.Trim();
                 var exists = await _db.Genders.AnyAsync(g => g.Code.ToLower() == newCode.ToLower() && g.Id != id);
                 if (exists)
-                    return Conflict(new { Message = "Un genre avec ce code existe dÃ©jÃ " });
+                    return Conflict(new { Message = "Un genre avec ce code existe déjà" });
 
                 gender.Code = newCode;
             }
@@ -242,7 +242,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// DÃ©sactive (soft delete) un genre
+        /// Désactive (soft delete) un genre
         /// </summary>
         [HttpDelete("{id}")]
         //[HasPermission(DELETE_GENDERS)]
@@ -250,12 +250,12 @@ namespace payzen_backend.Controllers.Referentiel
         {
             var gender = await _db.Genders.FirstOrDefaultAsync(g => g.Id == id);
             if (gender == null)
-                return NotFound(new { Message = "Genre non trouvÃ©" });
+                return NotFound(new { Message = "Genre non trouvé" });
 
-            // VÃ©rifier utilisation par des employÃ©s actifs
+            // Vérifier utilisation par des employés actifs
             var used = await _db.Employees.AnyAsync(e => e.GenderId == id && e.DeletedAt == null);
             if (used)
-                return BadRequest(new { Message = "Impossible de supprimer ce genre car il est utilisÃ© par des employÃ©s" });
+                return BadRequest(new { Message = "Impossible de supprimer ce genre car il est utilisé par des employés" });
 
             gender.IsActive = false;
             gender.ModifiedAt = DateTimeOffset.UtcNow;

@@ -34,15 +34,15 @@ namespace payzen_backend.Services.Llm
             _logger.LogInformation($"📋 SalaryComponents : {payrollData.SalaryComponents?.Count ?? 0}");
             if (payrollData.SalaryComponents != null && payrollData.SalaryComponents.Any())
             {
-                var imposables = payrollData.SalaryComponents.Where(c => c.Istaxable).ToList();
-                var nonImposables = payrollData.SalaryComponents.Where(c => !c.Istaxable).ToList();
+                var imposables = payrollData.SalaryComponents.Where(c => c.IsTaxable).ToList();
+                var nonImposables = payrollData.SalaryComponents.Where(c => !c.IsTaxable).ToList();
                 
                 _logger.LogInformation("");
                 _logger.LogInformation($"✅ IMPOSABLES : {imposables.Count} items");
                 foreach (var comp in imposables)
                 {
                     _logger.LogInformation($"   • {comp.ComponentType,-30} : {comp.Amount,10:N2} MAD");
-                    _logger.LogInformation($"     └─ Istaxable={comp.Istaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
+                    _logger.LogInformation($"     └─ IsTaxable={comp.IsTaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
                 }
                 
                 _logger.LogInformation("");
@@ -50,7 +50,7 @@ namespace payzen_backend.Services.Llm
                 foreach (var comp in nonImposables)
                 {
                     _logger.LogInformation($"   • {comp.ComponentType,-30} : {comp.Amount,10:N2} MAD");
-                    _logger.LogInformation($"     └─ Istaxable={comp.Istaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
+                    _logger.LogInformation($"     └─ IsTaxable={comp.IsTaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
                 }
             }
             _logger.LogInformation("📊 ═══════════════════════════════════════════════════════════════");
@@ -59,7 +59,7 @@ namespace payzen_backend.Services.Llm
             var salaireBrut = payrollData.BaseSalary;
             
             // Ajouter UNIQUEMENT les primes imposables depuis SalaryComponents (PackageItems ignorés)
-            var salaryComponentsImposables = payrollData.SalaryComponents?.Where(c => c.Istaxable).ToList() ?? new();
+            var salaryComponentsImposables = payrollData.SalaryComponents?.Where(c => c.IsTaxable).ToList() ?? new();
             var totalPrimesImposables = salaryComponentsImposables.Sum(c => c.Amount);
             salaireBrut += totalPrimesImposables;
             
@@ -104,7 +104,7 @@ namespace payzen_backend.Services.Llm
             var primesImposablesList = new List<object>();
             var indemnitesList = new List<object>();
             
-            var salaryComponentsNonImposables = payrollData.SalaryComponents?.Where(c => !c.Istaxable).ToList() ?? new();
+            var salaryComponentsNonImposables = payrollData.SalaryComponents?.Where(c => !c.IsTaxable).ToList() ?? new();
             
             // Ajouter les SalaryComponents imposables
             foreach (var comp in salaryComponentsImposables)

@@ -36,17 +36,32 @@
     "holidays": "Holidays",
     "salaryPackages": "Salary Packages",
     "myPayslip": "My Payslip",
+    "payslips": "Payslips",
     "payrollExports": "Payroll Exports",
     "simulation": "Payroll Simulator",
+    "compliance": "Compliance & Alerts",
+    "hrIndicators": "HR Indicators",
+    "socialDeclarations": "Social Declarations",
+    "workTime": "Work Time",
+    "performance": "Performance",
+    "expenseReports": "Expense Reports",
+    "aiCopilot": "AI Copilot",
+    "payLang": "PayLang",
+    "legalRepository": "Legal Repository",
+    "hrProcedures": "HR Procedures",
+    "import": "Import",
+    "history": "History",
     "groups": {
+      "overview": "Overview",
+      "payroll": "Payroll",
+      "employees": "Employees",
+      "intelligence": "Intelligence",
+      "administration": "Administration",
       "dashboard": "Dashboard",
       "company": "Company",
-      "employees": "Employee Management",
       "absences": "Absences & Leave",
-      "payroll": "Payroll & Payslips",
       "salaryPackages": "Compensation",
-      "reports": "Reports & Analytics",
-      "administration": "Administration"
+      "reports": "Reports & Analytics"
     }
   },
   "payslip": {
@@ -115,6 +130,8 @@
       "ni": "Non-taxable"
     },
     "labels": {
+      "salaireBrut": "Gross salary",
+      "totalIndemnites": "Allowances",
       "brutImposable": "Taxable gross",
       "totalRetenues": "Total deductions",
       "coutEmployeur": "Employer cost",
@@ -1332,7 +1349,10 @@
         "noPackageAssigned": "No salary package assigned",
         "noPackageAssignedDescription": "Assign a package from the Salary Packages module",
         "assignPackage": "Assign package",
-        "assignPackageTooltip": "Go to Salary Packages module to assign"
+        "assignPackageTooltip": "Go to Salary Packages module to assign",
+        "taxable": "Taxable",
+        "taxableStatus": "Taxable",
+        "nonTaxableStatus": "Non-taxable"
       },
       "legal": {
         "cnss": "CNSS",
@@ -1732,6 +1752,7 @@
       "noComponentFound": "No component found",
       "noComponents": "No salary component added",
       "addComponent": "Add component",
+      "taxableLabel": "Taxable",
       "componentsCount": "Components",
       "categories": {
         "cadres": "Executives",

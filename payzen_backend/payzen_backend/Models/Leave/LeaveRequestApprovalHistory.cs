@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using payzen_backend.Models.Common.LeaveStatus;
 
 namespace payzen_backend.Models.Leave

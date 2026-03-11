@@ -1,4 +1,4 @@
-ï»¿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
 using payzen_backend.Models.Common.LeaveStatus;
 using payzen_backend.Models.Leave;
@@ -17,18 +17,18 @@ namespace payzen_backend.Services.Company.Defaults.Seeders
 
         public async Task SeedAsync(int companyId, int userId)
         {
-            // RÃ©cupÃ©rer les types de congÃ© par dÃ©faut depuis le catalogue
+            // Récupérer les types de congé par défaut depuis le catalogue
             var defaultLeaves = DefaultLeaveSetup.GetDefaultLeaves();
 
             foreach (var leaveData in defaultLeaves)
             {
-                // VÃ©rifier si le type de congÃ© existe dÃ©jÃ  (par code)
+                // Vérifier si le type de congé existe déjà (par code)
                 var exists = await _db.LeaveTypes
                     .AnyAsync(lt => lt.CompanyId == companyId && lt.LeaveCode == leaveData.Code && lt.DeletedAt == null);
 
                 if (exists) continue;
 
-                // CrÃ©er le type de congÃ©
+                // Créer le type de congé
                 var leaveType = new LeaveType
                 {
                     CompanyId = companyId,
@@ -46,7 +46,7 @@ namespace payzen_backend.Services.Company.Defaults.Seeders
                 _db.LeaveTypes.Add(leaveType);
                 await _db.SaveChangesAsync(); // Pour obtenir l'ID
 
-                // CrÃ©er la politique par dÃ©faut si fournie
+                // Créer la politique par défaut si fournie
                 if (leaveData.DefaultPolicy != null)
                 {
                     var policy = new LeaveTypePolicy
@@ -72,7 +72,7 @@ namespace payzen_backend.Services.Company.Defaults.Seeders
                     _db.LeaveTypePolicies.Add(policy);
                 }
 
-                // CrÃ©er les rÃ¨gles lÃ©gales si fournies
+                // Créer les règles légales si fournies
                 if (leaveData.LegalRules != null && leaveData.LegalRules.Any())
                 {
                     foreach (var ruleData in leaveData.LegalRules)

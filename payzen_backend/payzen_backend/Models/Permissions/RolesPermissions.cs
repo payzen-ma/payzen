@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Permissions
+namespace payzen_backend.Models.Permissions
 {
     public class RolesPermissions
     {

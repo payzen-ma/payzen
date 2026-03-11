@@ -176,39 +176,7 @@
             </p-select>
           </div>
 
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'leave.type' | translate }}:</label>
-            <p-select
-              [options]="availableLeaveTypes()"
-              optionLabel="LeaveName"
-              optionValue="Id"
-              [placeholder]="'leave.allTypes' | translate"
-              [showClear]="true"
-              (onChange)="onLeaveTypeFilterChange($event.value)"
-              class="w-48">
-            </p-select>
-          </div>
-
-          <div class="flex items-center gap-2" *ngIf="activeTab() === 'all'">
-            <label class="text-sm font-medium text-gray-700">{{ 'common.status' | translate }}:</label>
-            <p-select
-              [options]="statusOptions"
-              optionLabel="label"
-              optionValue="value"
-              [placeholder]="'common.allStatuses' | translate"
-              [showClear]="true"
-              (onChange)="onStatusFilterChange($event.value)"
-              class="w-48">
-            </p-select>
-          </div>
-
-          <p-button
-            [label]="'common.reset' | translate"
-            icon="pi pi-refresh"
-            [outlined]="true"
-            size="small"
-            (onClick)="clearFilters()"
-          />
+ 
         </div>
 
         <!-- Leave Requests Table -->

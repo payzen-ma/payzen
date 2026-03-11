@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using payzen_backend.Models.Common.LeaveStatus;
 
 namespace payzen_backend.Models.Leave
@@ -26,7 +26,7 @@ namespace payzen_backend.Models.Leave
 
         public bool IsActive {get; set;} = true;
 
-        // Null si Global (LÃ©gal), sinon CompanyId propriÃ©taire (Scope = Company)
+        // Null si Global (Légal), sinon CompanyId propriétaire (Scope = Company)
         public int? CompanyId { get; set; }
 
         // Audit fields

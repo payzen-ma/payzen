@@ -197,7 +197,8 @@ namespace payzen_backend.Controllers.Employee
                 .Select(c => new SalaryComponentDto
                 {
                     ComponentName = c.ComponentType,
-                    Amount = c.Amount
+                    Amount = c.Amount,
+                    IsTaxable = c.IsTaxable == true // Explicit boolean conversion
                 })
                 .ToList() ?? new List<SalaryComponentDto>();
 
@@ -921,8 +922,11 @@ namespace payzen_backend.Controllers.Employee
             if (category.CompanyId != companyId)
                 return BadRequest(new { Message = "La catégorie ne correspond à la société spécifiée" });
 
-                // Créer l'employé avec le CompanyId déterminé
-                var employee = new payzen_backend.Models.Employee.Employee
+            // ===== GÉNÉRATION DU MATRICULE UNIQUE =====
+            int? newMatricule = await GenerateUniqueMatricule(companyId);
+
+            // Créer l'employé avec le CompanyId déterminé et le Matricule généré
+            var employee = new payzen_backend.Models.Employee.Employee
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -940,6 +944,7 @@ namespace payzen_backend.Controllers.Employee
                 MaritalStatusId = dto.MaritalStatusId,
                 CnssNumber = dto.CnssNumber,
                 CimrNumber = dto.CimrNumber,
+                Matricule = newMatricule,
                 CreatedAt = DateTimeOffset.UtcNow,
                 CategoryId = dto.CategoryId,
                 CreatedBy = userId
@@ -953,7 +958,7 @@ namespace payzen_backend.Controllers.Employee
                 employee.Id,
                 EmployeeEventLogService.EventNames.EmployeeCreated,
                 null,
-                $"{employee.FirstName} {employee.LastName}",
+                $"{employee.FirstName} {employee.LastName} (Matricule: {employee.Matricule})",
                 userId);
 
             // ===== CRÉER LE CONTRAT DE L'EMPLOYÉ (si JobPosition et ContractType sont fournis) =====
@@ -1127,6 +1132,7 @@ namespace payzen_backend.Controllers.Employee
             var readDto = new EmployeeReadDto
             {
                 Id = createdEmployee.Id,
+                Matricule = createdEmployee.Matricule,
                 FirstName = createdEmployee.FirstName,
                 LastName = createdEmployee.LastName,
                 CinNumber = createdEmployee.CinNumber,
@@ -1186,7 +1192,6 @@ namespace payzen_backend.Controllers.Employee
 
             return CreatedAtAction(nameof(GetById), new { id = employee.Id }, readDto);
         }
-        
         /// <summary>
         /// Met à jour un employé
         /// </summary>
@@ -1537,9 +1542,9 @@ namespace payzen_backend.Controllers.Employee
                 var activeContractForUpdate = await _db.EmployeeContracts
                     .Include(c => c.JobPosition)
                     .Include(c => c.ContractType)
-                    .FirstOrDefaultAsync(c => 
-                        c.EmployeeId == id && 
-                        c.DeletedAt == null && 
+                    .FirstOrDefaultAsync(c =>
+                        c.EmployeeId == id &&
+                        c.DeletedAt == null &&
                         c.EndDate == null);
 
                 bool contractChanged = false;
@@ -1665,9 +1670,9 @@ namespace payzen_backend.Controllers.Employee
             {
                 // Récupérer le contrat actif (nécessaire pour le salaire)
                 var activeContractForSalary = await _db.EmployeeContracts  // ← RENOMMÉ
-                    .FirstOrDefaultAsync(c => 
-                        c.EmployeeId == id && 
-                        c.DeletedAt == null && 
+                    .FirstOrDefaultAsync(c =>
+                        c.EmployeeId == id &&
+                        c.DeletedAt == null &&
                         c.EndDate == null);
 
                 if (activeContractForSalary == null)  // ← RENOMMÉ
@@ -1675,9 +1680,9 @@ namespace payzen_backend.Controllers.Employee
 
                 // Récupérer le salaire actif
                 var activeSalary = await _db.EmployeeSalaries
-                    .FirstOrDefaultAsync(s => 
-                        s.EmployeeId == id && 
-                        s.DeletedAt == null && 
+                    .FirstOrDefaultAsync(s =>
+                        s.EmployeeId == id &&
+                        s.DeletedAt == null &&
                         s.EndDate == null);
 
                 // Vérifier si le salaire a changé
@@ -1727,8 +1732,8 @@ namespace payzen_backend.Controllers.Employee
                 // Récupérer l'adresse active
                 var activeAddress = await _db.EmployeeAddresses
                     .Include(a => a.City)
-                    .FirstOrDefaultAsync(a => 
-                        a.EmployeeId == id && 
+                    .FirstOrDefaultAsync(a =>
+                        a.EmployeeId == id &&
                         a.DeletedAt == null);
 
                 bool addressChanged = false;
@@ -1789,8 +1794,8 @@ namespace payzen_backend.Controllers.Employee
                     // Logger le changement d'adresse
                     await _eventLogService.LogSimpleEventAsync(
                         employeeId: id,
-                        eventName: activeAddress == null 
-                            ? EmployeeEventLogService.EventNames.AddressCreated 
+                        eventName: activeAddress == null
+                            ? EmployeeEventLogService.EventNames.AddressCreated
                             : EmployeeEventLogService.EventNames.AddressUpdated,
                         oldValue: oldAddressValue,
                         newValue: $"{dto.AddressLine1}, {newCity.CityName}",
@@ -2390,7 +2395,7 @@ namespace payzen_backend.Controllers.Employee
                             newRate != employee.CimrEmployeeRate)
                         {
                             Console.WriteLine($"  → Mise à jour: {employee.CimrEmployeeRate?.ToString("N2") ?? "null"} → {newRate:N2}");
-                            
+
                             employee.CimrEmployeeRate = newRate;
                             hasChanges = true;
                             Console.WriteLine("  ✓ CimrEmployeeRate modifié");
@@ -2407,7 +2412,7 @@ namespace payzen_backend.Controllers.Employee
                             newCompRate != employee.CimrCompanyRate)
                         {
                             Console.WriteLine($"  → Mise à jour: {employee.CimrCompanyRate?.ToString("N2") ?? "null"} → {newCompRate:N2}");
-                            
+
                             employee.CimrCompanyRate = newCompRate;
                             hasChanges = true;
                             Console.WriteLine("  ✓ CimrCompanyRate modifié");
@@ -2420,11 +2425,11 @@ namespace payzen_backend.Controllers.Employee
 
                     case "hasprivateinsurance":
                         Console.WriteLine($"  HasPrivateInsurance actuel: {employee.HasPrivateInsurance}");
-                        if(normalizedValue != null && bool.TryParse(strValue, out var newBool) &&
+                        if (normalizedValue != null && bool.TryParse(strValue, out var newBool) &&
                             newBool != employee.HasPrivateInsurance)
                         {
                             Console.WriteLine($"  → Mise à jour: {employee.HasPrivateInsurance} → {newBool}");
-                            
+
                             employee.HasPrivateInsurance = newBool;
                             hasChanges = true;
                             Console.WriteLine("  ✓ HasPrivateInsurance modifié");
@@ -2435,13 +2440,13 @@ namespace payzen_backend.Controllers.Employee
                         }
                         break;
 
-                    case "disableamo" :
+                    case "disableamo":
                         Console.WriteLine($"  DisableAmo actuel: {employee.DisableAmo}");
-                        if(normalizedValue != null && bool.TryParse(strValue, out var newDisableAmo) &&
+                        if (normalizedValue != null && bool.TryParse(strValue, out var newDisableAmo) &&
                             newDisableAmo != employee.DisableAmo)
                         {
                             Console.WriteLine($"  → Mise à jour: {employee.DisableAmo} → {newDisableAmo}");
-                            
+
                             employee.DisableAmo = newDisableAmo;
                             hasChanges = true;
                             Console.WriteLine("  ✓ DisableAmo modifié");
@@ -2472,7 +2477,7 @@ namespace payzen_backend.Controllers.Employee
                             newInsRate != employee.PrivateInsuranceRate)
                         {
                             Console.WriteLine($"  → Mise à jour: {employee.PrivateInsuranceRate?.ToString("N2") ?? "null"} → {newInsRate:N2}");
-                            
+
                             employee.PrivateInsuranceRate = newInsRate;
                             hasChanges = true;
                             Console.WriteLine("  ✓ PrivateInsuranceRate modifié");
@@ -2807,7 +2812,7 @@ namespace payzen_backend.Controllers.Employee
                         hasChanges = true;
                         Console.WriteLine("  ✓ MaritalStatus modifié");
                         break;
-                    
+
                     case "contracttype":
                         Console.WriteLine($"  ContractType actuel (contrat actif): {employee.Contracts?.FirstOrDefault(c => c.EndDate == null && c.DeletedAt == null)?.ContractType?.ContractTypeName ?? "null"}");
 
@@ -3696,6 +3701,21 @@ namespace payzen_backend.Controllers.Employee
                 FullName = $"{employee.FirstName} {employee.LastName}",
                 DepartementName = employee.Departement?.DepartementName
             });
+        }
+        /// <summary>
+        /// Génère un matricule unique pour un employé dans une société donnée
+        /// </summary>
+        /// <param name="companyId">ID de la société</param>
+        /// <returns>Matricule unique</returns>
+        private async Task<int?> GenerateUniqueMatricule(int companyId)
+        {
+            // Récupérer le matricule maximum actuel pour la société
+            var maxMatricule = await _db.Employees
+                .Where(e => e.CompanyId == companyId && e.DeletedAt == null && e.Matricule.HasValue)
+                .MaxAsync(e => (int?)e.Matricule);
+
+            // Si aucun matricule n'existe, commencer à 1, sinon incrémenter
+            return (maxMatricule ?? 0) + 1;
         }
     }
 }

@@ -24,7 +24,7 @@ export interface QuickSimulationRequest {
  */
 export interface SimulationResponse {
   success: boolean;
-  result?: string;
+  result?: any;  // Changed from string to any to handle deserialized JSON
   errorMessage?: string;
   timestamp: string;
 }
@@ -82,9 +82,9 @@ export class SalarySimulationService {
   }
 
   /**
-   * Simule avec streaming (Server-Sent Events)
+   * Simule avec HTTP standard (anciennement streaming)
    * @param instruction Instruction de l'utilisateur
-   * @param onChunk Callback appelé pour chaque chunk reçu
+   * @param onChunk Callback appelé pour chaque chunk reçu (simulé pour compatibilité)
    * @param onComplete Callback appelé à la fin
    * @param onError Callback appelé en cas d'erreur
    */
@@ -93,80 +93,42 @@ export class SalarySimulationService {
     onChunk: (chunk: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
-  ): EventSource {
-    const url = `${this.API_URL}/simulate-stream`;
+  ): void {
+    console.log('🚀 [simulateStream] Début de la requête avec instruction:', instruction);
     
-    // Construire les headers avec authentification
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
+    const request: QuickSimulationRequest = { instruction };
     
-    const token = this.authService.getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    // Option simple : utiliser fetch avec stream
-    fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ instruction })
-    }).then(async (response) => {
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        onError('Impossible de lire le stream');
-        return;
-      }
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          
-          if (done) {
-            onComplete();
-            break;
-          }
-
-          // Décoder et traiter les données SSE
-          const text = decoder.decode(value, { stream: true });
-          const lines = text.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.substring(6);
-              try {
-                const parsed = JSON.parse(data);
-                
-                if (parsed.error) {
-                  onError(parsed.error);
-                  reader.cancel();
-                  return;
-                }
-                
-                if (parsed.done) {
-                  onComplete();
-                  return;
-                }
-                
-                if (parsed.chunk) {
-                  onChunk(parsed.chunk);
-                }
-              } catch (e) {
-                // Ignorer les erreurs de parsing
-              }
-            }
-          }
+    this.http.post<SimulationResponse>(
+      `${this.API_URL}/simulate-stream`,
+      request
+    ).subscribe({
+      next: (response) => {
+        console.log('📥 [simulateStream] Réponse brute reçue:', response);
+        console.log('📊 [simulateStream] Type de response.result:', typeof response.result);
+        console.log('📊 [simulateStream] Contenu de response.result:', response.result);
+        
+        if (!response.success) {
+          console.error('❌ [simulateStream] Erreur dans la réponse:', response.errorMessage);
+          onError(response.errorMessage || 'Erreur inconnue');
+          return;
         }
-      } catch (error) {
-        onError('Erreur lors de la lecture du stream');
+        
+        // Le result est déjà un objet désérialisé (pas une string)
+        const jsonResult = response.result;
+        console.log('📋 [simulateStream] JSON résultat:', jsonResult);
+        
+        // Convertir en string pour le callback onChunk (compatibilité)
+        const jsonString = JSON.stringify(jsonResult, null, 2);
+        console.log('📝 [simulateStream] JSON string à envoyer:', jsonString);
+        
+        // Simuler le streaming en envoyant le texte complet d'un coup
+        onChunk(jsonString);
+        onComplete();
+      },
+      error: (error) => {
+        console.error('❌ [simulateStream] Erreur HTTP:', error);
+        onError(error.error?.errorMessage || error.message || 'Erreur lors de la simulation');
       }
-    }).catch((error) => {
-      onError(`Erreur réseau: ${error.message}`);
     });
-
-    // Retourner un objet vide pour la compatibilité
-    return null as any;
   }
 }

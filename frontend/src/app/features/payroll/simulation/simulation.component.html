@@ -142,21 +142,29 @@
                     <div class="comp-footer">
                       <div class="comp-totals">
                         <div class="comp-total-row">
+                          <span>{{ 'simulation.labels.salaireBrut' | translate }}</span>
+                          <span class="font-mono font-semibold">{{ formatAmount(comp.salaireBrut) }}</span>
+                        </div>
+                        <div class="comp-total-row">
+                          <span>{{ 'simulation.labels.totalIndemnites' | translate }}</span>
+                          <span class="font-mono font-semibold">{{ formatAmount(comp.totalIndemnites) }}</span>
+                        </div>
+                        <div class="comp-total-row">
                           <span>{{ 'simulation.labels.brutImposable' | translate }}</span>
-                          <span class="font-mono font-semibold">{{ formatAmount(comp.brut_imposable) }}</span>
+                          <span class="font-mono font-semibold">{{ formatAmount(comp.brutImposable) }}</span>
                         </div>
                         <div class="comp-total-row" style="color: var(--danger);">
                           <span>{{ 'simulation.labels.totalRetenues' | translate }}</span>
-                          <span class="font-mono font-semibold">− {{ formatAmount(comp.total_retenues) }}</span>
+                          <span class="font-mono font-semibold">− {{ formatAmount(comp.totalRetenues) }}</span>
                         </div>
                         <div class="comp-total-row">
                           <span>{{ 'simulation.labels.coutEmployeur' | translate }}</span>
-                          <span class="font-mono font-semibold">{{ formatAmount(comp.cout_employeur) }}</span>
+                          <span class="font-mono font-semibold">{{ formatAmount(comp.coutEmployeur) }}</span>
                         </div>
                       </div>
                       <div class="comp-net">
                         <span class="comp-net-label">{{ 'simulation.labels.netAPayer' | translate }}</span>
-                        <span class="comp-net-value">{{ formatAmount(comp.salaire_net) }}</span>
+                        <span class="comp-net-value">{{ formatAmount(comp.salaireNet) }}</span>
                       </div>
 
                       <!-- Avantages / Inconvénients -->

@@ -1,9 +1,9 @@
-ï»¿using payzen_backend.Models.Referentiel;
+using payzen_backend.Models.Referentiel;
 
 namespace payzen_backend.Models.Company
 {
     /// <summary>
-    /// Gestion des jours fÃ©riÃ©s par entreprise et pays
+    /// Gestion des jours fériés par entreprise et pays
     /// </summary>
     public class Holiday
     {
@@ -21,13 +21,13 @@ namespace payzen_backend.Models.Company
         public int? CompanyId { get; set; } // NULL = Holiday global
         public int CountryId { get; set; }
         
-        // CatÃ©gorisation
+        // Catégorisation
         public HolidayScope Scope { get; set; } // Global, Company
         public string HolidayType { get; set; } // National, Religieux, Company...
-        public bool IsMandatory { get; set; } = true; // LÃ©gal vs optionnel
+        public bool IsMandatory { get; set; } = true; // Légal vs optionnel
         public bool IsPaid { get; set; } = true;
 
-        // RÃ©currence
+        // Récurrence
         public bool IsRecurring { get; set; } = false;
         public string? RecurrenceRule { get; set; }
         public int? Year { get; set; }
@@ -55,6 +55,6 @@ namespace payzen_backend.Models.Company
     public enum HolidayScope
     {
         Global = 0,   // Au niveau pays (tous les companies du pays)
-        Company = 1   // SpÃ©cifique Ã  une entreprise
+        Company = 1   // Spécifique à une entreprise
     }
 }

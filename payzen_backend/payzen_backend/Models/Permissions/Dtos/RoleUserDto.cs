@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace payzen_backend.Models.Permissions.Dtos
@@ -25,7 +25,7 @@ namespace payzen_backend.Models.Permissions.Dtos
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
 
-        // Optionnel : date d'assignation du rôle
+        // Optionnel : date d'assignation du r�le
         public DateTimeOffset? AssignedAt { get; set; }
     }
 }

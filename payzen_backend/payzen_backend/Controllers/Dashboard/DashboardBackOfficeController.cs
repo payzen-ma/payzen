@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -23,13 +23,13 @@ namespace payzen_backend.Controllers.DashboardBackOffice
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re le rÃ©sumÃ© du dashboard (totaux, distribution, derniÃ¨res sociÃ©tÃ©s)
+        /// Récupère le résumé du dashboard (totaux, distribution, dernières sociétés)
         /// GET /api/dashboard/summary
         /// </summary>
         [HttpGet("summary")]
         public async Task<ActionResult<DashboardSummaryDto>> GetSummary()
         {
-            // RÃ©cupÃ©rer les sociÃ©tÃ©s actives
+            // Récupérer les sociétés actives
             var companies = await _db.Companies
                 .AsNoTracking()
                 .Where(c => c.DeletedAt == null)
@@ -46,7 +46,7 @@ namespace payzen_backend.Controllers.DashboardBackOffice
 
             var totalCompanies = companies.Count;
 
-            // Regrouper les employÃ©s par companyId (uniquement employÃ©s non supprimÃ©s)
+            // Regrouper les employés par companyId (uniquement employés non supprimés)
             var empGroups = await _db.Employees
                 .AsNoTracking()
                 .Where(e => e.DeletedAt == null && e.CompanyId != null)
@@ -100,7 +100,7 @@ namespace payzen_backend.Controllers.DashboardBackOffice
                 };
             }).ToList();
 
-            // RÃ©cupÃ©rer les sociÃ©tÃ©s rÃ©centes (5 derniÃ¨res)
+            // Récupérer les sociétés récentes (5 dernières)
             var recent = companies
                 .OrderByDescending(c => c.CreatedAt)
                 .Take(5)

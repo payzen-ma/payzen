@@ -41,15 +41,15 @@ namespace payzen_backend.Services.Llm
             _logger.LogInformation($"📋 SalaryComponents : {payrollData.SalaryComponents?.Count ?? 0}");
             if (payrollData.SalaryComponents != null && payrollData.SalaryComponents.Any())
             {
-                var imposables = payrollData.SalaryComponents.Where(c => c.Istaxable).ToList();
-                var nonImposables = payrollData.SalaryComponents.Where(c => !c.Istaxable).ToList();
+                var imposables = payrollData.SalaryComponents.Where(c => c.IsTaxable).ToList();
+                var nonImposables = payrollData.SalaryComponents.Where(c => !c.IsTaxable).ToList();
                 
                 _logger.LogInformation("");
                 _logger.LogInformation($"✅ IMPOSABLES : {imposables.Count} items");
                 foreach (var comp in imposables)
                 {
                     _logger.LogInformation($"   • {comp.ComponentType,-30} : {comp.Amount,10:N2} MAD");
-                    _logger.LogInformation($"     └─ Istaxable={comp.Istaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
+                    _logger.LogInformation($"     └─ IsTaxable={comp.IsTaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
                 }
                 
                 _logger.LogInformation("");
@@ -57,7 +57,7 @@ namespace payzen_backend.Services.Llm
                 foreach (var comp in nonImposables)
                 {
                     _logger.LogInformation($"   • {comp.ComponentType,-30} : {comp.Amount,10:N2} MAD");
-                    _logger.LogInformation($"     └─ Istaxable={comp.Istaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
+                    _logger.LogInformation($"     └─ IsTaxable={comp.IsTaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
                 }
             }
             _logger.LogInformation("📊 ═══════════════════════════════════════════════════════════════");
@@ -309,8 +309,8 @@ namespace payzen_backend.Services.Llm
             
             // Extraire UNIQUEMENT les primes depuis SalaryComponents
             var salaryComponents = data.SalaryComponents?.ToList() ?? new();
-            var componentsImposables = salaryComponents.Where(c => c.Istaxable).ToList();
-            var componentsNonImposables = salaryComponents.Where(c => !c.Istaxable).ToList();
+            var componentsImposables = salaryComponents.Where(c => c.IsTaxable).ToList();
+            var componentsNonImposables = salaryComponents.Where(c => !c.IsTaxable).ToList();
             
             _logger.LogInformation($"   - SalaryComponents imposables : {componentsImposables.Count}");
             foreach (var comp in componentsImposables)

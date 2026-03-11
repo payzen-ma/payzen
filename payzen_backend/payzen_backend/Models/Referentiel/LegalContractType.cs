@@ -1,10 +1,10 @@
-﻿namespace payzen_backend.Models.Referentiel
+namespace payzen_backend.Models.Referentiel
 {
     public class LegalContractType
     {
         public int Id { get; set; }
         public required string Code { get; set; } // CDI, CDD, STAGE, FREELANCE
-        public required string Name { get; set; } // Libellé
+        public required string Name { get; set; } // Libell�
 
         // Champs d'audit
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

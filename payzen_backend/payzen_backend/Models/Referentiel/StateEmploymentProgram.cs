@@ -1,4 +1,4 @@
-ï»¿namespace payzen_backend.Models.Referentiel
+namespace payzen_backend.Models.Referentiel
 {
     public class StateEmploymentProgram
     {
@@ -6,7 +6,7 @@
         public required string Code { get; set; } // NONE, ANAPEC, IDMAJ, TAHFIZ
         public required string Name { get; set; }
 
-        // RÃ¨gles lÃ©gales
+        // Règles légales
         public bool IsIrExempt { get; set; }
         public bool IsCnssEmployeeExempt { get; set; }
         public bool IsCnssEmployerExempt { get; set; }

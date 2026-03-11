@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Services.Company.Interfaces
+namespace payzen_backend.Services.Company.Interfaces
 {
     public interface ICompanyDefaultsSeeder
     {

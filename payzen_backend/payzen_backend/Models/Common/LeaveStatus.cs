@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Common.LeaveStatus
+namespace payzen_backend.Models.Common.LeaveStatus
 {
     public enum LeaveScope
     {

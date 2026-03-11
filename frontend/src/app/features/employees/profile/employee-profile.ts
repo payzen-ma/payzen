@@ -1034,7 +1034,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   addSalaryComponent() {
     const current = this.employee().salaryComponents || [];
-    this.updateField('salaryComponents', [...current, { type: '', amount: 0 }]);
+    this.updateField('salaryComponents', [...current, { type: '', amount: 0, isTaxable: true }]);
   }
 
   removeSalaryComponent(index: number) {
@@ -1044,10 +1044,12 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.updateField('salaryComponents', updated);
   }
 
-  updateSalaryComponent(index: number, field: 'type' | 'amount', value: any) {
+  updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable', value: any) {
     const current = this.employee().salaryComponents || [];
     const updated = [...current];
-    updated[index] = { ...updated[index], [field]: value };
+    // Ensure isTaxable is always a boolean
+    const finalValue = field === 'isTaxable' ? Boolean(value) : value;
+    updated[index] = { ...updated[index], [field]: finalValue };
     this.updateField('salaryComponents', updated);
   }
 
@@ -1155,6 +1157,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
                employeeSalaryId: newActiveSalaryId,
                componentType: c.type,
                amount: c.amount,
+               isTaxable: c.isTaxable ?? true,
                effectiveDate: new Date().toISOString()
              })));
            }
@@ -1167,7 +1170,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           const modifiedComponents = currentComponents.filter(c => {
             if (!c.id) return false;
             const original = originalComponents.find(o => o.id === c.id);
-            return original && (original.type !== c.type || original.amount !== c.amount);
+            return original && (original.type !== c.type || original.amount !== c.amount || (original.isTaxable ?? true) !== (c.isTaxable ?? true));
           });
 
           const deletedComponents = originalComponents.filter(o => 
@@ -1179,6 +1182,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               employeeSalaryId: newActiveSalaryId,
               componentType: c.type,
               amount: c.amount,
+              isTaxable: c.isTaxable ?? true,
               effectiveDate: new Date().toISOString()
             })));
           }
@@ -1189,6 +1193,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               employeeSalaryId: newActiveSalaryId,
               componentType: c.type,
               amount: c.amount,
+              isTaxable: c.isTaxable ?? true,
               effectiveDate: new Date().toISOString()
             })));
           }

@@ -5,6 +5,7 @@ namespace payzen_backend.Models.Employee.Dtos
     public class EmployeeReadDto
     {
         public int Id { get; set; }
+        public int? Matricule { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string CinNumber { get; set; } = string.Empty;

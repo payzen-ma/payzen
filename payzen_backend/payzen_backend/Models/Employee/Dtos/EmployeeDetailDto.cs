@@ -3,6 +3,7 @@ namespace payzen_backend.Models.Employee.Dtos
     public class EmployeeDetailDto
     {
         public int Id { get; set; }
+        public int? Matricule { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string CinNumber { get; set; } = string.Empty;
@@ -59,5 +60,6 @@ namespace payzen_backend.Models.Employee.Dtos
     {
         public string ComponentName { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public bool IsTaxable { get; set; }
     }
 }

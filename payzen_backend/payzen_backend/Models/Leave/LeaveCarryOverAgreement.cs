@@ -1,9 +1,9 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace payzen_backend.Models.Leave
 {
-    // CongÃ© reportÃ© accordÃ© Ã  un employÃ©, selon article 240;
-    // l'employee doit donner un accord Ã©crit pour le report des jours de congÃ© non utilisÃ©s
+    // Congé reporté accordé à un employé, selon article 240;
+    // l'employee doit donner un accord écrit pour le report des jours de congé non utilisés
     public class LeaveCarryOverAgreement
     {
         public int Id { get; set; }

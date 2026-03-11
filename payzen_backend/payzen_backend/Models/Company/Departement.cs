@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Company
+namespace payzen_backend.Models.Company
 {
     public class Departement
     {

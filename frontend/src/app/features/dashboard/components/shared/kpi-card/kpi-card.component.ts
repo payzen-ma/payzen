@@ -7,9 +7,9 @@ import { KpiMetric } from '../../../state/dashboard-hr.models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ metric().label }}</p>
-      <p [class]="valueClass()" class="mt-2 text-4xl font-bold leading-none">{{ metric().value }}</p>
+    <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-wider text-gray-500">{{ metric().label }}</p>
+      <p [class]="valueClass()" class="mt-2 text-3xl font-bold leading-none">{{ metric().value }}</p>
 
       @if (metric().subLabel) {
         <p class="mt-2 text-sm text-gray-600">{{ metric().subLabel }}</p>
@@ -20,7 +20,7 @@ import { KpiMetric } from '../../../state/dashboard-hr.models';
           <i [class]="trendIconClass()" aria-hidden="true"></i>
           <span [class]="trendTextClass()" class="font-medium">{{ metric().trend?.value }}</span>
           @if (metric().trend?.context) {
-            <span class="text-gray-500">{{ metric().trend?.context }}</span>
+            <span class="text-gray-600">{{ metric().trend?.context }}</span>
           }
         </div>
       }

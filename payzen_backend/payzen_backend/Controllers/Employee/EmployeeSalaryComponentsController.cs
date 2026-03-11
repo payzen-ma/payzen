@@ -44,6 +44,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = esc.EmployeeSalaryId,
                 ComponentType = esc.ComponentType,
                 Amount = esc.Amount,
+                IsTaxable = esc.IsTaxable == true,
                 EffectiveDate = esc.EffectiveDate,
                 EndDate = esc.EndDate,
                 CreatedAt = esc.CreatedAt.DateTime
@@ -74,6 +75,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = component.EmployeeSalaryId,
                 ComponentType = component.ComponentType,
                 Amount = component.Amount,
+                IsTaxable = component.IsTaxable == true,
                 EffectiveDate = component.EffectiveDate,
                 EndDate = component.EndDate,
                 CreatedAt = component.CreatedAt.DateTime
@@ -106,6 +108,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = esc.EmployeeSalaryId,
                 ComponentType = esc.ComponentType,
                 Amount = esc.Amount,
+                IsTaxable = esc.IsTaxable == true,
                 EffectiveDate = esc.EffectiveDate,
                 EndDate = esc.EndDate,
                 CreatedAt = esc.CreatedAt.DateTime
@@ -144,7 +147,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = dto.EmployeeSalaryId,
                 ComponentType = dto.ComponentType,
                 Amount = dto.Amount,
-                Istaxable = true, // Correction : nom du champ avec "I" minuscule
+                IsTaxable = dto.IsTaxable,
                 IsSocial = true,
                 IsCIMR = false,
                 EffectiveDate = dto.EffectiveDate,
@@ -168,6 +171,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = createdComponent.EmployeeSalaryId,
                 ComponentType = createdComponent.ComponentType,
                 Amount = createdComponent.Amount,
+                IsTaxable = createdComponent.IsTaxable == true,
                 EffectiveDate = createdComponent.EffectiveDate,
                 EndDate = createdComponent.EndDate,
                 CreatedAt = createdComponent.CreatedAt.DateTime
@@ -201,6 +205,9 @@ namespace payzen_backend.Controllers.Employees
             if (dto.Amount.HasValue)
                 component.Amount = dto.Amount.Value;
 
+            if (dto.IsTaxable.HasValue)
+                component.IsTaxable = dto.IsTaxable.Value;
+
             if (dto.EffectiveDate.HasValue)
                 component.EffectiveDate = dto.EffectiveDate.Value;
 
@@ -228,6 +235,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = updatedComponent.EmployeeSalaryId,
                 ComponentType = updatedComponent.ComponentType,
                 Amount = updatedComponent.Amount,
+                IsTaxable = updatedComponent.IsTaxable == true,
                 EffectiveDate = updatedComponent.EffectiveDate,
                 EndDate = updatedComponent.EndDate,
                 CreatedAt = updatedComponent.CreatedAt.DateTime
@@ -269,7 +277,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeSalaryId = oldComponent.EmployeeSalaryId,
                 ComponentType = dto.ComponentType ?? oldComponent.ComponentType,
                 Amount = dto.Amount ?? oldComponent.Amount,
-                Istaxable = oldComponent.Istaxable,
+                IsTaxable = oldComponent.IsTaxable,
                 IsSocial = oldComponent.IsSocial,
                 IsCIMR = oldComponent.IsCIMR,
                 EffectiveDate = dto.EffectiveDate ?? DateTimeOffset.UtcNow.DateTime,

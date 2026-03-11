@@ -311,74 +311,7 @@
           </p-tab>
         </p-tablist>
 
-        <!-- Filters -->
-        <div class="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'overtime.filters.search' | translate }}:</label>
-            <input
-              pInputText
-              type="text"
-              [ngModel]="descriptionFilter()"
-              (ngModelChange)="descriptionFilter.set($event)"
-              [placeholder]="'overtime.filters.searchPlaceholder' | translate"
-              class="w-48"
-            />
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'employees.name' | translate }}:</label>
-            <input
-              pInputText
-              type="text"
-              [ngModel]="employeeFilter()"
-              (ngModelChange)="employeeFilter.set($event)"
-              [placeholder]="'overtime.filters.searchEmployee' | translate"
-              class="w-48"
-            />
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'overtime.filters.startDate' | translate }}:</label>
-            <p-datepicker
-              [ngModel]="selectedStartDate()"
-              (ngModelChange)="selectedStartDate.set($event)"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
-              [placeholder]="'common.selectDate' | translate"
-              class="w-40">
-            </p-datepicker>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'overtime.filters.endDate' | translate }}:</label>
-            <p-datepicker
-              [ngModel]="selectedEndDate()"
-              (ngModelChange)="selectedEndDate.set($event)"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
-              [placeholder]="'common.selectDate' | translate"
-              class="w-40">
-            </p-datepicker>
-          </div>
-
-          <div class="flex gap-2 ml-auto">
-            <p-button
-              [label]="'common.filter' | translate"
-              icon="pi pi-filter"
-              size="small"
-              (onClick)="applyFilters()"
-            />
-            <p-button
-              [label]="'common.reset' | translate"
-              icon="pi pi-refresh"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-              (onClick)="resetFilters()"
-            />
-          </div>
-        </div>
-
+       
         <!-- Table -->
         <p-table
           [value]="filteredOvertimes()"

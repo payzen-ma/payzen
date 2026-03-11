@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -17,11 +17,11 @@ namespace payzen_backend.Controllers.Auth
         public RolesController(AppDbContext db) => _db = db;
 
         /// <summary>
-        /// R√©cup√®re tous les r√¥les actifs (non supprim√©s)
+        /// RÈcupËre tous les rÙles actifs (non supprimÈs)
         /// </summary>
-        /// <returns>Liste de tous les r√¥les sous forme de RoleReadDto</returns>
-        /// <response code="200">Retourne la liste des r√¥les</response>
-        /// <response code="401">Si l'utilisateur n'est pas authentifi√©</response>
+        /// <returns>Liste de tous les rÙles sous forme de RoleReadDto</returns>
+        /// <response code="200">Retourne la liste des rÙles</response>
+        /// <response code="401">Si l'utilisateur n'est pas authentifiÈ</response>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoleReadDto>>> GetAll()
         {
@@ -43,7 +43,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re un r√¥le par ID
+        /// RÈcupËre un rÙle par ID
         /// </summary>
         [HttpGet("{id}", Name = "GetRoleById")]
         public async Task<ActionResult<RoleReadDto>> GetById(int id)
@@ -54,7 +54,7 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (role == null)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
             var result = new RoleReadDto
             {
@@ -68,7 +68,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Cr√©e un nouveau r√¥le
+        /// CrÈe un nouveau rÙle
         /// </summary>
         [HttpPost]
         public async Task<ActionResult<RoleReadDto>> Create([FromBody] RoleCreateDto dto)
@@ -80,7 +80,7 @@ namespace payzen_backend.Controllers.Auth
 
             if (await _db.Roles.AnyAsync(r => r.Name == dto.Name && r.DeletedAt == null))
             {
-                return Conflict(new { Message = "Un r√¥le avec ce nom existe d√©j√†" });
+                return Conflict(new { Message = "Un rÙle avec ce nom existe dÈj‡" });
             }
 
             var role = new Roles
@@ -106,7 +106,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Met √† jour un r√¥le
+        /// Met ‡ jour un rÙle
         /// </summary>
         [HttpPut("{id}")]
         public async Task<ActionResult<RoleReadDto>> Update(int id, [FromBody] RoleUpdateDto dto)
@@ -123,14 +123,14 @@ namespace payzen_backend.Controllers.Auth
             Console.WriteLine($"Role is : {role}");
 
             if (role == null)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
             if (dto.Name != null && dto.Name != role.Name)
             {
                 if (await _db.Roles.AnyAsync(r => r.Name == dto.Name && r.Id != id && r.DeletedAt == null))
                 {
                     Console.WriteLine("Conflict detected");
-                    return Conflict(new { Message = "Un r√¥le avec ce nom existe d√©j√†" });
+                    return Conflict(new { Message = "Un rÙle avec ce nom existe dÈj‡" });
                 }
                 role.Name = dto.Name;
             }
@@ -156,20 +156,20 @@ namespace payzen_backend.Controllers.Auth
             return Ok(readDto);
         }
         /// <summary>
-        /// R√©cup√®re les utilisateurs assign√©s √† un r√¥le (GET /api/roles/{roleId}/users)
+        /// RÈcupËre les utilisateurs assignÈs ‡ un rÙle (GET /api/roles/{roleId}/users)
         /// </summary>
         [HttpGet("{roleId}/users")]
         public async Task<ActionResult<RoleUsersDto>> GetUsersByRole(int roleId)
         {
-            // V√©rifier que le r√¥le existe et n'est pas supprim√©
+            // VÈrifier que le rÙle existe et n'est pas supprimÈ
             var role = await _db.Roles
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == roleId && r.DeletedAt == null);
 
             if (role == null)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // Requ√™te : UsersRoles -> Users -> Employees -> Companies (left joins)
+            // RequÍte : UsersRoles -> Users -> Employees -> Companies (left joins)
             var users = await (from ur in _db.UsersRoles.AsNoTracking()
                                where ur.RoleId == roleId && ur.DeletedAt == null
                                join u in _db.Users.AsNoTracking().Where(u => u.DeletedAt == null)
@@ -205,7 +205,7 @@ namespace payzen_backend.Controllers.Auth
             return Ok(result);
         }
         /// <summary>
-        /// Supprime un r√¥le (soft delete)
+        /// Supprime un rÙle (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -217,18 +217,18 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync();
 
             if (role == null)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // V√©rifier si le r√¥le est assign√© √† des utilisateurs
+            // VÈrifier si le rÙle est assignÈ ‡ des utilisateurs
             var isAssignedToUsers = await _db.UsersRoles
                 .AnyAsync(ur => ur.RoleId == id && ur.DeletedAt == null);
 
             if (isAssignedToUsers)
             {
-                return BadRequest(new { Message = "Impossible de supprimer ce r√¥le car il est assign√© √† des utilisateurs" });
+                return BadRequest(new { Message = "Impossible de supprimer ce rÙle car il est assignÈ ‡ des utilisateurs" });
             }
 
-            // Soft delete des permissions associ√©es au r√¥le
+            // Soft delete des permissions associÈes au rÙle
             var rolePermissions = await _db.RolesPermissions
                 .Where(rp => rp.RoleId == id && rp.DeletedAt == null)
                 .ToListAsync();
@@ -239,7 +239,7 @@ namespace payzen_backend.Controllers.Auth
                 rp.DeletedBy = userId;
             }
 
-            // Soft delete du r√¥le
+            // Soft delete du rÙle
             role.DeletedAt = DateTimeOffset.UtcNow;
             role.DeletedBy = userId;
 

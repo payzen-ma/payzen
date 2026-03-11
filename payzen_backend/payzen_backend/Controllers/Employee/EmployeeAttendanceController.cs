@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -32,13 +32,13 @@ namespace payzen_backend.Controllers.Employees
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (attendance == null)
-                return NotFound($"Assiduit√© avec l'ID {id} non trouv√©e.");
+                return NotFound($"AssiduitÈ avec l'ID {id} non trouvÈe.");
 
             return Ok(ToDto(attendance));
         }
 
         /// <summary>
-        /// R√©cup√®re les assiduit√©s d'un employ√© avec ses pauses
+        /// RÈcupËre les assiduitÈs d'un employÈ avec ses pauses
         /// </summary>
         [HttpGet("employee/{employeeId}")]
         public async Task<ActionResult<IEnumerable<EmployeeAttendanceReadDto>>> GetByEmployeeId(
@@ -50,7 +50,7 @@ namespace payzen_backend.Controllers.Employees
             Console.WriteLine($"=========================APPEL Employee Attendance for Employee {employeeId}");
             Console.WriteLine($"Parameters: startDate={startDate}, endDate={endDate}, includeBreaks={includeBreaks}");
 
-            // V√©rifier que l'employ√© existe
+            // VÈrifier que l'employÈ existe
             var employeeExists = await _db.Employees
                 .AnyAsync(e => e.Id == employeeId && e.DeletedAt == null);
 
@@ -62,7 +62,7 @@ namespace payzen_backend.Controllers.Employees
             Console.WriteLine($"Employee {employeeId} exists: {employeeExists}");
 
             if (!employeeExists)
-                return NotFound($"Employ√© avec l'ID {employeeId} non trouv√©.");
+                return NotFound($"EmployÈ avec l'ID {employeeId} non trouvÈ.");
 
             var query = _db.EmployeeAttendances.AsNoTracking()
                 .Where(a => a.EmployeeId == employeeId);
@@ -73,7 +73,7 @@ namespace payzen_backend.Controllers.Employees
             //if (endDate.HasValue)
             //    query = query.Where(a => a.WorkDate <= endDate.Value);
 
-            // Inclure les pauses si demand√©
+            // Inclure les pauses si demandÈ
             //if (includeBreaks)
             //    query = query.Include(a => a.Breaks);
 
@@ -120,13 +120,13 @@ namespace payzen_backend.Controllers.Employees
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var employee = await _db.Employees.FirstOrDefaultAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null);
-            if (employee == null) return BadRequest($"Employ√© avec l'ID {dto.EmployeeId} non trouv√©.");
+            if (employee == null) return BadRequest($"EmployÈ avec l'ID {dto.EmployeeId} non trouvÈ.");
 
             var existingAttendance = await _db.EmployeeAttendances
                 .FirstOrDefaultAsync(a => a.EmployeeId == dto.EmployeeId && a.WorkDate == dto.WorkDate);
 
             if (existingAttendance != null)
-                return BadRequest($"Une assiduit√© existe d√©j√† pour l'employ√© {dto.EmployeeId} √† la date {dto.WorkDate}.");
+                return BadRequest($"Une assiduitÈ existe dÈj‡ pour l'employÈ {dto.EmployeeId} ‡ la date {dto.WorkDate}.");
 
             var currentUserId = User.GetUserId();
             var workedHours = CalculateWorkedHours(dto.CheckIn, dto.CheckOut);
@@ -157,7 +157,7 @@ namespace payzen_backend.Controllers.Employees
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var attendance = await _db.EmployeeAttendances.FirstOrDefaultAsync(a => a.Id == id);
-            if (attendance == null) return NotFound($"Assiduit√© avec l'ID {id} non trouv√©e.");
+            if (attendance == null) return NotFound($"AssiduitÈ avec l'ID {id} non trouvÈe.");
 
             var currentUserId = User.GetUserId();
             var workedHours = CalculateWorkedHours(dto.CheckIn, dto.CheckOut);
@@ -178,7 +178,7 @@ namespace payzen_backend.Controllers.Employees
         public async Task<IActionResult> DeleteAttendance(int id)
         {
             var attendance = await _db.EmployeeAttendances.FirstOrDefaultAsync(a => a.Id == id);
-            if (attendance == null) return NotFound($"Assiduit√© avec l'ID {id} non trouv√©e.");
+            if (attendance == null) return NotFound($"AssiduitÈ avec l'ID {id} non trouvÈe.");
 
             _db.EmployeeAttendances.Remove(attendance);
             await _db.SaveChangesAsync();
@@ -202,7 +202,7 @@ namespace payzen_backend.Controllers.Employees
             var currentUserId = User.GetUserId();
 
             if (attendance != null && attendance.CheckIn.HasValue)
-                return BadRequest("L'employ√© a d√©j√† point√© son entr√©e aujourd'hui.");
+                return BadRequest("L'employÈ a dÈj‡ pointÈ son entrÈe aujourd'hui.");
 
             if (attendance == null)
             {
@@ -242,10 +242,10 @@ namespace payzen_backend.Controllers.Employees
                 .FirstOrDefaultAsync(a => a.EmployeeId == dto.EmployeeId && a.WorkDate == today);
 
             if (attendance == null || !attendance.CheckIn.HasValue)
-                return BadRequest("Aucune entr√©e trouv√©e pour aujourd'hui. L'employ√© doit d'abord pointer son entr√©e.");
+                return BadRequest("Aucune entrÈe trouvÈe pour aujourd'hui. L'employÈ doit d'abord pointer son entrÈe.");
 
             if (attendance.CheckOut.HasValue)
-                return BadRequest("L'employ√© a d√©j√† point√© sa sortie aujourd'hui.");
+                return BadRequest("L'employÈ a dÈj‡ pointÈ sa sortie aujourd'hui.");
 
             var currentUserId = User.GetUserId();
             attendance.CheckOut = now;
@@ -275,7 +275,7 @@ namespace payzen_backend.Controllers.Employees
 
         private static EmployeeAttendanceReadDto ToDto(EmployeeAttendance a, bool includeBreaks = false)
         {
-            Console.WriteLine("=========== Function TODto est appel√© ==========");
+            Console.WriteLine("=========== Function TODto est appelÈ ==========");
             var dto = new EmployeeAttendanceReadDto
             {
                 Id = a.Id,
@@ -289,7 +289,7 @@ namespace payzen_backend.Controllers.Employees
                 BreakMinutesApplied = a.BreakMinutesApplied
             };
 
-            // Ajouter les pauses si demand√© et disponibles
+            // Ajouter les pauses si demandÈ et disponibles
             if (includeBreaks && a.Breaks != null && a.Breaks.Any())
             {
                 dto.Breaks = a.Breaks

@@ -9,6 +9,8 @@ namespace payzen_backend.Models.Employee.Dtos
 
         public decimal? Amount { get; set; }
 
+        public bool? IsTaxable { get; set; }
+
         public DateTime? EffectiveDate { get; set; }
 
         public DateTime? EndDate { get; set; }

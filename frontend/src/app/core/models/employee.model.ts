@@ -5,6 +5,7 @@ export interface SalaryComponent {
   employeeSalaryId?: number;
   type: string;
   amount: number;
+  isTaxable?: boolean;
 }
 
 export interface Spouse {

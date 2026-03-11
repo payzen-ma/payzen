@@ -652,6 +652,9 @@ namespace payzen_backend.Migrations
                         .HasColumnType("int")
                         .HasColumnName("marital_status_id");
 
+                    b.Property<int?>("Matricule")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset?>("ModifiedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("modified_at");
@@ -1477,7 +1480,7 @@ namespace payzen_backend.Migrations
                     b.Property<bool>("IsSocial")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("Istaxable")
+                    b.Property<bool>("IsTaxable")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
@@ -2605,6 +2608,9 @@ namespace payzen_backend.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PrimeAnciennete")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PrimeAnciennteRate")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("PrimeImposable1")

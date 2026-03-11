@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Employee
+namespace payzen_backend.Models.Employee
 {
     public class EmployeeAttendanceBreak
     {

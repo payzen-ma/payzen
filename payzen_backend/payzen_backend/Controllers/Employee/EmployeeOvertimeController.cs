@@ -59,6 +59,7 @@ namespace payzen_backend.Controllers.Employee
         [HttpGet]
         [Produces("application/json")]
         public async Task<ActionResult<IEnumerable<EmployeeOvertimeListDto>>> GetAll(
+            [FromQuery] int? companyId = null,
             [FromQuery] int? employeeId = null,
             [FromQuery] OvertimeStatus? status = null,
             [FromQuery] DateOnly? fromDate = null,
@@ -68,6 +69,10 @@ namespace payzen_backend.Controllers.Employee
             var query = _db.EmployeeOvertimes
                 .AsNoTracking()
                 .Where(o => o.DeletedAt == null);
+
+            // Filtrer par société (obligatoire pour l'isolation des données)
+            if (companyId.HasValue)
+                query = query.Where(o => o.Employee.CompanyId == companyId.Value);
 
             // Filtres
             if (employeeId.HasValue)

@@ -1,0 +1,290 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using payzen_backend.Models.Dashboard.Dtos;
+using payzen_backend.Services.Dashboard;
+
+namespace payzen_backend.Controllers.v1.Dashboard
+{
+    [ApiController]
+        [Route("api/v{version:apiVersion}/dashboard/hr")]
+        [ApiVersion("1.0")]
+    [Authorize]
+    public class DashboardHrController : ControllerBase
+    {
+        private readonly IDashboardHrService _dashboardHrService;
+
+        public DashboardHrController(IDashboardHrService dashboardHrService)
+        {
+            _dashboardHrService = dashboardHrService;
+        }
+
+        /// <summary>
+        /// Raw payload for client-side filtering and aggregation.
+        /// GET /api/dashboard/hr/raw?month=yyyy-MM
+        /// </summary>
+        [HttpGet("raw")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrRawDto>> GetHrDashboardRaw(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetHrDashboardRawAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Full payload for the new tabbed HR dashboard.
+        /// GET /api/dashboard/hr?month=yyyy-MM
+        /// </summary>
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrDto>> GetHrDashboard(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetHrDashboardAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Section 1 only: Vue Globale RH.
+        /// GET /api/dashboard/hr/global?month=yyyy-MM
+        /// </summary>
+        [HttpGet("global")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrVueGlobaleDto>> GetVueGlobale(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetVueGlobaleAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Section 2 only: Mouvements RH.
+        /// GET /api/dashboard/hr/movements?month=yyyy-MM
+        /// </summary>
+        [HttpGet("movements")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrMouvementsDto>> GetMouvementsRh(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetMouvementsRhAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Section 3 only: Masse Salariale.
+        /// GET /api/dashboard/hr/payroll?month=yyyy-MM
+        /// </summary>
+        [HttpGet("payroll")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrMasseSalarialeDto>> GetMasseSalariale(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetMasseSalarialeAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Section 4 only: Parite &amp; Diversite.
+        /// GET /api/dashboard/hr/parity?month=yyyy-MM
+        /// </summary>
+        [HttpGet("parity")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrPariteDiversiteDto>> GetPariteDiversite(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetPariteDiversiteAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        /// <summary>
+        /// Section 5 only: Conformite Sociale.
+        /// GET /api/dashboard/hr/compliance?month=yyyy-MM
+        /// </summary>
+        [HttpGet("compliance")]
+        [Produces("application/json")]
+        public async Task<ActionResult<DashboardHrConformiteSocialeDto>> GetConformiteSociale(
+            [FromQuery] string? month = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _dashboardHrService.GetConformiteSocialeAsync(ReadCompanyIdHeader(), month, cancellationToken);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = ex.Message, RequestedMonth = month });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = ex.Message,
+                    RequestedMonth = month
+                });
+            }
+        }
+
+        private int? ReadCompanyIdHeader()
+        {
+            if (!Request.Headers.TryGetValue("X-Company-Id", out var values))
+            {
+                return null;
+            }
+
+            return int.TryParse(values.FirstOrDefault(), out var companyId) ? companyId : null;
+        }
+    }
+}

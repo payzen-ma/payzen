@@ -1,4 +1,4 @@
-ï»¿using System.Linq;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,8 +19,8 @@ namespace payzen_backend.Controllers.Event
         }
 
         /// <summary>
-        /// Retourne tous les Ã©vÃ©nements (company + employee) fusionnÃ©s et triÃ©s par date (desc).
-        /// Inclut : CompanyName, EmployeeFullName (employee liÃ© Ã  l'Ã©vÃ©nement) et CreatorFullName (nom de l'employÃ© liÃ© Ã  createdBy).
+        /// Retourne tous les événements (company + employee) fusionnés et triés par date (desc).
+        /// Inclut : CompanyName, EmployeeFullName (employee lié à l'événement) et CreatorFullName (nom de l'employé lié à createdBy).
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllEvents()

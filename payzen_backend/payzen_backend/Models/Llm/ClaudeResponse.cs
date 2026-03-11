@@ -1,4 +1,4 @@
-﻿namespace payzen_backend.Models.Llm
+namespace payzen_backend.Models.Llm
 {
     public class ClaudeResponse
     {

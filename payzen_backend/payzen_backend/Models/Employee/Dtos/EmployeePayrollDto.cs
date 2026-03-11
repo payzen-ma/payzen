@@ -50,7 +50,7 @@ public class PayrollSalaryComponentDto
 {
     public string ComponentType { get; set; }
     public decimal Amount { get; set; }
-    public bool Istaxable { get; set; }
+    public bool IsTaxable { get; set; }
     public bool IsSocial { get; set; }
     public bool IsCIMR { get; set; }
 }

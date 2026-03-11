@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -14,14 +14,14 @@ using payzen_backend.Models.Common.OvertimeEnums;
 namespace payzen_backend.Seeding
 {
     /// <summary>
-    /// Seeder idempotent pour initialiser les données référentielles minimales
+    /// Seeder idempotent pour initialiser les donn�es r�f�rentielles minimales
     /// Utiliser : await DbSeeder.SeedAsync(db);
     /// </summary>
     public static class DbSeeder
     {
         public static async Task SeedAsync(AppDbContext db)
         {
-            // Appliquer les migrations avant de seed (sécurise un drop + update)
+            // Appliquer les migrations avant de seed (s�curise un drop + update)
             await db.Database.MigrateAsync();
 
             var now = DateTimeOffset.UtcNow;
@@ -34,7 +34,7 @@ namespace payzen_backend.Seeding
                 {
                     Code = "Active",
                     NameFr = "Actif",
-                    NameAr = "نشط",
+                    NameAr = "???",
                     NameEn = "Active",
                     IsActive = true,
                     AffectsAccess = true,
@@ -52,7 +52,7 @@ namespace payzen_backend.Seeding
                 {
                     Code = "Inactive",
                     NameFr = "Inactif",
-                    NameAr = "غير نشط",
+                    NameAr = "??? ???",
                     NameEn = "Inactive",
                     IsActive = false,
                     CreatedAt = now,
@@ -65,8 +65,8 @@ namespace payzen_backend.Seeding
                 db.Statuses.Add(new Models.Referentiel.Status
                 {
                     Code = "FIRED",
-                    NameFr = "Licencié",
-                    NameAr = "مخرج",
+                    NameFr = "Licenci�",
+                    NameAr = "????",
                     NameEn = "Fired",
                     IsActive = true,
                     AffectsAccess = true,
@@ -83,8 +83,8 @@ namespace payzen_backend.Seeding
                 db.Statuses.Add(new Models.Referentiel.Status
                 {
                     Code = "RETIRED",
-                    NameFr = "Retraité",
-                    NameAr = "متقاعد",
+                    NameFr = "Retrait�",
+                    NameAr = "??????",
                     NameEn = "Retired",
                     IsActive = true,
                     AffectsAccess = true,
@@ -100,8 +100,8 @@ namespace payzen_backend.Seeding
                 db.Statuses.Add(new Models.Referentiel.Status
                 {
                     Code = "RESIGNED",
-                    NameFr = "Démissionnaire",
-                    NameAr = "منسحب",
+                    NameFr = "D�missionnaire",
+                    NameAr = "?????",
                     NameEn = "Resigned",
                     IsActive = true,
                     AffectsAccess = true,
@@ -118,7 +118,7 @@ namespace payzen_backend.Seeding
                 {
                     Code = "Male",
                     NameFr = "Homme",
-                    NameAr = "ذكر",
+                    NameAr = "???",
                     NameEn = "Male",
                     IsActive = true,
                     CreatedAt = now,
@@ -132,7 +132,7 @@ namespace payzen_backend.Seeding
                 {
                     Code = "Female",
                     NameFr = "Femme",
-                    NameAr = "أنثى",
+                    NameAr = "????",
                     NameEn = "Female",
                     IsActive = true,
                     CreatedAt = now,
@@ -143,11 +143,11 @@ namespace payzen_backend.Seeding
             // ===== Marital Statuses =====
             var maritalStatuses = new[]
             {
-                new { Code = "SINGLE", NameFr = "Célibataire", NameAr = "أعزب", NameEn = "Single" },
-                new { Code = "MARRIED", NameFr = "Marié(e)", NameAr = "متزوج", NameEn = "Married" },
-                new { Code = "DIVORCED", NameFr = "Divorcé(e)", NameAr = "مطلق", NameEn = "Divorced" },
-                new { Code = "WIDOWED", NameFr = "Veuf / Veuve", NameAr = "أرمل", NameEn = "Widowed" },
-                new { Code = "PARTNER", NameFr = "En union libre", NameAr = "شريك حياة", NameEn = "Partner" }
+                new { Code = "SINGLE", NameFr = "C�libataire", NameAr = "????", NameEn = "Single" },
+                new { Code = "MARRIED", NameFr = "Mari�(e)", NameAr = "?????", NameEn = "Married" },
+                new { Code = "DIVORCED", NameFr = "Divorc�(e)", NameAr = "????", NameEn = "Divorced" },
+                new { Code = "WIDOWED", NameFr = "Veuf / Veuve", NameAr = "????", NameEn = "Widowed" },
+                new { Code = "PARTNER", NameFr = "En union libre", NameAr = "???? ????", NameEn = "Partner" }
             };
 
             foreach (var ms in maritalStatuses)
@@ -170,13 +170,13 @@ namespace payzen_backend.Seeding
             // ===== Education Levels =====
             var educationLevels = new[]
             {
-                new { Code = "NONE", NameFr = "Sans diplôme", NameAr = "بلا شهادة", NameEn = "No formal education", Order = 1 },
-                new { Code = "PRIMARY", NameFr = "Primaire", NameAr = "ابتدائي", NameEn = "Primary", Order = 2 },
-                new { Code = "SECONDARY", NameFr = "Secondaire", NameAr = "ثانوي", NameEn = "Secondary", Order = 3 },
-                new { Code = "BACC", NameFr = "Baccalauréat", NameAr = "بكالوريا", NameEn = "Baccalaureate", Order = 4 },
-                new { Code = "LIC", NameFr = "Licence", NameAr = "ليسانس", NameEn = "Bachelor", Order = 5 },
-                new { Code = "MASTER", NameFr = "Master", NameAr = "ماجستير", NameEn = "Master", Order = 6 },
-                new { Code = "PHD", NameFr = "Doctorat", NameAr = "دكتوراه", NameEn = "Doctorate", Order = 7 }
+                new { Code = "NONE", NameFr = "Sans dipl�me", NameAr = "??? ?????", NameEn = "No formal education", Order = 1 },
+                new { Code = "PRIMARY", NameFr = "Primaire", NameAr = "???????", NameEn = "Primary", Order = 2 },
+                new { Code = "SECONDARY", NameFr = "Secondaire", NameAr = "?????", NameEn = "Secondary", Order = 3 },
+                new { Code = "BACC", NameFr = "Baccalaur�at", NameAr = "????????", NameEn = "Baccalaureate", Order = 4 },
+                new { Code = "LIC", NameFr = "Licence", NameAr = "??????", NameEn = "Bachelor", Order = 5 },
+                new { Code = "MASTER", NameFr = "Master", NameAr = "???????", NameEn = "Master", Order = 6 },
+                new { Code = "PHD", NameFr = "Doctorat", NameAr = "???????", NameEn = "Doctorate", Order = 7 }
             };
 
             foreach (var el in educationLevels)
@@ -203,7 +203,7 @@ namespace payzen_backend.Seeding
                 var morocco = new Models.Referentiel.Country
                 {
                     CountryName = "Morocco",
-                    CountryNameAr = "المغرب",
+                    CountryNameAr = "??????",
                     CountryCode = "MAR",
                     CountryPhoneCode = "+212",
                     CreatedAt = now,
@@ -240,7 +240,7 @@ namespace payzen_backend.Seeding
                 db.Roles.Add(new Models.Permissions.Roles
                 {
                     Name = "Admin",
-                    Description = "Administrateur système",
+                    Description = "Administrateur syst�me",
                     CreatedAt = now,
                     CreatedBy = systemUserId
                 });
@@ -251,7 +251,7 @@ namespace payzen_backend.Seeding
                 db.Roles.Add(new Models.Permissions.Roles
                 {
                     Name = "employee",
-                    Description = "Rôle employé par défaut",
+                    Description = "R�le employ� par d�faut",
                     CreatedAt = now,
                     CreatedBy = systemUserId
                 });
@@ -280,10 +280,10 @@ namespace payzen_backend.Seeding
                 legalLeaveType = new LeaveType
                 {
                     LeaveCode = "LEGAL",
-                    LeaveNameFr = "Congés légaux",
+                    LeaveNameFr = "Cong�s l�gaux",
                     LeaveNameEn = "Statutory leaves",
-                    LeaveNameAr = "إجازات قانونية",
-                    LeaveDescription = "Congés prévus par la législation du travail (mariage, décès, naissance, etc.)",
+                    LeaveNameAr = "?????? ???????",
+                    LeaveDescription = "Cong�s pr�vus par la l�gislation du travail (mariage, d�c�s, naissance, etc.)",
                     Scope = LeaveScope.Global,
                     IsActive = true,
                     CreatedAt = now,
@@ -298,7 +298,7 @@ namespace payzen_backend.Seeding
             {
                 new {
                     Code = "MARRIAGE_EMPLOYEE",
-                    Description = "Mariage du salarié",
+                    Description = "Mariage du salari�",
                     Days = 4,
                     Article = "Article 274",
                     CanBeDiscontinuous = false,
@@ -314,7 +314,7 @@ namespace payzen_backend.Seeding
                 },
                 new {
                     Code = "DEATH_CLOSE",
-                    Description = "Décès d'un conjoint, d'un enfant, d'un petit-enfant, d'un ascendant du salarié ou d'un enfant issu d'un précédent mariage du conjoint",
+                    Description = "D�c�s d'un conjoint, d'un enfant, d'un petit-enfant, d'un ascendant du salari� ou d'un enfant issu d'un pr�c�dent mariage du conjoint",
                     Days = 3,
                     Article = "Article 274",
                     CanBeDiscontinuous = false,
@@ -322,7 +322,7 @@ namespace payzen_backend.Seeding
                 },
                 new {
                     Code = "DEATH_SIBLING",
-                    Description = "Décès d'un frère, d'une sœur du salarié, d'un frère ou d'une sœur du conjoint ou d'un ascendant du conjoint",
+                    Description = "D�c�s d'un fr�re, d'une s�ur du salari�, d'un fr�re ou d'une s�ur du conjoint ou d'un ascendant du conjoint",
                     Days = 2,
                     Article = "Article 274",
                     CanBeDiscontinuous = false,
@@ -330,7 +330,7 @@ namespace payzen_backend.Seeding
                 },
                 new {
                     Code = "CIRCUMCISION",
-                    Description = "Circoncision (du salarié)",
+                    Description = "Circoncision (du salari�)",
                     Days = 2,
                     Article = "Article 274",
                     CanBeDiscontinuous = false,
@@ -338,7 +338,7 @@ namespace payzen_backend.Seeding
                 },
                 new {
                     Code = "SURGICAL_OPERATION",
-                    Description = "Opération chirurgicale du conjoint ou d'un enfant à charge",
+                    Description = "Op�ration chirurgicale du conjoint ou d'un enfant � charge",
                     Days = 2,
                     Article = "Article 274",
                     CanBeDiscontinuous = false,
@@ -346,7 +346,7 @@ namespace payzen_backend.Seeding
                 },
                 new {
                     Code = "BIRTH",
-                    Description = "Naissance (inclus dans la période d'un mois à compter de la date de la naissance)",
+                    Description = "Naissance (inclus dans la p�riode d'un mois � compter de la date de la naissance)",
                     Days = 2,
                     Article = "Article 269",
                     CanBeDiscontinuous = false,
@@ -378,15 +378,15 @@ namespace payzen_backend.Seeding
 
             await db.SaveChangesAsync();
 
-            // ===== Création d'une company + employee + user admin (idempotent) =====
+            // ===== Cr�ation d'une company + employee + user admin (idempotent) =====
             var adminCompanyEmail = "admin@payzen.local";
             if (!await db.Companies.AnyAsync(c => c.Email.ToLower() == adminCompanyEmail.ToLower()))
             {
-                // récupérer country / city existants (créés plus haut)
+                // r�cup�rer country / city existants (cr��s plus haut)
                 var country = await db.Countries.FirstOrDefaultAsync(c => c.CountryCode.ToUpper() == "MAR" || c.CountryName.ToLower() == "morocco");
                 if (country == null)
                 {
-                    // si absent (très improbable ici), quitter la création d'admin
+                    // si absent (tr�s improbable ici), quitter la cr�ation d'admin
                     return;
                 }
 
@@ -404,7 +404,7 @@ namespace payzen_backend.Seeding
                     await db.SaveChangesAsync();
                 }
 
-                // Créer company
+                // Cr�er company
                 var company = new Models.Company.Company
                 {
                     CompanyName = "PayZen Demo Company",
@@ -426,7 +426,7 @@ namespace payzen_backend.Seeding
                 db.Companies.Add(company);
                 await db.SaveChangesAsync();
 
-                // Créer employé admin
+                // Cr�er employ� admin
                 var activeStatus = await db.Statuses.FirstOrDefaultAsync(s => s.Code.ToLower() == "active");
                 var adminEmployee = new Models.Employee.Employee
                 {
@@ -445,10 +445,10 @@ namespace payzen_backend.Seeding
                 db.Employees.Add(adminEmployee);
                 await db.SaveChangesAsync();
 
-                // Créer user admin (si inexistant)
+                // Cr�er user admin (si inexistant)
                 if (!await db.Users.AnyAsync(u => u.Email.ToLower() == adminCompanyEmail.ToLower()))
                 {
-                    // générer username simple et unique
+                    // g�n�rer username simple et unique
                     var baseUsername = "admin";
                     var username = baseUsername;
                     var suffix = 1;
@@ -458,8 +458,8 @@ namespace payzen_backend.Seeding
                         suffix++;
                     }
 
-                    // mot de passe temporaire : changez-le après premier démarrage en prod
-                    var tempPassword = "Admin@123"; // remplacer en production par un flow sécurisé
+                    // mot de passe temporaire : changez-le apr�s premier d�marrage en prod
+                    var tempPassword = "Admin@123"; // remplacer en production par un flow s�curis�
 
                     var user = new Models.Users.Users
                     {
@@ -475,7 +475,7 @@ namespace payzen_backend.Seeding
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
 
-                    // Assigner rôle Admin
+                    // Assigner r�le Admin
                     var adminRole = await db.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "Admin Payzen");
                     if (adminRole != null)
                     {
@@ -491,18 +491,18 @@ namespace payzen_backend.Seeding
                 }
             }
 
-            // ===== Règles de majoration des heures supplémentaires =====
+            // ===== R�gles de majoration des heures suppl�mentaires =====
             if (!await db.OvertimeRateRules.AnyAsync())
             {
                 var overtimeRules = new[]
                 {
-                    // Règles pour jours normaux (Standard)
+                    // R�gles pour jours normaux (Standard)
                     new {
                         Code = "STD_DAY",
-                        NameFr = "Heures supplémentaires jours normaux",
+                        NameFr = "Heures suppl�mentaires jours normaux",
                         NameEn = "Standard day overtime",
-                        NameAr = "ساعات إضافية أيام عادية",
-                        Description = "Heures supplémentaires effectuées les jours ouvrables normaux",
+                        NameAr = "????? ?????? ???? ?????",
+                        Description = "Heures suppl�mentaires effectu�es les jours ouvrables normaux",
                         AppliesTo = OvertimeType.Standard,
                         Multiplier = 1.25m,
                         Priority = 10,
@@ -510,12 +510,12 @@ namespace payzen_backend.Seeding
                         TimeRangeType = TimeRangeType.AllDay
                     },
                     
-                    // Règles pour travail de nuit
+                    // R�gles pour travail de nuit
                     new {
                         Code = "NIGHT_STD",
                         NameFr = "Travail de nuit standard",
                         NameEn = "Standard night work",
-                        NameAr = "عمل ليلي عادي",
+                        NameAr = "??? ???? ????",
                         Description = "Travail de nuit (21h-6h) les jours ouvrables",
                         AppliesTo = OvertimeType.Standard | OvertimeType.Night,
                         Multiplier = 1.50m,
@@ -524,13 +524,13 @@ namespace payzen_backend.Seeding
                         TimeRangeType = TimeRangeType.AllDay
                     },
                     
-                    // Règles pour repos hebdomadaire
+                    // R�gles pour repos hebdomadaire
                     new {
                         Code = "WEEKLY_REST",
                         NameFr = "Travail jour de repos",
                         NameEn = "Weekly rest day work",
-                        NameAr = "عمل يوم راحة أسبوعية",
-                        Description = "Travail effectué pendant le jour de repos hebdomadaire",
+                        NameAr = "??? ??? ???? ???????",
+                        Description = "Travail effectu� pendant le jour de repos hebdomadaire",
                         AppliesTo = OvertimeType.WeeklyRest,
                         Multiplier = 1.50m,
                         Priority = 5,
@@ -538,12 +538,12 @@ namespace payzen_backend.Seeding
                         TimeRangeType = TimeRangeType.AllDay
                     },
                     
-                    // Règles pour repos hebdomadaire + nuit
+                    // R�gles pour repos hebdomadaire + nuit
                     new {
                         Code = "WEEKLY_REST_NIGHT",
                         NameFr = "Travail de nuit jour de repos",
                         NameEn = "Night work on rest day",
-                        NameAr = "عمل ليلي يوم راحة",
+                        NameAr = "??? ???? ??? ????",
                         Description = "Travail de nuit pendant le jour de repos hebdomadaire",
                         AppliesTo = OvertimeType.WeeklyRest | OvertimeType.Night,
                         Multiplier = 2.00m,
@@ -552,13 +552,13 @@ namespace payzen_backend.Seeding
                         TimeRangeType = TimeRangeType.AllDay
                     },
                     
-                    // Règles pour jours fériés
+                    // R�gles pour jours f�ri�s
                     new {
                         Code = "HOLIDAY",
-                        NameFr = "Travail jour férié",
+                        NameFr = "Travail jour f�ri�",
                         NameEn = "Public holiday work",
-                        NameAr = "عمل يوم عطلة",
-                        Description = "Travail effectué pendant un jour férié",
+                        NameAr = "??? ??? ????",
+                        Description = "Travail effectu� pendant un jour f�ri�",
                         AppliesTo = OvertimeType.PublicHoliday,
                         Multiplier = 2.00m,
                         Priority = 5,
@@ -566,13 +566,13 @@ namespace payzen_backend.Seeding
                         TimeRangeType = TimeRangeType.AllDay
                     },
                     
-                    // Règles pour jours fériés + nuit
+                    // R�gles pour jours f�ri�s + nuit
                     new {
                         Code = "HOLIDAY_NIGHT",
-                        NameFr = "Travail de nuit jour férié",
+                        NameFr = "Travail de nuit jour f�ri�",
                         NameEn = "Night work on holiday",
-                        NameAr = "عمل ليلي يوم عطلة",
-                        Description = "Travail de nuit pendant un jour férié",
+                        NameAr = "??? ???? ??? ????",
+                        Description = "Travail de nuit pendant un jour f�ri�",
                         AppliesTo = OvertimeType.PublicHoliday | OvertimeType.Night,
                         Multiplier = 2.50m,
                         Priority = 1,
@@ -604,7 +604,7 @@ namespace payzen_backend.Seeding
                 }
 
                 await db.SaveChangesAsync();
-                Console.WriteLine("✅ Règles d'overtime créées avec succès");
+                Console.WriteLine("? R�gles d'overtime cr��es avec succ�s");
             }
 
             // Seed Nationalities
@@ -613,7 +613,7 @@ namespace payzen_backend.Seeding
                 var nationalities = new[]
                 {
                     new Nationality { Name = "Marocain" },
-                    new Nationality { Name = "Algérien" },
+                    new Nationality { Name = "Alg�rien" },
                     new Nationality { Name = "Tunisien" },
                     new Nationality { Name = "Libyen" },
                     new Nationality { Name = "Libanais" },
@@ -622,7 +622,7 @@ namespace payzen_backend.Seeding
                     new Nationality { Name = "Jordanien" },
                     new Nationality { Name = "Iraqien" },
                     new Nationality { Name = "Saudi" },
-                    new Nationality { Name = "Yémeni" },
+                    new Nationality { Name = "Y�meni" },
                 };
 
                 foreach (var nationality in nationalities)
@@ -630,16 +630,16 @@ namespace payzen_backend.Seeding
                     db.Nationalities.Add(nationality);
                 }
                 await db.SaveChangesAsync();
-                Console.WriteLine("✅ Nationalités créées avec succès");
+                Console.WriteLine("? Nationalit�s cr��es avec succ�s");
             }
             // ===== Seed Default State Legal Contract Types and State Employment Programs =====
             var stateEmploymentPrograms = new[]
             {
-                // Régime normal
+                // R�gime normal
                 new StateEmploymentProgram
                 {
                     Code = "NONE",
-                    Name = "Régime normal",
+                    Name = "R�gime normal",
                     IsIrExempt = false,
                     IsCnssEmployeeExempt = false,
                     IsCnssEmployerExempt = false,
@@ -649,11 +649,11 @@ namespace payzen_backend.Seeding
                     CreatedAt = DateTimeOffset.UtcNow
                 },
 
-                // ANAPEC IDMAJ - Modèle 1
+                // ANAPEC IDMAJ - Mod�le 1
                 new StateEmploymentProgram
                 {
                     Code = "IDMAJ_M1",
-                    Name = "ANAPEC IDMAJ - Modèle 1",
+                    Name = "ANAPEC IDMAJ - Mod�le 1",
                     IsIrExempt = true,
                     IsCnssEmployeeExempt = true,
                     IsCnssEmployerExempt = true,
@@ -663,11 +663,11 @@ namespace payzen_backend.Seeding
                     CreatedAt = DateTimeOffset.UtcNow
                 },
 
-                // ANAPEC IDMAJ - Modèle 2
+                // ANAPEC IDMAJ - Mod�le 2
                 new StateEmploymentProgram
                 {
                     Code = "IDMAJ_M2",
-                    Name = "ANAPEC IDMAJ - Modèle 2",
+                    Name = "ANAPEC IDMAJ - Mod�le 2",
                     IsIrExempt = true,
                     IsCnssEmployeeExempt = true,
                     IsCnssEmployerExempt = true,
@@ -677,11 +677,11 @@ namespace payzen_backend.Seeding
                     CreatedAt = DateTimeOffset.UtcNow
                 },
 
-                // ANAPEC IDMAJ - Modèle 3
+                // ANAPEC IDMAJ - Mod�le 3
                 new StateEmploymentProgram
                 {
                     Code = "IDMAJ_M3",
-                    Name = "ANAPEC IDMAJ - Modèle 3",
+                    Name = "ANAPEC IDMAJ - Mod�le 3",
                     IsIrExempt = false,
                     IsCnssEmployeeExempt = true,
                     IsCnssEmployerExempt = true,
@@ -706,7 +706,7 @@ namespace payzen_backend.Seeding
                 }
             };
 
-            // Ajoutez ensuite le code pour insérer ces programmes dans la base si besoin
+            // Ajoutez ensuite le code pour ins�rer ces programmes dans la base si besoin
             foreach (var prog in stateEmploymentPrograms)
             {
                 if (!await db.StateEmploymentPrograms.AnyAsync(p => p.Code == prog.Code))

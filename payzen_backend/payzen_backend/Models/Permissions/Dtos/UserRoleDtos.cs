@@ -1,22 +1,22 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace payzen_backend.Models.Permissions.Dtos
 {
-    // DTO pour assigner un rÃ´le Ã  un utilisateur
+    // DTO pour assigner un rôle à un utilisateur
     // UTILISATION: POST /api/users/{userId}/roles ou POST /api/roles/{roleId}/users
     public class UserRoleCreateDto
     {
         [Required(ErrorMessage = "L'ID de l'utilisateur est requis")]
-        [Range(1, int.MaxValue, ErrorMessage = "L'ID de l'utilisateur doit Ãªtre supÃ©rieur Ã  0")]
+        [Range(1, int.MaxValue, ErrorMessage = "L'ID de l'utilisateur doit être supérieur à 0")]
         public int UserId { get; set; }
 
-        [Required(ErrorMessage = "L'ID du rÃ´le est requis")]
-        [Range(1, int.MaxValue, ErrorMessage = "L'ID du rÃ´le doit Ãªtre supÃ©rieur Ã  0")]
+        [Required(ErrorMessage = "L'ID du rôle est requis")]
+        [Range(1, int.MaxValue, ErrorMessage = "L'ID du rôle doit être supérieur à 0")]
         public int RoleId { get; set; }
     }
 
-    // DTO pour lire une association utilisateur-rÃ´le
-    // ENRICHISSEMENT: Combine les infos de l'utilisateur et du rÃ´le
+    // DTO pour lire une association utilisateur-rôle
+    // ENRICHISSEMENT: Combine les infos de l'utilisateur et du rôle
     public class UserRoleReadDto
     {
         public int Id { get; set; }
@@ -27,16 +27,16 @@ namespace payzen_backend.Models.Permissions.Dtos
         public string Username { get; set; } = string.Empty;
         public string UserEmail { get; set; } = string.Empty;
 
-        // Informations enrichies du rÃ´le
+        // Informations enrichies du rôle
         public string RoleName { get; set; } = string.Empty;
         public string RoleDescription { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; }
     }
 
-    // DTO simplifiÃ© pour lister les rÃ´les d'un utilisateur
+    // DTO simplifié pour lister les rôles d'un utilisateur
     // USAGE: GET /api/users/{id}/roles
-    // FOCUS: DÃ©tails du rÃ´le uniquement
+    // FOCUS: Détails du rôle uniquement
     public class UserRoleSimpleDto
     {
         public int RoleId { get; set; }
@@ -45,9 +45,9 @@ namespace payzen_backend.Models.Permissions.Dtos
         public DateTime AssignedAt { get; set; }
     }
 
-    // DTO pour lister les utilisateurs ayant un rÃ´le spÃ©cifique
+    // DTO pour lister les utilisateurs ayant un rôle spécifique
     // USAGE: GET /api/roles/{id}/users
-    // FOCUS: DÃ©tails de l'utilisateur uniquement
+    // FOCUS: Détails de l'utilisateur uniquement
     public class RoleUserSimpleDto
     {
         public int UserId { get; set; }

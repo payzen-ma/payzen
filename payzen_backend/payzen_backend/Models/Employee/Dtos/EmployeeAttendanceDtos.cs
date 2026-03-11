@@ -1,4 +1,4 @@
-﻿using payzen_backend.Models.Employee.Dtos;
+using payzen_backend.Models.Employee.Dtos;
 
 namespace payzen_backend.Models.Employee.Dtos
 {

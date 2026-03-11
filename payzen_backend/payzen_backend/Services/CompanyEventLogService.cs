@@ -1,4 +1,4 @@
-ï»¿using payzen_backend.Data;
+using payzen_backend.Data;
 using payzen_backend.Models.Event;
 
 namespace payzen_backend.Services
@@ -13,7 +13,7 @@ namespace payzen_backend.Services
         }
 
         /// <summary>
-        /// Enregistre un Ã©vÃ©nement de modification pour une entreprise
+        /// Enregistre un événement de modification pour une entreprise
         /// </summary>
         public async Task LogEventAsync(
             int companyId,
@@ -41,7 +41,7 @@ namespace payzen_backend.Services
         }
 
         /// <summary>
-        /// Enregistre un Ã©vÃ©nement simple (sans ID)
+        /// Enregistre un événement simple (sans ID)
         /// </summary>
         public async Task LogSimpleEventAsync(
             int companyId,
@@ -54,7 +54,7 @@ namespace payzen_backend.Services
         }
 
         /// <summary>
-        /// Enregistre un Ã©vÃ©nement de relation (avec ID + libellÃ©)
+        /// Enregistre un événement de relation (avec ID + libellé)
         /// </summary>
         public async Task LogRelationEventAsync(
             int companyId,
@@ -76,11 +76,11 @@ namespace payzen_backend.Services
         }
 
         /// <summary>
-        /// Constantes pour les noms d'Ã©vÃ©nements entreprise
+        /// Constantes pour les noms d'événements entreprise
         /// </summary>
         public static class EventNames
         {
-            // IdentitÃ© entreprise
+            // Identité entreprise
             public const string CompanyCreated = "Company_Created";
             public const string CompanyUpdated = "Company_Updated";
             public const string CompanyDeleted = "Company_Deleted";
@@ -89,7 +89,7 @@ namespace payzen_backend.Services
             public const string LegalFormChanged = "LegalForm_Changed";
             public const string FoundingDateChanged = "FoundingDate_Changed";
 
-            // CoordonnÃ©es
+            // Coordonnées
             public const string EmailChanged = "Email_Changed";
             public const string PhoneChanged = "Phone_Changed";
             public const string AddressChanged = "Address_Changed";
@@ -100,13 +100,13 @@ namespace payzen_backend.Services
             public const string StatusChanged = "Status_Changed";
             public const string LicenceChanged = "Licence_Changed";
 
-            // Identifiants lÃ©gaux & fiscaux
+            // Identifiants légaux & fiscaux
             public const string IceNumberChanged = "ICE_Changed";
             public const string IfNumberChanged = "IF_Changed";
             public const string RcNumberChanged = "RC_Changed";
             public const string CnssNumberChanged = "CNSS_Changed";
 
-            // Ajouts pour correspondre aux event names utilisÃ©s dans CompanyController
+            // Ajouts pour correspondre aux event names utilisés dans CompanyController
             public const string IceChanged = "Ice_Changed";
             public const string IfChanged = "If_Changed";
             public const string RcChanged = "Rc_Changed";

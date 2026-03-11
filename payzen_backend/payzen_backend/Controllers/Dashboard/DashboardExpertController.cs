@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -23,14 +23,14 @@ namespace payzen_backend.Controllers.Dashboard
         }
 
         /// <summary>
-        /// RÃ©cupÃ¨re le rÃ©sumÃ© pour un expert (cabinet)
+        /// Récupère le résumé pour un expert (cabinet)
         /// GET /api/dashboard/expert/summary?expertCompanyId=...
-        /// Si expertCompanyId omis, la company de l'utilisateur courant est utilisÃ©e (doit Ãªtre un cabinet).
+        /// Si expertCompanyId omis, la company de l'utilisateur courant est utilisée (doit être un cabinet).
         /// </summary>
         [HttpGet("summary")]
         public async Task<ActionResult<ExpertDashboardDto>> GetExpertSummary([FromQuery] int? expertCompanyId = null)
         {
-            // DÃ©terminer l'ID du cabinet expert Ã  utiliser
+            // Déterminer l'ID du cabinet expert à utiliser
             int expertId;
             if (expertCompanyId.HasValue)
             {
@@ -44,7 +44,7 @@ namespace payzen_backend.Controllers.Dashboard
                     return NotFound(new { Message = "Cabinet expert introuvable" });
 
                 if (!managingCompany.IsCabinetExpert)
-                    return BadRequest(new { Message = "La sociÃ©tÃ© spÃ©cifiÃ©e n'est pas un cabinet expert" });
+                    return BadRequest(new { Message = "La société spécifiée n'est pas un cabinet expert" });
             }
             else
             {
@@ -56,7 +56,7 @@ namespace payzen_backend.Controllers.Dashboard
                     .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null);
 
                 if (currentUser == null || currentUser.Employee == null)
-                    return BadRequest(new { Message = "Utilisateur courant non associÃ© Ã  une entreprise" });
+                    return BadRequest(new { Message = "Utilisateur courant non associé à une entreprise" });
 
                 expertId = currentUser.Employee.CompanyId;
 
@@ -68,7 +68,7 @@ namespace payzen_backend.Controllers.Dashboard
                     return Forbid();
             }
 
-            // RÃ©cupÃ©rer les sociÃ©tÃ©s gÃ©rÃ©es par ce cabinet (clients)
+            // Récupérer les sociétés gérées par ce cabinet (clients)
             var clientIds = await _db.Companies
                 .AsNoTracking()
                 .Where(c => c.DeletedAt == null && c.ManagedByCompanyId == expertId)
@@ -77,7 +77,7 @@ namespace payzen_backend.Controllers.Dashboard
 
             var totalClients = clientIds.Count;
 
-            // Nombre total d'employÃ©s dans ces sociÃ©tÃ©s (non supprimÃ©s)
+            // Nombre total d'employés dans ces sociétés (non supprimés)
             var totalEmployees = 0;
             if (clientIds.Any())
             {

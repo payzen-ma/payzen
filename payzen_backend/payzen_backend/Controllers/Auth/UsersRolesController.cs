@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -27,23 +27,23 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re tous les r√¥les assign√©s √† un utilisateur
+        /// RÈcupËre tous les rÙles assignÈs ‡ un utilisateur
         /// </summary>
         /// <param name="userId">ID de l'utilisateur</param>
-        /// <returns>Liste des r√¥les de l'utilisateur</returns>
+        /// <returns>Liste des rÙles de l'utilisateur</returns>
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<RoleReadDto>>> GetUserRoles(int userId)
         {
-            // V√©rifier que l'utilisateur existe et est actif
+            // VÈrifier que l'utilisateur existe et est actif
             var user = await _db.Users
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null);
             Console.WriteLine($"Try to get user with id : {userId}");
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ" });
 
-            Console.WriteLine($"User trouv√© ! {user.Username}");
-            // R√©cup√©rer les r√¥les de l'utilisateur
+            Console.WriteLine($"User trouvÈ ! {user.Username}");
+            // RÈcupÈrer les rÙles de l'utilisateur
             var roles = await _db.UsersRoles
                 .AsNoTracking()
                 .Where(ur => ur.UserId == userId && ur.DeletedAt == null)
@@ -63,21 +63,21 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re tous les utilisateurs ayant un r√¥le sp√©cifique
+        /// RÈcupËre tous les utilisateurs ayant un rÙle spÈcifique
         /// </summary>
-        /// <param name="roleId">ID du r√¥le</param>
-        /// <returns>Liste des utilisateurs ayant ce r√¥le</returns>
+        /// <param name="roleId">ID du rÙle</param>
+        /// <returns>Liste des utilisateurs ayant ce rÙle</returns>
         [HttpGet("role/{roleId}")]
         public async Task<ActionResult<IEnumerable<UserReadDto>>> GetRoleUsers(int roleId)
         {
-            // V√©rifier que le r√¥le existe
+            // VÈrifier que le rÙle existe
             var roleExists = await _db.Roles
                 .AnyAsync(r => r.Id == roleId && r.DeletedAt == null);
 
             if (!roleExists)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // R√©cup√©rer les utilisateurs ayant ce r√¥le
+            // RÈcupÈrer les utilisateurs ayant ce rÙle
             var users = await _db.UsersRoles
                 .AsNoTracking()
                 .Where(ur => ur.RoleId == roleId && ur.DeletedAt == null)
@@ -98,7 +98,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Assigne un r√¥le √† un utilisateur
+        /// Assigne un rÙle ‡ un utilisateur
         /// </summary>
         /// <param name="dto">UserId et RoleId</param>
         /// <returns>Message de confirmation</returns>
@@ -110,26 +110,26 @@ namespace payzen_backend.Controllers.Auth
 
             var currentUserId = User.GetUserId();
 
-            // V√©rifier que l'utilisateur existe et est actif
+            // VÈrifier que l'utilisateur existe et est actif
             var user = await _db.Users
                 .Where(u => u.Id == dto.UserId && u.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ" });
 
             if (!user.IsActive)
-                return BadRequest(new { Message = "L'utilisateur est d√©sactiv√©" });
+                return BadRequest(new { Message = "L'utilisateur est dÈsactivÈ" });
 
-            // V√©rifier que le r√¥le existe (r√©cup√©rer le role pour le logging)
+            // VÈrifier que le rÙle existe (rÈcupÈrer le role pour le logging)
             var role = await _db.Roles
                 .Where(r => r.Id == dto.RoleId && r.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (role == null)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // V√©rifier si l'association existe d√©j√† (m√™me soft-deleted)
+            // VÈrifier si l'association existe dÈj‡ (mÍme soft-deleted)
             var existingAssignment = await _db.UsersRoles
                 .FirstOrDefaultAsync(ur => ur.UserId == dto.UserId && ur.RoleId == dto.RoleId);
 
@@ -137,10 +137,10 @@ namespace payzen_backend.Controllers.Auth
             {
                 if (existingAssignment.DeletedAt == null)
                 {
-                    return Conflict(new { Message = "L'utilisateur poss√®de d√©j√† ce r√¥le" });
+                    return Conflict(new { Message = "L'utilisateur possËde dÈj‡ ce rÙle" });
                 }
 
-                // R√©activer l'association soft-deleted
+                // RÈactiver l'association soft-deleted
                 existingAssignment.DeletedAt = null;
                 existingAssignment.DeletedBy = null;
                 existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -163,11 +163,11 @@ namespace payzen_backend.Controllers.Auth
                     );
                 }
 
-                return Ok(new { Message = "R√¥le r√©activ√© pour l'utilisateur" });
+                return Ok(new { Message = "RÙle rÈactivÈ pour l'utilisateur" });
             }
             else
             {
-                // Cr√©er une nouvelle association
+                // CrÈer une nouvelle association
                 var userRole = new UsersRoles
                 {
                     UserId = dto.UserId,
@@ -194,15 +194,15 @@ namespace payzen_backend.Controllers.Auth
                     );
                 }
 
-                return Ok(new { Message = "R√¥le assign√© avec succ√®s" });
+                return Ok(new { Message = "RÙle assignÈ avec succËs" });
             }
         }
 
         /// <summary>
-        /// Assigne plusieurs r√¥les √† un utilisateur en une seule op√©ration
+        /// Assigne plusieurs rÙles ‡ un utilisateur en une seule opÈration
         /// </summary>
         /// <param name="dto">UserId et liste de RoleIds</param>
-        /// <returns>R√©sum√© de l'op√©ration</returns>
+        /// <returns>RÈsumÈ de l'opÈration</returns>
         [HttpPost("bulk-assign")]
         public async Task<ActionResult> BulkAssignRoles([FromBody] UserRolesBulkAssignDto dto)
         {
@@ -211,25 +211,25 @@ namespace payzen_backend.Controllers.Auth
 
             var currentUserId = User.GetUserId();
 
-            // V√©rifier que l'utilisateur existe et est actif
+            // VÈrifier que l'utilisateur existe et est actif
             var user = await _db.Users
                 .Where(u => u.Id == dto.UserId && u.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ" });
 
             if (!user.IsActive)
-                return BadRequest(new { Message = "L'utilisateur est d√©sactiv√©" });
+                return BadRequest(new { Message = "L'utilisateur est dÈsactivÈ" });
 
-            // V√©rifier que tous les r√¥les existent et construire map id->name
+            // VÈrifier que tous les rÙles existent et construire map id->name
             var rolesMap = await _db.Roles
                 .Where(r => dto.RoleIds.Contains(r.Id) && r.DeletedAt == null)
                 .ToDictionaryAsync(r => r.Id, r => r.Name);
 
             if (rolesMap.Count != dto.RoleIds.Count)
             {
-                return BadRequest(new { Message = "Un ou plusieurs r√¥les n'existent pas" });
+                return BadRequest(new { Message = "Un ou plusieurs rÙles n'existent pas" });
             }
 
             var assignedCount = 0;
@@ -247,7 +247,7 @@ namespace payzen_backend.Controllers.Auth
                 {
                     if (existingAssignment.DeletedAt != null)
                     {
-                        // R√©activer
+                        // RÈactiver
                         existingAssignment.DeletedAt = null;
                         existingAssignment.DeletedBy = null;
                         existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -269,13 +269,13 @@ namespace payzen_backend.Controllers.Auth
                     }
                     else
                     {
-                        // D√©j√† assign√©
+                        // DÈj‡ assignÈ
                         skippedCount++;
                     }
                 }
                 else
                 {
-                    // Cr√©er nouvelle association
+                    // CrÈer nouvelle association
                     var userRole = new UsersRoles
                     {
                         UserId = dto.UserId,
@@ -306,7 +306,7 @@ namespace payzen_backend.Controllers.Auth
 
             return Ok(new
             {
-                Message = "R√¥les assign√©s avec succ√®s",
+                Message = "RÙles assignÈs avec succËs",
                 Assigned = assignedCount,
                 Reactivated = reactivatedCount,
                 Skipped = skippedCount
@@ -314,10 +314,10 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Remplace tous les r√¥les d'un utilisateur
+        /// Remplace tous les rÙles d'un utilisateur
         /// </summary>
         /// <param name="dto">UserId et nouvelle liste de RoleIds</param>
-        /// <returns>R√©sum√© de l'op√©ration</returns>
+        /// <returns>RÈsumÈ de l'opÈration</returns>
         [HttpPut("replace")]
         public async Task<ActionResult> ReplaceUserRoles([FromBody] UserRolesBulkAssignDto dto)
         {
@@ -326,28 +326,28 @@ namespace payzen_backend.Controllers.Auth
 
             var currentUserId = User.GetUserId();
 
-            // V√©rifier que l'utilisateur existe et est actif
+            // VÈrifier que l'utilisateur existe et est actif
             var user = await _db.Users
                 .Where(u => u.Id == dto.UserId && u.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ" });
 
             if (!user.IsActive)
-                return BadRequest(new { Message = "L'utilisateur est d√©sactiv√©" });
+                return BadRequest(new { Message = "L'utilisateur est dÈsactivÈ" });
 
-            // V√©rifier que tous les r√¥les existent et construire map id->name
+            // VÈrifier que tous les rÙles existent et construire map id->name
             var rolesMap = await _db.Roles
                 .Where(r => dto.RoleIds.Contains(r.Id) && r.DeletedAt == null)
                 .ToDictionaryAsync(r => r.Id, r => r.Name);
 
             if (rolesMap.Count != dto.RoleIds.Count)
             {
-                return BadRequest(new { Message = "Un ou plusieurs r√¥les n'existent pas" });
+                return BadRequest(new { Message = "Un ou plusieurs rÙles n'existent pas" });
             }
 
-            // Supprimer tous les r√¥les actuels (charger avec Role pour logging)
+            // Supprimer tous les rÙles actuels (charger avec Role pour logging)
             var currentRoles = await _db.UsersRoles
                 .Include(ur => ur.Role)
                 .Where(ur => ur.UserId == dto.UserId && ur.DeletedAt == null)
@@ -375,7 +375,7 @@ namespace payzen_backend.Controllers.Auth
                 }
             }
 
-            // Assigner les nouveaux r√¥les
+            // Assigner les nouveaux rÙles
             var assignedCount = 0;
             var reactivatedCount = 0;
 
@@ -386,7 +386,7 @@ namespace payzen_backend.Controllers.Auth
 
                 if (existingAssignment != null)
                 {
-                    // R√©activer
+                    // RÈactiver
                     existingAssignment.DeletedAt = null;
                     existingAssignment.DeletedBy = null;
                     existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -408,7 +408,7 @@ namespace payzen_backend.Controllers.Auth
                 }
                 else
                 {
-                    // Cr√©er nouvelle association
+                    // CrÈer nouvelle association
                     var userRole = new UsersRoles
                     {
                         UserId = dto.UserId,
@@ -439,7 +439,7 @@ namespace payzen_backend.Controllers.Auth
 
             return Ok(new
             {
-                Message = "R√¥les remplac√©s avec succ√®s",
+                Message = "RÙles remplacÈs avec succËs",
                 Removed = currentRoles.Count,
                 Assigned = assignedCount,
                 Reactivated = reactivatedCount
@@ -447,7 +447,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Retire un r√¥le d'un utilisateur (soft delete)
+        /// Retire un rÙle d'un utilisateur (soft delete)
         /// </summary>
         /// <param name="dto">UserId et RoleId</param>
         /// <returns>204 No Content</returns>
@@ -466,7 +466,7 @@ namespace payzen_backend.Controllers.Auth
                                         && ur.DeletedAt == null);
 
             if (userRole == null)
-                return NotFound(new { Message = "Cette association utilisateur-r√¥le n'existe pas" });
+                return NotFound(new { Message = "Cette association utilisateur-rÙle n'existe pas" });
 
             // Soft delete
             userRole.DeletedAt = DateTimeOffset.UtcNow;
@@ -485,20 +485,20 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re tous les r√¥les d'un employ√© (cherche par EmployeeId)
+        /// RÈcupËre tous les rÙles d'un employÈ (cherche par EmployeeId)
         /// </summary>
         [HttpGet("employee/{employeeId}")]
         public async Task<ActionResult<IEnumerable<object>>> GetEmployeeRoles(int employeeId)
         {
-            // Trouver le user associ√© √† cet employ√©
+            // Trouver le user associÈ ‡ cet employÈ
             var user = await _db.Users
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.EmployeeId == employeeId && u.DeletedAt == null);
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√© pour cet employ√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ pour cet employÈ" });
 
-            // R√©cup√©rer les r√¥les
+            // RÈcupÈrer les rÙles
             var roles = await _db.UsersRoles
                 .AsNoTracking()
                 .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
@@ -523,7 +523,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Assigne des r√¥les √† un employ√© (cherche par EmployeeId)
+        /// Assigne des rÙles ‡ un employÈ (cherche par EmployeeId)
         /// </summary>
         [HttpPost("employee/{employeeId}/assign")]
         public async Task<ActionResult> AssignRolesToEmployee(int employeeId, [FromBody] int[] roleIds)
@@ -532,7 +532,7 @@ namespace payzen_backend.Controllers.Auth
                 .FirstOrDefaultAsync(u => u.EmployeeId == employeeId && u.DeletedAt == null);
 
             if (user == null)
-                return NotFound(new { Message = "Utilisateur non trouv√© pour cet employ√©" });
+                return NotFound(new { Message = "Utilisateur non trouvÈ pour cet employÈ" });
 
             var dto = new UserRolesBulkAssignDto { UserId = user.Id, RoleIds = roleIds.ToList() };
             return await BulkAssignRoles(dto);

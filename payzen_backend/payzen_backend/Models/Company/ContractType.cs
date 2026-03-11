@@ -1,4 +1,4 @@
-ï»¿using payzen_backend.Models.Referentiel;
+using payzen_backend.Models.Referentiel;
 
 namespace payzen_backend.Models.Company
 {
@@ -8,7 +8,7 @@ namespace payzen_backend.Models.Company
         public required string ContractTypeName { get; set; }
         public int CompanyId { get; set; }
 
-        // conformitÃ© marocaine (non libre)
+        // conformité marocaine (non libre)
         // Nullable pour le moment, devien obligatioir apres seed values
         public int? LegalContractTypeId { get; set; }
         public int? StateEmploymentProgramId { get; set; } // NONE / ANAPEC / IDMAJ / TAHFIZ
@@ -25,7 +25,7 @@ namespace payzen_backend.Models.Company
         public Company? Company { get; set; } = null!;
         public ICollection<Employee.EmployeeContract>? Employees { get; set; }
 
-        // NOUVEAU: navigation vers rÃ©fÃ©rentiels
+        // NOUVEAU: navigation vers référentiels
         public LegalContractType? LegalContractType { get; set; }
         public StateEmploymentProgram? StateEmploymentProgram { get; set; }
     }

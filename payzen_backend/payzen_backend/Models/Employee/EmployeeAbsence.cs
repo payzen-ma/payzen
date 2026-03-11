@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace payzen_backend.Models.Employee
@@ -21,9 +21,9 @@ namespace payzen_backend.Models.Employee
         public int? DecisionBy { get; set; }
         public string? DecisionComment { get; set; }
 
-        // ---- Demi-journÃ©e ----
+        // ---- Demi-journée ----
         public bool? IsMorning { get; set; }
-        // true = matin, false = aprÃ¨s-midi
+        // true = matin, false = après-midi
 
         // ---- Tranche horaire ----
         public TimeOnly? StartTime { get; set; }

@@ -1,26 +1,30 @@
-Ôªøusing System.Text.Json;
-using Anthropic;
-using Anthropic.Models.Messages;
+using System.Text.Json;
+using System.Net.Http.Headers;
 
 namespace payzen_backend.Services.Llm
 {
     public class ClaudeSimulationService : IClaudeSimulationService
     {
-        private readonly AnthropicClient _client;
+        private readonly HttpClient _httpClient;
         private readonly ILogger<ClaudeSimulationService> _logger;
+        private readonly string _apiKey;
+        private const string GEMINI_MODEL = "gemini-2.5-flash-lite";
+        private const string GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
         public ClaudeSimulationService(
             IConfiguration config,
-            ILogger<ClaudeSimulationService> logger)
+            ILogger<ClaudeSimulationService> logger,
+            IHttpClientFactory httpClientFactory)
         {
-            var apikey = config["Anthropic:ApiKey"] ?? 
-                throw new InvalidOperationException("Anthropic:ApiKey non configur√©");
-            _client = new AnthropicClient() { ApiKey = apikey };
+            _apiKey = config["Google:ApiKey"] ?? 
+                throw new InvalidOperationException("Google:ApiKey non configurÈ dans appsettings.json");
+            _httpClient = httpClientFactory.CreateClient();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;
         }
 
         /// <summary>
-        /// Envoie une requ√™te √† l'API d'Anthropic pour simuler des √©l√©ments de paie selon les r√®gles fournies
+        /// Envoie une requÍte ‡ l'API Google Gemini pour simuler des ÈlÈments de paie selon les rËgles fournies
         /// par le DSL
         /// </summary> 
         public async Task<string> SimulationSalaryAsync(
@@ -30,77 +34,83 @@ namespace payzen_backend.Services.Llm
         {
             try
             {
-                _logger.LogInformation("D√©marrage de la simulation de paie avec Claude");
+                _logger.LogInformation("DÈmarrage de la simulation de paie avec Gemini");
 
-                // Construction du prompt syst√®me avec les r√®gles DSL
+                // Construction du prompt systËme avec les rËgles DSL
                 var systemPrompt = BuildSystemPrompt(regleContent);
 
                 // Construction du prompt utilisateur
                 var userPrompt = BuildUserPrompt(instruction);
 
-                // Cr√©ation de la requ√™te vers l'API Claude
-                var parameters = new MessageCreateParams
+                // Combinaison des prompts pour Gemini
+                var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
+
+                // PrÈparation de la requÍte pour Gemini API
+                var requestBody = new
                 {
-                    Model = "claude-haiku-4-5-20251001",
-                    MaxTokens = 8192, // Augment√© pour supporter 3 sc√©narios complets
-                    System = new MessageCreateParamsSystem(
-                        new[]
+                    contents = new[]
+                    {
+                        new
                         {
-                            new TextBlockParam
+                            parts = new[]
                             {
-                                Text = systemPrompt,
-                                CacheControl = new CacheControlEphemeral() // Active le caching pour optimiser les co√ªts
+                                new { text = fullPrompt }
                             }
                         }
-                    ),
-                    Messages =
-                    [
-                        new()
-                        {
-                            Role = Role.User,
-                            Content = userPrompt
-                        }
-                    ]
+                    },
+                    generationConfig = new
+                    {
+                        temperature = 0.7,
+                        maxOutputTokens = 8192,
+                        responseMimeType = "application/json"
+                    }
                 };
 
-                _logger.LogDebug("Envoi de la requ√™te √† l'API Anthropic");
+                var jsonContent = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-                // Appel √† l'API Claude
-                var response = await _client.Messages.Create(parameters, cancellationToken);
+                _logger.LogDebug("Envoi de la requÍte ‡ l'API Gemini");
+                _logger.LogInformation("?? ParamËtres de la requÍte - Model: {Model}, MaxTokens: {MaxTokens}", GEMINI_MODEL, 8192);
 
-                if (response?.Content == null || response.Content.Count == 0)
+                // Appel ‡ l'API Gemini
+                var url = $"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent?key={_apiKey}";
+                var httpResponse = await _httpClient.PostAsync(url, content, cancellationToken);
+
+                if (!httpResponse.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("R√©ponse vide re√ßue de l'API Claude");
-                    return "Aucune r√©ponse g√©n√©r√©e par le mod√®le.";
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogError("Erreur API Gemini: {StatusCode} - {Error}", httpResponse.StatusCode, errorContent);
+                    throw new InvalidOperationException($"Erreur API Gemini: {httpResponse.StatusCode}");
                 }
 
-                // Extraction du texte de la r√©ponse
-                TextBlock? textBlock = null;
-                foreach (var contentBlock in response.Content)
-                {
-                    if (contentBlock.TryPickText(out var tb) && tb != null)
-                    {
-                        textBlock = tb;
-                        break;
-                    }
-                }
+                var responseContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+                
+                // Parser la rÈponse Gemini
+                using var geminiResponse = JsonDocument.Parse(responseContent);
+                var responseText = geminiResponse.RootElement
+                    .GetProperty("candidates")[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString() ?? throw new InvalidOperationException("RÈponse Gemini sans contenu texte.");
 
-                var responseText = textBlock?.Text 
-                    ?? throw new InvalidOperationException("R√©ponse Claude sans contenu texte.");
+                _logger.LogInformation("?? RÈponse brute reÁue - Longueur: {Length} caractËres", responseText.Length);
+                _logger.LogDebug("?? RÈponse brute complËte:\n{Response}", responseText);
 
-                _logger.LogDebug("Longueur de la r√©ponse : {Length} caract√®res", responseText.Length);
+                // Nettoyer la rÈponse (supprimer les backticks markdown si prÈsents)
+                var cleanedResponse = CleanJsonResponse(responseText);
+                
+                _logger.LogInformation("?? JSON nettoyÈ - Longueur: {Length} caractËres", cleanedResponse.Length);
+                _logger.LogDebug("?? JSON nettoyÈ:\n{CleanedResponse}", cleanedResponse);
 
                 // Validation du format JSON
                 try
                 {
-                    // Nettoyer la r√©ponse (supprimer les backticks markdown si pr√©sents)
-                    var cleanedResponse = CleanJsonResponse(responseText);
-                    
                     // Tenter de parser pour valider le JSON
                     using var jsonDoc = JsonDocument.Parse(cleanedResponse);
                     var root = jsonDoc.RootElement;
                     
-                    // V√©rifier si le LLM a retourn√© une erreur au lieu des sc√©narios
+                    // VÈrifier si le LLM a retournÈ une erreur au lieu des scÈnarios
                     if (root.TryGetProperty("error", out var errorProp))
                     {
                         var errorTitle = errorProp.GetString() ?? "Demande invalide";
@@ -126,46 +136,49 @@ namespace payzen_backend.Services.Llm
                             detailedMessage += "\n\nExemples valides :";
                             foreach (var exemple in exemplesProp.EnumerateArray())
                             {
-                                detailedMessage += "\n‚Ä¢ " + exemple.GetString();
+                                detailedMessage += "\nï " + exemple.GetString();
                             }
                         }
                         
-                        _logger.LogWarning("‚ö†Ô∏è Demande utilisateur non claire - Le LLM demande des pr√©cisions : {Error}", 
+                        _logger.LogWarning("?? Demande utilisateur non claire - Le LLM demande des prÈcisions : {Error}", 
                             detailedMessage);
                         
-                        // ArgumentException sera transform√© en BadRequest par le contr√¥leur
+                        // ArgumentException sera transformÈ en BadRequest par le contrÙleur
                         throw new ArgumentException(detailedMessage);
                     }
                     
-                    // V√©rifier que la r√©ponse contient bien les sc√©narios attendus
+                    // VÈrifier que la rÈponse contient bien les scÈnarios attendus
                     if (!root.TryGetProperty("scenarios", out var scenariosProp))
                     {
-                        _logger.LogWarning("‚ö†Ô∏è R√©ponse JSON valide mais sans champ 'scenarios' : {Response}", cleanedResponse);
+                        _logger.LogWarning("?? RÈponse JSON valide mais sans champ 'scenarios' : {Response}", cleanedResponse);
                         
                         throw new InvalidOperationException(
-                            $"Le LLM a retourn√© un JSON valide mais il manque le champ 'scenarios'.\n\n" +
-                            $"R√©ponse re√ßue : {cleanedResponse.Substring(0, Math.Min(300, cleanedResponse.Length))}...");
+                            $"Le LLM a retournÈ un JSON valide mais il manque le champ 'scenarios'.\n\n" +
+                            $"RÈponse reÁue : {cleanedResponse.Substring(0, Math.Min(300, cleanedResponse.Length))}...");
                     }
                     
-                    _logger.LogInformation("‚úÖ Simulation de paie termin√©e avec succ√®s - JSON valide avec {Count} sc√©narios", 
+                    _logger.LogInformation("? Simulation de paie terminÈe avec succËs - JSON valide avec {Count} scÈnarios", 
                         scenariosProp.GetArrayLength());
                     return cleanedResponse;
                 }
                 catch (JsonException jsonEx)
                 {
-                    _logger.LogError(jsonEx, "‚ùå ERREUR JSON INVALIDE - R√©ponse brute du LLM :\n{Response}", responseText);
+                    _logger.LogError(jsonEx, "? ERREUR JSON INVALIDE");
+                    _logger.LogError("?? Position erreur: Ligne {Line}, Colonne {Column}", jsonEx.LineNumber, jsonEx.BytePositionInLine);
+                    _logger.LogError("?? Premiers 1000 caractËres du JSON:\n{JsonStart}", cleanedResponse.Substring(0, Math.Min(1000, cleanedResponse.Length)));
+                    _logger.LogError("?? Derniers 500 caractËres du JSON:\n{JsonEnd}", cleanedResponse.Length > 500 ? cleanedResponse.Substring(cleanedResponse.Length - 500) : cleanedResponse);
                     
-                    // V√©rifier si le JSON est simplement incomplet (coup√© par MaxTokens)
-                    var errorMsg = $"Le LLM a retourn√© un JSON invalide. Erreur de parsing : {jsonEx.Message}\n\n" +
+                    // VÈrifier si le JSON est simplement incomplet (coupÈ par MaxTokens)
+                    var errorMsg = $"Le LLM a retournÈ un JSON invalide. Erreur de parsing : {jsonEx.Message}\n\n" +
                         $"Position de l'erreur : Ligne {jsonEx.LineNumber}, Colonne {jsonEx.BytePositionInLine}\n\n";
                     
                     if (jsonEx.Message.Contains("end of data") || jsonEx.Message.Contains("incomplete"))
                     {
-                        errorMsg += $"‚ö†Ô∏è Le JSON semble incomplet (probablement coup√© par la limite de tokens).\n" +
-                            $"Longueur de la r√©ponse : {responseText.Length} caract√®res\n\n";
+                        errorMsg += $"?? Le JSON semble incomplet (probablement coupÈ par la limite de tokens).\n" +
+                            $"Longueur de la rÈponse : {responseText.Length} caractËres\n\n";
                     }
                     
-                    errorMsg += $"R√©ponse brute re√ßue (premiers 800 caract√®res) :\n{responseText.Substring(0, Math.Min(800, responseText.Length))}...";
+                    errorMsg += $"Consultez les logs pour voir le JSON complet.";
                     
                     throw new InvalidOperationException(errorMsg, jsonEx);
                 }
@@ -177,30 +190,37 @@ namespace payzen_backend.Services.Llm
             }
             catch (JsonException)
             {
-                // D√©j√† g√©r√© ci-dessus, mais on le relance sans wrapper
+                // DÈj‡ gÈrÈ ci-dessus, mais on le relance sans wrapper
                 throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors de la simulation de paie avec Claude");
                 throw new InvalidOperationException(
-                    "Erreur lors de la simulation de paie. Veuillez r√©essayer.", ex);
+                    "Erreur lors de la simulation de paie. Veuillez rÈessayer.", ex);
             }
         }
 
         /// <summary>
-        /// Nettoie la r√©ponse JSON en supprimant les backticks markdown et espaces superflus
+        /// Nettoie la rÈponse JSON en supprimant les backticks markdown et espaces superflus
         /// </summary>
         private string CleanJsonResponse(string response)
         {
             if (string.IsNullOrWhiteSpace(response))
+            {
+                _logger.LogWarning("?? RÈponse vide ou null passÈe ‡ CleanJsonResponse");
                 return response;
+            }
 
+            _logger.LogDebug("?? Nettoyage JSON - Longueur initiale: {Length}", response.Length);
+            
             // Supprimer les blocs markdown code (```json ... ``` ou ``` ... ```)
             var cleaned = response.Trim();
             
             if (cleaned.StartsWith("```"))
             {
+                _logger.LogDebug("?? DÈtection de blocs markdown - Suppression des backticks");
+                
                 // Trouver la fin du premier ```
                 var firstLineEnd = cleaned.IndexOf('\n');
                 if (firstLineEnd > 0)
@@ -215,77 +235,199 @@ namespace payzen_backend.Services.Llm
                 }
                 
                 cleaned = cleaned.Trim();
+                _logger.LogDebug("?? AprËs suppression markdown - Longueur: {Length}", cleaned.Length);
+            }
+            
+            // VÈrifications supplÈmentaires
+            if (!cleaned.StartsWith("{") && !cleaned.StartsWith("["))
+            {
+                _logger.LogWarning("?? Le JSON nettoyÈ ne commence pas par {{ ou [ : {Start}", 
+                    cleaned.Substring(0, Math.Min(50, cleaned.Length)));
+            }
+            
+            if (!cleaned.EndsWith("}") && !cleaned.EndsWith("]"))
+            {
+                _logger.LogWarning("?? Le JSON nettoyÈ ne se termine pas par }} ou ] : {End}", 
+                    cleaned.Length > 50 ? cleaned.Substring(cleaned.Length - 50) : cleaned);
             }
             
             return cleaned;
         }
 
         /// <summary>
-        /// Construit le prompt syst√®me contenant les r√®gles de calcul de paie
+        /// Construit le prompt systËme contenant les rËgles de calcul de paie
         /// </summary>
-        private string BuildSystemPrompt(string regleContent)
+        public static string BuildSystemPrompt(string regleContent)
         {
-            return $@"Tu es un expert en paie marocaine et en simulation de salaires. 
-Tu as acc√®s aux r√®gles de calcul suivantes d√©finies dans notre syst√®me :
+            return $@"Tu es un expert-comptable spÈcialisÈ en droit social marocain et en optimisation de la rÈmunÈration salariale.
 
-{regleContent}
+Tu dois STRICTEMENT appliquer les rËgles dÈfinies dans le fichier DSL PayZen v3.1 ci-dessous.
+Ne jamais inventer de taux ou de rËgles. Tout est dans le DSL.
 
-INSTRUCTIONS CRITIQUES :
-1. Analyse la demande de l'utilisateur (g√©n√©ralement un salaire net souhait√©)
-2. Le demandeur est toujours un RH qui veux optimiser la paie pour l'entreprise, ne donne pas un montant superiour a la demande de plus de 5%
-3. Propose EXACTEMENT 3 FORMULES DIFF√âRENTES pour atteindre cet objectif
-4. Chaque formule doit utiliser une strat√©gie distincte :
-   - Formule 1 : Approche √©quilibr√©e (mix salaire base + indemnit√©s standard)
-   - Formule 2 : Salaire de base maximal (moins d'indemnit√©s)
-   - Formule 3 : Optimisation fiscale (plus d'indemnit√©s exon√©r√©es)
-5. Calcule pr√©cis√©ment tous les √©l√©ments : brut, cotisations, IR, net
-6. Explique les avantages et inconv√©nients de chaque formule
-7. Assure-toi que les calculs respectent la l√©gislation marocaine d√©finie dans les r√®gles de calcul Payzen DSL
-8. Assume que l'employ√© a une anciennet√© de 0 (nouveau employ√©) sauf si sp√©cifi√© dans la demande
-9. La prime de repr√©sentation est Uniquement pour employee g√©rent.
-10. Si la demande contient : Merci, Thank you, Thanks sans une demande valable, retourn JSON avec Ravi de vous service ou un message du genre
+<payzen_dsl>
+;;; ============================================================
+;;; PAYZEN DSL ó RËgles de Paie Marocaine
+;;; Version   : 3.1  (primes imposables ó liste dynamique)
+;;; Juridiction: Maroc (MA)
+;;; Devise     : MAD (Dirham marocain)
+;;; Sources    : CNSS DÈcret 2.25.266 (2025) ∑ CGI Art.59
+;;;              Loi Finances 2023 ∑ Code du Travail Marocain
+;;; ============================================================
 
-FORMAT DE R√âPONSE OBLIGATOIRE - JSON UNIQUEMENT :
-‚ö†Ô∏è CRITIQUE : R√©ponds UNIQUEMENT avec un objet JSON COMPLET et VALIDE.
-- PAS de markdown (pas de ```json)
-- PAS de texte avant ou apr√®s le JSON
-- Le JSON DOIT √™tre COMPLET avec les 3 sc√©narios
-- V√©rifie que toutes les accolades {{}} et crochets [] sont bien ferm√©s
-- Si tu arrives √† la limite de tokens, r√©duis les descriptions mais garde le JSON valide
+;;; R»GLE D'OR N∞1 ó ORDRE DES D…DUCTIONS AVANT IR :
+;;;   RNI = Brut Imposable
+;;;         - CNSS_salarial  (RG + AMO)
+;;;         - CIMR_salarial
+;;;         - Mutuelle_salariale
+;;;         - Frais_Professionnels  (% calculÈ sur brut)
+;;;         - IntÈrÍt_prÍt_logement
 
-Structure JSON attendue (DOIT inclure EXACTEMENT 3 sc√©narios) :
+;;; R»GLE D'OR N∞2 ó FRAIS PROFESSIONNELS :
+;;;   Le TAUX FP (25% ou 35%) s'applique sur le BRUT IMPOSABLE
+;;;   PAS sur (brut - cnss).
+;;;   montant_fp = MIN(brut ◊ taux, 2916.67)
+;;;   Si brut=9900 ? 9900◊25%=2475 < 2916.67 ? fp=2475 (?2916.67)
 
-{{
-  ""scenarios"": [
-    {{
-      ""titre"": ""Approche √©quilibr√©e"",
-      ""description"": ""Mix salaire base et indemnit√©s standard"",
-      ""elements"": [
-        {{ ""nom"": ""Salaire de base"", ""type"": ""base"", ""montant"": 8000.00 }},
-        {{ ""nom"": ""Prime de transport"", ""type"": ""prime"", ""montant"": 500.00 }},
-        {{ ""nom"": ""CNSS salariale"", ""type"": ""deduction"", ""montant"": -340.00 }},
-        {{ ""nom"": ""AMO"", ""type"": ""deduction"", ""montant"": -170.00 }},
-        {{ ""nom"": ""IR"", ""type"": ""deduction"", ""montant"": -650.00 }}
-      ],
-      ""brut_imposable"": 8500.00,
-      ""total_retenues"": 1160.00,
-      ""cout_employeur"": 10200.00,
-      ""salaire_net"": 7340.00,
-      ""calcul_steps"": [
-        {{ ""label"": ""Salaire brut"", ""value"": ""8 500.00 DH"" }},
-        {{ ""label"": ""CNSS (4%)"", ""value"": ""‚àí 340.00 DH"" }},
-        {{ ""label"": ""AMO (2%)"", ""value"": ""‚àí 170.00 DH"" }},
-        {{ ""label"": ""IR"", ""value"": ""‚àí 650.00 DH"" }},
-        {{ ""label"": ""Salaire net"", ""value"": ""7 340.00 DH"" }}
-      ],
-      ""avantages"": [""√âquilibre entre co√ªts et avantages"", ""Structure classique""],
-      ""inconvenients"": [""Optimisation fiscale limit√©e""]
-    }}
-  ]
+;;; R»GLE D'OR N∞3 ó NE PAS CONFONDRE :
+;;;   base_fp        = salaire_brut_imposable (pour le taux)
+;;;   revenu_net_imp = brut - cnss - cimr - mutuelle - fp
+
+;;; R»GLE D'OR N∞4 ó V…RIFIER VIA CHECKPOINT :
+;;;   AprËs chaque module, vÈrifier la cohÈrence des chiffres.
+;;;   SELF_CHECK MODULE[09] : RNI doit Ítre < (brut - fp) si cnss > 0
+
+@CONSTANTS {{
+  PLAFOND_CNSS_MENSUEL        : 6000.00
+  CNSS_RG_SALARIAL            : 0.0448
+  CNSS_RG_PATRONAL            : 0.0898
+  CNSS_AMO_SALARIAL           : 0.0226
+  CNSS_AMO_PATRONAL           : 0.0226
+  CNSS_AMO_PARTICIPATION_PAT  : 0.0185
+  CNSS_ALLOC_FAM_PAT          : 0.0640
+  CNSS_FP_PAT                 : 0.0160
+  PLAFOND_NI_TRANSPORT        : 500.00
+  PLAFOND_NI_TRANSPORT_HU     : 750.00
+  PLAFOND_NI_TOURNEE          : 1500.00
+  PLAFOND_NI_REPRESENTATION   : 0.10
+  PLAFOND_NI_PANIER_JOUR      : 34.20
+  PLAFOND_NI_CAISSE_DGI       : 190.00
+  PLAFOND_NI_LAIT_DGI         : 150.00
+  PLAFOND_NI_OUTILLAGE_DGI    : 100.00
+  PLAFOND_NI_SALISSURE_DGI    : 210.00
+  PLAFOND_NI_GRATIF_DGI       : 2500.00
+  IR_DEDUCTION_FAMILLE        : 30.00
 }}
 
-TYPES d'√©l√©ments autoris√©s : 'base', 'prime', 'deduction', 'avantage', 'ni' (non imposable)";
+MODULE[01] anciennete {{
+  WHEN anciennete_annees < 2    THEN taux_anciennete = 0.00
+  WHEN anciennete_annees < 5    THEN taux_anciennete = 0.05
+  WHEN anciennete_annees < 12   THEN taux_anciennete = 0.10
+  WHEN anciennete_annees < 20   THEN taux_anciennete = 0.15
+  WHEN anciennete_annees >= 20  THEN taux_anciennete = 0.20
+  prime_anciennete = ROUND(salaire_base ◊ taux_anciennete, 2)
+}}
+
+MODULE[05] salaire_brut_imposable {{
+  total_primes_imposables = SUM(primes_imposables[*].montant)
+  salaire_brut_imposable  = salaire_base
+                          + prime_anciennete
+                          + total_hsupp
+                          + total_primes_imposables
+                          + total_ni_excedent_imposable
+}}
+
+MODULE[06] cnss {{
+  base_cnss_rg     = MIN(salaire_brut_imposable, 6000.00)
+  cnss_rg_sal      = ROUND(base_cnss_rg ◊ 0.0448, 2)
+  cnss_amo_sal     = ROUND(salaire_brut_imposable ◊ 0.0226, 2)
+  total_cnss_sal   = cnss_rg_sal + cnss_amo_sal
+
+  cnss_rg_pat           = ROUND(base_cnss_rg ◊ 0.0898, 2)
+  cnss_alloc_fam_pat    = ROUND(salaire_brut_imposable ◊ 0.0640, 2)
+  cnss_fp_pat           = ROUND(salaire_brut_imposable ◊ 0.0160, 2)
+  cnss_amo_pat          = ROUND(salaire_brut_imposable ◊ 0.0226, 2)
+  cnss_particip_amo_pat = ROUND(salaire_brut_imposable ◊ 0.0185, 2)
+  total_cnss_pat = cnss_rg_pat + cnss_alloc_fam_pat + cnss_fp_pat
+                 + cnss_amo_pat + cnss_particip_amo_pat
+}}
+
+MODULE[07] cimr {{
+  WHEN regime = AUCUN        : cimr_sal = 0 ; cimr_pat = 0
+  WHEN regime = AL_KAMIL     : base = salaire_brut_imposable
+  WHEN regime = AL_MOUNASSIB : base = MAX(0, salaire_brut_imposable - 6000)
+  cimr_sal = ROUND(base ◊ taux_salarial, 2)
+  cimr_pat = ROUND(base ◊ taux_patronal, 2)
+}}
+
+MODULE[08] frais_professionnels {{
+  ;; BASE FP = brut_imposable COMPLET ó jamais brut - cnss
+  WHEN salaire_brut_imposable <= 6500 : taux_fp = 0.35 ; plafond_fp = 2916.67
+  WHEN salaire_brut_imposable >  6500 : taux_fp = 0.25 ; plafond_fp = 2916.67
+  montant_fp = MIN(ROUND(salaire_brut_imposable ◊ taux_fp, 2), plafond_fp)
+}}
+
+MODULE[09] base_ir {{
+  RNI = salaire_brut_imposable
+      - total_cnss_sal
+      - cimr_sal
+      - mutuelle_salariale
+      - montant_fp
+      - interet_pret_logement
+  RNI = MAX(0, RNI)
+  SELF_CHECK: ASSERT RNI < (salaire_brut_imposable - montant_fp) si total_cnss_sal > 0
+}}
+
+MODULE[10] ir {{
+  ;; BarËme mensuel 2026
+  WHEN RNI <= 3333.33  : taux_ir = 0.00  ; ded_bareme =    0.00
+  WHEN RNI <= 5000.00  : taux_ir = 0.10  ; ded_bareme =  333.33
+  WHEN RNI <= 6666.67  : taux_ir = 0.20  ; ded_bareme =  833.33
+  WHEN RNI <= 8333.33  : taux_ir = 0.30  ; ded_bareme = 1500.00
+  WHEN RNI <= 15000.00 : taux_ir = 0.34  ; ded_bareme = 1833.33
+  WHEN RNI >  15000.00 : taux_ir = 0.37  ; ded_bareme = 2283.33
+  ir_brut         = ROUND(RNI ◊ taux_ir, 2)
+  ded_famille     = nb_personnes_charge ◊ 30.00
+  ir_final        = MAX(0, ROUND(ir_brut - ded_bareme - ded_famille, 2))
+}}
+
+MODULE[11] net_a_payer {{
+  total_retenues = total_cnss_sal + cimr_sal + mutuelle_salariale + ir_final
+  salaire_net    = salaire_brut_imposable - total_retenues + total_ni_exonere
+}}
+
+MODULE[12] cout_employeur {{
+  total_charges_pat = total_cnss_pat + cimr_pat + mutuelle_patronale
+  cout_employeur    = salaire_brut_imposable + total_charges_pat + total_ni_exonere
+}}
+
+@ANTIPATTERNS {{
+  ? fp_base = brut - cnss        ? ? fp_base = brut_imposable
+  ? montant_fp = 2916.67 forfait ? ? MIN(brut ◊ taux, 2916.67)
+  ? RNI = brut - fp seul         ? ? RNI = brut - cnss - cimr - mutuelle - fp
+  ? cnss_rg = brut ◊ 4.48%       ? ? MIN(brut, 6000) ◊ 4.48%
+}}
+
+@EXAMPLE_REFERENCE {{
+  ;; Cas test ó ‡ utiliser pour auto-vÈrification avant de rÈpondre
+  salaire_base = 9000 MAD, anciennetÈ = 5 ans, 26j, 0 charge, sans CIMR, sans NI
+  ? brut_imposable  = 9900.00
+  ? total_cnss_sal  = 492.54   (268.80 + 223.74)
+  ? montant_fp      = 2475.00  (9900 ◊ 25% = 2475 < 2916.67 ? NON plafonnÈ)
+  ? RNI             = 6932.46  (9900 - 492.54 - 2475)
+  ? IR              = 579.74
+  ? salaire_net     = 8827.72
+  ? cout_employeur  = 11637.69
+}}
+</payzen_dsl>
+
+INSTRUCTIONS DE SORTIE :
+- RÈponds UNIQUEMENT avec un objet JSON valide.
+- Aucun texte avant, aucun texte aprËs.
+- Aucune balise markdown, aucun ```json.
+- Tous les montants sont en MAD, arrondis ‡ 2 dÈcimales.
+- Avant de rÈpondre, vÈrifie chaque formule avec l'@EXAMPLE_REFERENCE comme rÈfÈrence croisÈe.";
         }
+
 
         /// <summary>
         /// Construit le prompt utilisateur avec l'instruction de simulation
@@ -297,80 +439,127 @@ TYPES d'√©l√©ments autoris√©s : 'base', 'prime', 'deduction', 'avantage', 'ni' (
 {instruction}
 
 IMPORTANT : 
-- Si la demande est claire et contient un montant de salaire net souhait√© : Propose EXACTEMENT 3 FORMULES DIFF√âRENTES avec des strat√©gies distinctes
+- Si la demande est claire et contient un montant de salaire net souhaitÈ : Propose EXACTEMENT 3 FORMULES DIFF…RENTES avec des stratÈgies distinctes
 - Si la demande n'est PAS CLAIRE ou ne contient PAS de montant net : Retourne un JSON avec un champ ""error"" expliquant ce qui manque
-- Le salaire net √† payer doit correspondre √† ma demande
-- R√©ponds UNIQUEMENT avec du JSON valide (pas de texte avant/apr√®s, pas de markdown)
-- ‚ö†Ô∏è CRITIQUE : Le JSON DOIT √™tre COMPLET avec TOUS les 3 sc√©narios et toutes les accolades ferm√©es
-- Utilise la structure JSON sp√©cifi√©e dans les instructions syst√®me pour les sc√©narios
-- Pour les erreurs, utilise ce format : {{""error"": ""titre"", ""message"": ""d√©tails"", ""instructions"": ""aide""}}
-- Tous les montants doivent √™tre arrondis √† 2 d√©cimales
-- Inclus tous les √©l√©ments de paie : base, primes, d√©ductions (CNSS, AMO, IR, etc.)
-- ‚ö†Ô∏è OBLIGATOIRE : Chaque sc√©nario DOIT contenir ces champs num√©riques :
-  * brut_imposable (nombre)
-  * total_retenues (nombre positif, somme des d√©ductions)
-  * cout_employeur (nombre, brut + charges patronales)
-  * salaire_net (nombre, r√©sultat final)
-- Calcule le co√ªt total employeur avec les charges patronales
-- Liste les avantages et inconv√©nients de chaque formule
-- Si tu approches de la limite de tokens, simplifie les descriptions mais GARDE LE JSON VALIDE ET COMPLET";
+- Le salaire net ‡ payer doit correspondre ‡ ma demande avec plus ou moins 5% d'Ècart maximum
+- RÈponds UNIQUEMENT avec du JSON valide (pas de texte avant/aprËs, pas de markdown)
+- ?? CRITIQUE : Le JSON DOIT Ítre COMPLET avec TOUS les 3 scÈnarios et toutes les accolades fermÈes
+- Utilise la structure JSON spÈcifiÈe dans les instructions systËme pour les scÈnarios
+- Pour les erreurs, utilise ce format : {{""error"": ""titre"", ""message"": ""dÈtails"", ""instructions"": ""aide""}}
+- Tous les montants doivent Ítre arrondis ‡ 2 dÈcimales
+- Inclus tous les ÈlÈments de paie : base, primes, dÈductions (CNSS, AMO, IR, etc.)
+- ?????? IMP…RATIF NOMS DE PROPRI…T…S : Utilise EXACTEMENT snake_case (avec underscores) :
+  * ""brut_imposable"" (PAS brutImposable)
+  * ""total_retenues"" (PAS totalRetenues)
+  * ""cout_employeur"" (PAS coutEmployeur)
+  * ""salaire_net"" (PAS salaireNet)
+  * ""calcul_steps"" (PAS calculSteps)
+- Chaque scÈnario DOIT contenir tous ces champs numÈriques
+- Calcule le co˚t total employeur avec les charges patronales
+- Liste les avantages et inconvÈnients de chaque formule
+- Si tu approches de la limite de tokens, simplifie les descriptions mais GARDE LE JSON VALIDE ET COMPLET
+
+???? V…RIFICATION FINALE OBLIGATOIRE avant de rÈpondre :
+Pour CHAQUE scÈnario, vÈrifie que :
+  salaire_net = brut_imposable - total_retenues + somme_des_indemnitÈs_ni
+
+Si cette Èquation n'est pas respectÈe, CORRIGE le salaire_net avant d'envoyer la rÈponse.";
         }
 
         /// <summary>
-        /// Simule des compositions de salaire avec streaming de la r√©ponse
+        /// Simule des compositions de salaire avec HTTP (non-streaming)
         /// </summary>
-        public async IAsyncEnumerable<string> SimulationSalaryStreamAsync(
+        public async Task<string> SimulationSalaryStreamAsync(
             string regleContent,
             string instruction,
-            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("üöÄ D√©marrage de la simulation de paie avec streaming");
+            _logger.LogInformation("?? DÈmarrage de la simulation de paie avec Gemini HTTP");
 
             // Construction des prompts
             var systemPrompt = BuildSystemPrompt(regleContent);
             var userPrompt = BuildUserPrompt(instruction);
 
-            // Cr√©ation de la requ√™te vers l'API Claude avec streaming
-            var parameters = new MessageCreateParams
+            // Combinaison des prompts pour Gemini
+            var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
+
+            // PrÈparation de la requÍte pour Gemini API
+            var requestBody = new
             {
-                Model = "claude-haiku-4-5-20251001",
-                MaxTokens = 8192,
-                System = new MessageCreateParamsSystem(
-                    new[]
+                contents = new[]
+                {
+                    new
                     {
-                        new TextBlockParam
+                        parts = new[]
                         {
-                            Text = systemPrompt,
-                            CacheControl = new CacheControlEphemeral()
+                            new { text = fullPrompt }
                         }
                     }
-                ),
-                Messages =
-                [
-                    new MessageParam
-                    {
-                        Role = Role.User,
-                        Content = userPrompt
-                    }
-                ]
+                },
+                generationConfig = new
+                {
+                    temperature = 0.7,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "application/json"
+                }
             };
 
-            _logger.LogDebug("Envoi de la requ√™te streaming √† l'API Anthropic");
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-            // Stream de la r√©ponse avec CreateStreaming
-            var stream = _client.Messages.CreateStreaming(parameters, cancellationToken);
+            _logger.LogDebug("Envoi de la requÍte HTTP ‡ l'API Gemini");
+            _logger.LogInformation("?? ParamËtres de la requÍte - Model: {Model}, MaxTokens: {MaxTokens}", GEMINI_MODEL, 8192);
 
-            await foreach (var streamEvent in stream)
+            // Appel HTTP standard ‡ l'API Gemini
+            var url = $"{GEMINI_API_BASE}/{GEMINI_MODEL}:generateContent?key={_apiKey}";
+            var httpResponse = await _httpClient.PostAsync(url, content, cancellationToken);
+
+            if (!httpResponse.IsSuccessStatusCode)
             {
-                if (streamEvent.TryPickContentBlockDelta(out var deltaEvent)
-                    && deltaEvent.Delta.TryPickText(out var textDelta))
-                {
-                    // Envoyer chaque morceau de texte au fur et √† mesure
-                    yield return textDelta.Text;
-                }
+                var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Erreur API Gemini: {StatusCode} - {Error}", httpResponse.StatusCode, errorContent);
+                throw new InvalidOperationException($"Erreur API Gemini: {httpResponse.StatusCode}");
             }
 
-            _logger.LogInformation("‚úÖ Streaming de simulation termin√©");
+            var responseContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+            
+            // Parser la rÈponse Gemini
+            using var geminiResponse = JsonDocument.Parse(responseContent);
+            var responseText = geminiResponse.RootElement
+                .GetProperty("candidates")[0]
+                .GetProperty("content")
+                .GetProperty("parts")[0]
+                .GetProperty("text")
+                .GetString() ?? throw new InvalidOperationException("RÈponse Gemini sans contenu texte.");
+
+            _logger.LogInformation("?? RÈponse brute reÁue - Longueur: {Length} caractËres", responseText.Length);
+            _logger.LogDebug("?? RÈponse brute complËte:\n{Response}", responseText);
+
+            // Nettoyer la rÈponse JSON
+            var cleanedResponse = CleanJsonResponse(responseText);
+            _logger.LogInformation("?? JSON nettoyÈ - Longueur: {Length} caractËres", cleanedResponse.Length);
+            _logger.LogDebug("?? JSON nettoyÈ:\n{CleanedResponse}", cleanedResponse);
+
+            // Validation du format JSON
+            try
+            {
+                using var jsonDoc = JsonDocument.Parse(cleanedResponse);
+                _logger.LogInformation("? JSON valide parsÈ avec succËs");
+                return cleanedResponse;
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger.LogError(jsonEx, "? ERREUR JSON INVALIDE");
+                _logger.LogError("?? Position erreur: Ligne {Line}, Colonne {Column}", jsonEx.LineNumber, jsonEx.BytePositionInLine);
+                _logger.LogError("?? Premiers 1000 caractËres du JSON:\n{JsonStart}", cleanedResponse.Substring(0, Math.Min(1000, cleanedResponse.Length)));
+                _logger.LogError("?? Derniers 500 caractËres du JSON:\n{JsonEnd}", cleanedResponse.Length > 500 ? cleanedResponse.Substring(cleanedResponse.Length - 500) : cleanedResponse);
+                
+                throw new InvalidOperationException(
+                    $"JSON invalide retournÈ par l'API. Erreur: {jsonEx.Message}\n" +
+                    $"Position: Ligne {jsonEx.LineNumber}, Colonne {jsonEx.BytePositionInLine}\n" +
+                    $"Consultez les logs pour voir le JSON complet.",
+                    jsonEx);
+            }
         }
     }
 }

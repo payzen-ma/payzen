@@ -49,6 +49,17 @@ namespace payzen_backend.Controllers.Payroll
                 DateOnly asOfDate = new DateOnly(year, month, lastDay);
                 _logger.LogInformation("Date of the payslip is : {Year} - {Month} - {LastDay}", year, month, lastDay);
 
+                // Resolve the ANNUAL leave type for this employee's company
+                // (each company has its own LeaveType rows, so we must not hardcode an ID)
+                var annualLeaveType = employee?.CompanyId != null
+                    ? await _db.LeaveTypes
+                        .FirstOrDefaultAsync(lt => lt.CompanyId == employee.CompanyId
+                            && lt.LeaveCode == "ANNUAL"
+                            && lt.IsActive
+                            && lt.DeletedAt == null)
+                    : null;
+                int annualLeaveTypeId = annualLeaveType?.Id ?? 0;
+
                 var payrollResult = await _db.PayrollResults
                     .Include(pr => pr.Employee)
                         .ThenInclude(e => e.Company)
@@ -61,17 +72,27 @@ namespace payzen_backend.Controllers.Payroll
                     .Include(pr => pr.Employee)
                         .ThenInclude(e => e.Contracts)
                             .ThenInclude(c => c.JobPosition)
+                    .Include(pr => pr.Employee)
+                        .ThenInclude(e => e.Contracts)
+                            .ThenInclude(c => c.ContractType)
+                    .Include(pr => pr.Employee)
+                        .ThenInclude(e => e.Addresses)
+                            .ThenInclude(a => a.City)
                     .Include(pr => pr.Primes)
                     .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId
                         && pr.Year == year
                         && pr.Month == month
                         && pr.DeletedAt == null);
 
-                var leaveBalance = await _db.LeaveBalances
-                    .FirstOrDefaultAsync(lb => lb.EmployeeId == employeeId
-                        && lb.Year == year
-                        && lb.Month == month
-                        && lb.DeletedAt == null);
+                // Query the leave balance filtered by the correct company-specific leave type
+                var leaveBalance = annualLeaveTypeId > 0
+                    ? await _db.LeaveBalances
+                        .FirstOrDefaultAsync(lb => lb.EmployeeId == employeeId
+                            && lb.Year == year
+                            && lb.Month == month
+                            && lb.LeaveTypeId == annualLeaveTypeId
+                            && lb.DeletedAt == null)
+                    : null;
 
                 if (payrollResult == null)
                     return NotFound(new { message = "Aucune fiche de paie trouvée pour cette période." });
@@ -81,14 +102,32 @@ namespace payzen_backend.Controllers.Payroll
 
                 if (leaveBalance == null)
                 {
-                    // FIX: Guard null employee before accessing CompanyId
-                    if (employee?.CompanyId == null)
-                        return StatusCode(500, new { message = "Impossible de déterminer la société de l'employé." });
+                    // Try to recalculate the leave balance if company and leave type can be determined
+                    if (employee?.CompanyId != null && annualLeaveTypeId > 0)
+                    {
+                        var recalcResult = await _leaveBalanceService.RecalculateAsync(employee.CompanyId, employeeId, annualLeaveTypeId, asOfDate, 0);
+                        leaveBalance = recalcResult?.Balance;
+                    }
 
-                    var recalcResult = await _leaveBalanceService.RecalculateAsync(employee.CompanyId, employeeId, 2, asOfDate, 0);
-                    leaveBalance = recalcResult?.Balance;
+                    // If still null (no policy configured, no contract, etc.) use a zero balance
+                    // so the PDF can still be generated without blocking on missing leave data.
                     if (leaveBalance == null)
-                        return StatusCode(500, new { message = "Impossible de recalculer le solde de congé." });
+                    {
+                        _logger.LogWarning(
+                            "Impossible de calculer le solde de congés pour employé {EmployeeId} {Month}/{Year}. PDF généré avec solde zéro.",
+                            employeeId, month, year);
+                        leaveBalance = new Models.Leave.LeaveBalance
+                        {
+                            EmployeeId    = employeeId,
+                            Year          = year,
+                            Month         = month,
+                            CarryInDays   = 0,
+                            AccruedDays   = 0,
+                            UsedDays      = 0,
+                            CarryOutDays  = 0,
+                            ClosingDays   = 0,
+                        };
+                    }
                 }
 
                 // FIX: null-conditional on employee?.FirstName
@@ -97,10 +136,58 @@ namespace payzen_backend.Controllers.Payroll
                     leaveBalance.Id, employee?.FirstName,
                     leaveBalance.CarryInDays, leaveBalance.CarryOutDays, leaveBalance.UsedDays);
 
-                var pdfBytes = GeneratePdf(payrollResult, leaveBalance);
+                // Jours ouvrables par configuration de l'entreprise
+                // Charge les jours ouvrables configurés (WorkingCalendar.DayOfWeek : 0=Dim … 6=Sam)
+                int companyId = payrollResult.Employee.CompanyId;
+                var workingCalendar = await _db.WorkingCalendars
+                    .Where(wc => wc.CompanyId == companyId
+                        && wc.IsWorkingDay
+                        && wc.DeletedAt == null)
+                    .Select(wc => wc.DayOfWeek)
+                    .ToListAsync();
+
+                // Fallback : lundi–vendredi si aucun calendrier configuré
+                HashSet<DayOfWeek> workingDays = workingCalendar.Any()
+                    ? workingCalendar.Select(d => (DayOfWeek)d).ToHashSet()
+                    : new HashSet<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+
+                _logger.LogInformation("Jours ouvrables configurés pour company {CompanyId} : {Days}",
+                    companyId, string.Join(", ", workingDays));
+
+                // Jours travaillés ce mois = jours ouvrables du mois − absences approuvées
+                var absencesMois = await _db.EmployeeAbsences
+                    .Where(a => a.EmployeeId == employeeId
+                        && a.AbsenceDate.Year == year
+                        && a.AbsenceDate.Month == month
+                        && a.Status == Models.Employee.AbsenceStatus.Approved
+                        && a.DeletedAt == null)
+                    .ToListAsync();
+
+                double joursAbsenceMois = absencesMois.Sum(a =>
+                    a.DurationType == Models.Employee.AbsenceDurationType.HalfDay ? 0.5 : 1.0);
+
+                int joursOuvrablesMois = CountWorkingDays(year, month, month, workingDays);
+                int joursTravaillesMois = (int)Math.Max(0, joursOuvrablesMois - joursAbsenceMois);
+
+                // Cumul jours travaillés depuis janvier de l'année (jusqu'au mois en cours)
+                var absencesAnnee = await _db.EmployeeAbsences
+                    .Where(a => a.EmployeeId == employeeId
+                        && a.AbsenceDate.Year == year
+                        && a.AbsenceDate.Month <= month
+                        && a.Status == Models.Employee.AbsenceStatus.Approved
+                        && a.DeletedAt == null)
+                    .ToListAsync();
+
+                double joursAbsenceAnnee = absencesAnnee.Sum(a =>
+                    a.DurationType == Models.Employee.AbsenceDurationType.HalfDay ? 0.5 : 1.0);
+
+                int joursOuvrablesAnnee = CountWorkingDays(year, 1, month, workingDays);
+                int joursTravaillesAnnee = (int)Math.Max(0, joursOuvrablesAnnee - joursAbsenceAnnee);
+
+                var pdfBytes = GeneratePdf(payrollResult, leaveBalance, joursTravaillesMois, joursTravaillesAnnee);
                 var fileName = $"Fiche_Paie_{payrollResult.Employee.FirstName}_{payrollResult.Employee.LastName}_{month:D2}_{year}.pdf";
 
-                _logger.LogInformation("📄 Fiche de paie PDF générée pour {Employee} - {Month}/{Year}",
+                _logger.LogInformation("✅ Fiche de paie PDF générée pour {Employee} - {Month}/{Year}",
                     $"{payrollResult.Employee.FirstName} {payrollResult.Employee.LastName}", month, year);
 
                 return File(pdfBytes, "application/pdf", fileName);
@@ -113,9 +200,9 @@ namespace payzen_backend.Controllers.Payroll
             }
         }
 
-        private byte[] GeneratePdf(PayrollResult payroll, LeaveBalance leaveBalance)
+        private byte[] GeneratePdf(PayrollResult payroll, LeaveBalance leaveBalance, int joursTravaillesMois, int joursTravaillesAnnee)
         {
-            var html = BuildPayslipHtml(payroll, leaveBalance);
+            var html = BuildPayslipHtml(payroll, leaveBalance, joursTravaillesMois, joursTravaillesAnnee);
 
             var renderer = new ChromePdfRenderer();
             renderer.RenderingOptions.PaperSize = IronPdf.Rendering.PdfPaperSize.A4;
@@ -132,12 +219,12 @@ namespace payzen_backend.Controllers.Payroll
         // =====================================================================
         // BUILDER HTML complet de la fiche de paie
         // =====================================================================
-        private string BuildPayslipHtml(PayrollResult payroll, LeaveBalance leaveBalance)
+        private string BuildPayslipHtml(PayrollResult payroll, LeaveBalance leaveBalance, int joursTravaillesMois, int joursTravaillesAnnee)
         {
             var contract  = payroll.Employee.Contracts?.FirstOrDefault();
             var sb        = new StringBuilder();
 
-            // ── Ancienneté ────────────────────────────────────────────────────
+            // -- Ancienneté ----------------------------------------------------
             string anciennete = "N/A";
             if (contract?.StartDate != null)
             {
@@ -149,31 +236,36 @@ namespace payzen_backend.Controllers.Payroll
                 anciennete = $"{yrs} ans {mths} mois";
             }
 
-            // ── Primes / indemnités ───────────────────────────────────────────
+            // -- Primes / indemnités -------------------------------------------
             var primesImposables = payroll.Primes?.Where(p => p.IsTaxable).OrderBy(p => p.Ordre).ToList()  ?? new();
             var indemnites       = payroll.Primes?.Where(p => !p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? new();
 
-            // ── Taux IR ───────────────────────────────────────────────────────
+            // -- Taux IR -------------------------------------------------------
             string irRate = "";
             if ((payroll.IrTaux ?? 0) > 0)
                 irRate = $"{payroll.IrTaux!.Value * 100m:0.##}%";
             else if ((payroll.NetImposable ?? 0) > 0 && (payroll.ImpotRevenu ?? 0) > 0)
                 irRate = $"{((payroll.ImpotRevenu ?? 0) / payroll.NetImposable!.Value * 100m):0.##}%";
 
-            // ── Taux CIMR ─────────────────────────────────────────────────────
+            // -- Taux CIMR -----------------------------------------------------
             string cimrRate = payroll.Employee.CimrEmployeeRate.HasValue
                 ? $"{payroll.Employee.CimrEmployeeRate:0.##}%"
                 : "";
             string mutRate = payroll.Employee.PrivateInsuranceRate.HasValue
                 ? $"{payroll.Employee.PrivateInsuranceRate:0.##}%"
                 : "";
+            // -- Taux Prime d'Ancienneté ---------------------------------------
+            string ancienneteRate = payroll.PrimeAnciennteRate.HasValue
+                ? $"{payroll.PrimeAnciennteRate * 100:0.##}%"
+                : "";
 
             decimal totalGains = (payroll.TotalBrut ?? 0) + (payroll.TotalIndemnites ?? 0);
             decimal leaveAvailable = leaveBalance.CarryInDays + leaveBalance.AccruedDays - leaveBalance.UsedDays;
 
-            // ─────────────────────────────────────────────────────────────────
+
+            // -----------------------------------------------------------------
             // HTML
-            // ─────────────────────────────────────────────────────────────────
+            // -----------------------------------------------------------------
             sb.Append(@"<!DOCTYPE html>
 <html lang='fr'>
 <head>
@@ -183,7 +275,7 @@ namespace payzen_backend.Controllers.Payroll
   body { font-family: Arial, sans-serif; font-size: 8.5pt; color: #222; }
   h1   { font-size: 13pt; }
 
-  /* ── Layout ── */
+  /* -- Layout -- */
   .header-row   { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
   .header-left  { flex: 2; }
   .header-right { flex: 1; text-align: right; }
@@ -191,12 +283,12 @@ namespace payzen_backend.Controllers.Payroll
   .header-right .period{ font-size: 10pt; font-weight: bold; margin-top: 4px; }
   hr.sep { border: none; border-top: 1px solid #bbb; margin: 8px 0; }
 
-  /* ── Employé ── */
+  /* -- Employé -- */
   .emp-box { background: #f0f0f0; padding: 10px; margin-bottom: 8px; }
   .emp-row { display: flex; gap: 6px; margin-bottom: 4px; }
   .emp-row > div { flex: 1; }
 
-  /* ── Tableau principal ── */
+  /* -- Tableau principal -- */
   table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 8pt; }
   table th { background: #1a3c6e; color: #fff; padding: 5px 4px; text-align: right; font-size: 8.5pt; }
   table th.label-col { text-align: left; }
@@ -208,23 +300,23 @@ namespace payzen_backend.Controllers.Payroll
   table tr.net-row td { background: #c8e6c9; font-weight: bold; font-size: 11pt; }
   table tr.net-label { background: #d5efd7; font-weight: bold; font-size: 11pt; }
 
-  /* ── Summary band ── */
+  /* -- Summary band -- */
   .summary-table th { font-size: 7.5pt; background: #555; }
   .summary-table td { text-align: center; font-size: 8pt; }
 
-  /* ── Congés ── */
+  /* -- Congés -- */
   .conge-box { background: #e8f0fe; padding: 8px; margin-top: 8px; }
   .conge-box .conge-title { font-weight: bold; font-size: 9pt; margin-bottom: 6px; }
   .conge-row { display: flex; gap: 8px; }
   .conge-row > div { flex: 1; }
 
-  /* ── Footer ── */
+  /* -- Footer -- */
   .footer { text-align: center; font-size: 7pt; color: #777; margin-top: 10px; border-top: 0.5px solid #ddd; padding-top: 4px; }
 </style>
 </head>
 <body>
 ");
-            // ── HEADER ──────────────────────────────────────────────────────
+            // -- HEADER ------------------------------------------------------
             // Récupérer le logo de l'entreprise (type "logo")
             var companyLogo = payroll.Employee.Company.Documents?
                 .FirstOrDefault(d => d.DocumentType == "logo" && d.DeletedAt == null);
@@ -277,13 +369,23 @@ namespace payzen_backend.Controllers.Payroll
 </div>
 <hr class='sep'/>
 ");
-            // ── INFOS EMPLOYÉ ────────────────────────────────────────────────
+            // -- INFOS EMPLOYÉ ------------------------------------------------
+            string matricule = payroll.Employee.Matricule.ToString();
             string dateEmbauche = contract?.StartDate != null
                 ? contract.StartDate.ToString("dd/MM/yyyy") : "N/A";
-            string cimrNum    = payroll.Employee.CimrNumber != null ? $"CIMR : {H(payroll.Employee.CimrNumber)}" : "";
-            string mutuelleNum= payroll.Employee.PrivateInsuranceNumber != null
-                ? $"Mutuelle : {H(payroll.Employee.PrivateInsuranceNumber)}" : "";
-            string periodLabel= $"01/{payroll.Month:D2}/{payroll.Year} - {DateTime.DaysInMonth(payroll.Year, payroll.Month):D2}/{payroll.Month:D2}/{payroll.Year}";
+            string cimrDiv = !string.IsNullOrWhiteSpace(payroll.Employee.CimrNumber) ? $"<div>CIMR : {payroll.Employee.CimrNumber}</div>" : "";
+            string mutuelleDiv = !string.IsNullOrWhiteSpace(payroll.Employee.PrivateInsuranceNumber) ? $"<div>Mutuelle : {payroll.Employee.PrivateInsuranceNumber}</div>" : "";
+
+            string periodLabel = $"{DateTime.DaysInMonth(payroll.Year, payroll.Month):D2}/{payroll.Month:D2}/{payroll.Year}";
+
+            // Adresse principale de l'employé
+            var primaryAddress = payroll.Employee.Addresses?.FirstOrDefault(a => a.DeletedAt == null);
+            string adresse = primaryAddress != null
+                ? $"{primaryAddress.AddressLine1}{(string.IsNullOrEmpty(primaryAddress.AddressLine2) ? "" : ", " + primaryAddress.AddressLine2)}, {primaryAddress.ZipCode} {primaryAddress.City?.CityName ?? ""}".Trim().TrimEnd(',')
+                : "N/A";
+
+            string contractTypeName = H(contract?.ContractType?.ContractTypeName ?? "N/A");
+            string paymentMethod    = H(payroll.Employee.Company?.PaymentMethod ?? "N/A");
 
             sb.Append($@"
 <div class='emp-box'>
@@ -291,10 +393,11 @@ namespace payzen_backend.Controllers.Payroll
     <div><b>Nom : {H(payroll.Employee.FirstName)} {H(payroll.Employee.LastName)}</b></div>
     <div>CIN : {H(payroll.Employee.CinNumber ?? "N/A")}</div>
     <div>CNSS : {H(payroll.Employee.CnssNumber ?? "N/A")}</div>
-    <div>{cimrNum}</div>
+    {cimrDiv}
+    {mutuelleDiv}
   </div>
   <div class='emp-row'>
-    <div>{mutuelleNum}</div>
+    <div>Matricule : {matricule}</div>
     <div>Département : {H(payroll.Employee.Departement?.DepartementName ?? "N/A")}</div>
     <div>Fonction : {H(contract?.JobPosition?.Name ?? "N/A")}</div>
     <div>Situation fam. : {H(payroll.Employee.MaritalStatus?.NameFr ?? "N/A")}</div>
@@ -305,9 +408,13 @@ namespace payzen_backend.Controllers.Payroll
     <div>Date naissance : {payroll.Employee.DateOfBirth:dd/MM/yyyy}</div>
     <div><b>Période : {periodLabel}</b></div>
   </div>
+  <div class='emp-row'>
+    <div>Type de contrat : {contractTypeName}</div>
+    <div colspan='3'>Adresse : {H(adresse)}</div>
+  </div>
 </div>
 ");
-            // ── TABLEAU PRINCIPAL ─────────────────────────────────────────────
+            // -- TABLEAU PRINCIPAL ---------------------------------------------
             sb.Append(@"
 <table>
   <thead>
@@ -328,8 +435,7 @@ namespace payzen_backend.Controllers.Payroll
             if ((payroll.HeuresSupp100 ?? 0) > 0) TR(sb, "Heures supplémentaires 100%", "", "100%", F(payroll.HeuresSupp100), "");
             if ((payroll.Conges        ?? 0) > 0) TR(sb, "Congés payés",       "", "", F(payroll.Conges),       "");
             if ((payroll.JoursFeries   ?? 0) > 0) TR(sb, "Jours fériés",        "", "", F(payroll.JoursFeries),  "");
-            if ((payroll.PrimeAnciennete ?? 0) > 0) TR(sb, "Prime d'ancienneté",  "", "", F(payroll.PrimeAnciennete), "");
-
+            if ((payroll.PrimeAnciennete ?? 0) > 0) TR(sb, "Prime d'ancienneté", F(payroll.SalaireBase), ancienneteRate, F(payroll.PrimeAnciennete), "");
             foreach (var p in primesImposables) TR(sb, H(p.Label), "", "", p.Montant.ToString("N2"), "");
             if (!primesImposables.Any())
             {
@@ -392,7 +498,7 @@ namespace payzen_backend.Controllers.Payroll
   </tbody>
 </table>
 ");
-            // ── SUMMARY BAND ─────────────────────────────────────────────────
+            // -- SUMMARY BAND -------------------------------------------------
             sb.Append($@"
 <table class='summary-table'>
   <thead>
@@ -427,7 +533,7 @@ namespace payzen_backend.Controllers.Payroll
   </tbody>
 </table>
 ");
-            // ── SOLDE DE CONGÉS ───────────────────────────────────────────────
+            // -- SOLDE DE CONGÉS -----------------------------------------------
             sb.Append($@"
 <div class='conge-box'>
   <div class='conge-title'>SOLDE DE CONGÉS</div>
@@ -447,14 +553,26 @@ namespace payzen_backend.Controllers.Payroll
 </div>
 ");
 
-            // ── Signature ───────────────────────────────────────────────────────
+            // -- Présence & paiement ------------------------------------------
+            sb.Append($@"
+<div style='background:#fff8e1;padding:8px;margin-top:8px;'>
+  <div style='font-weight:bold;font-size:9pt;margin-bottom:6px;'>PRÉSENCE &amp; PAIEMENT</div>
+  <div style='display:flex;gap:8px;'>
+    <div style='flex:1'><div>Moyen de paiement : <b>{paymentMethod}</b></div></div>
+    <div style='flex:1'><div>Jours travaillés ce mois : <b>{joursTravaillesMois} j</b></div></div>
+    <div style='flex:1'><div>Cumul jours travaillés ({payroll.Year}) : <b>{joursTravaillesAnnee} j</b></div></div>
+  </div>
+</div>
+");
+
+            // -- Signature -------------------------------------------------------
             sb.Append($@"
 <div style='margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start;'>
   <div style='flex: 1; text-align: left;'>
     <div style='font-size: 9pt; margin-bottom: 4px;'>Fait à <b>{H(payroll.Employee.Company.City?.CityName ?? "N/A")}</b></div>
     <div style='font-size: 9pt; margin-bottom: 30px;'>Le <b>{DateTime.Now:dd/MM/yyyy}</b></div>
     <div style='font-size: 9pt; font-weight: bold; margin-bottom: 4px;'>Signature de l'employeur</div>
-    <div style='font-size: 8pt; color: #555; margin-top: 40px; border-top: 1px solid #999; padding-top: 4px; max-width: 200px;'>{H(payroll.Company.SignatoryName ?? "N/A")}</div>
+    <div style='font-size: 8pt; color: #555; margin-top: 40px; border-top: 1px solid #999; padding-top: 4px; max-width: 200px;'>{H(payroll.Employee.Company.SignatoryName ?? "N/A")}</div>
   </div>
 </div>
 </body>
@@ -464,7 +582,7 @@ namespace payzen_backend.Controllers.Payroll
             return sb.ToString();
         }
 
-        // ── HTML helpers ─────────────────────────────────────────────────────
+        // -- HTML helpers -----------------------------------------------------
         private static string H(string? s) =>
             System.Net.WebUtility.HtmlEncode(s ?? "");
 
@@ -490,6 +608,28 @@ namespace payzen_backend.Controllers.Payroll
 
         /// <summary>Formats a nullable decimal as "N2".</summary>
         private static string? F(decimal? value) => value?.ToString("N2");
+
+        /// <summary>
+        /// Compte les jours ouvrables entre le premier jour de <paramref name="monthFrom"/>
+        /// et le dernier jour de <paramref name="monthTo"/> pour une année donnée,
+        /// en se basant sur le calendrier de l'entreprise (<paramref name="workingDays"/>).
+        /// Fallback sur lundi–vendredi si le calendrier est vide.
+        /// </summary>
+        private static int CountWorkingDays(int year, int monthFrom, int monthTo, HashSet<DayOfWeek> workingDays)
+        {
+            int count = 0;
+            for (int m = monthFrom; m <= monthTo; m++)
+            {
+                int daysInMonth = DateTime.DaysInMonth(year, m);
+                for (int d = 1; d <= daysInMonth; d++)
+                {
+                    var dow = new DateTime(year, m, d).DayOfWeek;
+                    if (workingDays.Contains(dow))
+                        count++;
+                }
+            }
+            return count;
+        }
 
         private static string GetMonthName(int month) => month switch
         {
@@ -520,7 +660,7 @@ namespace payzen_backend.Controllers.Payroll
             return document.GeneratePdf();
 
             // =====================================================================
-            // HEADER — Company info (left) + Title/Period (right)
+            // HEADER – Company info (left) + Title/Period (right)
             // =====================================================================
             void ComposeHeader(IContainer container)
             {
@@ -571,12 +711,12 @@ namespace payzen_backend.Controllers.Payroll
             }
 
             // =====================================================================
-            // EMPLOYEE INFO — uses only properties confirmed in AppDbContext/Employee config
+            // EMPLOYEE INFO – uses only properties confirmed in AppDbContext/Employee config
             //   FirstName, LastName, CinNumber, CnssNumber, CimrNumber,
             //   PrivateInsuranceNumber, DateOfBirth,
             //   Departement.DepartementName, Contracts[0].JobPosition.Name,
             //   Contracts[0].StartDate
-            //   MaritalStatus.NameFr (via navigation — confirmed in DB config)
+            //   MaritalStatus.NameFr (via navigation – confirmed in DB config)
             // =====================================================================
             void ComposeEmployeeInfo(IContainer container)
             {
@@ -670,7 +810,7 @@ namespace payzen_backend.Controllers.Payroll
                         H("BASE"); H("TAUX"); H("GAIN"); H("RETENUE");
                     });
 
-                    // ── RÉMUNÉRATION DE BASE ────────────────────────────────────────
+                    // -- RÉMUNÉRATION DE BASE ----------------------------------------
                     AddRow(table, "Salaire de base", "", "", F(payroll.SalaireBase), "");
 
                     if ((payroll.HeuresSupp25 ?? 0) > 0)
@@ -686,7 +826,7 @@ namespace payzen_backend.Controllers.Payroll
                     if ((payroll.PrimeAnciennete ?? 0) > 0)
                         AddRow(table, "Prime d'ancienneté", "", "", F(payroll.PrimeAnciennete), "");
 
-                    // Dynamic taxable primes (PayrollResultPrimes navigation — confirmed in DB config)
+                    // Dynamic taxable primes (PayrollResultPrimes navigation – confirmed in DB config)
                     var primesImposables = payroll.Primes?
                         .Where(p => p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? new();
                     foreach (var p in primesImposables)
@@ -711,7 +851,7 @@ namespace payzen_backend.Controllers.Payroll
                     if ((payroll.FraisProfessionnels ?? 0) > 0)
                         AddRow(table, "Frais professionnels", F(payroll.BrutImposable), "25%", "", F(payroll.FraisProfessionnels));
 
-                    // ── INDEMNITÉS NON IMPOSABLES ───────────────────────────────────
+                    // -- INDEMNITÉS NON IMPOSABLES -----------------------------------
                     var indemnites = payroll.Primes?
                         .Where(p => !p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? new();
                     foreach (var ind in indemnites)
@@ -751,8 +891,8 @@ namespace payzen_backend.Controllers.Payroll
 
                     AddSeparatorRow(table);
 
-                    // ── COTISATIONS SALARIALES ──────────────────────────────────────
-                    // BrutImposable used as base — confirmed in DB schema
+                    // -- COTISATIONS SALARIALES --------------------------------------
+                    // BrutImposable used as base – confirmed in DB schema
                     // Employee.CimrEmployeeRate confirmed: entity.Property(e => e.CimrEmployeeRate)
                     if ((payroll.CnssPartSalariale ?? 0) > 0)
                         AddRow(table, "CNSS (part salariale)", F(payroll.CnssBase ?? payroll.BrutImposable), "4.48%", "", F(payroll.CnssPartSalariale));
@@ -795,8 +935,8 @@ namespace payzen_backend.Controllers.Payroll
 
                     AddSeparatorRow(table);
 
-                    // ── TOTAUX ──────────────────────────────────────────────────────
-                    // FIX: parentheses around each operand — avoids operator precedence bug
+                    // -- TOTAUX ------------------------------------------------------
+                    // FIX: parentheses around each operand – avoids operator precedence bug
                     decimal totalGains = (payroll.TotalBrut ?? 0) + (payroll.TotalIndemnites ?? 0);
                     AddRow(table, "TOTAL GAINS", "", "", totalGains.ToString("N2"), "", isBold: true);
                     AddRow(table, "TOTAL RETENUES", "", "", "", F(payroll.TotalRetenues) ?? "0.00", isBold: true);
@@ -812,7 +952,7 @@ namespace payzen_backend.Controllers.Payroll
             }
 
             // =====================================================================
-            // SUMMARY BAND — Patronal contributions + Net/Brut imposable
+            // SUMMARY BAND – Patronal contributions + Net/Brut imposable
             // All columns confirmed in DB schema:
             //   CnssPartPatronale, AmoPartPatronale, CimrPartPatronale,
             //   MutuellePartPatronale, BrutImposable, NetImposable,

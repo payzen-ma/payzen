@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -25,12 +25,12 @@ namespace payzen_backend.Controllers.Auth
         /// <summary>
         /// Authentifie un utilisateur avec son email et mot de passe
         /// </summary>
-        /// <param name="loginRequest">DonnÃ©es de connexion (email et mot de passe)</param>
+        /// <param name="loginRequest">Données de connexion (email et mot de passe)</param>
         /// <returns>Token JWT et informations utilisateur</returns>
-        /// <response code="200">Authentification rÃ©ussie, retourne le token JWT</response>
+        /// <response code="200">Authentification réussie, retourne le token JWT</response>
         /// <response code="401">Email ou mot de passe incorrect</response>
-        /// <response code="400">DonnÃ©es de connexion invalides</response>
-        /// Exemple de requÃªte :
+        /// <response code="400">Données de connexion invalides</response>
+        /// Exemple de requête :
         /// 
         ///     POST /api/auth/login
         ///     {
@@ -45,10 +45,10 @@ namespace payzen_backend.Controllers.Auth
         ///     }
         [HttpPost("login")]
         [Produces("application/json")] // Retourne du JSON
-        // RetirÃ© [Consumes] pour Ãªtre plus tolÃ©rant
+        // Retiré [Consumes] pour être plus tolérant
         public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {            
-            // Validation du modÃ¨le
+            // Validation du modèle
             if (!ModelState.IsValid)
             {
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
@@ -57,18 +57,18 @@ namespace payzen_backend.Controllers.Auth
                 }
                 return BadRequest(new 
                 { 
-                    Message = "DonnÃ©es invalides",
+                    Message = "Données invalides",
                     Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
                 });
             }
 
             if (loginRequest == null)
-                return BadRequest(new { Message = "Les donnÃ©es de connexion sont requises" });
+                return BadRequest(new { Message = "Les données de connexion sont requises" });
 
             // Recherche de l'utilisateur avec ses relations Employee
             var user = await _db.Users
                 .AsNoTracking()
-                .Include(u => u.Employee) // Inclure l'employÃ© si liÃ©
+                .Include(u => u.Employee) // Inclure l'employé si lié
                 .Where(u => u.Email == loginRequest.Email
                         && u.DeletedAt == null)
                 .FirstOrDefaultAsync();
@@ -81,11 +81,11 @@ namespace payzen_backend.Controllers.Auth
             if (!passwordValid)
                 return Unauthorized(new { Message = "Email ou mot de passe incorrect" });
 
-            // VÃ©rifier si l'utilisateur est actif
+            // Vérifier si l'utilisateur est actif
             if (!user.IsActive)
-                return Unauthorized(new { Message = "Votre compte est dÃ©sactivÃ©. Veuillez contacter l'administrateur." });
+                return Unauthorized(new { Message = "Votre compte est désactivé. Veuillez contacter l'administrateur." });
 
-            // VÃ©rifier la company est active si l'utilisateur est liÃ© Ã  une company via employee
+            // Vérifier la company est active si l'utilisateur est lié à une company via employee
             if (user.Employee != null)
             {
                 var companyExist = await _db.Companies
@@ -93,10 +93,10 @@ namespace payzen_backend.Controllers.Auth
                     .FirstOrDefaultAsync(c => c.Id == user.Employee.CompanyId && c.DeletedAt == null);
                 if (companyExist == null || !companyExist.isActive)
                 {
-                    return Unauthorized(new { Message = "Votre entreprise est dÃ©sactivÃ©e. Veuillez contacter l'administrateur." });
+                    return Unauthorized(new { Message = "Votre entreprise est désactivée. Veuillez contacter l'administrateur." });
                 }
             }
-            // RÃ©cupÃ©rer les rÃ´les de l'utilisateur
+            // Récupérer les rôles de l'utilisateur
             var userRoles = await _db.UsersRoles
                 .AsNoTracking()
                 .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
@@ -104,7 +104,7 @@ namespace payzen_backend.Controllers.Auth
                 .Select(ur => ur.Role.Name)
                 .ToListAsync();
 
-            // RÃ©cupÃ©rer toutes les permissions de l'utilisateur via ses rÃ´les
+            // Récupérer toutes les permissions de l'utilisateur via ses rôles
             var userPermissions = await _db.RolesPermissions
                 .AsNoTracking()
                 .Where(rp => _db.UsersRoles
@@ -116,10 +116,10 @@ namespace payzen_backend.Controllers.Auth
                 .Distinct()
                 .ToListAsync();
 
-            // RÃ©cupÃ©ration de l'employee liÃ©
+            // Récupération de l'employee lié
             var employee = user.Employee;
 
-            // RÃ©cupÃ©rer la sociÃ©tÃ© liÃ©e via l'employÃ©, si applicable
+            // Récupérer la société liée via l'employé, si applicable
             var company = employee != null
                 ? await _db.Companies
                     .AsNoTracking()
@@ -133,7 +133,7 @@ namespace payzen_backend.Controllers.Auth
             Console.WriteLine($" IsCabinetExpert: {isCabinetExpert}");
             Console.WriteLine($"Company ID is : {company?.Id}");
 
-            // GÃ©nÃ©ration du token JWT
+            // Génération du token JWT
             var token = await _jwt.GenerateTokenAsync(user.Id, user.Email);
 
             var expiresInMinutes = int.Parse(_config["JwtSettings:ExpiresInMinutes"] ?? "600");
@@ -146,10 +146,10 @@ namespace payzen_backend.Controllers.Auth
                     .FirstOrDefaultAsync(ec => ec.Id == employee.CategoryId && ec.DeletedAt == null)
                 : null;
             var mode = category != null ? category.Mode.ToString() : null;
-            // CrÃ©er la rÃ©ponse avec toutes les informations
+            // Créer la réponse avec toutes les informations
             var response = new LoginResponse
             {
-                Message = "Authentification rÃ©ussie",
+                Message = "Authentification réussie",
                 Token = token,
                 ExpiresAt = expiresAt,
                 User = new UserInfo
@@ -173,13 +173,13 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// DÃ©connexion (cÃ´tÃ© client)
+        /// Déconnexion (côté client)
         /// </summary>
         [HttpPost("logout")]
         [Produces("application/json")]
         public IActionResult Logout()
         {
-            return Ok(new { Message = "DÃ©connexion rÃ©ussie. Veuillez supprimer le token cÃ´tÃ© client." });
+            return Ok(new { Message = "Déconnexion réussie. Veuillez supprimer le token côté client." });
         }
 
         /// <summary>
@@ -190,12 +190,12 @@ namespace payzen_backend.Controllers.Auth
         [Produces("application/json")]
         public async Task<IActionResult> GetMe()
         {
-            // RÃ©cupÃ©rer le userId depuis les claims du token JWT
+            // Récupérer le userId depuis les claims du token JWT
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "uid");
             
             if (userIdClaim == null)
             {
-                return Unauthorized(new { Message = "Utilisateur non authentifiÃ©" });
+                return Unauthorized(new { Message = "Utilisateur non authentifié" });
             }
 
             if (!int.TryParse(userIdClaim.Value, out var userId))
@@ -203,7 +203,7 @@ namespace payzen_backend.Controllers.Auth
                 return BadRequest(new { Message = "ID utilisateur invalide" });
             }
 
-            // RÃ©cupÃ©rer l'utilisateur avec ses relations
+            // Récupérer l'utilisateur avec ses relations
             var user = await _db.Users
                 .AsNoTracking()
                 .Include(u => u.Employee)
@@ -211,10 +211,10 @@ namespace payzen_backend.Controllers.Auth
 
             if (user == null)
             {
-                return NotFound(new { Message = "Utilisateur non trouvÃ©" });
+                return NotFound(new { Message = "Utilisateur non trouvé" });
             }
 
-            // RÃ©cupÃ©rer les rÃ´les de l'utilisateur
+            // Récupérer les rôles de l'utilisateur
             var userRoles = await _db.UsersRoles
                 .AsNoTracking()
                 .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
@@ -223,7 +223,7 @@ namespace payzen_backend.Controllers.Auth
                 .Select(ur => ur.Role.Name)
                 .ToListAsync();
 
-            // RÃ©cupÃ©rer les permissions de l'utilisateur via ses rÃ´les
+            // Récupérer les permissions de l'utilisateur via ses rôles
             var userPermissions = await _db.RolesPermissions
                 .AsNoTracking()
                 .Where(rp => _db.UsersRoles

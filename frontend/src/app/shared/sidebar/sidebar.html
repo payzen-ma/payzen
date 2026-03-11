@@ -5,17 +5,18 @@
   [ngClass]="className()"
 >
   <!-- Brand -->
-  <div class="flex items-center py-4" [class.px-4]="!isSidebarCollapsed()" [class.px-2]="isSidebarCollapsed()" [class.justify-between]="!isSidebarCollapsed()" [class.justify-center]="isSidebarCollapsed()">
-    @if (!isSidebarCollapsed()) {
-      <div class="flex items-center gap-2">
-        <span class="text-(--color-primary) font-bold text-xl tracking-tight">{{ 'app.name' | translate }}</span>
-        <span class="bg-(--primary)/10 text-(--color-primary) text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-          {{ 'app.country' | translate }}
-        </span>
-      </div>
-    }
+  <div class="flex items-center py-4 relative" [class.px-4]="!isSidebarCollapsed()" [class.px-2]="isSidebarCollapsed()">
+    <!-- Logo -->
+    <div class="flex items-center justify-center w-full">
+      @if (!isSidebarCollapsed()) {
+        <img src="assets/images/logo.png" alt="PayZen Logo" class="h-10 w-auto transition-all duration-300" />
+      } @else {
+        <img src="assets/images/logo.png" alt="PayZen" class="h-8 w-8 object-contain transition-all duration-300" />
+      }
+    </div>
 
-    <div class="flex items-center gap-1">
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-1 absolute right-2 top-1/2 -translate-y-1/2">
       @if (showCloseButton() && !isSidebarCollapsed()) {
         <button
           pButton
@@ -47,23 +48,6 @@
     [attr.aria-label]="'nav.mainMenu' | translate"
   >
     <app-sidebar-group>
-      @if (!isSidebarCollapsed()) {
-        <app-sidebar-group-label class="px-2 mb-1.5 mt-1.5 whitespace-nowrap flex items-center justify-between">
-          <span class="text-xs">{{ menuGroupLabel() | translate }}</span>
-          @if (isExpertMode()) {
-            <span class="text-[9px] px-1 py-0.5 rounded border" 
-                  [class.bg-indigo-50]="isClientView()" 
-                  [class.text-indigo-700]="isClientView()"
-                  [class.border-indigo-200]="isClientView()"
-                  [class.bg-purple-50]="!isClientView()" 
-                  [class.text-purple-700]="!isClientView()"
-                  [class.border-purple-200]="!isClientView()">
-              {{ (isClientView() ? 'expert.viewingClient' : 'expert.viewingCabinet') | translate }}
-            </span>
-          }
-        </app-sidebar-group-label>
-      }
-
       @for (group of groupedMenuItems(); track group.key; let isFirst = $first) {
         <!-- Group separator (not for the first group) -->
         @if (!isFirst && !isSidebarCollapsed()) {
@@ -82,22 +66,37 @@
         <!-- Group items -->
         @for (item of group.items; track item.label) {
           <a
-            [routerLink]="item.requiresCompanyContext && isExpertMode() && !isClientView() ? null : item.routerLink"
+            [routerLink]="item.notImplemented || (item.requiresCompanyContext && isExpertMode() && !isClientView()) ? null : item.routerLink"
             (click)="handleNavigation(item, $event)"
             routerLinkActive="active"
             class="sidebar-item group"
             [class.justify-center]="isSidebarCollapsed()"
             [class.justify-start]="!isSidebarCollapsed()"
-            [class.opacity-60]="item.requiresCompanyContext && isExpertMode() && !isClientView()"
+            [class.opacity-50]="item.notImplemented || (item.requiresCompanyContext && isExpertMode() && !isClientView())"
+            [class.cursor-not-allowed]="item.notImplemented"
+            [class.pointer-events-none]="item.notImplemented"
+            [class.highlight]="item.highlight && !item.notImplemented"
             [attr.aria-label]="item.label | translate"
-            [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.requiresCompanyContext && isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : '')"
+            [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.notImplemented ? 'Bientôt disponible' : (item.requiresCompanyContext && isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : ''))"
             tooltipPosition="right"
           >
             <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-2.5')" class="text-base transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
 
             @if (!isSidebarCollapsed()) {
               <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
-              @if (item.requiresCompanyContext && isExpertMode() && !isClientView()) {
+              
+              @if (item.notImplemented) {
+                <span class="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-200 text-gray-500">
+                  Bientôt
+                </span>
+              } @else if (item.itemBadge) {
+                <span 
+                  class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+                  [style.background-color]="item.itemBadge.color + '20'"
+                  [style.color]="item.itemBadge.color">
+                  {{ item.itemBadge.count }}
+                </span>
+              } @else if (item.requiresCompanyContext && isExpertMode() && !isClientView()) {
                 <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
               }
             }

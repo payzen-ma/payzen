@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -80,7 +80,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// R√©cup√®re tous les niveaux d'√©ducation.
+        /// RÈcupËre tous les niveaux d'Èducation.
         /// GET /api/education-levels?includeInactive=true
         /// </summary>
         [HttpGet]
@@ -111,7 +111,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// R√©cup√®re un niveau par id
+        /// RÈcupËre un niveau par id
         /// </summary>
         [HttpGet("{id}")]
         [Produces("application/json")]
@@ -134,13 +134,13 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync();
 
             if (item == null)
-                return NotFound(new { Message = "Niveau d'√©ducation non trouv√©" });
+                return NotFound(new { Message = "Niveau d'Èducation non trouvÈ" });
 
             return Ok(item);
         }
 
         /// <summary>
-        /// Cr√©e un niveau d'√©ducation
+        /// CrÈe un niveau d'Èducation
         /// </summary>
         [HttpPost]
         [Produces("application/json")]
@@ -156,7 +156,7 @@ namespace payzen_backend.Controllers.Referentiel
                 .AnyAsync(e => e.Code.ToLower() == code.ToLower());
 
             if (exists)
-                return Conflict(new { Message = "Un niveau avec ce code existe d√©j√†" });
+                return Conflict(new { Message = "Un niveau avec ce code existe dÈj‡" });
 
             var userId = User.GetUserId();
 
@@ -191,7 +191,7 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// Met √† jour un niveau d'√©ducation
+        /// Met ‡ jour un niveau d'Èducation
         /// </summary>
         [HttpPut("{id}")]
         [Produces("application/json")]
@@ -202,14 +202,14 @@ namespace payzen_backend.Controllers.Referentiel
 
             var entity = await _db.EducationLevels.FirstOrDefaultAsync(e => e.Id == id);
             if (entity == null)
-                return NotFound(new { Message = "Niveau d'√©ducation non trouv√©" });
+                return NotFound(new { Message = "Niveau d'Èducation non trouvÈ" });
 
             if (!string.IsNullOrWhiteSpace(dto.Code) && dto.Code.Trim() != entity.Code)
             {
                 var newCode = dto.Code.Trim();
                 var exists = await _db.EducationLevels.AnyAsync(e => e.Code.ToLower() == newCode.ToLower() && e.Id != id);
                 if (exists)
-                    return Conflict(new { Message = "Un niveau avec ce code existe d√©j√†" });
+                    return Conflict(new { Message = "Un niveau avec ce code existe dÈj‡" });
 
                 entity.Code = newCode;
             }
@@ -250,19 +250,19 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// D√©sactive un niveau d'√©ducation (soft)
+        /// DÈsactive un niveau d'Èducation (soft)
         /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _db.EducationLevels.FirstOrDefaultAsync(e => e.Id == id);
             if (entity == null)
-                return NotFound(new { Message = "Niveau d'√©ducation non trouv√©" });
+                return NotFound(new { Message = "Niveau d'Èducation non trouvÈ" });
 
-            // V√©rifier utilisation par des employ√©s actifs
+            // VÈrifier utilisation par des employÈs actifs
             var used = await _db.Employees.AnyAsync(emp => emp.EducationLevelId == id && emp.DeletedAt == null);
             if (used)
-                return BadRequest(new { Message = "Impossible de supprimer ce niveau car il est utilis√© par des employ√©s" });
+                return BadRequest(new { Message = "Impossible de supprimer ce niveau car il est utilisÈ par des employÈs" });
 
             entity.IsActive = false;
             entity.ModifiedAt = DateTimeOffset.UtcNow;

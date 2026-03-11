@@ -23,7 +23,7 @@ namespace payzen_backend.Models.Payroll
 
         // ========== Montants extraits du JSON (pour requêtes/reporting sans parser le JSON) ==========
 
-        // 📊 SALAIRE DE BASE ET HEURES
+        // SALAIRE DE BASE ET HEURES
         public decimal? SalaireBase { get; set; }
         public decimal? HeuresSupp25 { get; set; }
         public decimal? HeuresSupp50 { get; set; }
@@ -31,8 +31,9 @@ namespace payzen_backend.Models.Payroll
         public decimal? Conges { get; set; }
         public decimal? JoursFeries { get; set; }
         public decimal? PrimeAnciennete { get; set; }
+        public decimal? PrimeAnciennteRate { get; set; }
 
-        // 💰 PRIMES IMPOSABLES
+        // PRIMES IMPOSABLES
         public decimal? PrimeImposable1 { get; set; }
         public decimal? PrimeImposable2 { get; set; }
         public decimal? PrimeImposable3 { get; set; }

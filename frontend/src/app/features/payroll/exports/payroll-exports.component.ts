@@ -50,7 +50,7 @@ export class PayrollExportsComponent implements OnInit {
   // ── Actions ─────────────────────────────────────────────────────────────
 
   onExportJournal(): void {
-    this.download('journal', `JournalPaie_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.xlsx`);
+    this.download('journal', `JournalPaie_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
   }
 
   onExportCnss(): void {
@@ -58,7 +58,7 @@ export class PayrollExportsComponent implements OnInit {
   }
 
   onExportIr(): void {
-    this.download('ir', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.xlsx`);
+    this.download('ir', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────

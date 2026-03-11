@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using payzen_backend.Models.Common.OvertimeEnums;
 using payzen_backend.Models.Company;
 using payzen_backend.Models.Referentiel;
@@ -6,7 +6,7 @@ using payzen_backend.Models.Referentiel;
 namespace payzen_backend.Models.Employee
 {
     /// <summary>
-    /// Enregistrement d'heures supplÃ©mentaires pour un employÃ©
+    /// Enregistrement d'heures supplémentaires pour un employé
     /// </summary>
     public class EmployeeOvertime
     {
@@ -31,7 +31,7 @@ namespace payzen_backend.Models.Employee
         // ========== Plage horaire (conditionnel) ==========
 
         /// <summary>
-        /// Heure de dÃ©but (obligatoire si EntryMode = HoursRange)
+        /// Heure de début (obligatoire si EntryMode = HoursRange)
         /// </summary>
         public TimeOnly? StartTime { get; set; }
 
@@ -41,15 +41,15 @@ namespace payzen_backend.Models.Employee
         public TimeOnly? EndTime { get; set; }
 
         /// <summary>
-        /// Indique si la plage traverse minuit (calculÃ© automatiquement)
+        /// Indique si la plage traverse minuit (calculé automatiquement)
         /// </summary>
         public bool CrossesMidnight { get; set; }
 
-        // ========== DurÃ©e et calcul ==========
+        // ========== Durée et calcul ==========
 
         /// <summary>
-        /// DurÃ©e totale en heures dÃ©cimales
-        /// - HoursRange: calculÃ©e automatiquement
+        /// Durée totale en heures décimales
+        /// - HoursRange: calculée automatiquement
         /// - DurationOnly: saisie manuellement
         /// - FullDay: valeur standard entreprise (ex: 8.00)
         /// </summary>
@@ -58,41 +58,41 @@ namespace payzen_backend.Models.Employee
         public decimal DurationInHours { get; set; }
 
         /// <summary>
-        /// DurÃ©e standard d'une journÃ©e complÃ¨te (snapshot au moment de crÃ©ation)
-        /// UtilisÃ© uniquement si EntryMode = FullDay
+        /// Durée standard d'une journée complète (snapshot au moment de création)
+        /// Utilisé uniquement si EntryMode = FullDay
         /// </summary>
         public decimal? StandardDayHours { get; set; }
 
-        // ========== RÃ¨gle de majoration ==========
+        // ========== Règle de majoration ==========
 
         /// <summary>
-        /// ID de la rÃ¨gle principale appliquÃ©e
-        /// NULL si aucune rÃ¨gle trouvÃ©e (overtime Ã  100%)
+        /// ID de la règle principale appliquée
+        /// NULL si aucune règle trouvée (overtime à 100%)
         /// </summary>
         public int? RateRuleId { get; set; }
 
         /// <summary>
-        /// Snapshot du code de la rÃ¨gle (pour traÃ§abilitÃ©)
+        /// Snapshot du code de la règle (pour traçabilité)
         /// </summary>
         [MaxLength(50)]
         public string? RateRuleCodeApplied { get; set; }
 
         /// <summary>
-        /// Snapshot du nom de la rÃ¨gle (multilingue selon contexte)
+        /// Snapshot du nom de la règle (multilingue selon contexte)
         /// </summary>
         [MaxLength(200)]
         public string? RateRuleNameApplied { get; set; }
 
         /// <summary>
-        /// Multiplicateur final appliquÃ© (snapshot au moment de l'approbation)
-        /// Peut Ãªtre le rÃ©sultat d'un cumul de plusieurs rÃ¨gles
+        /// Multiplicateur final appliqué (snapshot au moment de l'approbation)
+        /// Peut être le résultat d'un cumul de plusieurs règles
         /// </summary>
         [Required]
         [Range(1.00, 10.00)]
         public decimal RateMultiplierApplied { get; set; } = 1.00m;
 
         /// <summary>
-        /// DÃ©tail du calcul de majoration (JSON)
+        /// Détail du calcul de majoration (JSON)
         /// Exemple: {"baseRule": "HS_JOUR_25", "nightRule": "HS_NUIT_50", "strategy": "Multiply", "result": 1.875}
         /// </summary>
         [MaxLength(1000)]
@@ -101,7 +101,7 @@ namespace payzen_backend.Models.Employee
         // ========== Split batch ==========
 
         /// <summary>
-        /// GUID de batch pour grouper les segments issus du mÃªme split automatique
+        /// GUID de batch pour grouper les segments issus du même split automatique
         /// NULL = pas de split (overtime simple)
         /// </summary>
         public Guid? SplitBatchId { get; set; }
@@ -124,7 +124,7 @@ namespace payzen_backend.Models.Employee
         public OvertimeStatus Status { get; set; } = OvertimeStatus.Draft;
 
         /// <summary>
-        /// Commentaire de l'employÃ© (lors de soumission)
+        /// Commentaire de l'employé (lors de soumission)
         /// </summary>
         [MaxLength(500)]
         public string? EmployeeComment { get; set; }
@@ -136,7 +136,7 @@ namespace payzen_backend.Models.Employee
         public string? ManagerComment { get; set; }
 
         /// <summary>
-        /// ID du manager ayant approuvÃ©/rejetÃ©
+        /// ID du manager ayant approuvé/rejeté
         /// </summary>
         public int? ApprovedBy { get; set; }
 
@@ -145,15 +145,15 @@ namespace payzen_backend.Models.Employee
         /// </summary>
         public DateTimeOffset? ApprovedAt { get; set; }
 
-        // ========== IntÃ©gration paie ==========
+        // ========== Intégration paie ==========
 
         /// <summary>
-        /// Indique si cet overtime a Ã©tÃ© inclus dans une paie
+        /// Indique si cet overtime a été inclus dans une paie
         /// </summary>
         public bool IsProcessedInPayroll { get; set; }
 
         /// <summary>
-        /// ID du batch de paie qui a traitÃ© cet overtime
+        /// ID du batch de paie qui a traité cet overtime
         /// </summary>
         public int? PayrollBatchId { get; set; }
 
@@ -187,20 +187,20 @@ namespace payzen_backend.Models.Employee
         public Employee Employee { get; set; } = null!;
         public OvertimeRateRule? RateRule { get; set; }
 
-        // ========== MÃ©thodes helper ==========
+        // ========== Méthodes helper ==========
 
         /// <summary>
-        /// VÃ©rifie si cet overtime fait partie d'un split
+        /// Vérifie si cet overtime fait partie d'un split
         /// </summary>
         public bool IsSplit() => SplitBatchId.HasValue;
 
         /// <summary>
-        /// VÃ©rifie si l'overtime peut Ãªtre modifiÃ©
+        /// Vérifie si l'overtime peut être modifié
         /// </summary>
         public bool CanBeModified() => Status is OvertimeStatus.Draft or OvertimeStatus.Rejected;
 
         /// <summary>
-        /// VÃ©rifie si l'overtime peut Ãªtre supprimÃ©
+        /// Vérifie si l'overtime peut être supprimé
         /// </summary>
         public bool CanBeDeleted() => !IsProcessedInPayroll && Status != OvertimeStatus.Approved;
     }

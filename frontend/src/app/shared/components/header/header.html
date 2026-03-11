@@ -1,8 +1,6 @@
 <header [class.expert-header]="isExpertMode()" class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
   <div class="flex items-center gap-4">
-    <div class="flex items-center gap-2">
-      <h1 class="text-xl font-semibold text-gray-800">{{ 'app.name' | translate }}</h1>
-      
+    <div class="flex items-center gap-2">      
       <!-- Subtle Expert Indicator -->
       @if (isExpertMode()) {
         <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-100 tracking-wide uppercase">

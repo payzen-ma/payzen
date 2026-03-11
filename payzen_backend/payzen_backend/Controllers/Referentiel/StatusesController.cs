@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -138,7 +138,7 @@ namespace payzen_backend.Controllers.Referentiel
                 .FirstOrDefaultAsync();
 
             if (item == null)
-                return NotFound(new { Message = "Statut non trouv√©" });
+                return NotFound(new { Message = "Statut non trouvÈ" });
 
             return Ok(item);
         }
@@ -160,7 +160,7 @@ namespace payzen_backend.Controllers.Referentiel
                 .AnyAsync(s => s.Code.ToLower() == code.ToLower());
 
             if (exists)
-                return Conflict(new { Message = "Un statut avec ce code existe d√©j√†" });
+                return Conflict(new { Message = "Un statut avec ce code existe dÈj‡" });
 
             var userId = User.GetUserId();
 
@@ -210,14 +210,14 @@ namespace payzen_backend.Controllers.Referentiel
 
             var entity = await _db.Statuses.FirstOrDefaultAsync(s => s.Id == id);
             if (entity == null)
-                return NotFound(new { Message = "Statut non trouv√©" });
+                return NotFound(new { Message = "Statut non trouvÈ" });
 
             if (!string.IsNullOrWhiteSpace(dto.Code) && dto.Code.Trim() != entity.Code)
             {
                 var newCode = dto.Code.Trim();
                 var exists = await _db.Statuses.AnyAsync(s => s.Code.ToLower() == newCode.ToLower() && s.Id != id);
                 if (exists)
-                    return Conflict(new { Message = "Un statut avec ce code existe d√©j√†" });
+                    return Conflict(new { Message = "Un statut avec ce code existe dÈj‡" });
 
                 entity.Code = newCode;
             }
@@ -266,19 +266,19 @@ namespace payzen_backend.Controllers.Referentiel
         }
 
         /// <summary>
-        /// DELETE /api/statuses/{id}  (d√©sactive)
+        /// DELETE /api/statuses/{id}  (dÈsactive)
         /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _db.Statuses.FirstOrDefaultAsync(s => s.Id == id);
             if (entity == null)
-                return NotFound(new { Message = "Statut non trouv√©" });
+                return NotFound(new { Message = "Statut non trouvÈ" });
 
-            // Emp√™cher d√©sactivation si utilis√© par des employ√©s actifs
+            // EmpÍcher dÈsactivation si utilisÈ par des employÈs actifs
             var used = await _db.Employees.AnyAsync(e => e.StatusId == id && e.DeletedAt == null);
             if (used)
-                return BadRequest(new { Message = "Impossible de supprimer ce statut car il est utilis√© par des employ√©s" });
+                return BadRequest(new { Message = "Impossible de supprimer ce statut car il est utilisÈ par des employÈs" });
 
             entity.IsActive = false;
             entity.ModifiedAt = DateTimeOffset.UtcNow;

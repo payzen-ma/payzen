@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using payzen_backend.Data;
@@ -18,21 +18,21 @@ namespace payzen_backend.Controllers.Auth
         public RolesPermissionsController(AppDbContext db) => _db = db;
 
         /// <summary>
-        /// R√©cup√®re toutes les permissions d'un r√¥le
+        /// RÈcupËre toutes les permissions d'un rÙle
         /// </summary>
-        /// <param name="roleId">ID du r√¥le</param>
-        /// <returns>Liste des permissions du r√¥le</returns>
+        /// <param name="roleId">ID du rÙle</param>
+        /// <returns>Liste des permissions du rÙle</returns>
         [HttpGet("role/{roleId}")]
         public async Task<ActionResult<IEnumerable<PermissionReadDto>>> GetRolePermissions(int roleId)
         {
-            // V√©rifier que le r√¥le existe et est actif
+            // VÈrifier que le rÙle existe et est actif
             var roleExists = await _db.Roles
                 .AnyAsync(r => r.Id == roleId && r.DeletedAt == null);
             
             if (!roleExists)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // R√©cup√©rer les permissions du r√¥le
+            // RÈcupÈrer les permissions du rÙle
             var permissions = await _db.RolesPermissions
                 .AsNoTracking()
                 .Where(rp => rp.RoleId == roleId && rp.DeletedAt == null)
@@ -52,21 +52,21 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// R√©cup√®re tous les r√¥les ayant une permission sp√©cifique
+        /// RÈcupËre tous les rÙles ayant une permission spÈcifique
         /// </summary>
         /// <param name="permissionId">ID de la permission</param>
-        /// <returns>Liste des r√¥les ayant cette permission</returns>
+        /// <returns>Liste des rÙles ayant cette permission</returns>
         [HttpGet("permission/{permissionId}")]
         public async Task<ActionResult<IEnumerable<RoleReadDto>>> GetPermissionRoles(int permissionId)
         {
-            // V√©rifier que la permission existe
+            // VÈrifier que la permission existe
             var permissionExists = await _db.Permissions
                 .AnyAsync(p => p.Id == permissionId && p.DeletedAt == null);
             
             if (!permissionExists)
-                return NotFound(new { Message = "Permission non trouv√©e" });
+                return NotFound(new { Message = "Permission non trouvÈe" });
 
-            // R√©cup√©rer les r√¥les ayant cette permission
+            // RÈcupÈrer les rÙles ayant cette permission
             var roles = await _db.RolesPermissions
                 .AsNoTracking()
                 .Where(rp => rp.PermissionId == permissionId && rp.DeletedAt == null)
@@ -86,7 +86,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Assigne une permission √† un r√¥le
+        /// Assigne une permission ‡ un rÙle
         /// </summary>
         /// <param name="dto">RoleId et PermissionId</param>
         /// <returns>Message de confirmation</returns>
@@ -98,21 +98,21 @@ namespace payzen_backend.Controllers.Auth
 
             var userId = User.GetUserId();
 
-            // V√©rifier que le r√¥le existe
+            // VÈrifier que le rÙle existe
             var roleExists = await _db.Roles
                 .AnyAsync(r => r.Id == dto.RoleId && r.DeletedAt == null);
             
             if (!roleExists)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // V√©rifier que la permission existe
+            // VÈrifier que la permission existe
             var permissionExists = await _db.Permissions
                 .AnyAsync(p => p.Id == dto.PermissionId && p.DeletedAt == null);
             
             if (!permissionExists)
-                return NotFound(new { Message = "Permission non trouv√©e" });
+                return NotFound(new { Message = "Permission non trouvÈe" });
 
-            // V√©rifier si l'association existe d√©j√† (m√™me soft-deleted)
+            // VÈrifier si l'association existe dÈj‡ (mÍme soft-deleted)
             var existingAssignment = await _db.RolesPermissions
                 .FirstOrDefaultAsync(rp => rp.RoleId == dto.RoleId 
                                         && rp.PermissionId == dto.PermissionId);
@@ -121,10 +121,10 @@ namespace payzen_backend.Controllers.Auth
             {
                 if (existingAssignment.DeletedAt == null)
                 {
-                    return Conflict(new { Message = "Cette permission est d√©j√† assign√©e au r√¥le" });
+                    return Conflict(new { Message = "Cette permission est dÈj‡ assignÈe au rÙle" });
                 }
 
-                // R√©activer l'association soft-deleted
+                // RÈactiver l'association soft-deleted
                 existingAssignment.DeletedAt = null;
                 existingAssignment.DeletedBy = null;
                 existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -132,7 +132,7 @@ namespace payzen_backend.Controllers.Auth
             }
             else
             {
-                // Cr√©er une nouvelle association
+                // CrÈer une nouvelle association
                 var rolePermission = new RolesPermissions
                 {
                     RoleId = dto.RoleId,
@@ -146,14 +146,14 @@ namespace payzen_backend.Controllers.Auth
 
             await _db.SaveChangesAsync();
 
-            return Ok(new { Message = "Permission assign√©e avec succ√®s au r√¥le" });
+            return Ok(new { Message = "Permission assignÈe avec succËs au rÙle" });
         }
 
         /// <summary>
-        /// Assigne plusieurs permissions √† un r√¥le en une seule op√©ration
+        /// Assigne plusieurs permissions ‡ un rÙle en une seule opÈration
         /// </summary>
         /// <param name="dto">RoleId et liste de PermissionIds</param>
-        /// <returns>R√©sum√© de l'op√©ration</returns>
+        /// <returns>RÈsumÈ de l'opÈration</returns>
         [HttpPost("bulk-assign")]
         public async Task<ActionResult> BulkAssignPermissions([FromBody] RolePermissionsBulkAssignDto dto)
         {
@@ -162,14 +162,14 @@ namespace payzen_backend.Controllers.Auth
 
             var userId = User.GetUserId();
 
-            // V√©rifier que le r√¥le existe
+            // VÈrifier que le rÙle existe
             var roleExists = await _db.Roles
                 .AnyAsync(r => r.Id == dto.RoleId && r.DeletedAt == null);
             
             if (!roleExists)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // V√©rifier que toutes les permissions existent
+            // VÈrifier que toutes les permissions existent
             var validPermissions = await _db.Permissions
                 .Where(p => dto.PermissionIds.Contains(p.Id) && p.DeletedAt == null)
                 .Select(p => p.Id)
@@ -194,7 +194,7 @@ namespace payzen_backend.Controllers.Auth
                 {
                     if (existingAssignment.DeletedAt != null)
                     {
-                        // R√©activer
+                        // RÈactiver
                         existingAssignment.DeletedAt = null;
                         existingAssignment.DeletedBy = null;
                         existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -203,13 +203,13 @@ namespace payzen_backend.Controllers.Auth
                     }
                     else
                     {
-                        // D√©j√† assign√©e
+                        // DÈj‡ assignÈe
                         skippedCount++;
                     }
                 }
                 else
                 {
-                    // Cr√©er nouvelle association
+                    // CrÈer nouvelle association
                     var rolePermission = new RolesPermissions
                     {
                         RoleId = dto.RoleId,
@@ -227,7 +227,7 @@ namespace payzen_backend.Controllers.Auth
 
             return Ok(new 
             { 
-                Message = "Permissions assign√©es avec succ√®s",
+                Message = "Permissions assignÈes avec succËs",
                 Assigned = assignedCount,
                 Reactivated = reactivatedCount,
                 Skipped = skippedCount
@@ -235,10 +235,10 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Remplace toutes les permissions d'un r√¥le
+        /// Remplace toutes les permissions d'un rÙle
         /// </summary>
         /// <param name="dto">RoleId et nouvelle liste de PermissionIds</param>
-        /// <returns>R√©sum√© de l'op√©ration</returns>
+        /// <returns>RÈsumÈ de l'opÈration</returns>
         [HttpPut("replace")]
         public async Task<ActionResult> ReplaceRolePermissions([FromBody] RolePermissionsBulkAssignDto dto)
         {
@@ -247,14 +247,14 @@ namespace payzen_backend.Controllers.Auth
 
             var userId = User.GetUserId();
 
-            // V√©rifier que le r√¥le existe
+            // VÈrifier que le rÙle existe
             var roleExists = await _db.Roles
                 .AnyAsync(r => r.Id == dto.RoleId && r.DeletedAt == null);
             
             if (!roleExists)
-                return NotFound(new { Message = "R√¥le non trouv√©" });
+                return NotFound(new { Message = "RÙle non trouvÈ" });
 
-            // V√©rifier que toutes les permissions existent
+            // VÈrifier que toutes les permissions existent
             var validPermissions = await _db.Permissions
                 .Where(p => dto.PermissionIds.Contains(p.Id) && p.DeletedAt == null)
                 .Select(p => p.Id)
@@ -288,7 +288,7 @@ namespace payzen_backend.Controllers.Auth
 
                 if (existingAssignment != null)
                 {
-                    // R√©activer (vient d'√™tre supprim√© ou √©tait d√©j√† supprim√©)
+                    // RÈactiver (vient d'Ítre supprimÈ ou Ètait dÈj‡ supprimÈ)
                     existingAssignment.DeletedAt = null;
                     existingAssignment.DeletedBy = null;
                     existingAssignment.UpdatedAt = DateTimeOffset.UtcNow;
@@ -297,7 +297,7 @@ namespace payzen_backend.Controllers.Auth
                 }
                 else
                 {
-                    // Cr√©er nouvelle association
+                    // CrÈer nouvelle association
                     var rolePermission = new RolesPermissions
                     {
                         RoleId = dto.RoleId,
@@ -315,7 +315,7 @@ namespace payzen_backend.Controllers.Auth
 
             return Ok(new 
             { 
-                Message = "Permissions remplac√©es avec succ√®s",
+                Message = "Permissions remplacÈes avec succËs",
                 Removed = currentPermissions.Count,
                 Assigned = assignedCount,
                 Reactivated = reactivatedCount
@@ -323,7 +323,7 @@ namespace payzen_backend.Controllers.Auth
         }
 
         /// <summary>
-        /// Retire une permission d'un r√¥le (soft delete)
+        /// Retire une permission d'un rÙle (soft delete)
         /// </summary>
         /// <param name="dto">RoleId et PermissionId</param>
         /// <returns>204 No Content</returns>
@@ -341,7 +341,7 @@ namespace payzen_backend.Controllers.Auth
                                         && rp.DeletedAt == null);
 
             if (rolePermission == null)
-                return NotFound(new { Message = "Cette association r√¥le-permission n'existe pas" });
+                return NotFound(new { Message = "Cette association rÙle-permission n'existe pas" });
 
             // Soft delete
             rolePermission.DeletedAt = DateTimeOffset.UtcNow;

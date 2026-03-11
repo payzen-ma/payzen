@@ -1,4 +1,4 @@
-Ôªøusing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using payzen_backend.Services.Llm;
 using System.ComponentModel.DataAnnotations;
@@ -26,12 +26,12 @@ namespace payzen_backend.Controllers.Payroll
         }
 
         /// <summary>
-        /// Simule des compositions de salaire selon les r√®gles de paie et l'instruction fournie
+        /// Simule des compositions de salaire selon les rËgles de paie et l'instruction fournie
         /// POST: api/claudesimulation/simulate
         /// </summary>
-        /// <param name="request">Requ√™te contenant les r√®gles DSL et l'instruction utilisateur</param>
+        /// <param name="request">RequÍte contenant les rËgles DSL et l'instruction utilisateur</param>
         /// <param name="cancellationToken">Jeton d'annulation</param>
-        /// <returns>Sc√©narios de paie propos√©s par Claude</returns>
+        /// <returns>ScÈnarios de paie proposÈs par Claude</returns>
         [HttpPost("simulate")]
         [ProducesResponseType(typeof(SimulationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -42,11 +42,11 @@ namespace payzen_backend.Controllers.Payroll
         {
             try
             {
-                _logger.LogInformation("ü§ñ Nouvelle demande de simulation de paie re√ßue");
+                _logger.LogInformation("?? Nouvelle demande de simulation de paie reÁue");
 
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogWarning("Requ√™te de simulation invalide");
+                    _logger.LogWarning("RequÍte de simulation invalide");
                     return BadRequest(ModelState);
                 }
 
@@ -55,18 +55,26 @@ namespace payzen_backend.Controllers.Payroll
                     request.Instruction,
                     cancellationToken);
 
-                _logger.LogInformation("‚úÖ Simulation de paie r√©ussie");
+                _logger.LogInformation("? Simulation de paie rÈussie");
+
+                // DÈsÈrialiser le JSON pour Èviter le double encodage
+                var jsonResult = JsonSerializer.Deserialize<object>(result);
+                _logger.LogInformation("?? [AVANT normalisation] JSON dÈsÈrialisÈ: {Json}", JsonSerializer.Serialize(jsonResult, new JsonSerializerOptions { WriteIndented = false }));
+                
+                // Convertir les clÈs camelCase en snake_case pour compatibilitÈ frontend
+                var normalizedResult = NormalizeCamelCaseToSnakeCase(jsonResult);
+                _logger.LogInformation("? [APR»S normalisation] JSON normalisÈ: {Json}", JsonSerializer.Serialize(normalizedResult, new JsonSerializerOptions { WriteIndented = false }));
 
                 return Ok(new SimulationResponse
                 {
                     Success = true,
-                    Result = result,
+                    Result = normalizedResult,
                     Timestamp = DateTime.UtcNow
                 });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("‚ö†Ô∏è Demande utilisateur non claire : {Message}", ex.Message);
+                _logger.LogWarning("?? Demande utilisateur non claire : {Message}", ex.Message);
                 return BadRequest(new SimulationResponse
                 {
                     Success = false,
@@ -76,7 +84,7 @@ namespace payzen_backend.Controllers.Payroll
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Erreur m√©tier lors de la simulation");
+                _logger.LogError(ex, "Erreur mÈtier lors de la simulation");
                 return StatusCode(500, new SimulationResponse
                 {
                     Success = false,
@@ -90,7 +98,7 @@ namespace payzen_backend.Controllers.Payroll
                 return StatusCode(500, new SimulationResponse
                 {
                     Success = false,
-                    ErrorMessage = $"Le LLM a retourn√© un JSON invalide : {ex.Message}",
+                    ErrorMessage = $"Le LLM a retournÈ un JSON invalide : {ex.Message}",
                     Timestamp = DateTime.UtcNow
                 });
             }
@@ -112,12 +120,12 @@ namespace payzen_backend.Controllers.Payroll
         }
 
         /// <summary>
-        /// Simule des compositions de salaire avec les r√®gles du fichier DSL compact
+        /// Simule des compositions de salaire avec les rËgles du fichier DSL compact
         /// POST: api/claudesimulation/simulate-quick
         /// </summary>
-        /// <param name="request">Requ√™te contenant uniquement l'instruction utilisateur</param>
+        /// <param name="request">RequÍte contenant uniquement l'instruction utilisateur</param>
         /// <param name="cancellationToken">Jeton d'annulation</param>
-        /// <returns>Sc√©narios de paie propos√©s par Claude avec r√®gles DSL du syst√®me</returns>
+        /// <returns>ScÈnarios de paie proposÈs par Claude avec rËgles DSL du systËme</returns>
         [HttpPost("simulate-quick")]
         [ProducesResponseType(typeof(SimulationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -128,24 +136,24 @@ namespace payzen_backend.Controllers.Payroll
         {
             try
             {
-                _logger.LogInformation("üöÄ Nouvelle demande de simulation rapide de paie");
+                _logger.LogInformation("?? Nouvelle demande de simulation rapide de paie");
 
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogWarning("Requ√™te de simulation rapide invalide");
+                    _logger.LogWarning("RequÍte de simulation rapide invalide");
                     return BadRequest(ModelState);
                 }
 
-                // Lecture du fichier de r√®gles DSL compact
-                var rulesFilePath = Path.Combine(_environment.ContentRootPath, "rules", "regles_paie_compact.txt");
+                // Lecture du fichier de rËgles DSL compact
+                var rulesFilePath = Path.Combine(_environment.ContentRootPath, "rules", "regle_simulateur.md");
 
                 if (!System.IO.File.Exists(rulesFilePath))
                 {
-                    _logger.LogError("Fichier de r√®gles DSL introuvable : {Path}", rulesFilePath);
+                    _logger.LogError("Fichier de rËgles DSL introuvable : {Path}", rulesFilePath);
                     return StatusCode(500, new SimulationResponse
                     {
                         Success = false,
-                        ErrorMessage = "Le fichier de r√®gles de paie est introuvable sur le serveur.",
+                        ErrorMessage = "Le fichier de rËgles de paie est introuvable sur le serveur.",
                         Timestamp = DateTime.UtcNow
                     });
                 }
@@ -157,18 +165,26 @@ namespace payzen_backend.Controllers.Payroll
                     request.Instruction,
                     cancellationToken);
 
-                _logger.LogInformation("‚úÖ Simulation rapide de paie r√©ussie");
+                _logger.LogInformation("? Simulation rapide de paie rÈussie");
+
+                // DÈsÈrialiser le JSON pour Èviter le double encodage
+                var jsonResult = JsonSerializer.Deserialize<object>(result);
+                _logger.LogInformation("?? [AVANT normalisation] JSON dÈsÈrialisÈ: {Json}", JsonSerializer.Serialize(jsonResult, new JsonSerializerOptions { WriteIndented = false }));
+                
+                // Convertir les clÈs camelCase en snake_case pour compatibilitÈ frontend
+                var normalizedResult = NormalizeCamelCaseToSnakeCase(jsonResult);
+                _logger.LogInformation("? [APR»S normalisation] JSON normalisÈ: {Json}", JsonSerializer.Serialize(normalizedResult, new JsonSerializerOptions { WriteIndented = false }));
 
                 return Ok(new SimulationResponse
                 {
                     Success = true,
-                    Result = result,
+                    Result = normalizedResult,
                     Timestamp = DateTime.UtcNow
                 });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("‚ö†Ô∏è Demande utilisateur non claire : {Message}", ex.Message);
+                _logger.LogWarning("?? Demande utilisateur non claire : {Message}", ex.Message);
                 return BadRequest(new SimulationResponse
                 {
                     Success = false,
@@ -178,7 +194,7 @@ namespace payzen_backend.Controllers.Payroll
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Erreur op√©rationnelle lors de la simulation");
+                _logger.LogError(ex, "Erreur opÈrationnelle lors de la simulation");
                 return StatusCode(500, new SimulationResponse
                 {
                     Success = false,
@@ -192,7 +208,7 @@ namespace payzen_backend.Controllers.Payroll
                 return StatusCode(500, new SimulationResponse
                 {
                     Success = false,
-                    ErrorMessage = $"Le LLM a retourn√© un JSON invalide : {ex.Message}",
+                    ErrorMessage = $"Le LLM a retournÈ un JSON invalide : {ex.Message}",
                     Timestamp = DateTime.UtcNow
                 });
             }
@@ -200,7 +216,7 @@ namespace payzen_backend.Controllers.Payroll
             {
                 _logger.LogError(ex, "Erreur inattendue lors de la simulation rapide de paie");
                 
-                // En d√©veloppement, retourner plus de d√©tails
+                // En dÈveloppement, retourner plus de dÈtails
                 var detailedMessage = _environment.IsDevelopment() 
                     ? $"Erreur : {ex.Message}\n\nType : {ex.GetType().Name}\n\nStack : {ex.StackTrace?.Substring(0, Math.Min(500, ex.StackTrace?.Length ?? 0))}"
                     : "Une erreur inattendue s'est produite lors de la simulation.";
@@ -215,83 +231,121 @@ namespace payzen_backend.Controllers.Payroll
         }
 
         /// <summary>
-        /// Simule des compositions de salaire avec streaming (Server-Sent Events)
+        /// Simule des compositions de salaire avec HTTP (anciennement streaming)
         /// POST: api/claudesimulation/simulate-stream
         /// </summary>
-        /// <param name="request">Requ√™te contenant l'instruction utilisateur</param>
+        /// <param name="request">RequÍte contenant l'instruction utilisateur</param>
         /// <param name="cancellationToken">Jeton d'annulation</param>
-        /// <returns>Stream de texte (Server-Sent Events)</returns>
+        /// <returns>RÈponse HTTP standard avec les scÈnarios de paie</returns>
         [HttpPost("simulate-stream")]
-        public async Task SimulateSalaryStream(
+        [ProducesResponseType(typeof(SimulationResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SimulateSalaryStream(
             [FromBody] QuickSimulationRequest request,
             CancellationToken cancellationToken)
         {
-            Response.Headers.Append("Content-Type", "text/event-stream");
-            Response.Headers.Append("Cache-Control", "no-cache");
-            Response.Headers.Append("Connection", "keep-alive");
-
             try
             {
-                _logger.LogInformation("üöÄ D√©marrage simulation streaming");
+                _logger.LogInformation("?? DÈmarrage simulation HTTP");
 
                 if (!ModelState.IsValid)
                 {
-                    await Response.WriteAsync($"data: {{\"error\": \"Requ√™te invalide\"}}\n\n", cancellationToken);
-                    await Response.Body.FlushAsync(cancellationToken);
-                    return;
+                    _logger.LogWarning("RequÍte de simulation invalide");
+                    return BadRequest(ModelState);
                 }
 
-                // Lecture du fichier de r√®gles DSL
+                // Lecture du fichier de rËgles DSL
                 var rulesFilePath = Path.Combine(_environment.ContentRootPath, "rules", "regles_paie_compact.txt");
 
                 if (!System.IO.File.Exists(rulesFilePath))
                 {
-                    await Response.WriteAsync($"data: {{\"error\": \"Fichier de r√®gles introuvable\"}}\n\n", cancellationToken);
-                    await Response.Body.FlushAsync(cancellationToken);
-                    return;
+                    _logger.LogError("Fichier de rËgles DSL introuvable : {Path}", rulesFilePath);
+                    return StatusCode(500, new SimulationResponse
+                    {
+                        Success = false,
+                        ErrorMessage = "Le fichier de rËgles de paie est introuvable sur le serveur.",
+                        Timestamp = DateTime.UtcNow
+                    });
                 }
 
                 var regleContent = await System.IO.File.ReadAllTextAsync(rulesFilePath, cancellationToken);
 
-                // Stream de la r√©ponse
-                await foreach (var chunk in _claudeService.SimulationSalaryStreamAsync(
+                // Appel HTTP standard
+                var result = await _claudeService.SimulationSalaryStreamAsync(
                     regleContent,
                     request.Instruction,
-                    cancellationToken))
+                    cancellationToken);
+
+                _logger.LogInformation("? Simulation HTTP terminÈe");
+
+                // DÈsÈrialiser le JSON pour Èviter le double encodage
+                var jsonResult = JsonSerializer.Deserialize<object>(result);
+                _logger.LogInformation("?? [AVANT normalisation] JSON dÈsÈrialisÈ: {Json}", JsonSerializer.Serialize(jsonResult, new JsonSerializerOptions { WriteIndented = false }));
+                
+                // Convertir les clÈs camelCase en snake_case pour compatibilitÈ frontend
+                var normalizedResult = NormalizeCamelCaseToSnakeCase(jsonResult);
+                _logger.LogInformation("? [APR»S normalisation] JSON normalisÈ: {Json}", JsonSerializer.Serialize(normalizedResult, new JsonSerializerOptions { WriteIndented = false }));
+
+                return Ok(new SimulationResponse
                 {
-                    // Format Server-Sent Events
-                    var data = $"data: {JsonSerializer.Serialize(new { chunk })}\n\n";
-                    await Response.WriteAsync(data, cancellationToken);
-                    await Response.Body.FlushAsync(cancellationToken);
-                }
-
-                // Signal de fin
-                await Response.WriteAsync("data: {\"done\": true}\n\n", cancellationToken);
-                await Response.Body.FlushAsync(cancellationToken);
-
-                _logger.LogInformation("‚úÖ Streaming termin√©");
+                    Success = true,
+                    Result = normalizedResult,
+                    Timestamp = DateTime.UtcNow
+                });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("‚ö†Ô∏è Erreur utilisateur : {Message}", ex.Message);
-                var errorData = $"data: {{\"error\": {JsonSerializer.Serialize(ex.Message)}}}\n\n";
-                await Response.WriteAsync(errorData, cancellationToken);
-                await Response.Body.FlushAsync(cancellationToken);
+                _logger.LogWarning("?? Demande utilisateur non claire : {Message}", ex.Message);
+                return BadRequest(new SimulationResponse
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Erreur opÈrationnelle lors de la simulation");
+                return StatusCode(500, new SimulationResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Erreur de simulation : {ex.Message}",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Erreur de parsing JSON");
+                return StatusCode(500, new SimulationResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Le LLM a retournÈ un JSON invalide : {ex.Message}",
+                    Timestamp = DateTime.UtcNow
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erreur streaming");
-                var errorData = $"data: {{\"error\": \"Erreur lors du streaming\"}}\n\n";
-                await Response.WriteAsync(errorData, cancellationToken);
-                await Response.Body.FlushAsync(cancellationToken);
+                _logger.LogError(ex, "Erreur HTTP simulation");
+                
+                var detailedMessage = _environment.IsDevelopment() 
+                    ? $"Erreur : {ex.Message}\n\nType : {ex.GetType().Name}"
+                    : "Une erreur inattendue s'est produite.";
+                
+                return StatusCode(500, new SimulationResponse
+                {
+                    Success = false,
+                    ErrorMessage = detailedMessage,
+                    Timestamp = DateTime.UtcNow
+                });
             }
         }
 
         /// <summary>
-        /// R√©cup√®re le contenu du fichier de r√®gles DSL compact
+        /// RÈcupËre le contenu du fichier de rËgles DSL compact
         /// GET: api/claudesimulation/rules
         /// </summary>
-        /// <returns>Contenu du fichier de r√®gles DSL</returns>
+        /// <returns>Contenu du fichier de rËgles DSL</returns>
         [HttpGet("rules")]
         [ProducesResponseType(typeof(RulesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -303,8 +357,8 @@ namespace payzen_backend.Controllers.Payroll
 
                 if (!System.IO.File.Exists(rulesFilePath))
                 {
-                    _logger.LogWarning("Fichier de r√®gles DSL introuvable");
-                    return NotFound(new { message = "Le fichier de r√®gles de paie est introuvable." });
+                    _logger.LogWarning("Fichier de rËgles DSL introuvable");
+                    return NotFound(new { message = "Le fichier de rËgles de paie est introuvable." });
                 }
 
                 var content = await System.IO.File.ReadAllTextAsync(rulesFilePath, cancellationToken);
@@ -319,37 +373,136 @@ namespace payzen_backend.Controllers.Payroll
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erreur lors de la lecture du fichier de r√®gles");
-                return StatusCode(500, new { message = "Erreur lors de la lecture du fichier de r√®gles." });
+                _logger.LogError(ex, "Erreur lors de la lecture du fichier de rËgles");
+                return StatusCode(500, new { message = "Erreur lors de la lecture du fichier de rËgles." });
             }
+        }
+
+        /// <summary>
+        /// Convertit rÈcursivement les clÈs d'un objet JSON de camelCase vers snake_case
+        /// pour compatibilitÈ avec le frontend Angular
+        /// </summary>
+        private object? NormalizeCamelCaseToSnakeCase(object? obj)
+        {
+            if (obj == null)
+                return null;
+
+            if (obj is JsonElement jsonElement)
+            {
+                return ConvertJsonElement(jsonElement);
+            }
+
+            return obj;
+        }
+
+        private object? ConvertJsonElement(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    var dict = new Dictionary<string, object?>();
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        var snakeCaseKey = ToSnakeCase(property.Name);
+                        
+                        // Mapping spÈcifique pour Gemini -> Frontend
+                        var finalKey = snakeCaseKey switch
+                        {
+                            "total_retenues_salariales" => "total_retenues",
+                            "cout_employeur_total" => "cout_employeur",
+                            _ => snakeCaseKey
+                        };
+                        
+                        dict[finalKey] = ConvertJsonElement(property.Value);
+                    }
+                    return dict;
+
+                case JsonValueKind.Array:
+                    var list = new List<object?>();
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        list.Add(ConvertJsonElement(item));
+                    }
+                    return list;
+
+                case JsonValueKind.String:
+                    return element.GetString();
+
+                case JsonValueKind.Number:
+                    if (element.TryGetInt32(out int intValue))
+                        return intValue;
+                    if (element.TryGetInt64(out long longValue))
+                        return longValue;
+                    return element.GetDouble();
+
+                case JsonValueKind.True:
+                    return true;
+
+                case JsonValueKind.False:
+                    return false;
+
+                case JsonValueKind.Null:
+                    return null;
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convertit une chaÓne camelCase en snake_case
+        /// Exemples: brutImposable -> brut_imposable, salaireNet -> salaire_net
+        /// </summary>
+        private string ToSnakeCase(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return str;
+
+            var result = new System.Text.StringBuilder();
+            result.Append(char.ToLower(str[0]));
+
+            for (int i = 1; i < str.Length; i++)
+            {
+                if (char.IsUpper(str[i]))
+                {
+                    result.Append('_');
+                    result.Append(char.ToLower(str[i]));
+                }
+                else
+                {
+                    result.Append(str[i]);
+                }
+            }
+
+            return result.ToString();
         }
     }
 
     #region DTOs
 
     /// <summary>
-    /// Requ√™te de simulation de paie avec r√®gles personnalis√©es
+    /// RequÍte de simulation de paie avec rËgles personnalisÈes
     /// </summary>
     public class SimulationRequest
     {
         /// <summary>
-        /// Contenu des r√®gles DSL de calcul de paie
+        /// Contenu des rËgles DSL de calcul de paie
         /// </summary>
-        [Required(ErrorMessage = "Le contenu des r√®gles est requis")]
-        [MinLength(10, ErrorMessage = "Le contenu des r√®gles doit contenir au moins 10 caract√®res")]
+        [Required(ErrorMessage = "Le contenu des rËgles est requis")]
+        [MinLength(10, ErrorMessage = "Le contenu des rËgles doit contenir au moins 10 caractËres")]
         public required string RegleContent { get; set; }
 
         /// <summary>
         /// Instruction de l'utilisateur (ex: "Je veux un net de 10000 DH")
         /// </summary>
         [Required(ErrorMessage = "L'instruction est requise")]
-        [MinLength(5, ErrorMessage = "L'instruction doit contenir au moins 5 caract√®res")]
-        [MaxLength(2000, ErrorMessage = "L'instruction ne peut pas d√©passer 2000 caract√®res")]
+        [MinLength(5, ErrorMessage = "L'instruction doit contenir au moins 5 caractËres")]
+        [MaxLength(2000, ErrorMessage = "L'instruction ne peut pas dÈpasser 2000 caractËres")]
         public required string Instruction { get; set; }
     }
 
     /// <summary>
-    /// Requ√™te de simulation rapide avec r√®gles par d√©faut
+    /// RequÍte de simulation rapide avec rËgles par dÈfaut
     /// </summary>
     public class QuickSimulationRequest
     {
@@ -357,49 +510,49 @@ namespace payzen_backend.Controllers.Payroll
         /// Instruction de l'utilisateur
         /// </summary>
         [Required(ErrorMessage = "L'instruction est requise")]
-        [MinLength(5, ErrorMessage = "L'instruction doit contenir au moins 5 caract√®res")]
-        [MaxLength(2000, ErrorMessage = "L'instruction ne peut pas d√©passer 2000 caract√®res")]
+        [MinLength(5, ErrorMessage = "L'instruction doit contenir au moins 5 caractËres")]
+        [MaxLength(2000, ErrorMessage = "L'instruction ne peut pas dÈpasser 2000 caractËres")]
         public required string Instruction { get; set; }
     }
 
     /// <summary>
-    /// R√©ponse de simulation de paie
+    /// RÈponse de simulation de paie
     /// </summary>
     public class SimulationResponse
     {
         /// <summary>
-        /// Indique si la simulation a r√©ussi
+        /// Indique si la simulation a rÈussi
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// R√©sultat de la simulation (sc√©narios propos√©s par Claude)
+        /// RÈsultat de la simulation (scÈnarios proposÈs par Claude)
         /// </summary>
-        public string? Result { get; set; }
+        public object? Result { get; set; }
 
         /// <summary>
-        /// Message d'erreur en cas d'√©chec
+        /// Message d'erreur en cas d'Èchec
         /// </summary>
         public string? ErrorMessage { get; set; }
 
         /// <summary>
-        /// Horodatage de la r√©ponse
+        /// Horodatage de la rÈponse
         /// </summary>
         public DateTime Timestamp { get; set; }
     }
 
     /// <summary>
-    /// R√©ponse contenant les r√®gles de paie DSL
+    /// RÈponse contenant les rËgles de paie DSL
     /// </summary>
     public class RulesResponse
     {
         /// <summary>
-        /// Indique si la r√©cup√©ration a r√©ussi
+        /// Indique si la rÈcupÈration a rÈussi
         /// </summary>
         public bool Success { get; set; }
 
         /// <summary>
-        /// Contenu du fichier de r√®gles DSL
+        /// Contenu du fichier de rËgles DSL
         /// </summary>
         public string? Content { get; set; }
 
@@ -409,7 +562,7 @@ namespace payzen_backend.Controllers.Payroll
         public string? FilePath { get; set; }
 
         /// <summary>
-        /// Date de derni√®re modification du fichier
+        /// Date de derniËre modification du fichier
         /// </summary>
         public DateTime? LastModified { get; set; }
     }

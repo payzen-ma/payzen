@@ -1,11 +1,11 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using payzen_backend.Models.Common.OvertimeEnums;
 using payzen_backend.Models.Employee;
 
 namespace payzen_backend.Models.Referentiel
 {
     /// <summary>
-    /// RÃ¨gle de majoration pour heures supplÃ©mentaires
+    /// Règle de majoration pour heures supplémentaires
     /// </summary>
     public class OvertimeRateRule
     {
@@ -14,7 +14,7 @@ namespace payzen_backend.Models.Referentiel
         // ========== Identification ==========
 
         /// <summary>
-        /// Code unique de la rÃ¨gle (ex: HS_JOUR_25, HS_NUIT_50, FERIE_JOUR_100)
+        /// Code unique de la règle (ex: HS_JOUR_25, HS_NUIT_50, FERIE_JOUR_100)
         /// </summary>
         [Required]
         [MaxLength(50)]
@@ -28,7 +28,7 @@ namespace payzen_backend.Models.Referentiel
         public string NameAr { get; set; } = string.Empty;
 
         /// <summary>
-        /// Nom en franÃ§ais
+        /// Nom en français
         /// </summary>
         [Required]
         [MaxLength(200)]
@@ -42,7 +42,7 @@ namespace payzen_backend.Models.Referentiel
         public string NameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// Description dÃ©taillÃ©e
+        /// Description détaillée
         /// </summary>
         [MaxLength(1000)]
         public string? Description { get; set; }
@@ -50,15 +50,15 @@ namespace payzen_backend.Models.Referentiel
         // ========== Application ==========
 
         /// <summary>
-        /// Type d'overtime concernÃ©
+        /// Type d'overtime concerné
         /// </summary>
         [Required]
         public OvertimeType AppliesTo { get; set; }
-        // Exemple de rÃ¨gles :
-        // RÃ¨gle 1: AppliesTo = Standard, TimeRange = 08:00-18:00, Multiplier = 1.25
-        // RÃ¨gle 2: AppliesTo = WeeklyRest, TimeRange = AllDay, Multiplier = 1.50
-        // RÃ¨gle 3: AppliesTo = PublicHoliday, TimeRange = AllDay, Multiplier = 2.00
-        // RÃ¨gle 4: AppliesTo = Night, TimeRange = 21:00-06:00, Multiplier = 1.50
+        // Exemple de règles :
+        // Règle 1: AppliesTo = Standard, TimeRange = 08:00-18:00, Multiplier = 1.25
+        // Règle 2: AppliesTo = WeeklyRest, TimeRange = AllDay, Multiplier = 1.50
+        // Règle 3: AppliesTo = PublicHoliday, TimeRange = AllDay, Multiplier = 2.00
+        // Règle 4: AppliesTo = Night, TimeRange = 21:00-06:00, Multiplier = 1.50
 
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace payzen_backend.Models.Referentiel
         public TimeRangeType TimeRangeType { get; set; } = TimeRangeType.AllDay;
 
         /// <summary>
-        /// Heure de dÃ©but de la plage (NULL si AllDay)
+        /// Heure de début de la plage (NULL si AllDay)
         /// </summary>
         public TimeOnly? StartTime { get; set; }
 
@@ -78,7 +78,7 @@ namespace payzen_backend.Models.Referentiel
         public TimeOnly? EndTime { get; set; }
 
         /// <summary>
-        /// Jours de la semaine concernÃ©s (bitmask)
+        /// Jours de la semaine concernés (bitmask)
         /// 1=Lundi, 2=Mardi, 4=Mercredi, 8=Jeudi, 16=Vendredi, 32=Samedi, 64=Dimanche
         /// NULL = tous les jours
         /// Exemple: 96 (64+32) = Samedi + Dimanche
@@ -95,71 +95,71 @@ namespace payzen_backend.Models.Referentiel
         public decimal Multiplier { get; set; }
 
         /// <summary>
-        /// StratÃ©gie de cumul si plusieurs rÃ¨gles s'appliquent
+        /// Stratégie de cumul si plusieurs règles s'appliquent
         /// </summary>
         [Required]
         public MultiplierCumulationStrategy CumulationStrategy { get; set; } = MultiplierCumulationStrategy.TakeMaximum;
 
-        // ========== PrioritÃ© ==========
+        // ========== Priorité ==========
 
         /// <summary>
-        /// Niveau de prioritÃ© (1 = plus haute prioritÃ©)
-        /// UtilisÃ© pour dÃ©terminer quelle rÃ¨gle appliquer en cas de chevauchement
+        /// Niveau de priorité (1 = plus haute priorité)
+        /// Utilisé pour déterminer quelle règle appliquer en cas de chevauchement
         /// </summary>
         [Required]
         [Range(1, 100)]
         public int Priority { get; set; }
 
         /// <summary>
-        /// CatÃ©gorie de rÃ¨gle (pour faciliter le tri)
+        /// Catégorie de règle (pour faciliter le tri)
         /// Exemples: "BASE", "NUIT", "WEEKEND", "FERIE"
         /// </summary>
         [MaxLength(50)]
         public string? Category { get; set; }
 
-        // ========== ValiditÃ© ==========
+        // ========== Validité ==========
 
         /// <summary>
-        /// Indique si la rÃ¨gle est active
+        /// Indique si la règle est active
         /// </summary>
         [Required]
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Date de dÃ©but de validitÃ©
+        /// Date de début de validité
         /// </summary>
         public DateOnly? EffectiveFrom { get; set; }
 
         /// <summary>
-        /// Date de fin de validitÃ© (NULL = indÃ©finie)
+        /// Date de fin de validité (NULL = indéfinie)
         /// </summary>
         public DateOnly? EffectiveTo { get; set; }
 
-        // ========== Contraintes mÃ©tier ==========
+        // ========== Contraintes métier ==========
 
         /// <summary>
-        /// DurÃ©e minimum pour que la rÃ¨gle s'applique (en heures)
+        /// Durée minimum pour que la règle s'applique (en heures)
         /// NULL = pas de minimum
         /// </summary>
         [Range(0.01, 24.00)]
         public decimal? MinimumDurationHours { get; set; }
 
         /// <summary>
-        /// DurÃ©e maximum pour que la rÃ¨gle s'applique (en heures)
+        /// Durée maximum pour que la règle s'applique (en heures)
         /// NULL = pas de maximum
         /// </summary>
         [Range(0.01, 24.00)]
         public decimal? MaximumDurationHours { get; set; }
 
         /// <summary>
-        /// NÃ©cessite approbation niveau supÃ©rieur (ex: DRH pour taux > 200%)
+        /// Nécessite approbation niveau supérieur (ex: DRH pour taux > 200%)
         /// </summary>
         public bool RequiresSuperiorApproval { get; set; }
 
-        // ========== RÃ©fÃ©rence lÃ©gale ==========
+        // ========== Référence légale ==========
 
         /// <summary>
-        /// RÃ©fÃ©rence de la loi/convention (ex: "Code du Travail Art. 184")
+        /// Référence de la loi/convention (ex: "Code du Travail Art. 184")
         /// </summary>
         [MaxLength(200)]
         public string? LegalReference { get; set; }
@@ -194,10 +194,10 @@ namespace payzen_backend.Models.Referentiel
 
         public ICollection<EmployeeOvertime> OvertimeRecords { get; set; } = new List<EmployeeOvertime>();
 
-        // ========== MÃ©thodes helper ==========
+        // ========== Méthodes helper ==========
 
         /// <summary>
-        /// VÃ©rifie si la rÃ¨gle est valide Ã  une date donnÃ©e
+        /// Vérifie si la règle est valide à une date donnée
         /// </summary>
         public bool IsValidOn(DateOnly date)
         {
@@ -207,7 +207,7 @@ namespace payzen_backend.Models.Referentiel
         }
 
         /// <summary>
-        /// VÃ©rifie si une plage horaire chevauche cette rÃ¨gle
+        /// Vérifie si une plage horaire chevauche cette règle
         /// </summary>
         public bool OverlapsTimeRange(TimeOnly start, TimeOnly end)
         {
@@ -218,7 +218,7 @@ namespace payzen_backend.Models.Referentiel
             return TimeRangeType switch
             {
                 TimeRangeType.SameDay => start < EndTime && end > StartTime,
-                TimeRangeType.CrossesMidnight => true, // Logique plus complexe nÃ©cessaire
+                TimeRangeType.CrossesMidnight => true, // Logique plus complexe nécessaire
                 _ => false
             };
         }

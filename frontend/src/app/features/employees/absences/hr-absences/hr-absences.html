@@ -193,31 +193,9 @@
             />
           </div>
 
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.type' | translate }}:</label>
-            <p-select
-              [options]="absenceTypeFilterOptions()"
-              [ngModel]="submittedTypeFilter()"
-              (ngModelChange)="submittedTypeFilter.set($event)"
-              optionLabel="label"
-              optionValue="value"
-              [placeholder]="'absences.filters.allTypes' | translate"
-              class="w-48"
-            ></p-select>
-          </div>
 
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.duration' | translate }}:</label>
-            <p-select
-              [options]="durationTypeFilterOptions()"
-              [ngModel]="submittedDurationFilter()"
-              (ngModelChange)="submittedDurationFilter.set($event)"
-              optionLabel="label"
-              optionValue="value"
-              [placeholder]="'absences.filters.allDurations' | translate"
-              class="w-48"
-            ></p-select>
-          </div>
+
+
         </div>
 
         <!-- Table -->

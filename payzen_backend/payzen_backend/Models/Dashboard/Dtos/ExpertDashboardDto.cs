@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace payzen_backend.Models.Dashboard.Dtos
 {

@@ -1,22 +1,22 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace payzen_backend.Models.Permissions.Dtos
 {
-    // DTO pour crÃ©er un nouveau rÃ´le
-    // STRUCTURE: Identique Ã  PermissionCreateDto car les modÃ¨les sont similaires
+    // DTO pour créer un nouveau rôle
+    // STRUCTURE: Identique à PermissionCreateDto car les modèles sont similaires
     public class RoleCreateDto
     {
-        [Required(ErrorMessage = "Le nom du rÃ´le est requis")]
-        [StringLength(50, MinimumLength = 2, ErrorMessage = "Le nom du rÃ´le doit contenir entre 2 et 50 caractÃ¨res")]
+        [Required(ErrorMessage = "Le nom du rôle est requis")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Le nom du rôle doit contenir entre 2 et 50 caractères")]
         public required string Name { get; set; }
 
         [Required(ErrorMessage = "La description est requise")]
-        [StringLength(500, MinimumLength = 10, ErrorMessage = "La description doit contenir entre 10 et 500 caractÃ¨res")]
+        [StringLength(500, MinimumLength = 10, ErrorMessage = "La description doit contenir entre 10 et 500 caractères")]
         public required string Description { get; set; }
     }
 
-    // DTO pour lire un rÃ´le
-    // UTILISATION: RetournÃ© par les endpoints GET
+    // DTO pour lire un rôle
+    // UTILISATION: Retourné par les endpoints GET
     public class RoleReadDto
     {
         public int Id { get; set; }
@@ -25,14 +25,14 @@ namespace payzen_backend.Models.Permissions.Dtos
         public DateTime CreatedAt { get; set; }
     }
 
-    // DTO pour mettre Ã  jour un rÃ´le
-    // FLEXIBILITÃ‰: Permet de modifier Name ou Description indÃ©pendamment
+    // DTO pour mettre à jour un rôle
+    // FLEXIBILITÉ: Permet de modifier Name ou Description indépendamment
     public class RoleUpdateDto
     {
-        [StringLength(50, MinimumLength = 2, ErrorMessage = "Le nom du rÃ´le doit contenir entre 2 et 50 caractÃ¨res")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Le nom du rôle doit contenir entre 2 et 50 caractères")]
         public string? Name { get; set; }
 
-        [StringLength(500, MinimumLength = 10, ErrorMessage = "La description doit contenir entre 10 et 500 caractÃ¨res")]
+        [StringLength(500, MinimumLength = 10, ErrorMessage = "La description doit contenir entre 10 et 500 caractères")]
         public string? Description { get; set; }
     }
 }
