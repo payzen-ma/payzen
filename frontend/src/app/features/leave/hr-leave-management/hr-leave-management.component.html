@@ -504,24 +504,40 @@
           </small>
         </div>
 
-        <!-- Date Range -->
+        <!-- Start Date -->
         <div class="form-field">
-          <mat-form-field appearance="outline" class="w-full mat-field-custom">
-            <mat-label>{{ 'leave.table.startDate' | translate }} – {{ 'leave.table.endDate' | translate }}</mat-label>
-            <mat-date-range-input [formGroup]="grantLeaveForm" [rangePicker]="grantPicker">
-              <input matStartDate formControlName="startDate" [placeholder]="'leave.table.startDate' | translate">
-              <input matEndDate formControlName="endDate" [placeholder]="'leave.table.endDate' | translate">
-            </mat-date-range-input>
-            <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="grantPicker"></mat-datepicker-toggle>
-            <mat-date-range-picker #grantPicker></mat-date-range-picker>
-            @if (grantLeaveForm.controls['startDate'].hasError('matStartDateInvalid')) {
-              <mat-error>{{ 'leave.form.startDateRequired' | translate }}</mat-error>
-            }
-            @if (grantLeaveForm.controls['endDate'].hasError('matEndDateInvalid')) {
-              <mat-error>{{ 'leave.form.endDateRequired' | translate }}</mat-error>
-            }
-          </mat-form-field>
+          <label for="grantStartDate" class="form-label required">{{ 'leave.table.startDate' | translate }}</label>
+          <p-datepicker 
+            inputId="grantStartDate"
+            formControlName="startDate"
+            [placeholder]="'leave.table.startDate' | translate"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            styleClass="w-full">
+          </p-datepicker>
+          <small 
+            *ngIf="grantLeaveForm.get('startDate')?.invalid && grantLeaveForm.get('startDate')?.touched" 
+            class="p-error">
+            {{ 'leave.form.startDateRequired' | translate }}
+          </small>
+        </div>
+
+        <!-- End Date -->
+        <div class="form-field">
+          <label for="grantEndDate" class="form-label required">{{ 'leave.table.endDate' | translate }}</label>
+          <p-datepicker 
+            inputId="grantEndDate"
+            formControlName="endDate"
+            [placeholder]="'leave.table.endDate' | translate"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            styleClass="w-full">
+          </p-datepicker>
+          <small 
+            *ngIf="grantLeaveForm.get('endDate')?.invalid && grantLeaveForm.get('endDate')?.touched" 
+            class="p-error">
+            {{ 'leave.form.endDateRequired' | translate }}
+          </small>
         </div>
 
         <!-- Reason -->
