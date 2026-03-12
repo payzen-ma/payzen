@@ -242,6 +242,18 @@ namespace payzen_backend.Controllers.Employee
 
             var userId = User.GetUserId();
 
+            // Vérifier si l'utilisateur est RH ou Admin pour approbation automatique
+            var currentUserForRole = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.UsersRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            bool isRhOrAdmin = currentUserForRole?.UsersRoles?.Any(ur =>
+                ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase) ||
+                ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+            ) ?? false;
+
             // Verifier que l'employe existe
             var employee = await _db.Employees
                 .Include(e => e.Company)
@@ -446,13 +458,26 @@ namespace payzen_backend.Controllers.Employee
                     RateRuleNameApplied = rateRule?.NameFr,
                     RateMultiplierApplied = rateRule?.Multiplier ?? 1.00m,
                     MultiplierCalculationDetails = rateRule != null ? CreateCalculationDetails(rateRule) : null,
-                    Status = OvertimeStatus.Draft,
+                    Status = isRhOrAdmin ? OvertimeStatus.Approved : OvertimeStatus.Draft,
+                    ApprovedBy = isRhOrAdmin ? userId : (int?)null,
+                    ApprovedAt = isRhOrAdmin ? DateTimeOffset.UtcNow : (DateTimeOffset?)null,
                     EmployeeComment = dto.EmployeeComment?.Trim(),
                     CreatedBy = userId,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
                 overtimesToCreate.Add(overtime);
+            }
+
+            // Si RH ou Admin, approuver automatiquement tous les overtimes (y compris les segments split)
+            if (isRhOrAdmin)
+            {
+                foreach (var ot in overtimesToCreate)
+                {
+                    ot.Status = OvertimeStatus.Approved;
+                    ot.ApprovedBy = userId;
+                    ot.ApprovedAt = DateTimeOffset.UtcNow;
+                }
             }
 
             // Sauvegarder tous les overtimes

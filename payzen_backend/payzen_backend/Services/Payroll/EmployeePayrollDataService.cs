@@ -33,6 +33,9 @@ namespace payzen_backend.Services.Payroll
             .FirstOrDefaultAsync(e => e.Id == employeeId)
             ?? throw new Exception($"Employé {employeeId} introuvable.");
 
+        if (string.IsNullOrWhiteSpace(employee.CnssNumber))
+            throw new Exception($"Le numéro CNSS est manquant pour l'employé {employee.FirstName} {employee.LastName}. Veuillez le renseigner avant de générer la paie.");
+
         // 2. Contrat actif
         var contract = await _db.EmployeeContracts
             .Include(ec => ec.ContractType)

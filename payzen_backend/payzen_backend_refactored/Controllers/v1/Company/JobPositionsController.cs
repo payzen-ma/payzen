@@ -100,7 +100,9 @@ namespace payzen_backend.Controllers.v1.Company
                 CompanyId = jp.CompanyId,
                 CompanyName = jp.Company?.CompanyName,
                 CreatedAt = jp.CreatedAt.DateTime
-            });
+            })
+            .DistinctBy(jp => jp.Id)
+            .ToList();
 
             return Ok(result);
         }

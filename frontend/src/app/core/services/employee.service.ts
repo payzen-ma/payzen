@@ -172,6 +172,7 @@ export interface CreateEmployeeRequest {
   managerId?: number | null;
   startDate?: string | null;
   salary?: number | null;
+  salaryEffectiveDate?: string | null;
   cnssNumber?: string | null;
   cimrNumber?: string | null;
   attendanceTypeId?: number | null;
@@ -213,6 +214,11 @@ interface SalaryComponentResponse {
   amount: number;
   isTaxable?: boolean;
   IsTaxable?: boolean; // Backend returns PascalCase
+}
+
+export interface NonImposableOption {
+  code: string;
+  label: string;
 }
 
 interface BackendEventResponse {
@@ -269,6 +275,28 @@ interface EmployeeDetailsResponse {
   probationPeriod?: string;
   CategoryName?: string;
   events?: BackendEventResponse[];
+}
+
+// ===== Sage Import interfaces =====
+export interface SageImportCreatedItem {
+  id: number;
+  fullName: string;
+  matricule?: number;
+  email: string;
+}
+
+export interface SageImportError {
+  row: number;
+  fullName?: string;
+  message: string;
+}
+
+export interface SageImportResult {
+  totalProcessed: number;
+  successCount: number;
+  failedCount: number;
+  created: SageImportCreatedItem[];
+  errors: SageImportError[];
 }
 
 @Injectable({
@@ -598,6 +626,40 @@ export class EmployeeService {
     return this.http.post(`${environment.apiUrl}/employee-salary-components`, component);
   }
 
+  /**
+   * Importe des employés en masse depuis un fichier CSV Sage Paie.
+   * POST /api/employee/import-sage
+   */
+  importFromSage(file: File, companyId?: number): Observable<SageImportResult> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    let url = `${this.EMPLOYEE_URL}/import-sage`;
+    if (companyId) url += `?companyId=${companyId}`;
+    return this.http.post<SageImportResult>(url, formData);
+  }
+
+  /**
+   * Retourne la liste hardcodée des primes non imposables (miroir de MapNiToContext dans le backend).
+   * Données statiques — pas d'appel réseau.
+   */
+  static readonly NON_IMPOSABLE_LIST: NonImposableOption[] = [
+    { code: 'TRANSPORT',      label: 'Prime de transport' },
+    { code: 'KILOMETRIQUE',   label: 'Indemnité kilométrique' },
+    { code: 'TOURNEE',        label: 'Indemnité de tournée' },
+    { code: 'REPRESENTATION', label: 'Indemnité de représentation' },
+    { code: 'PANIER',         label: 'Prime de panier' },
+    { code: 'CAISSE',         label: 'Indemnité de caisse' },
+    { code: 'SALISSURE',      label: 'Indemnité de salissure' },
+    { code: 'LAIT',           label: 'Indemnité de lait' },
+    { code: 'OUTILLAGE',      label: "Prime d'outillage" },
+    { code: 'AIDE_MEDICALE',  label: 'Aide médicale' },
+    { code: 'GRATIF_SOCIALE', label: 'Gratification sociale' },
+  ];
+
+  getNonImposableComponents(): NonImposableOption[] {
+    return EmployeeService.NON_IMPOSABLE_LIST;
+  }
+
   updateSalaryComponent(id: number, component: any): Observable<any> {
     return this.http.put(`${environment.apiUrl}/employee-salary-components/${id}`, component);
   }
@@ -656,6 +718,82 @@ export class EmployeeService {
       })));
   }
 
+  searchDepartments(query: string, companyId?: number): Observable<LookupOption[]> {
+    if (!companyId) return this.http.get<DepartementResponseItem[]>(`${environment.apiUrl}/departements`)
+      .pipe(map(items => {
+        const allItems = (items || []).map(item => ({
+          id: item.id,
+          label: item.departementName
+        }));
+        // Dédupliquer par ID
+        const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
+        if (!query) return uniqueItems;
+        const lowerQuery = query.toLowerCase();
+        return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
+      }));
+    
+    return this.http.get<DepartementResponseItem[]>(`${environment.apiUrl}/departements/company/${companyId}`)
+      .pipe(map(items => {
+        const allItems = (items || []).map(item => ({
+          id: item.id,
+          label: item.departementName
+        }));
+        // Dédupliquer par ID
+        const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
+        if (!query) return uniqueItems;
+        const lowerQuery = query.toLowerCase();
+        return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
+      }));
+  }
+
+  searchJobPositions(query: string, companyId?: number): Observable<LookupOption[]> {
+    if (!companyId) return this.http.get<JobPositionResponseItem[]>(`${environment.apiUrl}/job-positions`)
+      .pipe(map(items => {
+        const allItems = (items || []).map(item => ({
+          id: item.id,
+          label: item.name
+        }));
+        // Dédupliquer par ID
+        const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
+        if (!query) return uniqueItems;
+        const lowerQuery = query.toLowerCase();
+        return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
+      }));
+    
+    return this.http.get<JobPositionResponseItem[]>(`${environment.apiUrl}/job-positions/by-company/${companyId}`)
+      .pipe(map(items => {
+        const allItems = (items || []).map(item => ({
+          id: item.id,
+          label: item.name
+        }));
+        // Dédupliquer par ID
+        const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
+        if (!query) return uniqueItems;
+        const lowerQuery = query.toLowerCase();
+        return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
+      }));
+  }
+
+  createDepartment(name: string, companyId: number): Observable<LookupOption> {
+    return this.http.post<DepartementResponseItem>(`${environment.apiUrl}/departements`, {
+      departementName: name,
+      companyId: companyId
+    }).pipe(map(item => ({
+      id: item.id,
+      label: item.departementName
+    })));
+  }
+
+  createJobPosition(name: string, companyId: number): Observable<LookupOption> {
+    return this.http.post<JobPositionResponseItem>(`${environment.apiUrl}/job-positions`, {
+      name: name,
+      companyId: companyId
+    }).pipe(map(item => ({
+      id: item.id,
+      label: item.name
+    })));
+  }
+
   private mapEmployeeFormDataResponse(response: EmployeeFormDataResponse = {} as EmployeeFormDataResponse): EmployeeFormData {
     const lang = (this.translate?.currentLang || (this.translate?.getBrowserLang && this.translate.getBrowserLang()) || 'fr').toString().toLowerCase();
     const suffix = lang.startsWith('fr') ? 'Fr' : lang.startsWith('ar') ? 'Ar' : 'En';
@@ -703,11 +841,17 @@ export class EmployeeService {
         countryName: item.countryName
       }));
 
-    const toDepartmentOption = (items?: DepartementResponseItem[]): LookupOption[] =>
-      (items ?? []).map(item => ({ id: item.id, label: item.departementName }));
+    const toDepartmentOption = (items?: DepartementResponseItem[]): LookupOption[] => {
+      const allItems = (items ?? []).map(item => ({ id: item.id, label: item.departementName }));
+      // Dédupliquer par ID
+      return Array.from(new Map(allItems.map(item => [item.id, item])).values());
+    };
 
-    const toJobPositionOption = (items?: JobPositionResponseItem[]): LookupOption[] =>
-      (items ?? []).map(item => ({ id: item.id, label: item.name }));
+    const toJobPositionOption = (items?: JobPositionResponseItem[]): LookupOption[] => {
+      const allItems = (items ?? []).map(item => ({ id: item.id, label: item.name }));
+      // Dédupliquer par ID
+      return Array.from(new Map(allItems.map(item => [item.id, item])).values());
+    };
 
     const toContractTypeOption = (items?: ContractTypeResponseItem[]): LookupOption[] =>
       (items ?? []).map(item => ({ id: item.id, label: item.contractTypeName }));
@@ -975,9 +1119,9 @@ export class EmployeeService {
   }
 
   private mapPaymentMethod(method?: string): EmployeeProfileModel['paymentMethod'] {
-    const normalized = (method ?? '').toLowerCase();
-    if (normalized.includes('ch')) return 'check';
-    if (normalized.includes('esp')) return 'cash';
+    const normalized = (method ?? '').toLowerCase().trim();
+    if (normalized === 'check' || normalized.includes('chèque') || normalized.includes('cheque')) return 'check';
+    if (normalized === 'cash' || normalized.includes('esp')) return 'cash';
     return 'bank_transfer';
   }
 

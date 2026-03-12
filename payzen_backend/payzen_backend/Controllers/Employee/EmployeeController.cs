@@ -1,3 +1,5 @@
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -550,6 +552,9 @@ namespace payzen_backend.Controllers.Employee
                 SalaryComponents = salaryComponents,
                 TotalSalary = totalSalary,
 
+                // Mode de paiement
+                SalaryPaymentMethod = employee.PaymentMethod,
+
                 // Numéro CNSS, CIMR, PrivateAssurance
                 cnss = employee.CnssNumber,
                 cimr = employee.CimrNumber,
@@ -1016,7 +1021,7 @@ namespace payzen_backend.Controllers.Employee
                     EmployeeId = employee.Id,
                     ContractId = activeContract?.Id ?? 0,
                     BaseSalary = dto.Salary.Value,
-                    EffectiveDate = dto.StartDate ?? DateTime.UtcNow,
+                    EffectiveDate = dto.SalaryEffectiveDate ?? dto.StartDate ?? DateTime.UtcNow,
                     EndDate = null, // Salaire actif
                     CreatedAt = DateTimeOffset.UtcNow,
                     CreatedBy = userId
@@ -1192,6 +1197,280 @@ namespace payzen_backend.Controllers.Employee
 
             return CreatedAtAction(nameof(GetById), new { id = employee.Id }, readDto);
         }
+
+        /// <summary>
+        /// Importe des employés en masse depuis un fichier CSV exporté depuis Sage Paie.
+        /// Colonnes attendues (séparateur ; ou ,) :
+        /// Prenom, Nom, CIN, DateNaissance (JJ/MM/AAAA), Telephone, Email, CNSS, Salaire, DateEntree, Matricule, Genre (M/F)
+        /// </summary>
+        [HttpPost("import-sage")]
+        [Consumes("multipart/form-data")]
+        //[HasPermission(CREATE_EMPLOYEE)]
+        public async Task<ActionResult<SageImportResultDto>> ImportFromSage(
+            IFormFile file,
+            [FromQuery] int? companyId = null)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { Message = "Fichier CSV invalide ou vide" });
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (ext != ".csv")
+                return BadRequest(new { Message = "Le fichier doit être au format CSV (.csv)" });
+
+            var userId = User.GetUserId();
+
+            var currentUser = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.Employee)
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive && u.DeletedAt == null);
+
+            if (currentUser?.Employee == null)
+                return BadRequest(new { Message = "L'utilisateur n'est pas associé à un employé" });
+
+            var targetCompanyId = companyId ?? currentUser.Employee.CompanyId;
+
+            var targetCompany = await _db.Companies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == targetCompanyId && c.DeletedAt == null);
+
+            if (targetCompany == null)
+                return NotFound(new { Message = "Société non trouvée" });
+
+            // Récupérer le statut par défaut "Active"
+            var defaultStatus = await _db.Statuses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Code == "Active");
+
+            if (defaultStatus == null)
+                return BadRequest(new { Message = "Statut 'Active' introuvable dans la base de données" });
+
+            // Charger les genres pour la résolution M/F
+            var genders = await _db.Genders
+                .AsNoTracking()
+                .Where(g => g.IsActive)
+                .ToListAsync();
+
+            var result = new SageImportResultDto();
+            var rows = new List<SageImportRowDto>();
+
+            // Détecter le délimiteur (Sage utilise souvent ';')
+            using var streamForDetection = file.OpenReadStream();
+            using var peekReader = new StreamReader(streamForDetection);
+            var firstLine = await peekReader.ReadLineAsync() ?? string.Empty;
+            var delimiter = firstLine.Contains(';') ? ";" : ",";
+
+            using var csvStream = new MemoryStream();
+            await file.CopyToAsync(csvStream);
+            csvStream.Position = 0;
+
+            using var reader = new StreamReader(csvStream);
+            var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                HeaderValidated = null,
+                BadDataFound = null,
+                Delimiter = delimiter,
+                TrimOptions = TrimOptions.Trim
+            };
+
+            using (var csv = new CsvReader(reader, csvConfig))
+            {
+                rows = csv.GetRecords<SageImportRowDto>().ToList();
+            }
+
+            result.TotalProcessed = rows.Count;
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var rowNum = i + 2; // +2 : ligne 1 = en-tête
+                var fullName = $"{row.Prenom?.Trim()} {row.Nom?.Trim()}".Trim();
+
+                try
+                {
+                    // Validation des champs obligatoires
+                    if (string.IsNullOrWhiteSpace(row.Prenom))
+                        throw new Exception("Le prénom est requis");
+                    if (string.IsNullOrWhiteSpace(row.Nom))
+                        throw new Exception("Le nom est requis");
+                    if (string.IsNullOrWhiteSpace(row.CIN))
+                        throw new Exception("Le numéro CIN est requis");
+                    if (string.IsNullOrWhiteSpace(row.DateNaissance))
+                        throw new Exception("La date de naissance est requise");
+                    if (string.IsNullOrWhiteSpace(row.Telephone))
+                        throw new Exception("Le numéro de téléphone est requis");
+                    if (string.IsNullOrWhiteSpace(row.Email))
+                        throw new Exception("L'email est requis");
+
+                    // Parsing de la date de naissance
+                    if (!DateOnly.TryParseExact(
+                            row.DateNaissance.Trim(),
+                            new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "MM/dd/yyyy" },
+                            null,
+                            DateTimeStyles.None,
+                            out var dateOfBirth))
+                        throw new Exception($"Format de date de naissance invalide : '{row.DateNaissance}'. Format attendu : JJ/MM/AAAA");
+
+                    // Parsing du salaire (optionnel)
+                    decimal? salary = null;
+                    if (!string.IsNullOrWhiteSpace(row.Salaire))
+                    {
+                        var salaireStr = row.Salaire.Trim().Replace(" ", "").Replace(",", ".");
+                        if (!decimal.TryParse(salaireStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedSalary))
+                            throw new Exception($"Format de salaire invalide : '{row.Salaire}'");
+                        salary = parsedSalary;
+                    }
+
+                    // Parsing de la date d'entrée (optionnel)
+                    DateTime? startDate = null;
+                    if (!string.IsNullOrWhiteSpace(row.DateEntree))
+                    {
+                        if (!DateTime.TryParseExact(
+                                row.DateEntree.Trim(),
+                                new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                                null,
+                                DateTimeStyles.None,
+                                out var parsedStart))
+                            throw new Exception($"Format de date d'entrée invalide : '{row.DateEntree}'. Format attendu : JJ/MM/AAAA");
+                        startDate = parsedStart;
+                    }
+
+                    // Vérification des doublons
+                    var cinTrimmed = row.CIN.Trim();
+                    var emailTrimmed = row.Email.Trim();
+
+                    if (await _db.Employees.AnyAsync(e => e.CinNumber == cinTrimmed && e.DeletedAt == null))
+                        throw new Exception($"Un employé avec le CIN '{cinTrimmed}' existe déjà");
+
+                    if (await _db.Employees.AnyAsync(e => e.Email == emailTrimmed && e.DeletedAt == null))
+                        throw new Exception($"Un employé avec l'email '{emailTrimmed}' existe déjà");
+
+                    if (await _db.Users.AnyAsync(u => u.Email == emailTrimmed && u.DeletedAt == null))
+                        throw new Exception($"Un utilisateur avec l'email '{emailTrimmed}' existe déjà");
+
+                    // Résolution du genre (M / F / Homme / Femme)
+                    int? genderId = null;
+                    if (!string.IsNullOrWhiteSpace(row.Genre))
+                    {
+                        var genderCode = row.Genre.Trim().ToUpper();
+                        var genderMatch = genders.FirstOrDefault(g =>
+                            g.Code.Equals(genderCode, StringComparison.OrdinalIgnoreCase) ||
+                            g.NameFr.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase) ||
+                            g.NameEn.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase));
+                        genderId = genderMatch?.Id;
+                    }
+
+                    // Génération du matricule unique
+                    int? newMatricule = await GenerateUniqueMatricule(targetCompanyId);
+
+                    var employee = new payzen_backend.Models.Employee.Employee
+                    {
+                        FirstName = row.Prenom.Trim(),
+                        LastName = row.Nom.Trim(),
+                        CinNumber = cinTrimmed,
+                        DateOfBirth = dateOfBirth,
+                        Phone = row.Telephone.Trim(),
+                        Email = emailTrimmed,
+                        CompanyId = targetCompanyId,
+                        StatusId = defaultStatus.Id,
+                        GenderId = genderId,
+                        CnssNumber = string.IsNullOrWhiteSpace(row.CNSS) ? null : row.CNSS.Trim(),
+                        Matricule = newMatricule,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = userId
+                    };
+
+                    _db.Employees.Add(employee);
+                    await _db.SaveChangesAsync();
+
+                    await _eventLogService.LogSimpleEventAsync(
+                        employee.Id,
+                        EmployeeEventLogService.EventNames.EmployeeCreated,
+                        null,
+                        $"{employee.FirstName} {employee.LastName} (Import Sage - Matricule: {employee.Matricule})",
+                        userId);
+
+                    // Création du salaire si renseigné
+                    if (salary.HasValue && salary.Value > 0)
+                    {
+                        var employeeSalary = new EmployeeSalary
+                        {
+                            EmployeeId = employee.Id,
+                            ContractId = 0,
+                            BaseSalary = salary.Value,
+                            EffectiveDate = startDate ?? DateTime.UtcNow,
+                            EndDate = null,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            CreatedBy = userId
+                        };
+                        _db.EmployeeSalaries.Add(employeeSalary);
+                        await _db.SaveChangesAsync();
+                    }
+
+                    // Création du compte utilisateur
+                    var baseUsername = _passwordGenerator.GenerateUsername(employee.FirstName, employee.LastName);
+                    var username = baseUsername;
+                    var suffix = 1;
+                    while (await _db.Users.AnyAsync(u => u.Username == username && u.DeletedAt == null))
+                    {
+                        username = _passwordGenerator.GenerateUsername(employee.FirstName, employee.LastName, suffix);
+                        suffix++;
+                    }
+
+                    var tempPassword = _passwordGenerator.GenerateTemporaryPassword();
+                    var createdUser = new Users
+                    {
+                        EmployeeId = employee.Id,
+                        Username = username,
+                        Email = employee.Email,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword),
+                        IsActive = true,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = userId
+                    };
+                    _db.Users.Add(createdUser);
+                    await _db.SaveChangesAsync();
+
+                    var defaultRole = await _db.Roles
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(r => r.Name == "employee" && r.DeletedAt == null);
+                    if (defaultRole != null)
+                    {
+                        _db.UsersRoles.Add(new UsersRoles
+                        {
+                            UserId = createdUser.Id,
+                            RoleId = defaultRole.Id,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            CreatedBy = userId
+                        });
+                        await _db.SaveChangesAsync();
+                    }
+
+                    result.SuccessCount++;
+                    result.Created.Add(new SageImportCreatedItemDto
+                    {
+                        Id = employee.Id,
+                        FullName = $"{employee.FirstName} {employee.LastName}",
+                        Matricule = employee.Matricule,
+                        Email = employee.Email
+                    });
+                }
+                catch (Exception ex)
+                {
+                    result.FailedCount++;
+                    result.Errors.Add(new SageImportErrorDto
+                    {
+                        Row = rowNum,
+                        FullName = string.IsNullOrWhiteSpace(fullName) ? $"Ligne {rowNum}" : fullName,
+                        Message = ex.Message
+                    });
+                }
+            }
+
+            return Ok(result);
+        }
+
         /// <summary>
         /// Met à jour un employé
         /// </summary>
@@ -2021,7 +2300,7 @@ namespace payzen_backend.Controllers.Employee
                 .ToListAsync();
 
             // 7. Récupérer les départements de l'entreprise
-            formData.Departements = await _db.Departement
+            var departements = await _db.Departement
                 .Where(d => d.DeletedAt == null && d.CompanyId == targetCompanyId)
                 .Select(d => new DepartementDto
                 {
@@ -2029,11 +2308,14 @@ namespace payzen_backend.Controllers.Employee
                     DepartementName = d.DepartementName,
                     CompanyId = d.CompanyId
                 })
-                .OrderBy(d => d.DepartementName)
                 .ToListAsync();
+            formData.Departements = departements
+                .DistinctBy(d => d.Id)
+                .OrderBy(d => d.DepartementName)
+                .ToList();
 
             // 8. Récupérer les postes de l'entreprise
-            formData.JobPositions = await _db.JobPositions
+            var jobPositions = await _db.JobPositions
                 .Where(j => j.DeletedAt == null && j.CompanyId == targetCompanyId)
                 .Select(j => new JobPositionDto
                 {
@@ -2041,8 +2323,11 @@ namespace payzen_backend.Controllers.Employee
                     Name = j.Name,
                     CompanyId = j.CompanyId
                 })
-                .OrderBy(j => j.Name)
                 .ToListAsync();
+            formData.JobPositions = jobPositions
+                .DistinctBy(j => j.Id)
+                .OrderBy(j => j.Name)
+                .ToList();
 
             // 9. Récupérer les types de contrat de l'entreprise
             formData.ContractTypes = await _db.ContractTypes
@@ -2481,6 +2766,27 @@ namespace payzen_backend.Controllers.Employee
                             employee.PrivateInsuranceRate = newInsRate;
                             hasChanges = true;
                             Console.WriteLine("  ✓ PrivateInsuranceRate modifié");
+                        }
+                        else
+                        {
+                            Console.WriteLine("  ⊘ Pas de changement");
+                        }
+                        break;
+
+                    case "paymentmethod":
+                        Console.WriteLine($"  PaymentMethod actuel: {employee.PaymentMethod ?? "null"}");
+                        if (strValue != null && strValue != employee.PaymentMethod)
+                        {
+                            var allowed = new[] { "bank_transfer", "check", "cash", "espèces" };
+                            if (!allowed.Contains(strValue.ToLowerInvariant()))
+                            {
+                                Console.WriteLine($"  ❌ Valeur invalide: {strValue}");
+                                return BadRequest(new { Message = "Mode de paiement invalide. Valeurs acceptées : bank_transfer, check, cash" });
+                            }
+                            Console.WriteLine($"  → Mise à jour: {employee.PaymentMethod ?? "null"} → {strValue}");
+                            employee.PaymentMethod = strValue.ToLowerInvariant();
+                            hasChanges = true;
+                            Console.WriteLine("  ✓ PaymentMethod modifié");
                         }
                         else
                         {

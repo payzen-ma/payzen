@@ -151,7 +151,7 @@
   },
   "payrollExportsPage": {
     "title": "Payroll Exports",
-    "subtitle": "Payroll Journal &bull; CNSS Statement (Damancom) &bull; IR Statement",
+    "subtitle": "Payroll Journal &bull; CNSS Statement PDF &bull; IR Statement PDF",
     "periodSelection": "Period Selection",
     "month": "Month",
     "year": "Year",
@@ -167,11 +167,23 @@
       "description": "Damancom-compatible CNSS declaration (UTF-8 BOM, semicolon separator).",
       "button": "CNSS Statement"
     },
+    "cnssPdf": {
+      "title": "CNSS Statement PDF",
+      "format": "Official PDF bordereau",
+      "description": "CNSS contributions declaration (employee + employer) ready to sign.",
+      "button": "Download CNSS PDF"
+    },
     "ir": {
       "title": "IR Statement",
       "format": "Excel Format (.xlsx)",
       "description": "Monthly summary of income tax withheld at source.",
       "button": "IR Statement"
+    },
+    "irPdf": {
+      "title": "IR Statement PDF",
+      "format": "PDF Format",
+      "description": "PDF export of monthly income tax statement.",
+      "button": "Download IR PDF"
     },
     "notice": "Only bulletins with status <strong>Calculated (OK)</strong> are included in exports.",
     "messages": {
@@ -1336,6 +1348,8 @@
       },
       "salary": {
         "baseSalary": "Base Salary",
+        "effectiveDate": "Salary effective date",
+        "effectiveDateHint": "Fill this date when changing the salary to record a history entry",
         "transportAllowance": "Transport Allowance",
         "mealAllowance": "Meal Allowance",
         "seniorityBonus": "Seniority Bonus",
@@ -1352,7 +1366,8 @@
         "assignPackageTooltip": "Go to Salary Packages module to assign",
         "taxable": "Taxable",
         "taxableStatus": "Taxable",
-        "nonTaxableStatus": "Non-taxable"
+        "nonTaxableStatus": "Non-taxable",
+        "selectComponent": "Select a bonus/allowance..."
       },
       "legal": {
         "cnss": "CNSS",
@@ -1522,6 +1537,8 @@
         "managerPlaceholder": "Assign a manager (optional)",
         "startDate": "Start date",
         "salary": "Gross salary",
+        "salaryEffectiveDate": "Salary effective date",
+        "salaryEffectiveDateHint": "If different from start date (e.g. retroactive)",
         "salaryPackage": "Salary package",
         "salaryPackagePlaceholder": "Select a salary package",
         "attendanceType": "Attendance Type",
@@ -2656,6 +2673,8 @@
       "form": {
         "leaveType": "Leave Type",
         "selectLeaveType": "Select a leave type",
+        "selectDateRange": "Select a date range",
+        "daysSelected": "day(s) selected",
         "noLeaveTypesAvailable": "No leave types available",
         "enabled": "Policy enabled",
         "accrualMethod": "Accrual method",

@@ -29,6 +29,30 @@ namespace payzen_backend.Controllers.v1.Employees
         /// <summary>
         /// R�cup�re tous les composants de salaire
         /// </summary>
+        /// <summary>
+        /// Liste hardcodée des primes / indemités non imposables reconnues par le moteur de paie.
+        /// </summary>
+        [HttpGet("non-imposables")]
+        [AllowAnonymous]
+        public IActionResult GetNonImposables()
+        {
+            var list = new[]
+            {
+                new { code = "TRANSPORT",       label = "Prime de transport" },
+                new { code = "KILOMETRIQUE",    label = "Indemité kilométrique" },
+                new { code = "TOURNEE",         label = "Indemité de tournée" },
+                new { code = "REPRESENTATION",  label = "Indemité de représentation" },
+                new { code = "PANIER",          label = "Prime de panier" },
+                new { code = "CAISSE",          label = "Indemité de caisse" },
+                new { code = "SALISSURE",       label = "Indemité de salissure" },
+                new { code = "LAIT",            label = "Indemité de lait" },
+                new { code = "OUTILLAGE",       label = "Prime d\u2019outillage" },
+                new { code = "AIDE_MEDICALE",   label = "Aide médicale" },
+                new { code = "GRATIF_SOCIALE",  label = "Gratification sociale" },
+            };
+            return Ok(list);
+        }
+
         [HttpGet]
         //[HasPermission("READ_EMPLOYEE_SALARY_COMPONENTS")]
         public async Task<ActionResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetAll()

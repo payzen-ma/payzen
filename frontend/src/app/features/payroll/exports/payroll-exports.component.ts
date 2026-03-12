@@ -11,7 +11,7 @@ import { ButtonComponent } from '@app/shared/ui/button/button.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /** État de chargement par export */
-type ExportKey = 'journal' | 'cnss' | 'ir';
+type ExportKey = 'journal' | 'cnss' | 'cnssPdf' | 'ir' | 'irPdf';
 
 @Component({
   selector: 'app-payroll-exports',
@@ -39,7 +39,7 @@ export class PayrollExportsComponent implements OnInit {
   readonly monthOptions: SelectOption[] = this.buildMonthOptions();
 
   // ── Loading states ──────────────────────────────────────────────────────
-  loading = signal<Record<ExportKey, boolean>>({ journal: false, cnss: false, ir: false });
+  loading = signal<Record<ExportKey, boolean>>({ journal: false, cnss: false, cnssPdf: false, ir: false, irPdf: false });
 
   // ── Messages d'erreur ───────────────────────────────────────────────────
   errorMessage = signal<string | null>(null);
@@ -57,8 +57,16 @@ export class PayrollExportsComponent implements OnInit {
     this.download('cnss', `EtatCnss_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
   }
 
+  onExportCnssPdf(): void {
+    this.download('cnssPdf', `EtatCNSS_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.pdf`);
+  }
+
   onExportIr(): void {
     this.download('ir', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
+  }
+
+  onExportIrPdf(): void {
+    this.download('irPdf', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.pdf`);
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────
@@ -74,9 +82,11 @@ export class PayrollExportsComponent implements OnInit {
     this.setLoading(key, true);
 
     const call$ =
-      key === 'journal' ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.selectedMonth()) :
-      key === 'cnss'    ? this.exportService.downloadCnss(companyId, this.selectedYear(), this.selectedMonth()) :
-                          this.exportService.downloadIr(companyId, this.selectedYear(), this.selectedMonth());
+      key === 'journal'  ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.selectedMonth()) :
+      key === 'cnss'     ? this.exportService.downloadCnss(companyId, this.selectedYear(), this.selectedMonth()) :
+      key === 'cnssPdf'  ? this.exportService.downloadCnssPdf(companyId, this.selectedYear(), this.selectedMonth()) :
+      key === 'ir'       ? this.exportService.downloadIr(companyId, this.selectedYear(), this.selectedMonth()) :
+                           this.exportService.downloadIrPdf(companyId, this.selectedYear(), this.selectedMonth());
 
     call$.pipe(finalize(() => this.setLoading(key, false)))
       .subscribe({

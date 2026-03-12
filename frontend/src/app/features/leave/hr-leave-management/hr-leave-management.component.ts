@@ -4,6 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
+// Angular Material imports
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+
 // PrimeNG imports
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -56,7 +62,11 @@ import { Employee } from '../../../core/models';
     TabsModule,
     BadgeModule,
     CheckboxModule,
-    TranslateModule
+    TranslateModule,
+    MatFormFieldModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatInputModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './hr-leave-management.component.html',
@@ -95,6 +105,12 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       const full = `${firstName} ${lastName}`.trim();
       return full.includes(q) || firstName.includes(q) || lastName.includes(q);
     });
+  });
+
+  selectedEmployeeForGrant = computed(() => {
+    const employeeId = this.grantLeaveForm?.value?.employeeId;
+    if (!employeeId) return null;
+    return this.employees().find(emp => emp.id === employeeId || (emp as any).Id === employeeId) || null;
   });
   
   // Statistics
@@ -165,8 +181,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       leaveTypeId: [null, Validators.required],
       startDate: [null, Validators.required],
       endDate: [null, Validators.required],
-      reason: ['', [Validators.required, Validators.maxLength(500)]],
-      autoApprove: [true]
+      reason: ['', [Validators.required, Validators.maxLength(500)]]
     });
   }
 
@@ -426,21 +441,8 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       leaveTypeId: null,
       startDate: null,
       endDate: null,
-      reason: '',
-      autoApprove: true
+      reason: ''
     });
-    
-    // Debug: Check if form control is properly set
-    console.log('Form after reset:', this.grantLeaveForm.value);
-    console.log('AutoApprove control:', this.grantLeaveForm.get('autoApprove')?.value);
-    
-    // Explicitly set the autoApprove control to ensure it's checked
-    setTimeout(() => {
-      this.grantLeaveForm.get('autoApprove')?.setValue(true);
-      this.grantLeaveForm.get('autoApprove')?.markAsTouched();
-      console.log('AutoApprove after explicit set:', this.grantLeaveForm.get('autoApprove')?.value);
-    }, 0);
-    
     this.showGrantLeaveDialog.set(true);
   }
 
@@ -453,8 +455,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
         leaveTypeId: null,
         startDate: null,
         endDate: null,
-        reason: '',
-        autoApprove: true
+        reason: ''
       });
       this.showGrantLeaveDialog.set(true);
     }
@@ -469,8 +470,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
 
     const formValue = this.grantLeaveForm.value;
     const employeeId = parseInt(formValue.employeeId);
-    const shouldAutoApprove = formValue.autoApprove;
-    
+
     const createDto: LeaveRequestCreateForEmployeeDto = {
       leaveTypeId: formValue.leaveTypeId,
       startDate: this.formatDateForAPI(formValue.startDate),
@@ -482,18 +482,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          if (shouldAutoApprove) {
-            // Auto-approve the request if checkbox was checked
-            this.autoApproveLastCreatedRequest(employeeId, formValue);
-          } else {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé créée avec succès'
-            });
-            this.loadAllLeaveRequests();
-            this.hideGrantLeaveForm();
-          }
+          this.autoApproveLastCreatedRequest(employeeId, formValue);
         },
         error: (error) => {
           console.error('Error granting leave:', error);

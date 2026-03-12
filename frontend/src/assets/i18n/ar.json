@@ -150,7 +150,7 @@
   },
   "payrollExportsPage": {
     "title": "تصدير كشوف الرواتب",
-    "subtitle": "دفتر الأجور &bull; كشف الضمان الاجتماعي (Damancom) &bull; كشف الضريبة",
+    "subtitle": "دفتر الأجور &bull; كشف الضمان PDF &bull; كشف الضريبة PDF",
     "periodSelection": "اختيار الفترة",
     "month": "الشهر",
     "year": "السنة",
@@ -166,11 +166,23 @@
       "description": "تصريح الضمان الاجتماعي متوافق مع Damancom (UTF-8 BOM، فاصل فاصلة منقوطة).",
       "button": "كشف الضمان الاجتماعي"
     },
+    "cnssPdf": {
+      "title": "كشف الضمان PDF",
+      "format": "وثيقة PDF رسمية",
+      "description": "بيان اشتراكات الضمان الاجتماعي (حصة المأجور + حصة صاحب العمل) جاهز للتوقيع.",
+      "button": "تحميل PDF الضمان"
+    },
     "ir": {
       "title": "كشف الضريبة",
       "format": "تنسيق Excel (.xlsx)",
       "description": "ملخص شهري لضريبة الدخل المحتجزة عند المصدر.",
       "button": "كشف الضريبة"
+    },
+    "irPdf": {
+      "title": "كشف الضريبة PDF",
+      "format": "تنسيق PDF",
+      "description": "تصدير PDF لكشف ضريبة الدخل الشهري.",
+      "button": "تحميل PDF الضريبة"
     },
     "notice": "فقط كشوف الرواتب بحالة <strong>محسوب (صحيح)</strong> مشمولة في التصدير.",
     "messages": {
@@ -1292,6 +1304,8 @@
       },
       "salary": {
         "baseSalary": "الأجر الأساسي",
+        "effectiveDate": "تاريخ سريان الراتب",
+        "effectiveDateHint": "أدخل هذا التاريخ عند تعديل الراتب لتسجيل سجل التغيير",
         "transportAllowance": "تعويض النقل",
         "mealAllowance": "تعويض الوجبة",
         "seniorityBonus": "منحة الأقدمية",
@@ -1308,7 +1322,8 @@
         "assignPackageTooltip": "انتقل إلى وحدة حزم الرواتب للتخصيص",
         "taxable": "خاضع للضريبة",
         "taxableStatus": "خاضع للضريبة",
-        "nonTaxableStatus": "غير خاضع للضريبة"
+        "nonTaxableStatus": "غير خاضع للضريبة",
+        "selectComponent": "اختر منحة أو تعويض..."
       },
       "legal": {
         "cnss": "CNSS",
@@ -1504,6 +1519,8 @@
         "managerPlaceholder": "تعيين مسؤول (اختياري)",
         "startDate": "تاريخ الالتحاق",
         "salary": "الأجر الإجمالي",
+        "salaryEffectiveDate": "تاريخ سريان الراتب",
+        "salaryEffectiveDateHint": "إذا كان مختلفاً عن تاريخ الالتحاق (مثل: بأثر رجعي)",
         "salaryPackage": "باقة الراتب",
         "salaryPackagePlaceholder": "اختر باقة راتب",
         "attendanceType": "نوع الحضور",
@@ -2698,6 +2715,8 @@
     "form": {
       "leaveType": "نوع الإجازة",
       "selectLeaveType": "اختر نوع إجازة",
+      "selectDateRange": "اختر فترة زمنية",
+      "daysSelected": "يوم (أيام) محدد(ة)",
       "leaveTypeRequired": "نوع الإجازة مطلوب",
       "startDate": "تاريخ البدء",
       "endDate": "تاريخ الانتهاء",

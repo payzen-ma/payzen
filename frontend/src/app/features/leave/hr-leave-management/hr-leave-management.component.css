@@ -4,80 +4,292 @@
    is in src/styles.css (global). Matches overtime-management.
    ============================================ */
 
-/* Modal Styles (app-dialog) - same as overtime-management */
-:host ::ng-deep .app-dialog {
-  .p-dialog {
-    background-color: #d1d5db;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
+/* Modal Styles (app-dialog) - Clean Design with Icon Badge */
+:host ::ng-deep .p-dialog-mask.p-component-overlay {
+  background: rgba(15, 23, 42, 0.4) !important;
+  backdrop-filter: blur(3px);
+  animation: overlayFadeIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
-  .p-dialog-content {
-    padding: 0;
-  }
+:host ::ng-deep .app-dialog.p-dialog {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
-  .form-field {
-    margin-bottom: 1.5rem;
-  }
+:host ::ng-deep .app-dialog .p-dialog-header {
+  background: #ffffff !important;
+  color: #111827 !important;
+  padding: 1.5rem 1.5rem 1rem 1.5rem !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0 !important;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
 
-  .form-field:last-child {
-    margin-bottom: 0;
-  }
+:host ::ng-deep .app-dialog .p-dialog-header::before {
+  content: '\e927';
+  font-family: 'primeicons';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
 
-  .form-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.5rem;
-  }
+:host ::ng-deep .app-dialog .p-dialog-title {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 
-  .form-label.required::after,
-  .form-label-required::after {
-    content: " *";
-    color: #ef4444;
-  }
+/* Subtitle support via data attribute or appended text */
+:host ::ng-deep .app-dialog .dialog-subtitle {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-  .p-datepicker input,
-  .p-select,
-  .p-inputtext,
-  .p-textarea {
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-  }
+:host ::ng-deep .app-dialog .p-dialog-header-icons {
+  position: absolute !important;
+  right: 1rem;
+  top: 1rem;
+}
 
-  .p-datepicker input:focus,
-  .p-select:focus,
-  .p-inputtext:focus,
-  .p-textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    outline: none;
-  }
+:host ::ng-deep .app-dialog .p-dialog-header-icon {
+  color: #6b7280 !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
 
-  .ng-invalid.ng-touched {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
-  }
+:host ::ng-deep .app-dialog .p-dialog-header-icon:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
 
-  .p-error {
-    color: #ef4444;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    display: block;
-  }
+:host ::ng-deep .app-dialog .p-dialog-content {
+  padding: 0 1.5rem 1.5rem 1.5rem !important;
+  background: #ffffff !important;
+}
 
-  .p-button {
-    border-radius: 0.5rem;
-    font-weight: 500;
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-  }
+:host ::ng-deep .app-dialog .form-field {
+  margin-bottom: 1.25rem;
+}
+
+:host ::ng-deep .app-dialog .form-field:last-child {
+  margin-bottom: 0;
+}
+
+:host ::ng-deep .app-dialog .form-label {
+  display: block;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0;
+}
+
+:host ::ng-deep .app-dialog .form-label.required::after,
+:host ::ng-deep .app-dialog .form-label-required::after {
+  content: " *";
+  color: #dc2626;
+  font-weight: 500;
+}
+
+:host ::ng-deep .app-dialog .p-select,
+:host ::ng-deep .app-dialog .p-inputtext,
+:host ::ng-deep .app-dialog .p-textarea,
+:host ::ng-deep .app-dialog .p-inputtextarea {
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 0.625rem 0.875rem !important;
+  font-size: 0.875rem !important;
+  background: #ffffff !important;
+  transition: all 0.15s ease !important;
+  color: #374151 !important;
+}
+
+:host ::ng-deep .app-dialog .p-select:hover,
+:host ::ng-deep .app-dialog .p-inputtext:hover,
+:host ::ng-deep .app-dialog .p-textarea:hover,
+:host ::ng-deep .app-dialog .p-inputtextarea:hover {
+  border-color: #9ca3af !important;
+}
+
+:host ::ng-deep .app-dialog .p-select:focus,
+:host ::ng-deep .app-dialog .p-inputtext:focus,
+:host ::ng-deep .app-dialog .p-textarea:focus,
+:host ::ng-deep .app-dialog .p-inputtextarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  outline: none !important;
+  background: #ffffff !important;
+}
+
+:host ::ng-deep .app-dialog .ng-invalid.ng-touched {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+:host ::ng-deep .app-dialog .p-error {
+  color: #dc2626 !important;
+  font-size: 0.75rem !important;
+  margin-top: 0.25rem;
+  display: block;
+  font-weight: 400;
+}
+
+:host ::ng-deep .app-dialog .p-button {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  transition: all 0.15s ease !important;
+  border: 1px solid transparent !important;
+  letter-spacing: 0;
+}
+
+:host ::ng-deep .app-dialog .p-button:hover {
+  transform: none;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+:host ::ng-deep .app-dialog .p-button:active {
+  transform: scale(0.98);
+}
+
+:host ::ng-deep .app-dialog .p-button.p-button-success {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-color: #22c55e !important;
+}
+
+:host ::ng-deep .app-dialog .p-button.p-button-success:hover {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+}
+
+:host ::ng-deep .app-dialog .p-button.p-button-danger,
+:host ::ng-deep .app-dialog .p-button.p-button-secondary {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+:host ::ng-deep .app-dialog .p-button.p-button-danger:hover,
+:host ::ng-deep .app-dialog .p-button.p-button-secondary:hover {
+  background: #f9fafb !important;
+  border-color: #9ca3af !important;
+  color: #111827 !important;
+}
+
+:host ::ng-deep .app-dialog .p-dialog-footer {
+  padding: 1rem 1.5rem !important;
+  background: #f9fafb !important;
+  border-top: 1px solid #e5e7eb !important;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 /* .dialog-footer, .approval-dialog, .info-section, .employee-avatar → in styles.css (global) */
+
+/* Angular Material date range picker — Clean styling */
+:host ::ng-deep .app-dialog .mat-field-custom {
+  width: 100%;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mdc-notched-outline__leading,
+:host ::ng-deep .app-dialog .mat-field-custom .mdc-notched-outline__notch,
+:host ::ng-deep .app-dialog .mat-field-custom .mdc-notched-outline__trailing {
+  border-color: #d1d5db !important;
+  border-width: 1px !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom:hover .mdc-notched-outline__leading,
+:host ::ng-deep .app-dialog .mat-field-custom:hover .mdc-notched-outline__notch,
+:host ::ng-deep .app-dialog .mat-field-custom:hover .mdc-notched-outline__trailing {
+  border-color: #9ca3af !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom.mat-focused .mdc-notched-outline__leading,
+:host ::ng-deep .app-dialog .mat-field-custom.mat-focused .mdc-notched-outline__notch,
+:host ::ng-deep .app-dialog .mat-field-custom.mat-focused .mdc-notched-outline__trailing {
+  border-color: #3b82f6 !important;
+  border-width: 1px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-form-field-infix {
+  padding-top: 0.625rem !important;
+  padding-bottom: 0.625rem !important;
+  min-height: unset !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mdc-floating-label,
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-floating-label {
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+  font-weight: 400 !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-form-field-hint-wrapper,
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-form-field-error-wrapper {
+  font-size: 0.75rem !important;
+  padding: 0 !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom input.mat-date-range-input-inner {
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+  font-weight: 400 !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-form-field-icon-suffix .mat-datepicker-toggle button {
+  color: #6b7280 !important;
+}
+
+:host ::ng-deep .app-dialog .mat-field-custom .mat-mdc-form-field-subscript-wrapper {
+  margin-top: 0.25rem !important;
+}
+
+/* Premium Modal Animations */
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

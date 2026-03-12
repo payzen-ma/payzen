@@ -232,31 +232,47 @@
                 </div>
               </div>
               <div class="grid gap-5 md:grid-cols-2">
-                <app-select-field
-                  [label]="'employees.create.form.department' | translate"
-                  [requiredMark]="true"
-                  [options]="data.departments"
-                  optionLabel="label"
-                  optionValue="id"
-                  [placeholder]="'employees.create.form.departmentPlaceholder' | translate"
-                  [filter]="true"
-                  [appendTo]="'body'"
-                  [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
-                  formControlName="departmentId"
-                ></app-select-field>
+                <div class="form-field">
+                  <label class="form-label form-label-required">{{ 'employees.create.form.department' | translate }}</label>
+                  <p-autoComplete
+                    [suggestions]="filteredDepartments()"
+                    (completeMethod)="searchDepartment($event)"
+                    [(ngModel)]="selectedDepartment"
+                    (ngModelChange)="onDepartmentChange($event)"
+                    field="label"
+                    [forceSelection]="false"
+                    [placeholder]="'employees.create.form.departmentPlaceholder' | translate"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                  ></p-autoComplete>
+                  @if (employeeForm.controls.departmentId.invalid && (employeeForm.controls.departmentId.dirty || employeeForm.controls.departmentId.touched)) {
+                    <small class="form-error">
+                      <i class="pi pi-exclamation-circle"></i>
+                      {{ 'employees.create.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
 
-                <app-select-field
-                  [label]="'employees.create.form.jobPosition' | translate"
-                  [requiredMark]="true"
-                  [options]="data.jobPositions"
-                  optionLabel="label"
-                  optionValue="id"
-                  [placeholder]="'employees.create.form.jobPositionPlaceholder' | translate"
-                  [filter]="true"
-                  [appendTo]="'body'"
-                  [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
-                  formControlName="jobPositionId"
-                ></app-select-field>
+                <div class="form-field">
+                  <label class="form-label form-label-required">{{ 'employees.create.form.jobPosition' | translate }}</label>
+                  <p-autoComplete
+                    [suggestions]="filteredJobPositions()"
+                    (completeMethod)="searchJobPosition($event)"
+                    [(ngModel)]="selectedJobPosition"
+                    (ngModelChange)="onJobPositionChange($event)"
+                    field="label"
+                    [forceSelection]="false"
+                    [placeholder]="'employees.create.form.jobPositionPlaceholder' | translate"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                  ></p-autoComplete>
+                  @if (employeeForm.controls.jobPositionId.invalid && (employeeForm.controls.jobPositionId.dirty || employeeForm.controls.jobPositionId.touched)) {
+                    <small class="form-error">
+                      <i class="pi pi-exclamation-circle"></i>
+                      {{ 'employees.create.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
 
                 <app-select-field
                   [label]="'employees.create.form.contractType' | translate"
@@ -297,6 +313,14 @@
                   placeholder="12000"
                   icon="pi pi-money-bill"
                   formControlName="salary"
+                ></app-input-field>
+
+                <app-input-field
+                  [label]="'employees.create.form.salaryEffectiveDate' | translate"
+                  type="date"
+                  icon="pi pi-calendar"
+                  [hint]="'employees.create.form.salaryEffectiveDateHint' | translate"
+                  formControlName="salaryEffectiveDate"
                 ></app-input-field>
 
                 <app-select-field

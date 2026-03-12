@@ -1,14 +1,16 @@
 import { Component, OnInit, computed, inject, signal, effect } from '@angular/core';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { InputFieldComponent } from '@app/shared/components/form-controls/input-field';
@@ -37,10 +39,12 @@ import { environment } from '@environments/environment';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     TranslateModule,
     ButtonModule,
     InputTextModule,
     SelectModule,
+    AutoCompleteModule,
     ToastModule,
     InputFieldComponent,
     SelectFieldComponent
@@ -106,12 +110,13 @@ export class EmployeeCreatePage implements OnInit {
     addressLine1: [''],
     addressLine2: [''],
     zipCode: [''],
-    departmentId: [null, Validators.required],
-    jobPositionId: [null, Validators.required],
+    departmentId: [null as number | null, Validators.required],
+    jobPositionId: [null as number | null, Validators.required],
     contractTypeId: [null, Validators.required],
     managerId: [null],
     startDate: ['', Validators.required],
     salary: [null, Validators.min(0)],
+    salaryEffectiveDate: [null as string | null],
     salaryPackageId: [null as number | null],
     attendanceTypeId: [null],
     employeeCategoryId: [null]
@@ -142,6 +147,51 @@ export class EmployeeCreatePage implements OnInit {
     }
     return cities.filter(city => city.countryId === Number(countryId));
   });
+
+  readonly filteredDepartments = signal<LookupOption[]>([]);
+  readonly filteredJobPositions = signal<LookupOption[]>([]);
+  readonly selectedDepartment = signal<LookupOption | string | null>(null);
+  readonly selectedJobPosition = signal<LookupOption | string | null>(null);
+
+  searchDepartment(event: any) {
+    const companyIdRaw = this.contextService.companyId();
+    const companyId = companyIdRaw !== null && companyIdRaw !== undefined ? Number(companyIdRaw) : undefined;
+    this.employeeService.searchDepartments(event.query, companyId).subscribe(data => {
+      this.filteredDepartments.set(data);
+    });
+  }
+
+  searchJobPosition(event: any) {
+    const companyIdRaw = this.contextService.companyId();
+    const companyId = companyIdRaw !== null && companyIdRaw !== undefined ? Number(companyIdRaw) : undefined;
+    this.employeeService.searchJobPositions(event.query, companyId).subscribe(data => {
+      this.filteredJobPositions.set(data);
+    });
+  }
+
+  onDepartmentChange(value: any) {
+    this.selectedDepartment.set(value);
+    if (value && typeof value === 'object' && value.id) {
+      this.employeeForm.controls.departmentId.setValue(value.id);
+    } else if (typeof value === 'string' && value.trim()) {
+      // Si c'est une nouvelle valeur texte, on va la créer lors de la soumission
+      this.employeeForm.controls.departmentId.setValue(null);
+    } else {
+      this.employeeForm.controls.departmentId.setValue(null);
+    }
+  }
+
+  onJobPositionChange(value: any) {
+    this.selectedJobPosition.set(value);
+    if (value && typeof value === 'object' && value.id) {
+      this.employeeForm.controls.jobPositionId.setValue(value.id);
+    } else if (typeof value === 'string' && value.trim()) {
+      // Si c'est une nouvelle valeur texte, on va la créer lors de la soumission
+      this.employeeForm.controls.jobPositionId.setValue(null);
+    } else {
+      this.employeeForm.controls.jobPositionId.setValue(null);
+    }
+  }
 
   ngOnInit(): void {
     this.loadFormData();
@@ -222,6 +272,70 @@ export class EmployeeCreatePage implements OnInit {
       return;
     }
 
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    const rawCompanyId = this.contextService.companyId();
+    const companyId = rawCompanyId !== null && rawCompanyId !== undefined ? Number(rawCompanyId) : null;
+
+    // Créer département/poste si nécessaire
+    const departmentValue = this.selectedDepartment();
+    const jobPositionValue = this.selectedJobPosition();
+    
+    const needsNewDepartment = typeof departmentValue === 'string' && departmentValue.trim() && !this.employeeForm.value.departmentId;
+    const needsNewJobPosition = typeof jobPositionValue === 'string' && jobPositionValue.trim() && !this.employeeForm.value.jobPositionId;
+
+    if (needsNewDepartment || needsNewJobPosition) {
+      this.createMissingEntities(departmentValue, jobPositionValue, companyId).subscribe({
+        next: () => this.submitEmployee(),
+        error: (err: any) => {
+          console.error('Error creating department/job position', err);
+          this.isSubmitting.set(false);
+          this.errorMessage.set(this.translate.instant('employees.create.error'));
+        }
+      });
+    } else {
+      this.submitEmployee();
+    }
+  }
+
+  private createMissingEntities(departmentValue: any, jobPositionValue: any, companyId: number | null): any {
+    const createObservables: any[] = [];
+
+    if (typeof departmentValue === 'string' && departmentValue.trim() && companyId) {
+      createObservables.push(
+        this.employeeService.createDepartment(departmentValue.trim(), companyId).pipe(
+          map(created => {
+            this.employeeForm.controls.departmentId.setValue(created.id);
+            return created;
+          })
+        )
+      );
+    }
+
+    if (typeof jobPositionValue === 'string' && jobPositionValue.trim() && companyId) {
+      createObservables.push(
+        this.employeeService.createJobPosition(jobPositionValue.trim(), companyId).pipe(
+          map(created => {
+            this.employeeForm.controls.jobPositionId.setValue(created.id);
+            return created;
+          })
+        )
+      );
+    }
+
+    return createObservables.length > 0 
+      ? forkJoin(createObservables)
+      : of([]);
+  }
+
+  private submitEmployee(): void {
+    if (this.employeeForm.invalid) {
+      this.employeeForm.markAllAsTouched();
+      return;
+    }
+
     const value = this.employeeForm.value;
     const rawCompanyId = this.contextService.companyId();
     const companyId =
@@ -255,6 +369,7 @@ export class EmployeeCreatePage implements OnInit {
       managerId: value.managerId ? Number(value.managerId) : null,
       startDate: value.startDate || null,
       salary: value.salary != null ? Number(value.salary) : null,
+      salaryEffectiveDate: value.salaryEffectiveDate || null,
       cnssNumber: null,
       cimrNumber: null,
       attendanceTypeId: value.attendanceTypeId ? Number(value.attendanceTypeId) : null,
@@ -285,7 +400,7 @@ export class EmployeeCreatePage implements OnInit {
               salaryPackageId: selectedSalaryPackageId,
               employeeId,
               contractId,
-              effectiveDate: payload.startDate || this.getTodayDate()
+              effectiveDate: payload.salaryEffectiveDate || payload.startDate || this.getTodayDate()
             }).subscribe({
               next: () => this.handleEmployeeCreationSuccess(),
               error: (assignmentError) => {

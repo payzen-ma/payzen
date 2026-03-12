@@ -462,15 +462,17 @@
                 <div class="form-field">
                   <label class="form-label required">{{ 'employees.profile.position.position' | translate }}</label>
                   @if (isEditMode()) {
-                    <p-select
-                      [options]="formData().jobPositions"
-                      [ngModel]="employee().position"
-                      (ngModelChange)="updateField('position', $event)"
-                      optionLabel="label"
-                      optionValue="label"
+                    <p-autoComplete
+                      [suggestions]="filteredJobPositions()"
+                      (completeMethod)="searchJobPosition($event)"
+                      [ngModel]="selectedJobPosition()"
+                      (ngModelChange)="onJobPositionChange($event)"
+                      field="label"
+                      [forceSelection]="false"
                       [placeholder]="'employees.profile.position.position' | translate"
-                      class="w-full input"
-                    ></p-select>
+                      styleClass="w-full"
+                      inputStyleClass="w-full input"
+                    ></p-autoComplete>
                   } @else {
                     <p class="read-only-value">{{ employee().position }}</p>
                   }
@@ -479,15 +481,17 @@
                 <div class="form-field">
                   <label class="form-label required">{{ 'employees.profile.position.department' | translate }}</label>
                   @if (isEditMode()) {
-                    <p-select
-                      [options]="formData().departments"
-                      [ngModel]="employee().department"
-                      (ngModelChange)="updateField('department', $event)"
-                      optionLabel="label"
-                      optionValue="label"
+                    <p-autoComplete
+                      [suggestions]="filteredDepartments()"
+                      (completeMethod)="searchDepartment($event)"
+                      [ngModel]="selectedDepartment()"
+                      (ngModelChange)="onDepartmentChange($event)"
+                      field="label"
+                      [forceSelection]="false"
                       [placeholder]="'employees.profile.position.department' | translate"
-                      class="w-full input"
-                    ></p-select>
+                      styleClass="w-full"
+                      inputStyleClass="w-full input"
+                    ></p-autoComplete>
                   } @else {
                     <p class="read-only-value">{{ employee().department }}</p>
                   }
@@ -671,6 +675,20 @@
                   }
                 </div>
 
+                @if (isEditMode()) {
+                  <div class="form-field">
+                    <label class="form-label">{{ 'employees.profile.salary.effectiveDate' | translate }}</label>
+                    <input
+                      type="date"
+                      class="input w-full"
+                      [value]="employee().salaryEffectiveDate ?? ''"
+                      (change)="updateField('salaryEffectiveDate', $any($event.target).value || null)"
+                      [title]="'employees.profile.salary.effectiveDate' | translate"
+                    />
+                    <p class="text-xs text-(--text-muted) mt-1">{{ 'employees.profile.salary.effectiveDateHint' | translate }}</p>
+                  </div>
+                }
+
                 <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.salary.paymentMethod' | translate }}</label>
                   @if (isEditMode()) {
@@ -693,76 +711,173 @@
                   <div class="flex items-center justify-between mb-3">
                     <label class="form-label">{{ 'employees.profile.salary.components' | translate }}</label>
                     @if (isEditMode()) {
-                      <button 
-                        pButton 
-                        type="button" 
-                        icon="pi pi-plus" 
-                        label="Add" 
-                        class="p-button-text p-button-sm" 
-                        (click)="addSalaryComponent()">
-                      </button>
+                      <div class="flex gap-2">
+                        <button
+                          pButton
+                          type="button"
+                          icon="pi pi-plus"
+                          label="Non imposable"
+                          class="p-button-text p-button-sm"
+                          (click)="addNonImposableComponent()">
+                        </button>
+                        <button
+                          pButton
+                          type="button"
+                          icon="pi pi-plus"
+                          label="Imposable"
+                          class="p-button-text p-button-sm p-button-success"
+                          (click)="addImposableComponent()">
+                        </button>
+                      </div>
                     }
                   </div>
 
                   <div class="space-y-3">
                     @for (comp of employee().salaryComponents; track $index) {
                       @if (isEditMode()) {
+                      @if (!comp.id && !comp.isTaxable) {
+                        <!-- Nouvelle prime NON IMPOSABLE : dropdown catalogue -->
                         <div class="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                           <div class="flex items-start gap-3 group">
                             <div class="flex-1">
-                              <input 
-                                pInputText 
-                                [ngModel]="comp.type" 
-                                (ngModelChange)="updateSalaryComponent($index, 'type', $event)" 
-                                class="w-full input" 
-                                placeholder="Component Name"
-                                aria-label="Component Name"
-                              />
+                              <p-select
+                                [ngModel]="comp.type"
+                                (ngModelChange)="onNewNonImposableSelected($index, $event)"
+                                [options]="nonImposableOptions()"
+                                optionLabel="label"
+                                optionValue="label"
+                                [placeholder]="'employees.profile.salary.selectComponent' | translate"
+                                [showClear]="true"
+                                styleClass="w-full"
+                                class="w-full"
+                                [filter]="true"
+                                filterBy="label"
+                              ></p-select>
                             </div>
                             <div class="w-40">
-                              <p-inputnumber 
-                                [ngModel]="comp.amount" 
-                                (ngModelChange)="updateSalaryComponent($index, 'amount', $event)" 
-                                mode="currency" 
-                                currency="MAD" 
-                                locale="fr-MA" 
+                              <p-inputnumber
+                                [ngModel]="comp.amount"
+                                (ngModelChange)="updateSalaryComponent($index, 'amount', $event)"
+                                mode="currency"
+                                currency="MAD"
+                                locale="fr-MA"
                                 styleClass="w-full"
                                 inputStyleClass="w-full input"
                                 placeholder="0.00"
                                 title="Amount"
                               ></p-inputnumber>
                             </div>
-                            <button 
-                              pButton 
-                              type="button" 
-                              icon="pi pi-trash" 
-                              class="p-button-text p-button-danger p-button-rounded" 
+                            <button
+                              pButton
+                              type="button"
+                              icon="pi pi-trash"
+                              class="p-button-text p-button-danger p-button-rounded"
                               (click)="removeSalaryComponent($index)"
                               title="Remove"
                               aria-label="Remove salary component"
                             ></button>
                           </div>
                           <div class="flex items-center gap-2 pl-1">
-                            <p-checkbox 
-                              [ngModel]="comp.isTaxable" 
-                              (ngModelChange)="updateSalaryComponent($index, 'isTaxable', $event)" 
-                              [binary]="true"
-                              inputId="taxable_{{$index}}"
-                            ></p-checkbox>
-                            <label [for]="'taxable_' + $index" class="text-sm font-medium text-gray-700 cursor-pointer">
-                              {{ 'employees.profile.salary.taxable' | translate }}
-                            </label>
+                            <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                              <i class="pi pi-lock text-xs"></i>
+                              {{ 'employees.profile.salary.nonTaxableStatus' | translate }}
+                            </span>
+                          </div>
+                        </div>
+                      } @else if (!comp.id && comp.isTaxable) {
+                        <!-- Nouvelle prime IMPOSABLE : saisie libre -->
+                        <div class="space-y-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div class="flex items-start gap-3 group">
+                            <div class="flex-1">
+                              <input
+                                pInputText
+                                [ngModel]="comp.type"
+                                (ngModelChange)="updateSalaryComponent($index, 'type', $event)"
+                                class="w-full input"
+                                placeholder="Nom de la prime"
+                                aria-label="Component Name"
+                              />
+                            </div>
+                            <div class="w-40">
+                              <p-inputnumber
+                                [ngModel]="comp.amount"
+                                (ngModelChange)="updateSalaryComponent($index, 'amount', $event)"
+                                mode="currency"
+                                currency="MAD"
+                                locale="fr-MA"
+                                styleClass="w-full"
+                                inputStyleClass="w-full input"
+                                placeholder="0.00"
+                                title="Amount"
+                              ></p-inputnumber>
+                            </div>
+                            <button
+                              pButton
+                              type="button"
+                              icon="pi pi-trash"
+                              class="p-button-text p-button-danger p-button-rounded"
+                              (click)="removeSalaryComponent($index)"
+                              title="Remove"
+                              aria-label="Remove salary component"
+                            ></button>
+                          </div>
+                          <div class="flex items-center gap-2 pl-1">
+                            <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                              {{ 'employees.profile.salary.taxableStatus' | translate }}
+                            </span>
+                          </div>
+                        </div>
+                      } @else {
+                        <!-- Prime existante : affichage original inchangé -->
+                        <div class="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <div class="flex items-start gap-3 group">
+                            <div class="flex-1">
+                              <input
+                                pInputText
+                                [ngModel]="comp.type"
+                                (ngModelChange)="updateSalaryComponent($index, 'type', $event)"
+                                class="w-full input"
+                                placeholder="Component Name"
+                                aria-label="Component Name"
+                              />
+                            </div>
+                            <div class="w-40">
+                              <p-inputnumber
+                                [ngModel]="comp.amount"
+                                (ngModelChange)="updateSalaryComponent($index, 'amount', $event)"
+                                mode="currency"
+                                currency="MAD"
+                                locale="fr-MA"
+                                styleClass="w-full"
+                                inputStyleClass="w-full input"
+                                placeholder="0.00"
+                                title="Amount"
+                              ></p-inputnumber>
+                            </div>
+                            <button
+                              pButton
+                              type="button"
+                              icon="pi pi-trash"
+                              class="p-button-text p-button-danger p-button-rounded"
+                              (click)="removeSalaryComponent($index)"
+                              title="Remove"
+                              aria-label="Remove salary component"
+                            ></button>
+                          </div>
+                          <div class="flex items-center gap-2 pl-1">
                             @if (comp.isTaxable) {
-                              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full ml-2">
+                              <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
                                 {{ 'employees.profile.salary.taxableStatus' | translate }}
                               </span>
                             } @else {
-                              <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full ml-2">
+                              <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                                <i class="pi pi-lock text-xs"></i>
                                 {{ 'employees.profile.salary.nonTaxableStatus' | translate }}
                               </span>
                             }
                           </div>
                         </div>
+                      }
                       } @else {
                         <div class="p-3 bg-(--bg-page) rounded-md border border-(--border-color-subtle) space-y-2">
                           <div class="flex items-center justify-between">
@@ -788,13 +903,22 @@
                       <div class="text-center py-6 bg-(--bg-page) rounded-lg border border-dashed border-(--border-color-subtle)">
                         <p class="text-sm text-(--text-muted)">No salary components added</p>
                         @if (isEditMode()) {
-                          <button 
-                            pButton 
-                            type="button" 
-                            label="Add component" 
-                            class="p-button-link p-button-sm mt-1" 
-                            (click)="addSalaryComponent()">
-                          </button>
+                          <div class="flex justify-center gap-2 mt-1">
+                            <button
+                              pButton
+                              type="button"
+                              label="Non imposable"
+                              class="p-button-link p-button-sm"
+                              (click)="addNonImposableComponent()">
+                            </button>
+                            <button
+                              pButton
+                              type="button"
+                              label="Imposable"
+                              class="p-button-link p-button-sm"
+                              (click)="addImposableComponent()">
+                            </button>
+                          </div>
                         }
                       </div>
                     }

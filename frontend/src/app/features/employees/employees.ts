@@ -17,12 +17,12 @@ import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { EmployeeService, Employee, EmployeeFilters, EmployeeStats, EmployeesResponse } from '@app/core/services/employee.service';
+import { EmployeeService, Employee, EmployeeFilters, EmployeeStats, EmployeesResponse, SageImportResult } from '@app/core/services/employee.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { DepartmentService } from '@app/core/services/department.service';
 import { ContractTypeService } from '@app/core/services/contract-type.service';
 import { MessageService } from 'primeng/api';
-// Permission quick-action removed
+import { SageImportDialogComponent } from './sage-import/sage-import-dialog';
 
 @Component({
   selector: 'app-employees',
@@ -41,7 +41,8 @@ import { MessageService } from 'primeng/api';
     AvatarModule,
     BadgeModule,
     IconFieldModule,
-    InputIconModule
+    InputIconModule,
+    SageImportDialogComponent
   ],
   providers: [MessageService],
   templateUrl: './employees.html',
@@ -62,6 +63,14 @@ export class EmployeesPage implements OnInit {
     total: 0,
     active: 0
   });
+
+  // Sage import dialog
+  readonly showImportDialog = signal(false);
+
+  get currentImportCompanyId(): number | undefined {
+    const id = this.contextService.companyId();
+    return id ? Number(id) : undefined;
+  }
 
   // quick-role removed
 
@@ -146,6 +155,7 @@ export class EmployeesPage implements OnInit {
   private readonly departmentService = inject(DepartmentService);
   private readonly contractTypeService = inject(ContractTypeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly messageService = inject(MessageService);
   readonly routePrefix = computed(() => this.contextService.isExpertMode() ? '/expert' : '/app');
 
   constructor(
@@ -437,6 +447,22 @@ export class EmployeesPage implements OnInit {
 
   addEmployee() {
     this.router.navigate([`${this.routePrefix()}/employees`, 'create']);
+  }
+
+  openImportDialog(): void {
+    this.showImportDialog.set(true);
+  }
+
+  onImportComplete(result: SageImportResult): void {
+    if (result.successCount > 0) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Import Sage terminé',
+        detail: `${result.successCount} employé(s) importé(s) avec succès${result.failedCount > 0 ? `, ${result.failedCount} échec(s)` : ''}.`,
+        life: 6000
+      });
+      this.loadEmployees();
+    }
   }
 
   clearFilters() {

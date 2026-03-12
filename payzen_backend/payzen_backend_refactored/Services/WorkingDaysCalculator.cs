@@ -43,6 +43,12 @@ namespace payzen_backend.Services
                 if (!isWeekend && !isHoliday)
                 {
                     workingDays++;
+                    
+                    // Si c'est un vendredi, ajouter le samedi comme jour de congé
+                    if (dayOfWeek == DayOfWeek.Friday)
+                    {
+                        workingDays++;
+                    }
                 }
 
                 current = current.AddDays(1);

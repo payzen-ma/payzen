@@ -24,7 +24,7 @@ namespace payzen_backend.Controllers.Company
         }
 
         /// <summary>
-        /// Récupère tous les départements actifs
+        /// Rï¿½cupï¿½re tous les dï¿½partements actifs
         /// </summary>
         [HttpGet]
         //[HasPermission("READ_DEPARTEMENTS")]
@@ -50,7 +50,7 @@ namespace payzen_backend.Controllers.Company
         }
 
         /// <summary>
-        /// Récupère un département par ID
+        /// Rï¿½cupï¿½re un dï¿½partement par ID
         /// </summary>
         [HttpGet("{id}")]
         //[HasPermission("VIEW_DEPARTEMENTS")]
@@ -63,7 +63,7 @@ namespace payzen_backend.Controllers.Company
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             if (departement == null)
-                return NotFound(new { Message = "Département non trouvé" });
+                return NotFound(new { Message = "Dï¿½partement non trouvï¿½" });
 
             var result = new DepartementReadDto
             {
@@ -78,7 +78,7 @@ namespace payzen_backend.Controllers.Company
         }
 
         /// <summary>
-        /// Récupère tous les départements d'une société
+        /// Rï¿½cupï¿½re tous les dï¿½partements d'une sociï¿½tï¿½
         /// </summary>
         [HttpGet("company/{companyId}")]
         //[HasPermission("READ_DEPARTEMENTS")]
@@ -86,7 +86,7 @@ namespace payzen_backend.Controllers.Company
         {
             var companyExists = await _db.Companies.AnyAsync(c => c.Id == companyId && c.DeletedAt == null);
             if (!companyExists)
-                return NotFound(new { Message = "Société non trouvée" });
+                return NotFound(new { Message = "Sociï¿½tï¿½ non trouvï¿½e" });
 
             var departements = await _db.Departement
                 .AsNoTracking()
@@ -102,39 +102,41 @@ namespace payzen_backend.Controllers.Company
                 CompanyId = d.CompanyId,
                 CompanyName = d.Company?.CompanyName ?? "",
                 CreatedAt = d.CreatedAt.DateTime
-            });
+            })
+            .DistinctBy(d => d.Id)
+            .ToList();
 
             return Ok(result);
         }
 
         /// <summary>
-        /// Crée un nouveau département
+        /// Crï¿½e un nouveau dï¿½partement
         /// </summary>
         [HttpPost]
         //[HasPermission("CREATE_DEPARTEMENTS")]
         public async Task<ActionResult<DepartementReadDto>> Create([FromBody] DepartementCreateDto departementDto)
         {
-            // Validation du modèle
+            // Validation du modï¿½le
             if (!ModelState.IsValid)
             {
                 return BadRequest(new
                 {
-                    Message = "Données invalides",
+                    Message = "Donnï¿½es invalides",
                     Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
                 });
             }
 
-            // Vérifier que la company existe
+            // Vï¿½rifier que la company existe
             var companyExists = await _db.Companies
                 .AsNoTracking()
                 .AnyAsync(c => c.Id == departementDto.CompanyId && c.DeletedAt == null);
 
             if (!companyExists)
             {
-                return BadRequest(new { Message = "La société spécifiée n'existe pas" });
+                return BadRequest(new { Message = "La sociï¿½tï¿½ spï¿½cifiï¿½e n'existe pas" });
             }
 
-            // Vérifier qu'un département avec le même nom n'existe pas déjà pour cette société
+            // Vï¿½rifier qu'un dï¿½partement avec le mï¿½me nom n'existe pas dï¿½jï¿½ pour cette sociï¿½tï¿½
             var departementExists = await _db.Departement
                 .AsNoTracking()
                 .AnyAsync(d => d.CompanyId == departementDto.CompanyId
@@ -143,7 +145,7 @@ namespace payzen_backend.Controllers.Company
 
             if (departementExists)
             {
-                return Conflict(new { Message = "Un département avec ce nom existe déjà dans cette société" });
+                return Conflict(new { Message = "Un dï¿½partement avec ce nom existe dï¿½jï¿½ dans cette sociï¿½tï¿½" });
             }
 
             try
@@ -159,7 +161,7 @@ namespace payzen_backend.Controllers.Company
                 _db.Departement.Add(departement);
                 await _db.SaveChangesAsync();
 
-                // Log : création du département (relation -> link)
+                // Log : crï¿½ation du dï¿½partement (relation -> link)
                 await _companyEventLogService.LogRelationEventAsync(
                     departement.CompanyId,
                     "Departement_Created",
@@ -189,12 +191,12 @@ namespace payzen_backend.Controllers.Company
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, new { Message = "Erreur lors de la création du département", Details = ex.Message });
+                return StatusCode(500, new { Message = "Erreur lors de la crï¿½ation du dï¿½partement", Details = ex.Message });
             }
         }
 
         /// <summary>
-        /// Met à jour un département
+        /// Met ï¿½ jour un dï¿½partement
         /// </summary>
         [HttpPut("{id}")]
         //[HasPermission("UPDATE_DEPARTEMENTS")]
@@ -204,28 +206,28 @@ namespace payzen_backend.Controllers.Company
             {
                 return BadRequest(new
                 {
-                    Message = "Données invalides",
+                    Message = "Donnï¿½es invalides",
                     Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
                 });
             }
 
             var userId = User.GetUserId();
 
-            // Récupérer le département à modifier
+            // Rï¿½cupï¿½rer le dï¿½partement ï¿½ modifier
             var departement = await _db.Departement
                 .FirstOrDefaultAsync(d => d.Id == id && d.DeletedAt == null);
 
             if (departement == null)
-                return NotFound(new { Message = "Département non trouvé" });
+                return NotFound(new { Message = "Dï¿½partement non trouvï¿½" });
 
             // Conserver les anciennes valeurs pour les logs
             var oldName = departement.DepartementName;
             var oldCompanyId = departement.CompanyId;
 
-            // Mettre à jour le nom si fourni
+            // Mettre ï¿½ jour le nom si fourni
             if (departementDto.DepartementName != null && departementDto.DepartementName != departement.DepartementName)
             {
-                // Vérifier qu'un département avec ce nom n'existe pas déjà dans la même société
+                // Vï¿½rifier qu'un dï¿½partement avec ce nom n'existe pas dï¿½jï¿½ dans la mï¿½me sociï¿½tï¿½
                 var nameExists = await _db.Departement
                     .AsNoTracking()
                     .AnyAsync(d => d.CompanyId == departement.CompanyId
@@ -235,35 +237,35 @@ namespace payzen_backend.Controllers.Company
 
                 if (nameExists)
                 {
-                    return Conflict(new { Message = "Un département avec ce nom existe déjà dans cette société" });
+                    return Conflict(new { Message = "Un dï¿½partement avec ce nom existe dï¿½jï¿½ dans cette sociï¿½tï¿½" });
                 }
 
                 departement.DepartementName = departementDto.DepartementName;
             }
 
-            // Mettre à jour la société si fournie
+            // Mettre ï¿½ jour la sociï¿½tï¿½ si fournie
             if (departementDto.CompanyId.HasValue && departementDto.CompanyId.Value != departement.CompanyId)
             {
-                // Vérifier que la nouvelle société existe
+                // Vï¿½rifier que la nouvelle sociï¿½tï¿½ existe
                 var companyExists = await _db.Companies
                     .AsNoTracking()
                     .AnyAsync(c => c.Id == departementDto.CompanyId.Value && c.DeletedAt == null);
 
                 if (!companyExists)
                 {
-                    return BadRequest(new { Message = "La société spécifiée n'existe pas" });
+                    return BadRequest(new { Message = "La sociï¿½tï¿½ spï¿½cifiï¿½e n'existe pas" });
                 }
 
-                // Vérifier si le département a des employés
+                // Vï¿½rifier si le dï¿½partement a des employï¿½s
                 var hasEmployees = await _db.Employees
                     .AnyAsync(e => e.DepartementId == id && e.DeletedAt == null);
 
                 if (hasEmployees)
                 {
-                    return BadRequest(new { Message = "Impossible de changer la société car le département contient des employés" });
+                    return BadRequest(new { Message = "Impossible de changer la sociï¿½tï¿½ car le dï¿½partement contient des employï¿½s" });
                 }
 
-                // Vérifier qu'un département avec le même nom n'existe pas dans la nouvelle société
+                // Vï¿½rifier qu'un dï¿½partement avec le mï¿½me nom n'existe pas dans la nouvelle sociï¿½tï¿½
                 var nameExistsInNewCompany = await _db.Departement
                     .AsNoTracking()
                     .AnyAsync(d => d.CompanyId == departementDto.CompanyId.Value
@@ -273,7 +275,7 @@ namespace payzen_backend.Controllers.Company
 
                 if (nameExistsInNewCompany)
                 {
-                    return Conflict(new { Message = "Un département avec ce nom existe déjà dans la société cible" });
+                    return Conflict(new { Message = "Un dï¿½partement avec ce nom existe dï¿½jï¿½ dans la sociï¿½tï¿½ cible" });
                 }
 
                 departement.CompanyId = departementDto.CompanyId.Value;
@@ -286,8 +288,8 @@ namespace payzen_backend.Controllers.Company
             {
                 await _db.SaveChangesAsync();
 
-                // Logs après sauvegarde :
-                // 1) Si le nom a changé -> log simple (oldName -> newName)
+                // Logs aprï¿½s sauvegarde :
+                // 1) Si le nom a changï¿½ -> log simple (oldName -> newName)
                 if (oldName != departement.DepartementName)
                 {
                     await _companyEventLogService.LogEventAsync(
@@ -301,10 +303,10 @@ namespace payzen_backend.Controllers.Company
                     );
                 }
 
-                // 2) Si la société a changé -> log_unlink sur l'ancienne société et log_link sur la nouvelle
+                // 2) Si la sociï¿½tï¿½ a changï¿½ -> log_unlink sur l'ancienne sociï¿½tï¿½ et log_link sur la nouvelle
                 if (oldCompanyId != departement.CompanyId)
                 {
-                    // Récupérer les noms des sociétés pour plus de clarté
+                    // Rï¿½cupï¿½rer les noms des sociï¿½tï¿½s pour plus de clartï¿½
                     var oldCompanyName = await _db.Companies
                         .AsNoTracking()
                         .Where(c => c.Id == oldCompanyId)
@@ -317,7 +319,7 @@ namespace payzen_backend.Controllers.Company
                         .Select(c => c.CompanyName)
                         .FirstOrDefaultAsync();
 
-                    // Unlink sur l'ancienne société
+                    // Unlink sur l'ancienne sociï¿½tï¿½
                     await _companyEventLogService.LogRelationEventAsync(
                         oldCompanyId,
                         "Departement_Unlinked",
@@ -328,7 +330,7 @@ namespace payzen_backend.Controllers.Company
                         userId
                     );
 
-                    // Link sur la nouvelle société
+                    // Link sur la nouvelle sociï¿½tï¿½
                     await _companyEventLogService.LogRelationEventAsync(
                         departement.CompanyId,
                         "Departement_Linked",
@@ -340,7 +342,7 @@ namespace payzen_backend.Controllers.Company
                     );
                 }
 
-                // Récupérer le département mis à jour avec ses relations
+                // Rï¿½cupï¿½rer le dï¿½partement mis ï¿½ jour avec ses relations
                 var updatedDepartement = await _db.Departement
                     .AsNoTracking()
                     .Include(d => d.Company)
@@ -359,12 +361,12 @@ namespace payzen_backend.Controllers.Company
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, new { Message = "Erreur lors de la mise à jour du département", Details = ex.Message });
+                return StatusCode(500, new { Message = "Erreur lors de la mise ï¿½ jour du dï¿½partement", Details = ex.Message });
             }
         }
 
         /// <summary>
-        /// Supprime un département (soft delete)
+        /// Supprime un dï¿½partement (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
         //[HasPermission("DELETE_DEPARTEMENTS")]
@@ -376,15 +378,15 @@ namespace payzen_backend.Controllers.Company
                 .FirstOrDefaultAsync(d => d.Id == id && d.DeletedAt == null);
 
             if (departement == null)
-                return NotFound(new { Message = "Département non trouvé" });
+                return NotFound(new { Message = "Dï¿½partement non trouvï¿½" });
 
-            // Vérifier si le département contient des employés actifs
+            // Vï¿½rifier si le dï¿½partement contient des employï¿½s actifs
             var hasEmployees = await _db.Employees
                 .AnyAsync(e => e.DepartementId == id && e.DeletedAt == null);
 
             if (hasEmployees)
             {
-                return BadRequest(new { Message = "Impossible de supprimer ce département car il contient des employés actifs" });
+                return BadRequest(new { Message = "Impossible de supprimer ce dï¿½partement car il contient des employï¿½s actifs" });
             }
 
             try
@@ -399,7 +401,7 @@ namespace payzen_backend.Controllers.Company
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, new { Message = "Erreur lors de la suppression du département", Details = ex.Message });
+                return StatusCode(500, new { Message = "Erreur lors de la suppression du dï¿½partement", Details = ex.Message });
             }
         }
     }

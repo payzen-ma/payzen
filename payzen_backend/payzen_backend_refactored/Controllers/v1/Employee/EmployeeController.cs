@@ -2022,7 +2022,7 @@ namespace payzen_backend.Controllers.v1.Employee
                 .ToListAsync();
 
             // 7. Récupérer les départements de l'entreprise
-            formData.Departements = await _db.Departement
+            var departements = await _db.Departement
                 .Where(d => d.DeletedAt == null && d.CompanyId == targetCompanyId)
                 .Select(d => new DepartementDto
                 {
@@ -2030,11 +2030,14 @@ namespace payzen_backend.Controllers.v1.Employee
                     DepartementName = d.DepartementName,
                     CompanyId = d.CompanyId
                 })
-                .OrderBy(d => d.DepartementName)
                 .ToListAsync();
+            formData.Departements = departements
+                .DistinctBy(d => d.Id)
+                .OrderBy(d => d.DepartementName)
+                .ToList();
 
             // 8. Récupérer les postes de l'entreprise
-            formData.JobPositions = await _db.JobPositions
+            var jobPositions = await _db.JobPositions
                 .Where(j => j.DeletedAt == null && j.CompanyId == targetCompanyId)
                 .Select(j => new JobPositionDto
                 {
@@ -2042,8 +2045,11 @@ namespace payzen_backend.Controllers.v1.Employee
                     Name = j.Name,
                     CompanyId = j.CompanyId
                 })
-                .OrderBy(j => j.Name)
                 .ToListAsync();
+            formData.JobPositions = jobPositions
+                .DistinctBy(j => j.Id)
+                .OrderBy(j => j.Name)
+                .ToList();
 
             // 9. Récupérer les types de contrat de l'entreprise
             formData.ContractTypes = await _db.ContractTypes

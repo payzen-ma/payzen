@@ -32,6 +32,9 @@ namespace payzen_backend.Models.Employee.Dtos
         public List<SalaryComponentDto> SalaryComponents { get; set; } = new();
         public decimal TotalSalary { get; set; }
         
+        // Mode de paiement du salaire
+        public string? SalaryPaymentMethod { get; set; }
+
         // Cotisations
         public string? cnss { get; set; }
         public string? cimr { get; set; }

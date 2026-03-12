@@ -24,7 +24,8 @@ import { CheckboxModule } from 'primeng/checkbox';
 import {
   EmployeeService,
   EmployeeFormData,
-  LookupOption
+  LookupOption,
+  NonImposableOption
 } from '@app/core/services/employee.service';
 import { JobPositionService } from '@app/core/services/job-position.service';
 import { ContractTypeService } from '@app/core/services/contract-type.service';
@@ -114,7 +115,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   private pendingNavigationResolver: ((result: boolean) => void) | null = null;
   private pendingCancel = false;
 
-  private pendingTabTarget: string | null = null;
   private pendingDraftData: Partial<EmployeeProfileModel> | null = null;
   private pendingDraftTimestamp: Date | null = null;
 
@@ -124,7 +124,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     '1': ['personalEmail', 'phone', 'address', 'countryId', 'countryName', 'city', 'addressLine1', 'addressLine2', 'zipCode'],
     '2': [], // Family - Spouse & Children managed by separate component
     '3': ['position', 'department', 'manager', 'contractType', 'status', 'startDate', 'endDate', 'probationPeriod'],
-    '4': ['baseSalary', 'salaryComponents', 'paymentMethod'],
+    '4': ['baseSalary', 'salaryEffectiveDate', 'salaryComponents', 'paymentMethod'],
     '5': ['cnss', 'amo', 'cimr', 'cimrEmployeeRate', 'cimrCompanyRate', 'hasPrivateInsurance', 'privateInsuranceNumber', 'privateInsuranceRate', 'disableAmo', 'annualLeave'],
     '6': ['missingDocuments'],
     '7': ['events']
@@ -167,6 +167,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   readonly employee = signal<EmployeeProfileModel>(this.createEmptyEmployee());
 
+  // Primes non imposables (liste statique miroir du backend, disponible immédiatement)
+  readonly nonImposableOptions = signal<NonImposableOption[]>(this.employeeService.getNonImposableComponents());
+
+  // Liste pour le dropdown : primes du catalogue + option "Autre (saisie libre)"
+  readonly nonImposableWithCustom = computed(() => [
+    ...this.nonImposableOptions(),
+    { code: '__AUTRE__', label: '— Autre (saisie libre)' }
+  ]);
   // Field labels for change tracking
   private readonly FIELD_LABELS: Record<string, string> = {
     firstName: 'First Name',
@@ -194,6 +202,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     endDate: 'End Date',
     probationPeriod: 'Probation Period',
     baseSalary: 'Base Salary',
+    salaryEffectiveDate: 'Salary Effective Date',
     salaryComponents: 'Salary Components',
     paymentMethod: 'Payment Method',
     cnss: 'CNSS',
@@ -977,6 +986,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   readonly filteredCountries = signal<any[]>([]);
   readonly filteredCities = signal<any[]>([]);
+  readonly filteredDepartments = signal<LookupOption[]>([]);
+  readonly filteredJobPositions = signal<LookupOption[]>([]);
+  readonly pendingNewDepartment = signal<string | null>(null);
+  readonly pendingNewJobPosition = signal<string | null>(null);
 
   searchCountry(event: any) {
     this.employeeService.searchCountries(event.query).subscribe(data => {
@@ -1032,7 +1045,64 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     }
   }
 
-  addSalaryComponent() {
+  searchDepartment(event: any) {
+    const raw = this.employee().companyId ?? this.contextService.companyId();
+    const companyId = raw ? Number(raw) : undefined;
+    this.employeeService.searchDepartments(event.query, companyId).subscribe(data => {
+      this.filteredDepartments.set(data);
+    });
+  }
+
+  selectedDepartment = computed(() => {
+    const emp = this.employee();
+    return emp.department || '';
+  });
+
+  onDepartmentChange(value: any) {
+    if (typeof value === 'string') {
+      this.updateField('department', value);
+      this.pendingNewDepartment.set(value);
+    } else if (value && typeof value === 'object') {
+      this.updateField('department', value.label);
+      this.pendingNewDepartment.set(null); // existing entry, no creation needed
+    } else {
+      this.updateField('department', '');
+      this.pendingNewDepartment.set(null);
+    }
+  }
+
+  searchJobPosition(event: any) {
+    const raw = this.employee().companyId ?? this.contextService.companyId();
+    const companyId = raw ? Number(raw) : undefined;
+    this.employeeService.searchJobPositions(event.query, companyId).subscribe(data => {
+      this.filteredJobPositions.set(data);
+    });
+  }
+
+  selectedJobPosition = computed(() => {
+    const emp = this.employee();
+    return emp.position || '';
+  });
+
+  onJobPositionChange(value: any) {
+    if (typeof value === 'string') {
+      this.updateField('position', value);
+      this.pendingNewJobPosition.set(value);
+    } else if (value && typeof value === 'object') {
+      this.updateField('position', value.label);
+      this.pendingNewJobPosition.set(null); // existing entry, no creation needed
+    } else {
+      this.updateField('position', '');
+      this.pendingNewJobPosition.set(null);
+    }
+  }
+
+  addNonImposableComponent() {
+    const current = this.employee().salaryComponents || [];
+    this.updateField('salaryComponents', [...current, { type: '', amount: 0, isTaxable: false }]);
+  }
+
+  addImposableComponent() {
     const current = this.employee().salaryComponents || [];
     this.updateField('salaryComponents', [...current, { type: '', amount: 0, isTaxable: true }]);
   }
@@ -1047,9 +1117,15 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable', value: any) {
     const current = this.employee().salaryComponents || [];
     const updated = [...current];
-    // Ensure isTaxable is always a boolean
     const finalValue = field === 'isTaxable' ? Boolean(value) : value;
     updated[index] = { ...updated[index], [field]: finalValue };
+    this.updateField('salaryComponents', updated);
+  }
+
+  onNewNonImposableSelected(index: number, label: string | null) {
+    const current = this.employee().salaryComponents || [];
+    const updated = [...current];
+    updated[index] = { ...updated[index], type: label ?? '', isTaxable: false };
     this.updateField('salaryComponents', updated);
   }
 
@@ -1120,6 +1196,39 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
            }
         } catch (e) {
            console.error('Failed to create city', e);
+        }
+      }
+
+      // Handle new Department creation
+      const newDeptName = this.pendingNewDepartment();
+      if (newDeptName) {
+        try {
+          const companyIdRaw = this.employee().companyId ?? this.contextService.companyId();
+          const companyId = companyIdRaw ? Number(companyIdRaw) : 0;
+          if (companyId) {
+            await firstValueFrom(this.employeeService.createDepartment(newDeptName, companyId));
+            this.pendingNewDepartment.set(null);
+          }
+        } catch (e: any) {
+          // If already exists (409), ignore; otherwise log
+          if (e?.status !== 409) console.error('Failed to create department', e);
+          this.pendingNewDepartment.set(null);
+        }
+      }
+
+      // Handle new Job Position creation
+      const newPositionName = this.pendingNewJobPosition();
+      if (newPositionName) {
+        try {
+          const companyIdRaw = this.employee().companyId ?? this.contextService.companyId();
+          const companyId = companyIdRaw ? Number(companyIdRaw) : 0;
+          if (companyId) {
+            await firstValueFrom(this.employeeService.createJobPosition(newPositionName, companyId));
+            this.pendingNewJobPosition.set(null);
+          }
+        } catch (e: any) {
+          if (e?.status !== 409) console.error('Failed to create job position', e);
+          this.pendingNewJobPosition.set(null);
         }
       }
 
@@ -1350,7 +1459,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.resetChangeTracking();
     this.isEditMode.set(false);
     this.saveError.set(null);
-    this.pendingTabTarget = null;
     this.pendingNavigationResolver = null;
     this.draftRestored.set(false);
     this.pendingCancel = false;
@@ -1571,18 +1679,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   onTabChange(nextTab: string | number | undefined): void {
     const targetTab = String(nextTab ?? this.activeTab());
-
-    if (!this.isEditMode() || !this.hasFormChanges()) {
-      this.activeTab.set(targetTab);
-      return;
-    }
-
-    if (targetTab === this.activeTab()) {
-      return;
-    }
-
-    this.pendingTabTarget = targetTab;
-    this.showUnsavedDialog.set(true);
+    this.activeTab.set(targetTab);
   }
 
   private handleSaveSuccess(updated: EmployeeProfileModel): void {
@@ -1604,15 +1701,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   private resolveAfterSave(success: boolean): void {
-    if (success && this.pendingTabTarget) {
-      this.activeTab.set(this.pendingTabTarget);
-    }
-
     if (this.pendingNavigationResolver) {
       this.pendingNavigationResolver(success);
     }
 
-    this.pendingTabTarget = null;
     this.pendingNavigationResolver = null;
     this.pendingCancel = false;
   }
@@ -1622,6 +1714,8 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       return;
     }
 
+    this.pendingNewDepartment.set(null);
+    this.pendingNewJobPosition.set(null);
     this.isRestoringDraft = true;
     this.employee.set({ ...this.originalEmployee });
     this.lastSerializedEmployee = JSON.stringify(this.originalEmployee);

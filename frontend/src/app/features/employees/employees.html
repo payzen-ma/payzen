@@ -20,14 +20,28 @@
           </div>
         </div>
 
-        <button
-          pButton
-          type="button"
-          [label]="'employees.addEmployee' | translate"
-          class="btn btn-primary"
-          icon="pi pi-user-plus"
-          (click)="addEmployee()"
-        ></button>
+        <div class="flex items-center gap-2">
+          <!-- Import depuis Sage -->
+          <button
+            pButton
+            type="button"
+            label="Import Sage"
+            class="btn btn-secondary"
+            icon="pi pi-upload"
+            (click)="openImportDialog()"
+            title="Importer des employés depuis un fichier CSV Sage Païe"
+          ></button>
+
+          <!-- Ajouter un employé -->
+          <button
+            pButton
+            type="button"
+            [label]="'employees.addEmployee' | translate"
+            class="btn btn-primary"
+            icon="pi pi-user-plus"
+            (click)="addEmployee()"
+          ></button>
+        </div>
       </div>
     </div>
   </div>
@@ -305,3 +319,11 @@
     </div>
   </div>
 </div>
+
+<!-- Sage Import Dialog -->
+<app-sage-import-dialog
+  [visible]="showImportDialog()"
+  (visibleChange)="showImportDialog.set($event)"
+  [companyId]="currentImportCompanyId"
+  (importComplete)="onImportComplete($event)"
+/>

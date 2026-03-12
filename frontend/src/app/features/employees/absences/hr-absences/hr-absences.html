@@ -59,17 +59,6 @@
         </div>
       </div>
     </div>
-    <div class="stat-card-module">
-      <div class="stat-card-module__inner">
-        <div class="stat-card-module__content">
-          <p>{{ 'common.total' | translate }}</p>
-          <h3>{{ companyStats().totalAbsences }}</h3>
-        </div>
-        <div class="stat-card-module__icon">
-          <i class="pi pi-list"></i>
-        </div>
-      </div>
-    </div>
   </section>
 
   <section class="surface">
@@ -248,22 +237,28 @@
                   <button
                     pButton
                     icon="pi pi-check"
-                    [pTooltip]="'absences.approve' | translate"
+                    [pTooltip]="(absence.status === 'Approved' ? ('absences.status.approved' | translate) : ('absences.approve' | translate))"
                     tooltipPosition="top"
-                    (click)="approveAbsence(absence.id)"
+                    (click)="absence.status !== 'Approved' && approveAbsence(absence.id)"
                     severity="success"
                     [text]="true"
                     [rounded]="true"
+                    [disabled]="absence.status === 'Approved'"
+                    [class.opacity-30]="absence.status === 'Approved'"
+                    [class.cursor-not-allowed]="absence.status === 'Approved'"
                   ></button>
                   <button
                     pButton
                     icon="pi pi-times"
-                    [pTooltip]="'absences.reject' | translate"
+                    [pTooltip]="(absence.status === 'Rejected' || absence.status === 'Cancelled') ? ('absences.status.rejected' | translate) : ('absences.reject' | translate)"
                     tooltipPosition="top"
-                    (click)="rejectAbsence(absence.id); $event.stopPropagation()"
+                    (click)="(absence.status !== 'Rejected' && absence.status !== 'Cancelled') && rejectAbsence(absence.id); $event.stopPropagation()"
                     severity="danger"
                     [text]="true"
                     [rounded]="true"
+                    [disabled]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
+                    [class.opacity-30]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
+                    [class.cursor-not-allowed]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
                   ></button>
                   <button
                     pButton

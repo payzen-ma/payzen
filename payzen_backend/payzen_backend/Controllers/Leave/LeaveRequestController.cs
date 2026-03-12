@@ -194,6 +194,18 @@ namespace payzen_backend.Controllers.Leave
 
             var userId = User.GetUserId();
 
+            // Vérifier si l'utilisateur est RH ou Admin pour approbation automatique
+            var currentUserForRole = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.UsersRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            bool isRhOrAdmin = currentUserForRole?.UsersRoles?.Any(ur =>
+                ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase) ||
+                ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+            ) ?? false;
+
             // Récupérer l'employé pour obtenir le CompanyId
             var employee = await _db.Employees
                 .Include(e => e.Contracts)
@@ -264,7 +276,11 @@ namespace payzen_backend.Controllers.Leave
                 LegalRuleId = dto.LegalRuleId,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                Status = LeaveRequestStatus.Draft,
+                Status = isRhOrAdmin ? LeaveRequestStatus.Approved : LeaveRequestStatus.Draft,
+                SubmittedAt = isRhOrAdmin ? DateTimeOffset.UtcNow : null,
+                DecisionAt = isRhOrAdmin ? DateTimeOffset.UtcNow : null,
+                DecisionBy = isRhOrAdmin ? userId : null,
+                DecisionComment = isRhOrAdmin ? "Approbation automatique (RH/Admin)" : null,
                 RequestedAt = DateTimeOffset.UtcNow,
                 CalendarDays = calendarDays,
                 WorkingDaysDeducted = workingDays,
@@ -275,6 +291,37 @@ namespace payzen_backend.Controllers.Leave
 
             _db.LeaveRequests.Add(request);
             await _db.SaveChangesAsync();
+
+            // Approbation automatique si RH/Admin : historique + déduction du solde
+            if (isRhOrAdmin)
+            {
+                _db.LeaveRequestApprovalHistories.Add(new LeaveRequestApprovalHistory
+                {
+                    LeaveRequestId = request.Id,
+                    Action = LeaveApprovalAction.Approved,
+                    ActionAt = DateTimeOffset.UtcNow,
+                    ActionBy = userId,
+                    Comment = "Approbation automatique (RH/Admin)"
+                });
+
+                if (leavePolicy.RequiresBalance && !dto.LegalRuleId.HasValue)
+                {
+                    var balance = await _leaveBalanceService.GetOrCreateBalanceForMonthAsync(
+                        request.CompanyId,
+                        request.EmployeeId,
+                        request.LeaveTypeId,
+                        request.StartDate.Year,
+                        request.StartDate.Month,
+                        userId);
+
+                    if (balance != null)
+                    {
+                        VersionLeaveBalance(balance, request.WorkingDaysDeducted, userId);
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+            }
 
             // Logger l'événement
             await _leaveEventLogService.LogLeaveRequestEventAsync(
@@ -328,6 +375,12 @@ namespace payzen_backend.Controllers.Leave
                 ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase)
             ) ?? false;
 
+            bool isAdminRole = currentUser?.UsersRoles?.Any(ur =>
+                ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+            ) ?? false;
+
+            bool isRhOrAdmin = isRH || isAdminRole;
+
             // Vérifier que l'utilisateur est le manager de l'employéID
             var isManager = await _db.Employees
                 .AsNoTracking()
@@ -335,8 +388,8 @@ namespace payzen_backend.Controllers.Leave
                     e.Id == employeeId &&
                     e.ManagerId == userId
                 );
-            if (!isRH && !isManager)
-                return BadRequest (new { Message = "Vous devez être RH ou Manager pour Crée un congé pour cet utilisateur" });
+            if (!isRhOrAdmin && !isManager)
+                return BadRequest(new { Message = "Vous devez être RH, Admin ou Manager pour créer un congé pour cet utilisateur" });
 
             // Validation: StartDate < EndDate
             if (dto.StartDate >= dto.EndDate)
@@ -385,7 +438,11 @@ namespace payzen_backend.Controllers.Leave
                 LegalRuleId = dto.LegalRuleId,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                Status = LeaveRequestStatus.Draft,
+                Status = isRhOrAdmin ? LeaveRequestStatus.Approved : LeaveRequestStatus.Draft,
+                SubmittedAt = isRhOrAdmin ? DateTimeOffset.UtcNow : null,
+                DecisionAt = isRhOrAdmin ? DateTimeOffset.UtcNow : null,
+                DecisionBy = isRhOrAdmin ? userId : null,
+                DecisionComment = isRhOrAdmin ? "Approbation automatique (RH/Admin)" : null,
                 RequestedAt = DateTimeOffset.UtcNow,
                 CalendarDays = calendarDays,
                 WorkingDaysDeducted = workingDays,
@@ -396,6 +453,38 @@ namespace payzen_backend.Controllers.Leave
 
             _db.LeaveRequests.Add(request);
             await _db.SaveChangesAsync();
+
+            // Approbation automatique si RH/Admin : historique + déduction du solde
+            if (isRhOrAdmin)
+            {
+                _db.LeaveRequestApprovalHistories.Add(new LeaveRequestApprovalHistory
+                {
+                    LeaveRequestId = request.Id,
+                    Action = LeaveApprovalAction.Approved,
+                    ActionAt = DateTimeOffset.UtcNow,
+                    ActionBy = userId,
+                    Comment = "Approbation automatique (RH/Admin)"
+                });
+
+                if (leavePolicy.RequiresBalance && !dto.LegalRuleId.HasValue)
+                {
+                    var balance = await _leaveBalanceService.GetOrCreateBalanceForMonthAsync(
+                        request.CompanyId,
+                        request.EmployeeId,
+                        request.LeaveTypeId,
+                        request.StartDate.Year,
+                        request.StartDate.Month,
+                        userId);
+
+                    if (balance != null)
+                    {
+                        VersionLeaveBalance(balance, request.WorkingDaysDeducted, userId);
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+            }
+
             // Logger l'événement
             await _leaveEventLogService.LogLeaveRequestEventAsync(
                 employee.CompanyId,

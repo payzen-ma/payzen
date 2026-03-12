@@ -59,17 +59,6 @@
         </div>
       </div>
     </div>
-    <div class="stat-card-module">
-      <div class="stat-card-module__inner">
-        <div class="stat-card-module__content">
-          <p>{{ 'common.total' | translate }}</p>
-          <h3>{{ stats().total }}</h3>
-        </div>
-        <div class="stat-card-module__icon">
-          <i class="pi pi-list"></i>
-        </div>
-      </div>
-    </div>
   </section>
 
   <section class="surface">
@@ -356,12 +345,20 @@
   <p-dialog 
     [(visible)]="showApprovalDialog" 
     [modal]="true" 
-    [header]="'leave.hr.approvalDialog.title' | translate" 
-    [style]="{width: '800px'}"
+    [style]="{width: '600px'}"
     [draggable]="false"
     [resizable]="false"
     styleClass="app-dialog"
     (onHide)="hideApprovalDialog()">
+    
+    <ng-template pTemplate="header">
+      <div class="flex flex-col">
+        <span>{{ 'leave.hr.approvalDialog.title' | translate }}</span>
+        <span class="dialog-subtitle" *ngIf="selectedRequest()">
+          {{ getEmployeeName(selectedRequest()!.employeeId) }}
+        </span>
+      </div>
+    </ng-template>
     
     <ng-container *ngIf="selectedRequest()">
       <div class="approval-dialog">
@@ -446,12 +443,20 @@
   <p-dialog 
     [(visible)]="showGrantLeaveDialog" 
     [modal]="true" 
-    [header]="'leave.hr.grantDialog.title' | translate" 
-    [style]="{width: '800px'}"
+    [style]="{width: '600px'}"
     [draggable]="false"
     [resizable]="false"
     styleClass="app-dialog"
     (onHide)="hideGrantLeaveForm()">
+    
+    <ng-template pTemplate="header">
+      <div class="flex flex-col">
+        <span>{{ 'leave.hr.grantDialog.title' | translate }}</span>
+        <span class="dialog-subtitle" *ngIf="selectedEmployeeForGrant()">
+          {{ selectedEmployeeForGrant()?.firstName }} {{ selectedEmployeeForGrant()?.lastName }}
+        </span>
+      </div>
+    </ng-template>
     
     <div class="approval-dialog">
       <form [formGroup]="grantLeaveForm" (ngSubmit)="grantLeave()">
@@ -500,40 +505,23 @@
         </div>
 
         <!-- Date Range -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-field">
-            <label for="grantStartDate" class="form-label required">{{ 'leave.table.startDate' | translate }}</label>
-            <p-datepicker 
-              id="grantStartDate"
-              formControlName="startDate"
-              [placeholder]="'common.selectDate' | translate"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
-              class="w-full">
-            </p-datepicker>
-            <small 
-              *ngIf="grantLeaveForm.get('startDate')?.invalid && grantLeaveForm.get('startDate')?.touched" 
-              class="p-error">
-              {{ 'leave.form.startDateRequired' | translate }}
-            </small>
-          </div>
-
-          <div class="form-field">
-            <label for="grantEndDate" class="form-label required">{{ 'leave.table.endDate' | translate }}</label>
-            <p-datepicker 
-              id="grantEndDate"
-              formControlName="endDate"
-              [placeholder]="'common.selectDate' | translate"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
-              class="w-full">
-            </p-datepicker>
-            <small 
-              *ngIf="grantLeaveForm.get('endDate')?.invalid && grantLeaveForm.get('endDate')?.touched" 
-              class="p-error">
-              {{ 'leave.form.endDateRequired' | translate }}
-            </small>
-          </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>{{ 'leave.table.startDate' | translate }} – {{ 'leave.table.endDate' | translate }}</mat-label>
+            <mat-date-range-input [formGroup]="grantLeaveForm" [rangePicker]="grantPicker">
+              <input matStartDate formControlName="startDate" [placeholder]="'leave.table.startDate' | translate">
+              <input matEndDate formControlName="endDate" [placeholder]="'leave.table.endDate' | translate">
+            </mat-date-range-input>
+            <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="grantPicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #grantPicker></mat-date-range-picker>
+            @if (grantLeaveForm.controls['startDate'].hasError('matStartDateInvalid')) {
+              <mat-error>{{ 'leave.form.startDateRequired' | translate }}</mat-error>
+            }
+            @if (grantLeaveForm.controls['endDate'].hasError('matEndDateInvalid')) {
+              <mat-error>{{ 'leave.form.endDateRequired' | translate }}</mat-error>
+            }
+          </mat-form-field>
         </div>
 
         <!-- Reason -->
@@ -552,19 +540,6 @@
             class="p-error">
             {{ 'leave.form.reasonRequired' | translate }}
           </small>
-        </div>
-
-        <!-- Auto-approve option -->
-        <div class="form-field">
-          <div class="flex items-center gap-2">
-            <p-checkbox 
-              formControlName="autoApprove"
-              inputId="autoApprove"
-              [binary]="true">
-            </p-checkbox>
-            <label for="autoApprove" class="form-label">{{ 'leave.hr.grantDialog.autoApprove' | translate }}</label>
-          </div>
-          <small class="text-gray-600">{{ 'leave.hr.grantDialog.autoApproveHint' | translate }}</small>
         </div>
 
       </form>

@@ -32,6 +32,13 @@ namespace payzen_backend.Models.Employee
         public decimal? PrivateInsuranceRate { get; set; }
         public bool DisableAmo { get; set; } = false;
 
+        /// <summary>
+        /// Mode de paiement du salaire propre à l'employé.
+        /// Valeurs acceptées : bank_transfer, check, cash.
+        /// Si null, le mode par défaut de la société s'applique.
+        /// </summary>
+        public string? PaymentMethod { get; set; }
+
         // Champs d'audit
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
         public int CreatedBy { get; set; }

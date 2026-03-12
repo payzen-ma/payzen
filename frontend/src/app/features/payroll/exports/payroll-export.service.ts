@@ -35,11 +35,31 @@ export class PayrollExportService {
   }
 
   /**
+   * Télécharge l'État CNSS au format PDF (bordereau de déclaration CNSS)
+   */
+  downloadCnssPdf(companyId: number, year: number, month: number): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/cnss-pdf/${companyId}/${year}/${month}`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /**
    * Télécharge l'État IR (Excel XLSX)
    */
   downloadIr(companyId: number, year: number, month: number): Observable<Blob> {
     return this.http.get(
       `${this.baseUrl}/ir/${companyId}/${year}/${month}`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /**
+   * Télécharge l'État IR au format PDF
+   */
+  downloadIrPdf(companyId: number, year: number, month: number): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/ir-pdf/${companyId}/${year}/${month}`,
       { responseType: 'blob' }
     );
   }

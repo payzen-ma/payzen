@@ -151,7 +151,7 @@
   },
   "payrollExportsPage": {
     "title": "Exports de Paie",
-    "subtitle": "Journal de Paie &bull; État CNSS (Damancom) &bull; État IR",
+    "subtitle": "Journal de Paie &bull; État CNSS PDF &bull; État IR PDF",
     "periodSelection": "Sélection de la période",
     "month": "Mois",
     "year": "Année",
@@ -167,11 +167,23 @@
       "description": "Déclaration CNSS compatible Damancom (UTF-8 BOM, séparateur point-virgule).",
       "button": "État CNSS"
     },
+    "cnssPdf": {
+      "title": "État CNSS PDF",
+      "format": "Bordereau PDF officiel",
+      "description": "Bordereau de déclaration des cotisations CNSS (part salariale + patronale) prêt à signer.",
+      "button": "Télécharger PDF CNSS"
+    },
     "ir": {
       "title": "État IR",
       "format": "Format Excel (.xlsx)",
       "description": "Récapitulatif mensuel de l'impôt sur le revenu retenu à la source.",
       "button": "État IR"
+    },
+    "irPdf": {
+      "title": "État IR PDF",
+      "format": "Format PDF",
+      "description": "Export PDF de l'état d'impôt sur le revenu mensuel.",
+      "button": "Télécharger PDF IR"
     },
     "notice": "Seuls les bulletins au statut <strong>Calculé (OK)</strong> sont inclus dans les exports.",
     "messages": {
@@ -1359,6 +1371,8 @@
       },
       "salary": {
         "baseSalary": "Salaire de Base",
+        "effectiveDate": "Date d'effet du salaire",
+        "effectiveDateHint": "Renseignez cette date si vous modifiez le salaire pour historiser le changement",
         "transportAllowance": "Prime Transport",
         "mealAllowance": "Prime Panier",
         "seniorityBonus": "Prime Ancienneté",
@@ -1375,7 +1389,8 @@
         "assignPackageTooltip": "Aller au module Packages Salariaux pour attribuer",
         "taxable": "Imposable",
         "taxableStatus": "Imposable",
-        "nonTaxableStatus": "Non imposable"
+        "nonTaxableStatus": "Non imposable",
+        "selectComponent": "Sélectionner une prime..."
       },
       "legal": {
         "cnss": "CNSS",
@@ -1572,6 +1587,8 @@
         "managerPlaceholder": "Affecter un manager (optionnel)",
         "startDate": "Date d'entrée",
         "salary": "Salaire brut",
+        "salaryEffectiveDate": "Date d'effet du salaire",
+        "salaryEffectiveDateHint": "Si différente de la date d'entrée (ex : rétroactif)",
         "salaryPackage": "Package salarial",
         "salaryPackagePlaceholder": "Sélectionner un package salarial",
         "attendanceType": "Type de présence",
@@ -2700,6 +2717,8 @@
       "form": {
         "leaveType": "Type de Congé",
         "selectLeaveType": "Sélectionner un type de congé",
+        "selectDateRange": "Sélectionner une période",
+        "daysSelected": "jour(s) sélectionné(s)",
         "noLeaveTypesAvailable": "Aucun type de congé disponible",
         "enabled": "Politique activée",
         "accrualMethod": "Méthode d'accumulation",

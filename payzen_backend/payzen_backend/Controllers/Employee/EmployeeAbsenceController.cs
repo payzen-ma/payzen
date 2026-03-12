@@ -248,6 +248,18 @@ namespace payzen_backend.Controllers.Employees
 
             var userId = User.GetUserId();
 
+            // Vérifier si l'utilisateur est RH ou Admin pour approbation automatique
+            var currentUserForRole = await _db.Users
+                .AsNoTracking()
+                .Include(u => u.UsersRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            bool isRhOrAdmin = currentUserForRole?.UsersRoles?.Any(ur =>
+                ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase) ||
+                ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+            ) ?? false;
+
             var employee = await _db.Employees
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null);
@@ -336,7 +348,10 @@ namespace payzen_backend.Controllers.Employees
                 EndTime = dto.DurationType == AbsenceDurationType.Hourly ? dto.EndTime : null,
                 AbsenceType = dto.AbsenceType.Trim(),
                 Reason = dto.Reason?.Trim(),
-                Status = AbsenceStatus.Draft, // Statut initial is Draft
+                Status = isRhOrAdmin ? AbsenceStatus.Approved : AbsenceStatus.Draft,
+                DecisionAt = isRhOrAdmin ? DateTimeOffset.UtcNow : (DateTimeOffset?)null,
+                DecisionBy = isRhOrAdmin ? userId : (int?)null,
+                DecisionComment = isRhOrAdmin ? "Approbation automatique (RH/Admin)" : null,
                 CreatedAt = DateTimeOffset.UtcNow,
                 CreatedBy = userId
             };

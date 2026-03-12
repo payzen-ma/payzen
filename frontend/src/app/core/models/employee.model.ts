@@ -6,6 +6,8 @@ export interface SalaryComponent {
   type: string;
   amount: number;
   isTaxable?: boolean;
+  /** Flag transient (non sauvegardé en base) : true = saisie libre hors catalogue */
+  _custom?: boolean;
 }
 
 export interface Spouse {
@@ -89,6 +91,8 @@ export interface Employee {
   probationPeriod: string;
   exitReason?: string;
   baseSalary: number;
+  /** Date d'effet du nouveau salaire, renseignée lors d'une modification pour créer un historique. */
+  salaryEffectiveDate?: string | null;
   salaryComponents: SalaryComponent[];
   activeSalaryId?: number;
   paymentMethod: 'bank_transfer' | 'check' | 'cash';
