@@ -1035,7 +1035,7 @@ namespace payzen_backend.Controllers.Employee
                     employee.Id,
                     EmployeeEventLogService.EventNames.SalaryCreated,
                     null,
-                    employeeSalary.BaseSalary.ToString("N2"),
+                    employeeSalary.BaseSalary?.ToString("N2"),
                     userId);
             }
 
@@ -3754,7 +3754,7 @@ namespace payzen_backend.Controllers.Employee
 
                         await _eventLogService.LogSimpleEventAsync(id,
                             EmployeeEventLogService.EventNames.SalaryUpdated,
-                            activeSalary?.BaseSalary.ToString("N2"),
+                            activeSalary?.BaseSalary?.ToString("N2"),
                             newSalary.ToString("N2"), userId);
 
                         hasChanges = true;

@@ -59,7 +59,7 @@ namespace payzen_backend.Services.Dashboard
                 Salaries = context.Salaries.Select(s => new DashboardHrRawSalaryDto
                 {
                     EmployeeId = s.EmployeeId,
-                    BaseSalary = s.BaseSalary,
+                    BaseSalary = s.BaseSalary ?? 0m,
                     EffectiveDate = DateOnly.FromDateTime(s.EffectiveDate),
                     EndDate = s.EndDate.HasValue ? DateOnly.FromDateTime(s.EndDate.Value) : null
                 }).ToList()
@@ -624,7 +624,8 @@ namespace payzen_backend.Services.Dashboard
                 .GroupBy(s => s.EmployeeId)
                 .ToDictionary(
                     group => group.Key,
-                    group => group.OrderByDescending(s => s.EffectiveDate).First().BaseSalary);
+                    group => group.OrderByDescending(s => s.EffectiveDate).First().BaseSalary ?? 0m // Correction ici
+                );
         }
 
         private static (int femaleCount, int maleCount, HashSet<int> femaleIds, HashSet<int> maleIds) CountGender(IEnumerable<EmployeeSnapshot> employees)
@@ -747,7 +748,7 @@ namespace payzen_backend.Services.Dashboard
         private sealed class SalarySnapshot
         {
             public int EmployeeId { get; init; }
-            public decimal BaseSalary { get; init; }
+            public decimal? BaseSalary { get; init; }
             public required DateTime EffectiveDate { get; init; }
             public DateTime? EndDate { get; init; }
         }

@@ -40,6 +40,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{es.Employee?.FirstName} {es.Employee?.LastName}",
                 ContractId = es.ContractId,
                 BaseSalary = es.BaseSalary,
+                BaseSalaryHourly = es.BaseSalaryHourly,
                 EffectiveDate = es.EffectiveDate,
                 EndDate = es.EndDate,
                 CreatedAt = es.CreatedAt.DateTime
@@ -72,6 +73,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{salary.Employee?.FirstName} {salary.Employee?.LastName}",
                 ContractId = salary.ContractId,
                 BaseSalary = salary.BaseSalary,
+                BaseSalaryHourly = salary.BaseSalaryHourly,
                 EffectiveDate = salary.EffectiveDate,
                 EndDate = salary.EndDate,
                 CreatedAt = salary.CreatedAt.DateTime
@@ -106,6 +108,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{es.Employee?.FirstName} {es.Employee?.LastName}",
                 ContractId = es.ContractId,
                 BaseSalary = es.BaseSalary,
+                BaseSalaryHourly = es.BaseSalaryHourly,
                 EffectiveDate = es.EffectiveDate,
                 EndDate = es.EndDate,
                 CreatedAt = es.CreatedAt.DateTime
@@ -140,6 +143,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{es.Employee?.FirstName} {es.Employee?.LastName}",
                 ContractId = es.ContractId,
                 BaseSalary = es.BaseSalary,
+                BaseSalaryHourly = es.BaseSalaryHourly,
                 EffectiveDate = es.EffectiveDate,
                 EndDate = es.EndDate,
                 CreatedAt = es.CreatedAt.DateTime
@@ -158,18 +162,18 @@ namespace payzen_backend.Controllers.Employees
             if (!ModelState.IsValid)
                 return BadRequest(new 
                 { 
-                    Message = "Donn�es invalides",
+                    Message = "Donnees invalides",
                     Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
                 });
 
             // Validations
             var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null);
             if (!employeeExists)
-                return NotFound(new { Message = "Employ� non trouv�" });
+                return NotFound(new { Message = "Employe non trouv�" });
 
             var contractExists = await _db.EmployeeContracts.AnyAsync(ec => ec.Id == dto.ContractId && ec.DeletedAt == null);
             if (!contractExists)
-                return NotFound(new { Message = "Contrat non trouv�" });
+                return NotFound(new { Message = "Contrat non trouve" });
 
             // V�rifier que le contrat appartient � l'employ�
             var contract = await _db.EmployeeContracts.FindAsync(dto.ContractId);
@@ -185,6 +189,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeId = dto.EmployeeId,
                 ContractId = dto.ContractId,
                 BaseSalary = dto.BaseSalary,
+                BaseSalaryHourly = dto.BaseSalaryHourly,
                 EffectiveDate = dto.EffectiveDate,
                 EndDate = dto.EndDate,
                 CreatedBy = User.GetUserId(),
@@ -207,6 +212,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{createdSalary.Employee?.FirstName} {createdSalary.Employee?.LastName}",
                 ContractId = createdSalary.ContractId,
                 BaseSalary = createdSalary.BaseSalary,
+                BaseSalaryHourly = createdSalary.BaseSalaryHourly,
                 EffectiveDate = createdSalary.EffectiveDate,
                 EndDate = createdSalary.EndDate,
                 CreatedAt = createdSalary.CreatedAt.DateTime
@@ -242,7 +248,7 @@ namespace payzen_backend.Controllers.Employees
             if (dto.EndDate.HasValue)
             {
                 if (dto.EndDate.Value < salary.EffectiveDate)
-                    return BadRequest(new { Message = "La date de fin doit �tre apr�s la date d'effet" });
+                    return BadRequest(new { Message = "La date de fin doit etre apres la date d'effet" });
                 
                 salary.EndDate = dto.EndDate;
             }
@@ -265,6 +271,7 @@ namespace payzen_backend.Controllers.Employees
                 EmployeeFullName = $"{updatedSalary.Employee?.FirstName} {updatedSalary.Employee?.LastName}",
                 ContractId = updatedSalary.ContractId,
                 BaseSalary = updatedSalary.BaseSalary,
+                BaseSalaryHourly = updatedSalary.BaseSalaryHourly,
                 EffectiveDate = updatedSalary.EffectiveDate,
                 EndDate = updatedSalary.EndDate,
                 CreatedAt = updatedSalary.CreatedAt.DateTime

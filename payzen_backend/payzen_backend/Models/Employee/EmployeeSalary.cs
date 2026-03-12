@@ -8,7 +8,8 @@ namespace payzen_backend.Models.Employee
         public int Id { get; set; }
         public int EmployeeId { get; set; }
         public int ContractId { get; set; }
-        public decimal BaseSalary { get; set; }
+        public decimal? BaseSalary { get; set; }
+        public decimal? BaseSalaryHourly { get; set; }
         public required DateTime EffectiveDate { get; set; }
         public DateTime? EndDate { get; set; }
 

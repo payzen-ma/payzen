@@ -6,6 +6,7 @@ namespace payzen_backend.Models.Employee.Dtos
     {
         [Range(0.01, double.MaxValue, ErrorMessage = "Le salaire doit �tre sup�rieur � 0")]
         public decimal? BaseSalary { get; set; }
+        public decimal? BaseSalaryHourly { get; set; }
 
         public DateTime? EffectiveDate { get; set; }
 

@@ -252,7 +252,7 @@ namespace payzen_backend.Controllers.Employees
                     dto.EmployeeId,
                     EmployeeEventLogService.EventNames.SalaryCreated,
                     null,
-                    salary.BaseSalary.ToString("N2"),
+                    salary.BaseSalary?.ToString("N2"),
                     userId);
             }
             else
@@ -260,8 +260,8 @@ namespace payzen_backend.Controllers.Employees
                 await _eventLogService.LogSimpleEventAsync(
                     dto.EmployeeId,
                     EmployeeEventLogService.EventNames.SalaryUpdated,
-                    activeSalary.BaseSalary.ToString("N2"),
-                    salary.BaseSalary.ToString("N2"),
+                    activeSalary.BaseSalary?.ToString("N2"),
+                    salary.BaseSalary?.ToString("N2"),
                     userId);
             }
 
