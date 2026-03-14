@@ -428,6 +428,13 @@ export class OvertimeManagementComponent implements OnInit {
     this.router.navigate(['/app/overtime/hr'], { queryParams: { employeeId: id } });
   }
 
+  /** Navigate to employee profile page */
+  viewEmployee(employee: any): void {
+    const id = employee?.id ?? employee?.Id ?? employee;
+    if (!id) return;
+    this.router.navigate(['/app/employees', id]);
+  }
+
   loadEmployees(): void {
     this.employeesLoading.set(true);
     this.employeeService.getEmployees().subscribe({

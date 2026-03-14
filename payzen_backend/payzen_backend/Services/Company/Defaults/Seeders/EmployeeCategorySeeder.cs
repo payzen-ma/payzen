@@ -31,6 +31,7 @@ namespace payzen_backend.Services.Company.Defaults.Seeders
                     CompanyId = companyId,
                     Name = def.Name,
                     Mode = def.Mode,
+                    PayrollPeriodicity = def.PayrollPeriodicity,
                     CreatedAt = DateTimeOffset.UtcNow,
                     CreatedBy = userId
                 });

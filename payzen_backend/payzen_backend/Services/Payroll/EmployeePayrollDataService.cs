@@ -20,10 +20,29 @@ namespace payzen_backend.Services.Payroll
         _workingDaysCalculator = workingDaysCalculator;
     }
 
-    public async Task<EmployeePayrollDto> BuildPayrollDataAsync(int employeeId, int month, int year)
+        public async Task<EmployeePayrollDto> BuildPayrollDataAsync(int employeeId, int month, int year, int? half = null)
     {
         var startOfMonth = new DateTime(year, month, 1);
         var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            // Déterminer la période effective (mois complet ou quinzaine)
+            DateOnly periodStartDate;
+            DateOnly periodEndDate;
+            if (half == 1)
+            {
+                periodStartDate = DateOnly.FromDateTime(startOfMonth);
+                periodEndDate = DateOnly.FromDateTime(startOfMonth.AddDays(14)); // 1..15
+            }
+            else if (half == 2)
+            {
+                periodStartDate = DateOnly.FromDateTime(startOfMonth.AddDays(15)); // 16..end
+                periodEndDate = DateOnly.FromDateTime(endOfMonth);
+            }
+            else
+            {
+                periodStartDate = DateOnly.FromDateTime(startOfMonth);
+                periodEndDate = DateOnly.FromDateTime(endOfMonth);
+            }
 
         // 1. Données de base de l'employé
         var employee = await _db.Employees
@@ -102,25 +121,25 @@ namespace payzen_backend.Services.Payroll
             // Aucune prime trouvée (ni SalaryComponents, ni PackageItems)
         }
 
-        // 5. Absences du mois (approuvées uniquement — impact sur la paie)
+        // 5. Absences sur la période (approuvées uniquement — impact sur la paie)
         var absences = await _db.EmployeeAbsences
             .Where(ea => ea.EmployeeId == employeeId
-                         && ea.AbsenceDate >= DateOnly.FromDateTime(startOfMonth)
-                         && ea.AbsenceDate <= DateOnly.FromDateTime(endOfMonth)
+                         && ea.AbsenceDate >= periodStartDate
+                         && ea.AbsenceDate <= periodEndDate
                          && ea.Status == AbsenceStatus.Approved
                          && ea.DeletedAt == null)
             .ToListAsync();
         // 6. Heures supplémentaires du mois
         var overtimes = await _db.EmployeeOvertimes
             .Where(eo => eo.EmployeeId == employeeId
-                         && eo.OvertimeDate >= DateOnly.FromDateTime(startOfMonth)
-                         && eo.OvertimeDate <= DateOnly.FromDateTime(endOfMonth)
+                         && eo.OvertimeDate >= periodStartDate
+                         && eo.OvertimeDate <= periodEndDate
                          && eo.Status == OvertimeStatus.Approved)
             .ToListAsync();
 
-        // 7. Congés approuvés qui chevauchent le mois (jours proratisés au mois de paie)
-        var startDateMonth = DateOnly.FromDateTime(startOfMonth);
-        var endDateMonth = DateOnly.FromDateTime(endOfMonth);
+        // 7. Congés approuvés qui chevauchent la période (jours proratisés à la période de paie)
+        var startDateMonth = periodStartDate;
+        var endDateMonth = periodEndDate;
         var leaves = await _db.LeaveRequests
             .Include(lr => lr.LeaveType)
             .Where(lr => lr.EmployeeId == employeeId
@@ -130,12 +149,22 @@ namespace payzen_backend.Services.Payroll
                          && lr.EndDate >= startDateMonth)
             .ToListAsync();
 
-        // 8. Ancienneté
+        // 8. Heures travaillées issues du pointage (EmployeeAttendance)
+        var startDateOnly = periodStartDate;
+        var endDateOnly = periodEndDate;
+        var totalWorkedHours = await _db.EmployeeAttendances
+            .Where(ea =>
+                ea.EmployeeId == employeeId &&
+                ea.WorkDate >= startDateOnly &&
+                ea.WorkDate <= endDateOnly)
+            .SumAsync(ea => (decimal?)ea.WorkedHours) ?? 0m;
+
+        // 9. Ancienneté
         var ancienneteYears = contract != null
             ? (int)((startOfMonth - contract.StartDate).TotalDays / 365)
             : 0;
 
-        // 9. Assembler le DTO
+        // 10. Assembler le DTO
         // Règle : la source de vérité pour les primes est EmployeeSalaryComponent (copie du package ou saisie manuelle).
         // Si l'employé a des composants, on n'envoie QUE ceux-ci au calcul pour éviter la double addition
         // (PackageItems + SalaryComponents qui seraient les mêmes après copie du package).
@@ -193,6 +222,7 @@ namespace payzen_backend.Services.Payroll
             ContractStartDate = contract?.StartDate ?? startOfMonth,
             AncienneteYears = ancienneteYears,
 
+            BaseSalaryHourly = salary?.BaseSalaryHourly,
             BaseSalary = salary?.BaseSalary ?? 0,
             SalaryComponents = salaryComponentsList,
 
@@ -215,6 +245,8 @@ namespace payzen_backend.Services.Payroll
             }).ToList(),
 
             Leaves = leaveDtos
+
+            ,TotalWorkedHours = totalWorkedHours
         };
     }
 

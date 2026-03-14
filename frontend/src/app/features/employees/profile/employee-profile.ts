@@ -124,7 +124,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     '1': ['personalEmail', 'phone', 'address', 'countryId', 'countryName', 'city', 'addressLine1', 'addressLine2', 'zipCode'],
     '2': [], // Family - Spouse & Children managed by separate component
     '3': ['position', 'department', 'manager', 'contractType', 'status', 'startDate', 'endDate', 'probationPeriod'],
-    '4': ['baseSalary', 'salaryEffectiveDate', 'salaryComponents', 'paymentMethod'],
+    '4': ['baseSalary', 'baseSalaryHourly', 'salaryEffectiveDate', 'salaryComponents', 'paymentMethod'],
     '5': ['cnss', 'amo', 'cimr', 'cimrEmployeeRate', 'cimrCompanyRate', 'hasPrivateInsurance', 'privateInsuranceNumber', 'privateInsuranceRate', 'disableAmo', 'annualLeave'],
     '6': ['missingDocuments'],
     '7': ['events']
@@ -202,6 +202,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     endDate: 'End Date',
     probationPeriod: 'Probation Period',
     baseSalary: 'Base Salary',
+    baseSalaryHourly: 'Hourly Salary',
     salaryEffectiveDate: 'Salary Effective Date',
     salaryComponents: 'Salary Components',
     paymentMethod: 'Payment Method',
@@ -833,6 +834,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.endDate = d.ContractEndDate ?? d.EndDate ?? d.endDate;
     out.probationPeriod = d.ProbationPeriod ?? d.probationPeriod;
     out.baseSalary = d.BaseSalary ?? d.baseSalary ?? 0;
+    out.baseSalaryHourly = d.BaseSalaryHourly ?? d.baseSalaryHourly ?? 0;
     out.salaryComponents = d.SalaryComponents ?? d.salaryComponents ?? [];
     out.statusName = d.StatusName ?? d.statusName ?? d.Status ?? d.status;
     out.status = (d.StatusCode ?? d.Status ?? d.status) as any;
@@ -1267,7 +1269,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
                componentType: c.type,
                amount: c.amount,
                isTaxable: c.isTaxable ?? true,
-               effectiveDate: new Date().toISOString()
+               effectiveDate: new Date().toISOString(),
              })));
            }
         } else {

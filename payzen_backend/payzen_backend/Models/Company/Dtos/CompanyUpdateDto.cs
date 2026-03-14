@@ -67,5 +67,11 @@ namespace payzen_backend.Models.Company.Dtos
 
         [StringLength(100)]
         public string? SignatoryTitle { get; set; }
+
+        /// <summary>
+        /// Périodicité de paie : "Mensuelle" (par mois) ou "Bimensuelle" (tous les 15 jours)
+        /// </summary>
+        [StringLength(50)]
+        public string? PayrollPeriodicity { get; set; }
     }
 }

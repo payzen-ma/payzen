@@ -93,8 +93,7 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
 
   readonly paymentFrequencyOptions = [
     { label: 'company.hrSettings.frequencies.monthly', value: 'monthly' },
-    { label: 'company.hrSettings.frequencies.bimonthly', value: 'bimonthly' },
-    { label: 'company.hrSettings.frequencies.weekly', value: 'weekly' }
+    { label: 'company.hrSettings.frequencies.bimonthly', value: 'bimonthly' }
   ];
 
   readonly fiscalMonthOptions = [

@@ -10,6 +10,7 @@ export interface EmployeeCategory {
   companyName?: string;
   name: string;
   mode: string | number;
+  payrollPeriodicity?: 'Mensuelle' | 'Bimensuelle';
   modeDescription?: string;
   createdAt?: string;
 }
@@ -18,17 +19,20 @@ export interface EmployeeCategoryCreateDto {
   companyId: number;
   name: string;
   mode: string | number;
+  payrollPeriodicity?: 'Mensuelle' | 'Bimensuelle';
 }
 
 export interface EmployeeCategoryUpdateDto {
   name?: string;
   mode?: string | number;
+  payrollPeriodicity?: 'Mensuelle' | 'Bimensuelle';
 }
 
 export interface EmployeeCategoryLookupOption {
   id: number;
   label: string;
   mode?: string | number;
+  payrollPeriodicity?: 'Mensuelle' | 'Bimensuelle';
 }
 
 @Injectable({
@@ -62,7 +66,7 @@ export class EmployeeCategoryService {
    */
   getLookupOptions(companyId: number): Observable<EmployeeCategoryLookupOption[]> {
     return this.getByCompany(companyId).pipe(
-      map(categories => categories.map(c => ({ id: c.id, label: c.name, mode: c.mode })))
+      map(categories => categories.map(c => ({ id: c.id, label: c.name, mode: c.mode, payrollPeriodicity: c.payrollPeriodicity })))
     );
   }
 

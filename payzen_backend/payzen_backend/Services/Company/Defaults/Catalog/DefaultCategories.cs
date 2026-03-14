@@ -12,6 +12,7 @@ namespace payzen_backend.Services.Company.Defaults.Catalog
         {
             public required string Name { get; init; }
             public EmployeeCategoryMode Mode { get; init; }
+            public string PayrollPeriodicity { get; init; } = "Mensuelle";
         }
 
         /// <summary>
@@ -21,9 +22,9 @@ namespace payzen_backend.Services.Company.Defaults.Catalog
         {
             return new List<CategoryDefinition>
             {
-                new() { Name = "Cadre", Mode = EmployeeCategoryMode.Attendance },
-                new() { Name = "Employé", Mode = EmployeeCategoryMode.Attendance },
-                new() { Name = "Ouvrier", Mode = EmployeeCategoryMode.Attendance }
+                new() { Name = "Cadre", Mode = EmployeeCategoryMode.Attendance, PayrollPeriodicity = "Mensuelle" },
+                new() { Name = "Employé", Mode = EmployeeCategoryMode.Attendance, PayrollPeriodicity = "Mensuelle" },
+                new() { Name = "Ouvrier", Mode = EmployeeCategoryMode.Attendance, PayrollPeriodicity = "Bimensuelle" }
             };
         }
     }

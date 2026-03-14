@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using payzen_backend.Models.Employee;
 using payzen_backend.Models.Employee.Dtos;
@@ -56,7 +59,7 @@ public class PayrollCalculationEngine
     // ADAPTATEUR EmployeePayrollDto → PayrollCalculationContext
     // ══════════════════════════════════════════════════════════════
 
-    private static PayrollCalculationContext BuildContextFromDto(EmployeePayrollDto data)
+        private static PayrollCalculationContext BuildContextFromDto(EmployeePayrollDto data)
     {
         var ctx = new PayrollCalculationContext
         {
@@ -65,7 +68,10 @@ public class PayrollCalculationEngine
             MoisPaie = data.PayMonth,
             AnneePaie = data.PayYear,
             SituationFam = Math.Min(6, data.NumberOfChildren + (data.HasSpouse ? 1 : 0)),
-            HeuresMois = PayrollConstants.WorkHoursRef,
+                HeuresMois = PayrollConstants.WorkHoursRef,
+                HeuresTravaillées = data.TotalWorkedHours,
+            // Taux horaire contractuel (optionnel) — utilisé comme fallback quand SalaireBase est nul
+            BaseSalaryHourly = data.BaseSalaryHourly ?? 0m,
             JoursFeries = 0,
             AvanceSalaire = 0,
             InteretPretLogement = 0,
@@ -152,8 +158,16 @@ public class PayrollCalculationEngine
     {
         Module01_Anciennete(ctx);
         RecordAuditStep(result, 1, "Module01_Anciennete",
-            "PrimeAnciennete = SalaireBase26j × TauxAnciennete (0% <2a, 5% <5a, 10% <12a, 15% <20a, 20% ≥20a)",
-            new Dictionary<string, object> { ["SalaireBase26j"] = ctx.SalaireBase26j, ["DateEmbauche"] = ctx.DateEmbauche.ToString("yyyy-MM-dd"), ["AncienneteAnnees"] = ctx.AncienneteAnnees, ["TauxAnciennete"] = ctx.TauxAnciennete },
+            "PrimeAnciennete = SalaireBase26j × TauxAnciennete ; si SalaireBase26j≤0 → PrimeAnciennete = TauxHoraireContractuel × HeuresTravaillées × TauxAnciennete (fallback)",
+            new Dictionary<string, object>
+            {
+                ["SalaireBase26j"] = ctx.SalaireBase26j,
+                ["DateEmbauche"] = ctx.DateEmbauche.ToString("yyyy-MM-dd"),
+                ["AncienneteAnnees"] = ctx.AncienneteAnnees,
+                ["TauxAnciennete"] = ctx.TauxAnciennete,
+                ["TauxHoraireContractuel"] = ctx.BaseSalaryHourly,
+                ["HeuresTravaillées"] = ctx.HeuresTravaillées
+            },
             new Dictionary<string, object> { ["PrimeAnciennete"] = ctx.PrimeAnciennete });
 
         Module02_Presence(ctx);
@@ -229,17 +243,73 @@ public class PayrollCalculationEngine
             new Dictionary<string, object> { ["JoursCongeAnnuels"] = ctx.JoursCongeAnnuels });
     }
 
-    private static void RecordAuditStep(PayrollCalculationResult result, int stepOrder, string moduleName, string formulaDescription,
+    private void RecordAuditStep(PayrollCalculationResult result, int stepOrder, string moduleName, string formulaDescription,
         Dictionary<string, object> inputs, Dictionary<string, object> outputs)
     {
+        var inputsStored = JsonSerializer.Serialize(inputs);
+        var outputsStored = JsonSerializer.Serialize(outputs);
+
         result.AuditSteps!.Add(new PayrollAuditStepDto
         {
             StepOrder = stepOrder,
             ModuleName = moduleName,
             FormulaDescription = formulaDescription,
-            InputsJson = JsonSerializer.Serialize(inputs),
-            OutputsJson = JsonSerializer.Serialize(outputs)
+            InputsJson = inputsStored,
+            OutputsJson = outputsStored
         });
+
+        var inputsForLog = FormatDictionaryForLog(inputs);
+        var outputsForLog = FormatDictionaryForLog(outputs);
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"Étape {stepOrder}");
+        sb.AppendLine(moduleName);
+        sb.AppendLine(formulaDescription);
+        sb.AppendLine();
+        sb.AppendLine("Entrées");
+        sb.AppendLine(inputsForLog);
+        sb.AppendLine("Sorties");
+        sb.AppendLine(outputsForLog);
+
+        _logger.LogInformation(sb.ToString());
+    }
+
+    private static string FormatDictionaryForLog(Dictionary<string, object> dict)
+    {
+        if (dict == null || dict.Count == 0) return "{}";
+        var sb = new StringBuilder();
+        sb.Append("{");
+        var first = true;
+        foreach (var kv in dict)
+        {
+            if (!first) sb.Append(",");
+            first = false;
+            sb.Append(JsonSerializer.Serialize(kv.Key));
+            sb.Append(":");
+            sb.Append(FormatValue(kv.Value));
+        }
+        sb.Append("}");
+        return sb.ToString();
+    }
+
+    private static string FormatValue(object value)
+    {
+        if (value == null) return "null";
+        switch (value)
+        {
+            case decimal d: return d.ToString("F2", CultureInfo.InvariantCulture);
+            case int i: return i.ToString(CultureInfo.InvariantCulture);
+            case long l: return l.ToString(CultureInfo.InvariantCulture);
+            case double db: return db.ToString("G", CultureInfo.InvariantCulture);
+            case float f: return f.ToString("G", CultureInfo.InvariantCulture);
+            case bool b: return b ? "true" : "false";
+            case DateTime dt: return JsonSerializer.Serialize(dt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            case DateOnly dOnly: return JsonSerializer.Serialize(dOnly.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            case string s: return JsonSerializer.Serialize(s);
+            default:
+                try { return JsonSerializer.Serialize(value); }
+                catch { return JsonSerializer.Serialize(value.ToString()); }
+        }
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -259,10 +329,19 @@ public class PayrollCalculationEngine
             _ => 0.20m
         };
 
-        ctx.PrimeAnciennete = Round(ctx.SalaireBase26j * ctx.TauxAnciennete, 2);
+        // Fallback: si aucun salaire de base mensuel n'est fourni,
+        // calculer la prime d'ancienneté sur la base du taux horaire × heures travaillées pour la période.
+        if (ctx.SalaireBase26j <= 0 && ctx.BaseSalaryHourly > 0 && ctx.HeuresTravaillées > 0)
+        {
+            ctx.PrimeAnciennete = Round(ctx.BaseSalaryHourly * ctx.HeuresTravaillées * ctx.TauxAnciennete, 2);
+        }
+        else
+        {
+            ctx.PrimeAnciennete = Round(ctx.SalaireBase26j * ctx.TauxAnciennete, 2);
+        }
+
         ctx.PrimeAnciennteRate = ctx.TauxAnciennete;
         Console.WriteLine($"Prime AnciennteRate {ctx.PrimeAnciennteRate}");
-
 
     }
 
@@ -272,9 +351,19 @@ public class PayrollCalculationEngine
     private static void Module02_Presence(PayrollCalculationContext ctx)
     {
         ctx.JoursPayesTotal = ctx.JoursTravailles + ctx.JoursFeries + ctx.JoursConge;
-        ctx.SalaireBaseMensuel = ctx.JoursPayesTotal >= PayrollConstants.WorkDaysRef
-            ? ctx.SalaireBase26j
-            : Round(ctx.SalaireBase26j * ctx.JoursPayesTotal / PayrollConstants.WorkDaysRef, 2);
+
+        // Fallback : si aucun salaire de base mensuel n'est fourni mais qu'un taux horaire contractuel existe,
+        // calculer le salaire pour la période comme HeuresTravaillées × TauxHoraire.
+        if (ctx.SalaireBase26j <= 0 && ctx.BaseSalaryHourly > 0 && ctx.HeuresTravaillées > 0)
+        {
+            ctx.SalaireBaseMensuel = Round(ctx.HeuresTravaillées * ctx.BaseSalaryHourly, 2);
+        }
+        else
+        {
+            ctx.SalaireBaseMensuel = ctx.JoursPayesTotal >= PayrollConstants.WorkDaysRef
+                ? ctx.SalaireBase26j
+                : Round(ctx.SalaireBase26j * ctx.JoursPayesTotal / PayrollConstants.WorkDaysRef, 2);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -282,8 +371,17 @@ public class PayrollCalculationEngine
     // ══════════════════════════════════════════════════════════════
     private static void Module03_HeuresSupplementaires(PayrollCalculationContext ctx)
     {
-        var baseHsupp = ctx.SalaireBaseMensuel + ctx.PrimeAnciennete;
-        ctx.TauxHoraire = Round(baseHsupp / ctx.HeuresMois, 4);
+        // Si un taux horaire contractuel est fourni, l'utiliser pour le calcul des heures supérieures.
+        if (ctx.BaseSalaryHourly > 0)
+        {
+            ctx.TauxHoraire = Round(ctx.BaseSalaryHourly, 4);
+        }
+        else
+        {
+            var baseHsupp = ctx.SalaireBaseMensuel + ctx.PrimeAnciennete;
+            ctx.TauxHoraire = Round(baseHsupp / ctx.HeuresMois, 4);
+        }
+
         ctx.MontHsupp25 = Round(ctx.HSup25Pct * ctx.TauxHoraire * 1.25m, 2);
         ctx.MontHsupp50 = Round(ctx.HSup50Pct * ctx.TauxHoraire * 1.50m, 2);
         ctx.MontHsupp100 = Round(ctx.HSup100Pct * ctx.TauxHoraire * 2.00m, 2);

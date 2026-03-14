@@ -51,6 +51,8 @@
     "hrProcedures": "HR Procedures",
     "import": "Import",
     "history": "History",
+    "pointages": "Timesheets",
+    "pointageImport": "Import Timesheet",
     "groups": {
       "overview": "Overview",
       "payroll": "Payroll",
@@ -778,9 +780,8 @@
         "usd": "USD - US Dollar"
       },
       "frequencies": {
-        "monthly": "Monthly",
-        "bimonthly": "Bi-monthly",
-        "weekly": "Weekly"
+        "monthly": "Monthly (once per month)",
+        "bimonthly": "Bi-monthly (every 15 days)"
       },
       "months": {
         "january": "January",
@@ -1185,6 +1186,7 @@
       "table": {
         "name": "Category Name",
         "mode": "Mode",
+        "payrollPeriodicity": "Payroll frequency",
         "description": "Description",
         "actions": "Actions"
       },
@@ -1198,6 +1200,11 @@
         "description": "Description",
         "descriptionPlaceholder": "Enter description (optional)",
         "mode": "Mode",
+        "payrollPeriodicity": "Payroll frequency",
+        "payrollPeriodicityOptions": {
+          "monthly": "Monthly (once per month)",
+          "bimonthly": "Bi-monthly (every 15 days)"
+        },
         "modeOptions": {
           "attendance": "Attendance",
           "absence": "Absence"
@@ -1348,6 +1355,7 @@
       },
       "salary": {
         "baseSalary": "Base Salary",
+        "baseSalaryHourly": "Hourly Salary",
         "effectiveDate": "Salary effective date",
         "effectiveDateHint": "Fill this date when changing the salary to record a history entry",
         "transportAllowance": "Transport Allowance",
@@ -1537,6 +1545,8 @@
         "managerPlaceholder": "Assign a manager (optional)",
         "startDate": "Start date",
         "salary": "Gross salary",
+        "salaryHourly": "Hourly salary",
+        "salaryHourlyHint": "Use for companies using hourly rates instead of monthly salaries",
         "salaryEffectiveDate": "Salary effective date",
         "salaryEffectiveDateHint": "If different from start date (e.g. retroactive)",
         "salaryPackage": "Salary package",
@@ -2844,6 +2854,45 @@
         "deleteFailed": "Unable to delete leave request"
       }
     }
+  },
+  "TIMESHEET": {
+    "LIST_TITLE": "Timesheets",
+    "LIST_SUBTITLE": "View working hours",
+    "IMPORT_BUTTON": "Import Timesheet",
+    "MONTH": "Month",
+    "YEAR": "Year",
+    "PERIOD_INFO": "Period",
+    "LOADING": "Loading timesheets...",
+    "NO_DATA": "No timesheets found",
+    "NO_DATA_DESCRIPTION": "No timesheet data for the selected period. Import a timesheet file to begin.",
+    "IMPORT_FIRST": "Import my first timesheet",
+    "DATE": "Date",
+    "CHECK_IN": "Check In",
+    "CHECK_OUT": "Check Out",
+    "BREAK": "Break",
+    "WORKED_HOURS": "Hours Worked",
+    "STATUS": "Status",
+    "SOURCE": "Source",
+    "STATUS_PRESENT": "Present",
+    "STATUS_ABSENT": "Absent",
+    "STATUS_HOLIDAY": "Holiday",
+    "STATUS_LEAVE": "Leave",
+    "SOURCE_SYSTEM": "System",
+    "SOURCE_MANUAL": "Manual"
+  },
+  "MONTHS": {
+    "1": "January",
+    "2": "February",
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
   },
   "validation": {
     "required": "This field is required"

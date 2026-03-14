@@ -733,6 +733,11 @@ namespace payzen_backend.Data
                     .IsRequired()
                     .HasConversion<int>();
 
+                entity.Property(e => e.PayrollPeriodicity)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Mensuelle");
+
                 entity.Property(e => e.CreatedAt)
                     .IsRequired();
 

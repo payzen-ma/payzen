@@ -259,6 +259,22 @@ export const routes: Routes = [
         title: 'Bulletins de Paie - PayZen'
       },
 
+      // Payroll - Import de pointage (heures de travail)
+      {
+        path: 'payroll/pointage-import',
+        loadComponent: () => import('./features/payroll/pointage-import/pointage-import.component').then(m => m.PointageImportComponent),
+        canActivate: [rhGuard],
+        title: 'Import de Pointage - PayZen'
+      },
+
+      // Payroll - Liste des pointages
+      {
+        path: 'payroll/pointages',
+        loadComponent: () => import('./features/payroll/pointage-list/pointage-list.component').then(m => m.PointageListComponent),
+        canActivate: [rhGuard],
+        title: 'Pointages - PayZen'
+      },
+
       // Payroll - Fiche de Paie (accessible à tous les employés)
       {
         path: 'payroll/payslip',

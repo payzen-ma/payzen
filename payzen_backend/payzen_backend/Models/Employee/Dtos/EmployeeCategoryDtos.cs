@@ -17,6 +17,9 @@ namespace payzen_backend.Models.Employee.Dtos
 
         [Required(ErrorMessage = "Le mode de la cat�gorie est requis")]
         public EmployeeCategoryMode Mode { get; set; }
+
+        [StringLength(50, ErrorMessage = "La p�riodicit� de paie ne peut pas d�passer 50 caract�res")]
+        public string? PayrollPeriodicity { get; set; }
     }
 
     /// <summary>
@@ -29,6 +32,7 @@ namespace payzen_backend.Models.Employee.Dtos
         public string CompanyName { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public EmployeeCategoryMode Mode { get; set; }
+        public string PayrollPeriodicity { get; set; } = "Mensuelle";
         public string ModeDescription { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
@@ -42,6 +46,9 @@ namespace payzen_backend.Models.Employee.Dtos
         public string? Name { get; set; }
 
         public EmployeeCategoryMode? Mode { get; set; }
+
+        [StringLength(50, ErrorMessage = "La p�riodicit� de paie ne peut pas d�passer 50 caract�res")]
+        public string? PayrollPeriodicity { get; set; }
     }
 
     /// <summary>
@@ -52,5 +59,6 @@ namespace payzen_backend.Models.Employee.Dtos
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public EmployeeCategoryMode Mode { get; set; }
+        public string PayrollPeriodicity { get; set; } = "Mensuelle";
     }
 }

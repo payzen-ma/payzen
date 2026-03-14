@@ -319,6 +319,28 @@ export class Sidebar {
       notImplemented: true
     },
     {
+      label: 'nav.pointages',
+      icon: 'pi pi-clock',
+      routerLink: '/payroll/pointages',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null,
+      notImplemented: false
+    },
+    {
+      label: 'nav.pointageImport',
+      icon: 'pi pi-upload',
+      routerLink: '/payroll/pointage-import',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null,
+      notImplemented: false
+    },
+    {
       label: 'nav.performance',
       icon: 'pi pi-chart-bar',
       routerLink: '/performance',

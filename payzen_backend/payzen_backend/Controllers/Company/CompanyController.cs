@@ -110,6 +110,7 @@ namespace payzen_backend.Controllers.Company
                     CnssNumber = c.CnssNumber,
                     SignatoryName = c.SignatoryName,
                     SignatoryTitle = c.SignatoryTitle,
+                    PayrollPeriodicity = c.PayrollPeriodicity,
                     CreatedAt = c.CreatedAt.DateTime
                 })
                 .FirstOrDefaultAsync();
@@ -1449,6 +1450,30 @@ namespace payzen_backend.Controllers.Company
                 }
             }
 
+            // Mise à jour périodicité paie
+            if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity))
+            {
+                var validPeriodicities = new[] { "Mensuelle", "Bimensuelle" };
+                var periodicity = dto.PayrollPeriodicity.Trim();
+
+                if (!validPeriodicities.Contains(periodicity))
+                    return BadRequest(new { Message = "Périodicité invalide. Valeurs acceptées : Mensuelle, Bimensuelle" });
+
+                if (periodicity != company.PayrollPeriodicity)
+                {
+                    await _companyEventLogService.LogEventAsync(
+                        company.Id,
+                        "PayrollPeriodicity_Changed",
+                        company.PayrollPeriodicity,
+                        null,
+                        periodicity,
+                        null,
+                        currentUserId
+                    );
+                    company.PayrollPeriodicity = periodicity;
+                }
+            }
+
             // ===== Audit =====
             company.ModifiedAt = DateTimeOffset.UtcNow;
             company.ModifiedBy = currentUserId;
@@ -1499,7 +1524,8 @@ namespace payzen_backend.Controllers.Company
                 isActive = updated.isActive,
                 CreatedAt = updated.CreatedAt.DateTime,
                 SignatoryName = updated.SignatoryName,
-                SignatoryTitle = updated.SignatoryTitle
+                SignatoryTitle = updated.SignatoryTitle,
+                PayrollPeriodicity = updated.PayrollPeriodicity
             };
 
             return Ok(result);

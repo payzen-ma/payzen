@@ -76,7 +76,7 @@
         />
       </span>
     </div>
-    <p-table [value]="filteredAllEmployees()" [loading]="isLoading()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}">
+    <p-table [value]="filteredAllEmployees()" [loading]="isLoading()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50]">
       <ng-template pTemplate="header">
         <tr>
           <th class="saas-table-header">{{ 'employees.name' | translate }}</th>
@@ -86,7 +86,7 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-emp>
-        <tr class="saas-table-row">
+        <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(emp)">
           <td class="px-6 py-4">{{ emp.firstName }} {{ emp.lastName }}</td>
           <td class="px-6 py-4">{{ emp.position || '-' }}</td>
           <td class="px-6 py-4">{{ emp.department || '-' }}</td>
@@ -97,7 +97,7 @@
                 icon="pi pi-eye"
                 [pTooltip]="'absences.viewDetails' | translate"
                 tooltipPosition="top"
-                (click)="viewEmployeeAbsences(emp.id)"
+                (click)="viewEmployeeAbsences(emp.id); $event.stopPropagation()"
                 severity="info"
                 [text]="true"
                 [rounded]="true"
@@ -107,7 +107,7 @@
                 icon="pi pi-plus"
                 [pTooltip]="'absences.hrGrant' | translate"
                 tooltipPosition="top"
-                (click)="openGrantDialog(emp.id, (emp.firstName + ' ' + emp.lastName))"
+                (click)="openGrantDialog(emp.id, (emp.firstName + ' ' + emp.lastName)); $event.stopPropagation()"
                 severity="success"
                 [text]="true"
                 [rounded]="true"

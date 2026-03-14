@@ -67,6 +67,7 @@ export class BulletinComponent implements OnInit {
   // Filtres
   readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
   readonly selectedYear = signal<number>(new Date().getFullYear());
+  readonly selectedHalf = signal<number | null>(null);
   readonly selectedEmployee = signal<number | null>(null);
   readonly statusFilter = signal<PayrollResultStatus | null>(null);
   readonly searchQuery = signal<string>('');
@@ -74,6 +75,11 @@ export class BulletinComponent implements OnInit {
   // Options pour les selects
   readonly monthOptions = signal<SelectOption[]>([]);
   readonly yearOptions = signal<SelectOption[]>([]);
+  readonly halfOptions = signal<SelectOption[]>([
+    { label: 'Mois entier', value: null },
+    { label: '1ère quinzaine', value: 1 },
+    { label: '2ème quinzaine', value: 2 }
+  ]);
   readonly employeeOptions = signal<SelectOption[]>([
     { label: '', value: null, disabled: true }
   ]);
@@ -216,7 +222,8 @@ export class BulletinComponent implements OnInit {
     try {
       this.payrollService.calculatePayrollForAll(
         this.selectedMonth(),
-        this.selectedYear()
+        this.selectedYear(),
+        this.selectedHalf() ?? undefined
       ).subscribe({
         next: (response) => {
           console.log('Calcul terminé:', response);
@@ -249,7 +256,8 @@ export class BulletinComponent implements OnInit {
     this.payrollService.calculatePayrollForEmployee(
       employeeId,
       this.selectedMonth(),
-      this.selectedYear()
+      this.selectedYear(),
+      this.selectedHalf() ?? undefined
     ).subscribe({
       next: (response) => {
         console.log('Calcul terminé:', response);

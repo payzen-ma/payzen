@@ -172,6 +172,7 @@ export interface CreateEmployeeRequest {
   managerId?: number | null;
   startDate?: string | null;
   salary?: number | null;
+  salaryHourly?: number | null;
   salaryEffectiveDate?: string | null;
   cnssNumber?: string | null;
   cimrNumber?: string | null;
@@ -254,6 +255,7 @@ interface EmployeeDetailsResponse {
   contractStartDate: string;
   contractTypeName: string;
   baseSalary: number;
+  baseSalaryHourly?: number | null;
   salaryComponents?: SalaryComponentResponse[];
   totalSalary?: number;
   cnss?: string | number;
@@ -296,6 +298,7 @@ export interface SageImportResult {
   successCount: number;
   failedCount: number;
   created: SageImportCreatedItem[];
+  updated: SageImportCreatedItem[];
   errors: SageImportError[];
 }
 
@@ -630,11 +633,17 @@ export class EmployeeService {
    * Importe des employés en masse depuis un fichier CSV Sage Paie.
    * POST /api/employee/import-sage
    */
-  importFromSage(file: File, companyId?: number): Observable<SageImportResult> {
+  importFromSage(file: File, companyId?: number, month?: number, year?: number, preview?: boolean): Observable<SageImportResult> {
     const formData = new FormData();
     formData.append('file', file, file.name);
+    const params = new URLSearchParams();
+    if (companyId) params.set('companyId', companyId.toString());
+    if (month) params.set('month', month.toString());
+    if (year) params.set('year', year.toString());
+    if (preview) params.set('preview', 'true');
     let url = `${this.EMPLOYEE_URL}/import-sage`;
-    if (companyId) url += `?companyId=${companyId}`;
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
     return this.http.post<SageImportResult>(url, formData);
   }
 
@@ -1020,6 +1029,7 @@ export class EmployeeService {
       probationPeriod: payload.probationPeriod ?? '',
       exitReason: undefined,
       baseSalary: payload.baseSalary ?? 0,
+      baseSalaryHourly: payload.baseSalaryHourly ?? (payload as any).BaseSalaryHourly ?? 0,
       salaryComponents,
       activeSalaryId: undefined,
       paymentMethod: this.mapPaymentMethod(payload.salaryPaymentMethod),

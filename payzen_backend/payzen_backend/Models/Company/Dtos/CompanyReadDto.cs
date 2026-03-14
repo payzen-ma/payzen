@@ -31,6 +31,7 @@ namespace payzen_backend.Models.Company.Dtos
 
         public string? SignatoryName { get; set; }
         public string? SignatoryTitle { get; set; }
+        public string? PayrollPeriodicity { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

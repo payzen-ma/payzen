@@ -14,6 +14,7 @@ namespace payzen_backend.Controllers.Employees
     public class EmployeeCategoryController : ControllerBase
     {
         private readonly AppDbContext _db;
+        private static readonly string[] ValidPayrollPeriodicities = { "Mensuelle", "Bimensuelle" };
 
         public EmployeeCategoryController(AppDbContext db)
         {
@@ -48,6 +49,7 @@ namespace payzen_backend.Controllers.Employees
                     CompanyName = c.Company.CompanyName,
                     Name = c.Name,
                     Mode = c.Mode,
+                    PayrollPeriodicity = c.PayrollPeriodicity,
                     ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Pr�sence" : "Absence",
                     CreatedAt = c.CreatedAt.DateTime
                 })
@@ -74,6 +76,7 @@ namespace payzen_backend.Controllers.Employees
                     CompanyName = c.Company.CompanyName,
                     Name = c.Name,
                     Mode = c.Mode,
+                    PayrollPeriodicity = c.PayrollPeriodicity,
                     ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Pr�sence" : "Absence",
                     CreatedAt = c.CreatedAt.DateTime
                 })
@@ -107,7 +110,8 @@ namespace payzen_backend.Controllers.Employees
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Mode = c.Mode
+                    Mode = c.Mode,
+                    PayrollPeriodicity = c.PayrollPeriodicity
                 })
                 .ToListAsync();
 
@@ -141,6 +145,7 @@ namespace payzen_backend.Controllers.Employees
                     CompanyName = c.Company.CompanyName,
                     Name = c.Name,
                     Mode = c.Mode,
+                    PayrollPeriodicity = c.PayrollPeriodicity,
                     ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Pr�sence" : "Absence",
                     CreatedAt = c.CreatedAt.DateTime
                 })
@@ -177,11 +182,19 @@ namespace payzen_backend.Controllers.Employees
             if (duplicateName)
                 return Conflict(new { Message = "Une cat�gorie avec ce nom existe d�j� pour cette entreprise" });
 
+            var periodicity = string.IsNullOrWhiteSpace(dto.PayrollPeriodicity)
+                ? "Mensuelle"
+                : dto.PayrollPeriodicity.Trim();
+
+            if (!ValidPayrollPeriodicities.Contains(periodicity))
+                return BadRequest(new { Message = "P�riodicit� invalide. Valeurs accept�es : Mensuelle, Bimensuelle" });
+
             var category = new EmployeeCategory
             {
                 CompanyId = dto.CompanyId,
                 Name = dto.Name.Trim(),
                 Mode = dto.Mode,
+                PayrollPeriodicity = periodicity,
                 CreatedAt = DateTimeOffset.UtcNow,
                 CreatedBy = currentUserId
             };
@@ -201,6 +214,7 @@ namespace payzen_backend.Controllers.Employees
                     CompanyName = c.Company.CompanyName,
                     Name = c.Name,
                     Mode = c.Mode,
+                    PayrollPeriodicity = c.PayrollPeriodicity,
                     ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Pr�sence" : "Absence",
                     CreatedAt = c.CreatedAt.DateTime
                 })
@@ -250,6 +264,19 @@ namespace payzen_backend.Controllers.Employees
                 category.Mode = dto.Mode.Value;
             }
 
+            if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity))
+            {
+                var periodicity = dto.PayrollPeriodicity.Trim();
+
+                if (!ValidPayrollPeriodicities.Contains(periodicity))
+                    return BadRequest(new { Message = "P�riodicit� invalide. Valeurs accept�es : Mensuelle, Bimensuelle" });
+
+                if (periodicity != category.PayrollPeriodicity)
+                {
+                    category.PayrollPeriodicity = periodicity;
+                }
+            }
+
             category.ModifiedAt = DateTimeOffset.UtcNow;
             category.ModifiedBy = currentUserId;
 
@@ -262,6 +289,7 @@ namespace payzen_backend.Controllers.Employees
                 CompanyName = category.Company.CompanyName,
                 Name = category.Name,
                 Mode = category.Mode,
+                PayrollPeriodicity = category.PayrollPeriodicity,
                 ModeDescription = category.Mode == EmployeeCategoryMode.Attendance ? "Pr�sence" : "Absence",
                 CreatedAt = category.CreatedAt.DateTime
             };

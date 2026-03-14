@@ -472,6 +472,15 @@ export class HrAbsencesComponent implements OnInit {
     this.router.navigate([`${this.routePrefix()}/absences/employee`, String(employeeId)]);
   }
 
+  /**
+   * Navigate to employee profile page
+   */
+  viewEmployee(employee: any) {
+    const id = Number(employee?.id ?? employee) || Number(employee);
+    if (!id) return;
+    this.router.navigate([`${this.routePrefix()}/employees`, String(id)]);
+  }
+
   approveEmployee(employeeId: number) {
     console.debug('[HR] approveEmployee', employeeId);
     // TODO: integrate with backend approval endpoint once available.

@@ -130,4 +130,11 @@ export class HrEmployeesComponent implements OnInit {
       }
     });
   }
+
+  /** Navigate to employee profile page */
+  viewEmployee(employee: any): void {
+    const id = employee?.id ?? employee?.Id ?? employee;
+    if (!id) return;
+    this.router.navigate(['/app/employees', id]);
+  }
 }

@@ -36,6 +36,7 @@ interface CompanyDto {
   taxRegime?: string;
   signatoryName?: string;
   signatoryTitle?: string;
+  payrollPeriodicity?: string;
   // Add other fields as needed based on backend response
 }
 
@@ -61,6 +62,8 @@ interface CompanyUpdateDto {
   LegalForm?: string;
   SignatoryName?: string;
   SignatoryTitle?: string;
+  /** Périodicité de paie : 'Mensuelle' (mensuel) ou 'Bimensuelle' (tous les 15 jours) */
+  PayrollPeriodicity?: string;
 }
 
   // Mapping configuration from frontend model to backend DTO
@@ -153,6 +156,15 @@ export class CompanyService {
     // If hrParameters are provided in the partial company, include them in the payload
     if ((company as any).hrParameters) {
       (updateDto as any).hrParameters = (company as any).hrParameters;
+      // Also map paymentFrequency to backend PayrollPeriodicity
+      const freq = (company as any).hrParameters?.paymentFrequency;
+      if (freq) {
+        const periodicityMap: Record<string, string> = {
+          monthly: 'Mensuelle',
+          bimonthly: 'Bimensuelle'
+        };
+        updateDto.PayrollPeriodicity = periodicityMap[freq] ?? freq;
+      }
     }
 
     // Debug: log the final payload to help trace why HR params may not be persisted
@@ -333,7 +345,15 @@ export class CompanyService {
         annualLeaveDays: 18,
         publicHolidays: [],
         probationPeriodDays: 90,
-        noticePeriodDays: 30
+        noticePeriodDays: 30,
+        paymentFrequency: (() => {
+          const raw = (dto as any).payrollPeriodicity || (dto as any).PayrollPeriodicity;
+          const map: Record<string, 'monthly' | 'bimonthly'> = {
+            'Mensuelle': 'monthly',
+            'Bimensuelle': 'bimonthly'
+          };
+          return map[raw] ?? 'monthly';
+        })()
       },
       documents: {
         cnss_attestation: null,

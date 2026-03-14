@@ -159,6 +159,9 @@
         [value]="filteredEmployees()"
         styleClass="p-datatable-sm"
         [tableStyle]="{'min-width': '50rem'}"
+        [paginator]="true"
+        [rows]="5"
+        [rowsPerPageOptions]="[5,10,25,50,100]"
       >
         <ng-template pTemplate="header">
           <tr>

@@ -46,7 +46,8 @@ export class EmployeeCategoriesTabComponent implements OnInit {
 
   readonly categoryForm = this.fb.group({
     name: ['', Validators.required],
-    mode: [0, Validators.required]
+    mode: ['1', Validators.required],
+    payrollPeriodicity: ['Mensuelle', Validators.required]
   });
 
   ngOnInit(): void {
@@ -78,23 +79,39 @@ export class EmployeeCategoriesTabComponent implements OnInit {
   openCreateDialog(): void {
     this.isEditing.set(false);
     this.editingId.set(null);
-    this.categoryForm.reset();
     this.showDialog.set(true);
+    // Apply reset after dialog becomes visible to avoid possible re-render issues
+    setTimeout(() => {
+      this.categoryForm.reset({
+        name: '',
+        mode: '1',
+        payrollPeriodicity: 'Mensuelle'
+      });
+    }, 0);
   }
 
   openEditDialog(category: EmployeeCategory): void {
     this.isEditing.set(true);
     this.editingId.set(category.id);
-    this.categoryForm.patchValue({
-      name: category.name,
-      mode: Number(category.mode ?? 0)
-    });
+    console.debug('Opening edit dialog for category', category);
     this.showDialog.set(true);
+    // Patch values after dialog is visible to ensure the native select reflects the new value
+    setTimeout(() => {
+        this.categoryForm.patchValue({
+          name: category.name,
+          mode: String(this.normalizeModeValue(category.mode)),
+          payrollPeriodicity: this.normalizePayrollPeriodicity(category.payrollPeriodicity)
+        });
+    }, 0);
   }
 
   closeDialog(): void {
     this.showDialog.set(false);
-    this.categoryForm.reset();
+    this.categoryForm.reset({
+      name: '',
+      mode: '1',
+      payrollPeriodicity: 'Mensuelle'
+    });
   }
 
   save(): void {
@@ -107,14 +124,17 @@ export class EmployeeCategoriesTabComponent implements OnInit {
     if (!companyId) return;
 
     const value = this.categoryForm.value;
+    const normalizedMode = this.normalizeModeValue(value.mode);
     const payloadCreate = {
       name: String(value.name ?? ''),
-      mode: Number(value.mode ?? 0),
+      mode: Number(normalizedMode),
+      payrollPeriodicity: this.normalizePayrollPeriodicity(value.payrollPeriodicity),
       companyId: Number(companyId)
     };
     const payloadUpdate = {
       name: String(value.name ?? ''),
-      mode: Number(value.mode ?? 0)
+      mode: Number(normalizedMode),
+      payrollPeriodicity: this.normalizePayrollPeriodicity(value.payrollPeriodicity)
     };
 
     if (this.isEditing()) {
@@ -186,5 +206,43 @@ export class EmployeeCategoriesTabComponent implements OnInit {
         });
       }
     });
+  }
+
+  getPayrollPeriodicityLabel(periodicity?: string): string {
+    const norm = this.normalizePayrollPeriodicity(periodicity);
+    if (norm === 'Bimensuelle') {
+      return this.translate.instant('company.employeeCategories.form.payrollPeriodicityOptions.bimonthly');
+    }
+
+    return this.translate.instant('company.employeeCategories.form.payrollPeriodicityOptions.monthly');
+  }
+
+  private normalizeModeValue(input?: string | number | null): '1' | '2' {
+    if (input === null || input === undefined) return '1';
+    const v = typeof input === 'number' ? String(input) : String(input).trim().toLowerCase();
+    if (v === '1' || v === 'attendance' || v === 'presence' || v.includes('attend') || v.includes('presenc')) {
+      return '1';
+    }
+    if (v === '2' || v === 'absence' || v.includes('absenc')) {
+      return '2';
+    }
+    return '1';
+  }
+
+  getModeLabel(mode: string | number | undefined | null, modeDescription?: string): string {
+    if (modeDescription) return modeDescription;
+    const norm = this.normalizeModeValue(mode);
+    return norm === '1'
+      ? this.translate.instant('company.employeeCategories.form.modeOptions.attendance')
+      : this.translate.instant('company.employeeCategories.form.modeOptions.absence');
+  }
+
+  private normalizePayrollPeriodicity(input?: string | null): 'Mensuelle' | 'Bimensuelle' {
+    if (!input) return 'Mensuelle';
+    const v = String(input).trim().toLowerCase();
+    if (v === 'bimensuelle' || v === 'bimonthly' || v.includes('bimen') || v.includes('bimon')) {
+      return 'Bimensuelle';
+    }
+    return 'Mensuelle';
   }
 }

@@ -76,7 +76,7 @@
         />
       </span>
     </div>
-    <p-table [value]="filteredEmployeesForTable()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}">
+    <p-table [value]="filteredEmployeesForTable()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50]">
       <ng-template pTemplate="header">
         <tr>
           <th class="saas-table-header">{{ 'employees.name' | translate }}</th>
@@ -86,12 +86,12 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-emp>
-        <tr class="saas-table-row">
+        <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(emp)">
           <td class="px-6 py-4">{{ emp.firstName }} {{ emp.lastName }}</td>
           <td class="px-6 py-4">{{ emp.position || '-' }}</td>
           <td class="px-6 py-4">{{ emp.department || '-' }}</td>
           <td class="px-6 py-4">
-            <p-button icon="pi pi-plus" [label]="'leave.hr.grantLeave' | translate" severity="success" size="small" (onClick)="openGrantLeaveForEmployee(emp)"></p-button>
+            <p-button icon="pi pi-plus" [label]="'leave.hr.grantLeave' | translate" severity="success" size="small" (onClick)="openGrantLeaveForEmployee(emp); $event.stopPropagation()"></p-button>
           </td>
         </tr>
       </ng-template>
@@ -212,7 +212,7 @@
       </ng-template>
       
       <ng-template pTemplate="body" let-request>
-        <tr class="saas-table-row">
+        <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(request.employeeId)">
           <!-- Employé -->
           <td class="px-6 py-4">
             <div class="flex items-center gap-3">
@@ -267,7 +267,7 @@
                 icon="pi pi-upload"
                 [pTooltip]="'leave.actions.submit' | translate"
                 tooltipPosition="top"
-                (click)="submitRequest(request)"
+                (click)="submitRequest(request); $event.stopPropagation()"
                 severity="primary"
                 [text]="true"
                 [rounded]="true"
@@ -279,7 +279,7 @@
                 icon="pi pi-check" 
                 [pTooltip]="'leave.hr.approvalDialog.approve' | translate" 
                 tooltipPosition="top" 
-                (click)="approveRequest(request)" 
+                (click)="approveRequest(request); $event.stopPropagation()" 
                 severity="success" 
                 [text]="true" 
                 [rounded]="true" 
@@ -290,7 +290,7 @@
                 icon="pi pi-times" 
                 [pTooltip]="'leave.hr.approvalDialog.reject' | translate" 
                 tooltipPosition="top" 
-                (click)="rejectRequest(request)" 
+                (click)="rejectRequest(request); $event.stopPropagation()" 
                 severity="danger" 
                 [text]="true" 
                 [rounded]="true" 
@@ -301,7 +301,7 @@
                 icon="pi pi-ban" 
                 [pTooltip]="'common.cancel' | translate" 
                 tooltipPosition="top" 
-                (click)="cancelRequest(request)" 
+                (click)="cancelRequest(request); $event.stopPropagation()" 
                 severity="warn" 
                 [text]="true" 
                 [rounded]="true" 
@@ -314,7 +314,8 @@
                 tooltipPosition="top" 
                 severity="info" 
                 [text]="true" 
-                [rounded]="true">
+                [rounded]="true"
+                (click)="$event.stopPropagation()">
               </button>
             </div>
           </td>

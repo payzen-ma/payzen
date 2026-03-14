@@ -28,6 +28,14 @@ public class PayrollCalculationContext
     public int JoursFeries { get; set; }
     public int JoursConge { get; set; }
     public int HeuresMois { get; set; } = PayrollConstants.WorkHoursRef;
+    /// <summary>
+    /// Heures réellement travaillées sur la période de paie (issues du pointage importé).
+    /// </summary>
+    public decimal HeuresTravaillées { get; set; }
+    /// <summary>
+    /// Taux horaire contractuel (si applicable) — utilisé quand le salaire de base est absent.
+    /// </summary>
+    public decimal BaseSalaryHourly { get; set; }
     public decimal HSup25Pct { get; set; }
     public decimal HSup50Pct { get; set; }
     public decimal HSup100Pct { get; set; }

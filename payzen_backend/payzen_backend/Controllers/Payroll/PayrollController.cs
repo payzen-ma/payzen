@@ -42,7 +42,8 @@ namespace payzen_backend.Controllers.Payroll
             [FromQuery] int companyId,
             [FromQuery] int month, 
             [FromQuery] int year,
-            [FromQuery] bool useNativeEngine = true)
+            [FromQuery] bool useNativeEngine = true,
+            [FromQuery] int? half = null)
         {
             try
             {
@@ -60,7 +61,7 @@ namespace payzen_backend.Controllers.Payroll
                     engineType, companyId, month, year);
 
                 // Lancer le traitement (async)
-                await _paieService.TraiterTousLesSalariesAsync(companyId, month, year, useNativeEngine);
+                await _paieService.TraiterTousLesSalariesAsync(companyId, month, year, useNativeEngine, half);
 
                 _logger.LogInformation("Calcul de paie terminé pour l'entreprise {CompanyId}, {Month}/{Year}", 
                     companyId, month, year);
@@ -412,7 +413,8 @@ namespace payzen_backend.Controllers.Payroll
             int employeeId,
             [FromQuery] int month,
             [FromQuery] int year,
-            [FromQuery] bool useNativeEngine = true)
+            [FromQuery] bool useNativeEngine = true,
+            [FromQuery] int? half = null)
         {
             try
             {
@@ -434,7 +436,7 @@ namespace payzen_backend.Controllers.Payroll
                 }
 
                 // Relancer le calcul pour cet employé (moteur natif ou LLM selon useNativeEngine)
-                var result = await _paieService.TraiterUnSeulEmployeAsync(employeeId, month, year, useNativeEngine);
+                var result = await _paieService.TraiterUnSeulEmployeAsync(employeeId, month, year, useNativeEngine, half);
 
                 return Ok(new
                 {

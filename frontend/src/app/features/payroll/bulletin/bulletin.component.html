@@ -51,6 +51,17 @@
           />
         </div>
 
+        <!-- Sélecteur de période (mois entier / quinzaine) -->
+        <div class="w-full md:w-40 shrink-0">
+          <app-select
+            [label]="'Période'"
+            [options]="halfOptions()"
+            [value]="selectedHalf()"
+            (valueChange)="selectedHalf.set($event)"
+            [placeholder]="'Sélectionnez la période'"
+          />
+        </div>
+
         <!-- Sélecteur d'employé (pour calcul individuel) -->
         <div class="w-full flex-1 min-w-0">
           <app-select

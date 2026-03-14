@@ -249,6 +249,15 @@ export class TeamAbsencesComponent implements OnInit {
     this.router.navigate([`${this.routePrefix()}/absences/employee`, employeeId]);
   }
 
+  /**
+   * Navigate to employee profile page
+   */
+  viewEmployee(employeeId: number | string) {
+    const id = String(employeeId || '');
+    if (!id) return;
+    this.router.navigate([`${this.routePrefix()}/employees`, id]);
+  }
+
   filteredEmployees() {
     const query = this.searchQuery().toLowerCase();
     if (!query) {

@@ -675,8 +675,18 @@
                   }
                 </div>
 
-                @if (isEditMode()) {
+                <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.salary.baseSalaryHourly' | translate }}</label>
+                  @if (isEditMode()) {
+                    <p-inputnumber [ngModel]="employee().baseSalaryHourly" (ngModelChange)="updateField('baseSalaryHourly', $event ?? 0)" mode="currency" currency="MAD" locale="fr-MA" styleClass="w-full" inputStyleClass="w-full input" title="{{ 'employees.profile.salary.baseSalaryHourly' | translate }}"></p-inputnumber>
+                  } @else {
+                    <p class="read-only-value">{{ employee().baseSalaryHourly | number:'1.2-2' }} MAD</p>
+                  }
+                </div>
+
+                
                   <div class="form-field">
+                    @if (isEditMode()) {
                     <label class="form-label">{{ 'employees.profile.salary.effectiveDate' | translate }}</label>
                     <input
                       type="date"
@@ -686,8 +696,13 @@
                       [title]="'employees.profile.salary.effectiveDate' | translate"
                     />
                     <p class="text-xs text-(--text-muted) mt-1">{{ 'employees.profile.salary.effectiveDateHint' | translate }}</p>
-                  </div>
-                }
+                 
+                } @else {
+                    <label class="form-label">{{ 'employees.profile.salary.effectiveDate' | translate }}</label>
+                    <p class="read-only-value">
+                      {{ employee().salaryEffectiveDate ? (employee().salaryEffectiveDate | date: 'dd/MM/yyyy') : '-' }}
+                    </p>
+                } </div>
 
                 <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.salary.paymentMethod' | translate }}</label>

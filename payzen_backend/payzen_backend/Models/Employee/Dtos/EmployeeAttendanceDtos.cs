@@ -15,6 +15,7 @@ namespace payzen_backend.Models.Employee.Dtos
     {
         public int Id { get; set; }
         public int EmployeeId { get; set; }
+        public string? EmployeeName { get; set; }
         public DateOnly WorkDate { get; set; }
         public TimeOnly? CheckIn { get; set; }
         public TimeOnly? CheckOut { get; set; }

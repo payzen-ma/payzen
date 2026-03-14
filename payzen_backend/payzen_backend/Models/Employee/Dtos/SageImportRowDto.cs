@@ -17,5 +17,11 @@ namespace payzen_backend.Models.Employee.Dtos
         public string? Salaire { get; set; }
         public string? DateEntree { get; set; }
         public string? Genre { get; set; }
+        public string? Adresse { get; set; }
+        public string? SituationFamiliale { get; set; }
+        public string? EmploiOccupe { get; set; }
+        public string? TauxAnc { get; set; }
+        public string? Anct { get; set; }
+        public string? TauxHoraire { get; set; }
     }
 }

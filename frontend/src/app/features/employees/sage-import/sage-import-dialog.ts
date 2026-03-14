@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
@@ -22,6 +23,7 @@ type ImportStep = 'upload' | 'importing' | 'results';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     DialogModule,
     ButtonModule,
     ToastModule,
@@ -45,10 +47,15 @@ export class SageImportDialogComponent {
 
   step = signal<ImportStep>('upload');
   selectedFile = signal<File | null>(null);
+  selectedMonth = signal<number | null>(null);
+  selectedYear = signal<number | null>(new Date().getFullYear());
   isDragging = signal(false);
   isImporting = signal(false);
   importResult = signal<SageImportResult | null>(null);
   errorMessage = signal<string | null>(null);
+
+  readonly months = Array.from({ length: 12 }, (_, i) => i + 1);
+  readonly years = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
 
   // ─── Drag & Drop ───────────────────────────────────────────────────────────
 
@@ -101,7 +108,10 @@ export class SageImportDialogComponent {
     this.step.set('importing');
     this.errorMessage.set(null);
 
-    this.employeeService.importFromSage(file, this.companyId).subscribe({
+    const month = this.selectedMonth();
+    const year = this.selectedYear();
+
+    this.employeeService.importFromSage(file, this.companyId, month ?? undefined, year ?? undefined, false).subscribe({
       next: (result) => {
         this.importResult.set(result);
         this.isImporting.set(false);
@@ -112,6 +122,33 @@ export class SageImportDialogComponent {
         this.isImporting.set(false);
         this.step.set('upload');
         const msg = err?.error?.message || err?.error?.Message || 'Erreur lors de l\'import Sage.';
+        this.errorMessage.set(msg);
+      }
+    });
+  }
+
+  analyzeFile(): void {
+    const file = this.selectedFile();
+    if (!file) return;
+
+    this.isImporting.set(true);
+    this.step.set('importing');
+    this.errorMessage.set(null);
+
+    const month = this.selectedMonth();
+    const year = this.selectedYear();
+
+    this.employeeService.importFromSage(file, this.companyId, month ?? undefined, year ?? undefined, true).subscribe({
+      next: (result) => {
+        this.importResult.set(result);
+        this.isImporting.set(false);
+        this.step.set('results');
+        this.importComplete.emit(result);
+      },
+      error: (err) => {
+        this.isImporting.set(false);
+        this.step.set('upload');
+        const msg = err?.error?.message || err?.error?.Message || 'Erreur lors de l\'analyse du fichier.';
         this.errorMessage.set(msg);
       }
     });
@@ -149,6 +186,10 @@ export class SageImportDialogComponent {
 
   get errorItems(): SageImportError[] {
     return this.importResult()?.errors ?? [];
+  }
+
+  get updatedItems(): SageImportCreatedItem[] {
+    return this.importResult()?.updated ?? [];
   }
 
   downloadTemplate(): void {

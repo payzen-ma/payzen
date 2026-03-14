@@ -6,7 +6,7 @@
       <h2 class="text-xl font-semibold">{{ 'overtime.hr.title' | translate }}</h2>
     </div>
 
-    <p-table [value]="employees()" [loading]="isLoading()" styleClass="p-datatable-sm">
+    <p-table [value]="employees()" [loading]="isLoading()" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50]">
       <ng-template pTemplate="header">
         <tr>
           <th>{{ 'employees.name' | translate }}</th>
@@ -17,12 +17,12 @@
       </ng-template>
 
       <ng-template pTemplate="body" let-emp>
-        <tr>
+        <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(emp)">
           <td>{{ emp.firstName }} {{ emp.lastName }}</td>
           <td>{{ emp.position }}</td>
           <td>{{ emp.department }}</td>
           <td>
-            <p-button icon="pi pi-plus" (onClick)="openDeclare(emp)" [label]="'overtime.hr.declare' | translate"></p-button>
+            <p-button icon="pi pi-plus" (onClick)="openDeclare(emp); $event.stopPropagation()" [label]="'overtime.hr.declare' | translate"></p-button>
           </td>
         </tr>
       </ng-template>

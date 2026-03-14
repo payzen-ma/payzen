@@ -50,6 +50,8 @@
     "hrProcedures": "إجراءات الموارد البشرية",
     "import": "الاستيراد",
     "history": "السجل",
+    "pointages": "سجلات الحضور",
+    "pointageImport": "استيراد سجل الحضور",
     "groups": {
       "overview": "نظرة عامة",
       "payroll": "الأجور",
@@ -752,9 +754,8 @@
         "usd": "USD - الدولار الأمريكي"
       },
       "frequencies": {
-        "monthly": "شهرية",
-        "bimonthly": "مرتين في الشهر",
-        "weekly": "أسبوعية"
+        "monthly": "شهرية (مرة واحدة في الشهر)",
+        "bimonthly": "كل 15 يوم"
       },
       "months": {
         "january": "يناير",
@@ -1142,6 +1143,7 @@
       "table": {
         "name": "اسم الفئة",
         "mode": "النمط",
+        "payrollPeriodicity": "دورية الأداء",
         "description": "الوصف",
         "actions": "إجراءات"
       },
@@ -1155,6 +1157,11 @@
         "description": "الوصف",
         "descriptionPlaceholder": "أدخل الوصف (اختياري)",
         "mode": "النمط",
+        "payrollPeriodicity": "دورية الأداء",
+        "payrollPeriodicityOptions": {
+          "monthly": "شهرية (مرة واحدة في الشهر)",
+          "bimonthly": "كل 15 يوم"
+        },
         "modeOptions": {
           "attendance": "حضور",
           "absence": "غياب"
@@ -1304,6 +1311,7 @@
       },
       "salary": {
         "baseSalary": "الأجر الأساسي",
+        "baseSalaryHourly": "الأجر بالساعة",
         "effectiveDate": "تاريخ سريان الراتب",
         "effectiveDateHint": "أدخل هذا التاريخ عند تعديل الراتب لتسجيل سجل التغيير",
         "transportAllowance": "تعويض النقل",
@@ -1519,6 +1527,8 @@
         "managerPlaceholder": "تعيين مسؤول (اختياري)",
         "startDate": "تاريخ الالتحاق",
         "salary": "الأجر الإجمالي",
+        "salaryHourly": "الأجر بالساعة",
+        "salaryHourlyHint": "يُستخدم للشركات التي تستخدم معدلات بالساعة بدلاً من الرواتب الشهرية",
         "salaryEffectiveDate": "تاريخ سريان الراتب",
         "salaryEffectiveDateHint": "إذا كان مختلفاً عن تاريخ الالتحاق (مثل: بأثر رجعي)",
         "salaryPackage": "باقة الراتب",
@@ -2859,5 +2869,44 @@
       },
       "accessDenied" : { "title": " تم رفض الوصول", "message": "أنت غير مصرح لك بالوصول إلى هذه الصفحة." }
     }
-  } 
+  },
+  "TIMESHEET": {
+    "LIST_TITLE": "سجلات الحضور",
+    "LIST_SUBTITLE": "عرض ساعات العمل",
+    "IMPORT_BUTTON": "استيراد سجل الحضور",
+    "MONTH": "الشهر",
+    "YEAR": "السنة",
+    "PERIOD_INFO": "الفترة",
+    "LOADING": "جاري تحميل سجلات الحضور...",
+    "NO_DATA": "لم يتم العثور على سجلات حضور",
+    "NO_DATA_DESCRIPTION": "لا توجد بيانات حضور للفترة المحددة. قم باستيراد ملف سجل الحضور للبدء.",
+    "IMPORT_FIRST": "استيراد أول سجل حضور",
+    "DATE": "التاريخ",
+    "CHECK_IN": "وقت الدخول",
+    "CHECK_OUT": "وقت الخروج",
+    "BREAK": "استراحة",
+    "WORKED_HOURS": "ساعات العمل",
+    "STATUS": "الحالة",
+    "SOURCE": "المصدر",
+    "STATUS_PRESENT": "حاضر",
+    "STATUS_ABSENT": "غائب",
+    "STATUS_HOLIDAY": "عطلة",
+    "STATUS_LEAVE": "إجازة",
+    "SOURCE_SYSTEM": "النظام",
+    "SOURCE_MANUAL": "يدوي"
+  },
+  "MONTHS": {
+    "1": "يناير",
+    "2": "فبراير",
+    "3": "مارس",
+    "4": "أبريل",
+    "5": "مايو",
+    "6": "يونيو",
+    "7": "يوليو",
+    "8": "أغسطس",
+    "9": "سبتمبر",
+    "10": "أكتوبر",
+    "11": "نوفمبر",
+    "12": "ديسمبر"
+  }
 }

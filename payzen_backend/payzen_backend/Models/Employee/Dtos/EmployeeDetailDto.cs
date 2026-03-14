@@ -29,6 +29,7 @@ namespace payzen_backend.Models.Employee.Dtos
         public string? departments { get; set; }
         // Informations salariales
         public decimal? BaseSalary { get; set; }
+        public decimal? BaseSalaryHourly { get; set; }
         public List<SalaryComponentDto> SalaryComponents { get; set; } = new();
         public decimal TotalSalary { get; set; }
         

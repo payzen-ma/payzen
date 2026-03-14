@@ -316,6 +316,15 @@
                 ></app-input-field>
 
                 <app-input-field
+                  [label]="'employees.create.form.salaryHourly' | translate"
+                  type="number"
+                  placeholder="80"
+                  icon="pi pi-clock"
+                  [hint]="'employees.create.form.salaryHourlyHint' | translate"
+                  formControlName="salaryHourly"
+                ></app-input-field>
+
+                <app-input-field
                   [label]="'employees.create.form.salaryEffectiveDate' | translate"
                   type="date"
                   icon="pi pi-calendar"

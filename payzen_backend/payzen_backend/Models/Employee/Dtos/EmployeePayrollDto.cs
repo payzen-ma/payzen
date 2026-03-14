@@ -26,6 +26,7 @@ public class EmployeePayrollDto
 
     // Salaire
     public decimal BaseSalary { get; set; }
+    public decimal? BaseSalaryHourly { get; set; }
     public List<PayrollSalaryComponentDto> SalaryComponents { get; set; }
 
     // Package salarial
@@ -44,6 +45,9 @@ public class EmployeePayrollDto
     // Période de paie
     public int PayMonth { get; set; }
     public int PayYear { get; set; }
+
+    // Heures travaillées importées (pointage)
+    public decimal TotalWorkedHours { get; set; }
 }
 
 public class PayrollSalaryComponentDto

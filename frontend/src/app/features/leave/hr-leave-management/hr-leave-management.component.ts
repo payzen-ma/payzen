@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 // Angular Material imports
@@ -147,7 +147,8 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private fb: FormBuilder,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private router: Router
   ) {
     this.initializeForms();
     
@@ -250,6 +251,14 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           console.error('Error loading leave types:', error);
         }
       });
+  }
+
+  /** Navigate to employee profile page */
+  viewEmployee(employeeId: any): void {
+    const id = employeeId?.id ?? employeeId;
+    if (!id) return;
+    const prefix = this.companyContextService.isExpertMode() ? '/expert' : '/app';
+    this.router.navigate([`${prefix}/employees`, id]);
   }
 
   private updateStatistics(requests: LeaveRequest[]): void {

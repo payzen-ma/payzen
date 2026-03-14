@@ -79,8 +79,9 @@ namespace payzen_backend.Models.Employee.Dtos
         // ========== Informations Salaire (Optionnelles) ==========
         
         [Range(0, double.MaxValue, ErrorMessage = "Le salaire doit �tre positif")]
-        public decimal? Salary { get; set; }
-        /// <summary>
+        public decimal? Salary { get; set; }        
+        [Range(0, double.MaxValue, ErrorMessage = "Le salaire horaire doit être positif")]
+        public decimal? SalaryHourly { get; set; }        /// <summary>
         /// Date d'effet du salaire. Si non renseign\u00e9e, la date de d\u00e9but de contrat (StartDate) est utilis\u00e9e.
         /// Permet d'onboarder un salari\u00e9 avec une date de salaire ant\u00e9rieure \u00e0 la date du jour.
         /// </summary>

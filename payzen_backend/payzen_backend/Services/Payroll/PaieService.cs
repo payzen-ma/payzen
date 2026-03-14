@@ -38,21 +38,21 @@ namespace payzen_backend.Services.Payroll
             _logger = logger;
         }
 
-        public async Task TraiterTousLesSalariesAsync(int companyId, int month, int year, bool useNativeEngine = true)
+        public async Task TraiterTousLesSalariesAsync(int companyId, int month, int year, bool useNativeEngine = true, int? half = null)
         {
             if (useNativeEngine)
             {
                 Console.WriteLine($"🚀 Début du calcul de paie NATIF pour l'entreprise {companyId} - {month}/{year}"); 
-                await TraiterAvecMoteurNatifAsync(companyId, month, year);
+                await TraiterAvecMoteurNatifAsync(companyId, month, year, half);
             }
             else
             {
                 Console.WriteLine($"🚀 Début du calcul de paie LLM pour l'entreprise {companyId} - {month} / {year}"); 
-                await TraiterAvecLlmAsync(companyId, month, year);
+                await TraiterAvecLlmAsync(companyId, month, year, half);
             }
         }
 
-        private async Task TraiterAvecMoteurNatifAsync(int companyId, int month, int year)
+        private async Task TraiterAvecMoteurNatifAsync(int companyId, int month, int year, int? half = null)
         {
             var employeeIds = await _db.Employees
                 .Where(e => e.Status.AffectsPayroll == false && e.CompanyId == companyId)
@@ -74,7 +74,7 @@ namespace payzen_backend.Services.Payroll
                     _logger.LogInformation("📊 Traitement de l'employé {EmployeeId}...", employeeId);
                     
                     // Assembler toutes les données
-                    var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year);
+                    var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year, half);
 
                     // 🚀 Calcul NATIF (pas de LLM, pas de tokens, instantané!)
                     var result = _nativeEngine.CalculatePayroll(payrollData);
@@ -84,23 +84,31 @@ namespace payzen_backend.Services.Payroll
                         throw new Exception(result.ErrorMessage ?? "Erreur de calcul");
                     }
 
-                    // Mapper vers PayrollResult
+                    // Mapper vers PayrollResult (données calculées)
                     var payrollResult = MapNativeResultToPayrollResult(result, employeeId, companyId, month, year);
-                    
-                    // Vérifier si un résultat existe déjà
+
+                    // Vérifier si un résultat existe déjà (succès ou erreur) et le supprimer physiquement
                     var existingResult = await _db.PayrollResults
-                        .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId 
-                            && pr.Month == month 
-                            && pr.Year == year 
-                            && pr.DeletedAt == null);
-                    
+                        .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId
+                            && pr.Month == month
+                            && pr.Year == year);
+
                     if (existingResult != null)
                     {
-                        _logger.LogWarning("   ⚠️  Un résultat existe déjà. Suppression (soft delete)...");
-                        existingResult.DeletedAt = DateTimeOffset.UtcNow;
-                        existingResult.DeletedBy = 0;
+                        _logger.LogInformation("   ♻️  Suppression de l'ancien résultat pour l'employé {EmployeeId} {Month}/{Year}", employeeId, month, year);
+
+                        var oldSteps = await _db.PayrollCalculationAuditSteps
+                            .Where(s => s.PayrollResultId == existingResult.Id)
+                            .ToListAsync();
+                        if (oldSteps.Count > 0)
+                        {
+                            _db.PayrollCalculationAuditSteps.RemoveRange(oldSteps);
+                        }
+
+                        _db.PayrollResults.Remove(existingResult);
+                        await _db.SaveChangesAsync();
                     }
-                    
+
                     _db.PayrollResults.Add(payrollResult);
                     await _db.SaveChangesAsync();
 
@@ -132,6 +140,26 @@ namespace payzen_backend.Services.Payroll
                     errorCount++;
                     _logger.LogError(ex, "❌ Erreur pour employé {EmployeeId}, {Month}/{Year}", employeeId, month, year);
                     
+                    // Enregistrer un résultat en erreur pour cet employé/période
+                    var existingError = await _db.PayrollResults
+                        .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId
+                            && pr.Month == month
+                            && pr.Year == year);
+
+                    if (existingError != null)
+                    {
+                        var oldSteps = await _db.PayrollCalculationAuditSteps
+                            .Where(s => s.PayrollResultId == existingError.Id)
+                            .ToListAsync();
+                        if (oldSteps.Count > 0)
+                        {
+                            _db.PayrollCalculationAuditSteps.RemoveRange(oldSteps);
+                        }
+
+                        _db.PayrollResults.Remove(existingError);
+                        await _db.SaveChangesAsync();
+                    }
+
                     _db.PayrollResults.Add(new PayrollResult
                     {
                         EmployeeId = employeeId,
@@ -144,7 +172,7 @@ namespace payzen_backend.Services.Payroll
                         CreatedAt = DateTimeOffset.UtcNow,
                         CreatedBy = 0
                     });
-                    
+
                     await _db.SaveChangesAsync();
                 }
             }
@@ -154,7 +182,7 @@ namespace payzen_backend.Services.Payroll
                 successCount, errorCount, employeeIds.Count, duration.ToString(@"mm\:ss"));
         }
 
-        private async Task TraiterAvecLlmAsync(int companyId, int month, int year)
+        private async Task TraiterAvecLlmAsync(int companyId, int month, int year, int? half = null)
         {
             var regleContent = await File.ReadAllTextAsync("rules/regles_paie_compact.txt");
 
@@ -183,7 +211,7 @@ namespace payzen_backend.Services.Payroll
                     // Plus besoin de récupérer companyId, on l'a déjà en paramètre
 
                     // Assembler toutes les données
-                    var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year);
+                    var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year, half);
 
                     // ⭐ Envoyer AU LLM - UN SEUL EMPLOYÉ À LA FOIS
                     _logger.LogInformation("   🤖 Envoi à Gemini (employé {EmployeeId})...", employeeId);
@@ -461,7 +489,7 @@ namespace payzen_backend.Services.Payroll
         /// Si useNativeEngine est true : moteur natif .NET (recommandé).
         /// Sinon : LLM (Gemini/Claude).
         /// </summary>
-        public async Task<PayrollResult> TraiterUnSeulEmployeAsync(int employeeId, int month, int year, bool useNativeEngine = true)
+        public async Task<PayrollResult> TraiterUnSeulEmployeAsync(int employeeId, int month, int year, bool useNativeEngine = true, int? half = null)
         {
             int? companyId = null;
             try
@@ -476,11 +504,11 @@ namespace payzen_backend.Services.Payroll
 
                 if (useNativeEngine)
                 {
-                    return await TraiterUnSeulEmployeAvecMoteurNatifAsync(employeeId, cid, month, year);
+                    return await TraiterUnSeulEmployeAvecMoteurNatifAsync(employeeId, cid, month, year, half);
                 }
                 else
                 {
-                    return await TraiterUnSeulEmployeAvecLlmAsync(employeeId, cid, month, year);
+                    return await TraiterUnSeulEmployeAvecLlmAsync(employeeId, cid, month, year, half);
                 }
             }
             catch (Exception ex)
@@ -508,9 +536,9 @@ namespace payzen_backend.Services.Payroll
             }
         }
 
-        private async Task<PayrollResult> TraiterUnSeulEmployeAvecMoteurNatifAsync(int employeeId, int companyId, int month, int year)
+        private async Task<PayrollResult> TraiterUnSeulEmployeAvecMoteurNatifAsync(int employeeId, int companyId, int month, int year, int? half = null)
         {
-            var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year);
+            var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year, half);
             var nativeResult = _nativeEngine.CalculatePayroll(payrollData);
 
             if (!nativeResult.Success)
@@ -551,10 +579,10 @@ namespace payzen_backend.Services.Payroll
             return payrollResult;
         }
 
-        private async Task<PayrollResult> TraiterUnSeulEmployeAvecLlmAsync(int employeeId, int companyId, int month, int year)
+        private async Task<PayrollResult> TraiterUnSeulEmployeAvecLlmAsync(int employeeId, int companyId, int month, int year, int? half = null)
         {
             var regleContent = await File.ReadAllTextAsync("rules/regles_paie_compact.txt");
-            var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year);
+            var payrollData = await _dataService.BuildPayrollDataAsync(employeeId, month, year, half);
 
             var jsonBrut = await _claudeService.AnalyseSalarieAsync(
                 regleContent,

@@ -25,7 +25,7 @@ export class PayrollService {
   /**
    * Calcule la paie pour tous les employés d'une période
    */
-  calculatePayrollForAll(month: number, year: number): Observable<any> {
+  calculatePayrollForAll(month: number, year: number, half?: number): Observable<any> {
     // Récupérer le companyId depuis le contexte
     const contextCompanyId = this.contextService.companyId();
     const companyId = contextCompanyId ? parseInt(contextCompanyId.toString()) : undefined;
@@ -34,22 +34,28 @@ export class PayrollService {
       throw new Error('CompanyId est requis pour calculer la paie');
     }
     
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('companyId', companyId.toString())
       .set('month', month.toString())
       .set('year', year.toString());
-    
+    if (half) {
+      params = params.set('half', String(half));
+    }
+
     return this.http.post(`${this.PAYROLL_URL}/calculate?useNativeEngine=true`, null, { params });
   }
 
   /**
    * Recalcule la paie pour un employé spécifique
    */
-  calculatePayrollForEmployee(employeeId: number, month: number, year: number): Observable<any> {
-    const params = new HttpParams()
+  calculatePayrollForEmployee(employeeId: number, month: number, year: number, half?: number): Observable<any> {
+    let params = new HttpParams()
       .set('month', month.toString())
       .set('year', year.toString());
-    
+    if (half) {
+      params = params.set('half', String(half));
+    }
+
     return this.http.post(`${this.PAYROLL_URL}/recalculate/${employeeId}?useNativeEngine=true`, null, { params });
   }
 

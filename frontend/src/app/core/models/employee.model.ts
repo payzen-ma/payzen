@@ -91,6 +91,7 @@ export interface Employee {
   probationPeriod: string;
   exitReason?: string;
   baseSalary: number;
+  baseSalaryHourly?: number;
   /** Date d'effet du nouveau salaire, renseignée lors d'une modification pour créer un historique. */
   salaryEffectiveDate?: string | null;
   salaryComponents: SalaryComponent[];
@@ -164,6 +165,7 @@ export interface BackendEmployee {
   ProbationPeriod: string;
   ExitReason?: string;
   BaseSalary: number;
+  BaseSalaryHourly?: number;
   TransportAllowance: number;
   MealAllowance: number;
   SeniorityBonus: number;
@@ -238,6 +240,7 @@ export interface UpdateEmployeeRequest {
   probationPeriod?: string;
   exitReason?: string;
   baseSalary?: number;
+  baseSalaryHourly?: number;
   transportAllowance?: number;
   mealAllowance?: number;
   seniorityBonus?: number;

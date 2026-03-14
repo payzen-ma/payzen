@@ -10,6 +10,8 @@ namespace payzen_backend.Models.Employee
 
         public EmployeeCategoryMode Mode { get; set; }
 
+        public string PayrollPeriodicity { get; set; } = "Mensuelle";
+
         public DateTimeOffset CreatedAt { get; set; }
         public int CreatedBy { get; set; }
 

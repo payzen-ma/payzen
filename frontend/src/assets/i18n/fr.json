@@ -51,6 +51,8 @@
     "hrProcedures": "Procédures RH",
     "import": "Importation",
     "history": "Historique",
+    "pointages": "Pointages",
+    "pointageImport": "Import de pointage",
     "groups": {
       "overview": "Vue d'ensemble",
       "payroll": "Paie",
@@ -779,9 +781,8 @@
         "usd": "USD - Dollar américain"
       },
       "frequencies": {
-        "monthly": "Mensuelle",
-        "bimonthly": "Bimensuelle",
-        "weekly": "Hebdomadaire"
+        "monthly": "Mensuelle (1 fois par mois)",
+        "bimonthly": "Bimensuelle (tous les 15 jours)"
       },
       "months": {
         "january": "Janvier",
@@ -1209,6 +1210,7 @@
       "table": {
         "name": "Nom de la catégorie",
         "mode": "Mode",
+        "payrollPeriodicity": "Périodicité de paie",
         "description": "Description",
         "actions": "Actions"
       },
@@ -1222,6 +1224,11 @@
         "description": "Description",
         "descriptionPlaceholder": "Entrez la description (optionnel)",
         "mode": "Mode",
+        "payrollPeriodicity": "Périodicité de paie",
+        "payrollPeriodicityOptions": {
+          "monthly": "Mensuelle (1 fois par mois)",
+          "bimonthly": "Bimensuelle (tous les 15 jours)"
+        },
         "modeOptions": {
           "attendance": "Présence",
           "absence": "Absence"
@@ -1371,6 +1378,7 @@
       },
       "salary": {
         "baseSalary": "Salaire de Base",
+        "baseSalaryHourly": "Salaire Horaire",
         "effectiveDate": "Date d'effet du salaire",
         "effectiveDateHint": "Renseignez cette date si vous modifiez le salaire pour historiser le changement",
         "transportAllowance": "Prime Transport",
@@ -1587,6 +1595,8 @@
         "managerPlaceholder": "Affecter un manager (optionnel)",
         "startDate": "Date d'entrée",
         "salary": "Salaire brut",
+        "salaryHourly": "Salaire horaire",
+        "salaryHourlyHint": "Utiliser pour les entreprises utilisant un taux horaire au lieu d'un salaire mensuel",
         "salaryEffectiveDate": "Date d'effet du salaire",
         "salaryEffectiveDateHint": "Si différente de la date d'entrée (ex : rétroactif)",
         "salaryPackage": "Package salarial",
@@ -2500,9 +2510,6 @@
     }
   },
   "validation": {
-    "required": "Ce champ est obligatoire"
-  },
-  "validation": {
     "required": "Ce champ est requis",
     "email": "Veuillez saisir un email valide",
     "minLength": "Minimum {{min}} caractères requis",
@@ -2899,6 +2906,44 @@
         "deleteFailed": "Impossible de supprimer la demande de conge"
       }
     }
+  },
+  "timesheet": {
+    "list_p": "Pointages",
+    "LIST_SUBTITLE": "Consultation des heures de travail",
+    "IMPORT_BUTTON": "Importer un pointage",
+    "MONTH": "Mois",
+    "YEAR": "Année",
+    "PERIOD_INFO": "Période",
+    "LOADING": "Chargement des pointages en cours...",
+    "NO_DATA": "Aucun pointage trouvé",
+    "NO_DATA_DESCRIPTION": "Aucune donnée de pointage pour la période sélectionnée. Importez un fichier de pointage pour commencer.",
+    "IMPORT_FIRST": "Importer mon premier pointage",
+    "DATE": "Date",
+    "CHECK_IN": "Arrivée",
+    "CHECK_OUT": "Départ",
+    "BREAK": "Pause",
+    "WORKED_HOURS": "Heures travaillées",
+    "STATUS": "Statut",
+    "SOURCE": "Source",
+    "STATUS_PRESENT": "Présent",
+    "STATUS_ABSENT": "Absent",
+    "STATUS_HOLIDAY": "Férié",
+    "STATUS_LEAVE": "Congé",
+    "SOURCE_SYSTEM": "Système",
+    "SOURCE_MANUAL": "Manuel"
+  },
+  "MONTHS": {
+    "1": "Janvier",
+    "2": "Février",
+    "3": "Mars",
+    "4": "Avril",
+    "5": "Mai",
+    "6": "Juin",
+    "7": "Juillet",
+    "8": "Août",
+    "9": "Septembre",
+    "10": "Octobre",
+    "11": "Novembre",
+    "12": "Décembre"
   }
 }
-

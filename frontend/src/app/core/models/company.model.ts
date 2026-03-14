@@ -62,7 +62,7 @@ export interface HRParameters {
   rib?: string;
   // New fields for Paramétrage Paie
   currency?: string;
-  paymentFrequency?: 'monthly' | 'bimonthly' | 'weekly';
+  paymentFrequency?: 'monthly' | 'bimonthly';
   fiscalYearStartMonth?: number;
   // New fields for Paramètres avancés
   sector?: string | null;
