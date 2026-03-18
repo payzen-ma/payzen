@@ -14,11 +14,6 @@
       <div class="flex items-center gap-3 ml-4 pl-4 border-l border-gray-300">
         <div class="flex items-center gap-2">
           <i class="pi pi-building text-sm text-(--primary)"></i>
-          @if (!isClientView()) {
-            <span class="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
-              {{ 'expert.noClientSelected' | translate }}
-            </span>
-          }
         </div>
         <p-select
           [options]="companyOptions()"

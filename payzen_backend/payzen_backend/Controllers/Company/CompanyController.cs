@@ -706,7 +706,9 @@ namespace payzen_backend.Controllers.Company
             // Populer la company avec les données par défaut (types de contrat, départements, postes, calendrier, congés)
             await _companyOnboardingService.OnboardAsync(company.Id, currentUserId);
 
-            // Créer l'employé administrateur
+            // Qaund la crétion d'une entreprise est faite par un cabinet expert, Pas de compte admin est creé automatiquement,
+            // c'est au cabinet expert de créer les comptes employés et utilisateurs pour la société qu'il gère. Cependant, pour faciliter l'onboarding,
+            /*
             var activeStatus = await _db.Statuses
                 .FirstOrDefaultAsync(s => s.Code.ToLower() == "active");
 
@@ -779,7 +781,7 @@ namespace payzen_backend.Controllers.Company
             };
 
             _db.UsersRoles.Add(userRole);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();*/
 
             // Préparer la réponse
             var createdCompany = await _db.Companies
@@ -815,7 +817,7 @@ namespace payzen_backend.Controllers.Company
                     isActive = createdCompany.isActive,
                     CreatedAt = createdCompany.CreatedAt.DateTime
                 },
-                Admin = new AdminAccountDto
+               /* Admin = new AdminAccountDto
                 {
                     EmployeeId = adminEmployee.Id,
                     UserId = adminUser.Id,
@@ -828,7 +830,7 @@ namespace payzen_backend.Controllers.Company
                     Message = dto.GeneratePassword
                         ? "Un mot de passe temporaire a été généré. Veuillez le changer lors de la première connexion."
                         : "Compte administrateur créé avec succès."
-                }
+                }*/
             };
 
             return CreatedAtAction(nameof(GetCompanyById), new { id = company.Id }, response);

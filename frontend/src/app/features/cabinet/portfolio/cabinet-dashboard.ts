@@ -111,7 +111,17 @@ export class CabinetDashboard implements OnInit, OnDestroy {
           lastActivity: new Date(), // Mock
           ownerName: 'John Doe' // Mock
         }));
-        this.companies.set(enrichedCompanies);
+        // If we're in expert (cabinet) mode, exclude the cabinet's own company
+        // from the portfolio list so the expert cannot manage its own company
+        // from this view — they should use the normal context (RH/admin) for that.
+        const currentCtx = this.contextService.currentContext();
+        let finalList = enrichedCompanies;
+        if (currentCtx?.isExpertMode) {
+          const cabinetId = String(currentCtx.cabinetId ?? currentCtx.companyId ?? '');
+          finalList = enrichedCompanies.filter(c => c.id !== cabinetId);
+        }
+
+        this.companies.set(finalList);
         this.isLoading.set(false);
       },
       error: (err) => {

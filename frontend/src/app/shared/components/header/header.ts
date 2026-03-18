@@ -81,54 +81,14 @@ export class Header implements OnInit {
   readonly companyOptions = computed(() => {
     // If Expert Mode: Show Portfolio + Managed Companies
     if (this.isExpertMode()) {
+      // Ensure we have a cabinet context before showing clients
       const current = this.contextService.currentContext();
       if (!current?.cabinetId) return [];
 
-      // Create portfolio option with all required Company fields
-      // Determine a stable label for the expert's cabinet (portfolio) using memberships
-      const cabinetMembership = this.contextService.memberships().find((m: CompanyMembership) => m.companyId === current.cabinetId);
-      const portfolioOption: Company = {
-        id: current.cabinetId,
-        legalName: cabinetMembership?.companyName ?? current.companyName ?? 'Portfolio',
-        ice: 'PORTFOLIO',
-        cnss: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'Morocco',
-        phone: '',
-        email: '',
-        rc: '',
-        patente: '',
-        taxRegime: 'IS' as any,
-        fiscalYear: new Date().getFullYear(),
-        employeeCount: 0,
-        hrParameters: {
-          workingDays: [],
-          workingHoursPerDay: 8,
-          workingHoursPerWeek: 40,
-          leaveCalculationMode: 'MONTHLY',
-          absenceCalculationMode: 'DAYS',
-          annualLeaveDays: 22,
-          publicHolidays: [],
-          probationPeriodDays: 90,
-          noticePeriodDays: 30
-        },
-        documents: {
-          cnss_attestation: null,
-          amo: null,
-          logo: null,
-          rib: null,
-          other: []
-        },
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      // Return portfolio first, then client companies
-      return [portfolioOption, ...this.clientCompanies()];
-    } 
+      // Return only client companies — the portfolio (cabinet) entry is intentionally
+      // removed so experts manage clients from this selector only.
+      return this.clientCompanies();
+    }
     
     // If Standard Mode: Show Memberships as Company objects
     const memberships = this.contextService.memberships();

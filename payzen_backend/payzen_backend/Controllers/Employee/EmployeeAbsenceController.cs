@@ -31,35 +31,48 @@ namespace payzen_backend.Controllers.Employees
             [FromQuery] int companyId,
             [FromQuery] int? employeeId = null)
         {
+            // Company exists (global HasQueryFilter handles DeletedAt)
             var company = await _db.Companies
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null);
+                .FirstOrDefaultAsync(c => c.Id == companyId);
 
             if (company == null)
-                return NotFound(new { Message = "Soci�t� non trouv�e" });
+                return NotFound(new { Message = "Société non trouvée" });
 
+            // Base query for absences scoped to this company's employees
             var query = _db.EmployeeAbsences
                 .AsNoTracking()
-                .Include(a => a.Employee)
-                .Where(a => a.Employee.CompanyId == companyId && a.Employee.DeletedAt == null);
+                .Where(a => a.Employee.CompanyId == companyId);
 
             payzen_backend.Models.Employee.Employee? employee = null;
             if (employeeId.HasValue)
             {
+                // Ensure the employee exists and belongs to the company (single query)
                 employee = await _db.Employees
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.Id == employeeId && e.DeletedAt == null);
+                    .FirstOrDefaultAsync(e => e.Id == employeeId && e.CompanyId == companyId);
 
                 if (employee == null)
-                    return NotFound(new { Message = "Employ� non trouv�" });
-
-                if (employee.CompanyId != companyId)
-                    return BadRequest(new { Message = "L'employ� n'appartient pas � cette soci�t�" });
+                    return NotFound(new { Message = "Employé non trouvé" });
 
                 query = query.Where(a => a.EmployeeId == employeeId.Value);
             }
 
-            var absences = await query.ToListAsync();
+            // Aggregate counts in a single SQL query to avoid loading all rows into memory
+            var agg = await query
+                .GroupBy(a => 1)
+                .Select(g => new
+                {
+                    TotalAbsences = g.Count(),
+                    FullDayAbsences = g.Count(a => a.DurationType == AbsenceDurationType.FullDay),
+                    HalfDayAbsences = g.Count(a => a.DurationType == AbsenceDurationType.HalfDay),
+                    HourlyAbsences = g.Count(a => a.DurationType == AbsenceDurationType.Hourly),
+                    SubmittedCount = g.Count(a => a.Status == AbsenceStatus.Submitted),
+                    ApprovedCount = g.Count(a => a.Status == AbsenceStatus.Approved),
+                    RejectedCount = g.Count(a => a.Status == AbsenceStatus.Rejected),
+                    CancelledCount = g.Count(a => a.Status == AbsenceStatus.Cancelled)
+                })
+                .FirstOrDefaultAsync();
 
             var stats = new EmployeeAbsenceStatsDto
             {
@@ -67,28 +80,32 @@ namespace payzen_backend.Controllers.Employees
                 CompanyName = company.CompanyName,
                 EmployeeId = employeeId,
                 EmployeeFullName = employee != null ? $"{employee.FirstName} {employee.LastName}" : null,
-                TotalAbsences = absences.Count,
-                FullDayAbsences = absences.Count(a => a.DurationType == AbsenceDurationType.FullDay),
-                HalfDayAbsences = absences.Count(a => a.DurationType == AbsenceDurationType.HalfDay),
-                HourlyAbsences = absences.Count(a => a.DurationType == AbsenceDurationType.Hourly),
-                
-                // Statistiques par statut
-                SubmittedCount = absences.Count(a => a.Status == AbsenceStatus.Submitted),
-                ApprovedCount = absences.Count(a => a.Status == AbsenceStatus.Approved),
-                RejectedCount = absences.Count(a => a.Status == AbsenceStatus.Rejected),
-                CancelledCount = absences.Count(a => a.Status == AbsenceStatus.Cancelled),
-
+                TotalAbsences = agg?.TotalAbsences ?? 0,
+                FullDayAbsences = agg?.FullDayAbsences ?? 0,
+                HalfDayAbsences = agg?.HalfDayAbsences ?? 0,
+                HourlyAbsences = agg?.HourlyAbsences ?? 0,
+                SubmittedCount = agg?.SubmittedCount ?? 0,
+                ApprovedCount = agg?.ApprovedCount ?? 0,
+                RejectedCount = agg?.RejectedCount ?? 0,
+                CancelledCount = agg?.CancelledCount ?? 0,
                 GeneratedAt = DateTimeOffset.UtcNow
             };
 
-            stats.AbsencesByType = absences
+            // Breakdown by absence type (server-side grouping)
+            var byType = await query
                 .GroupBy(a => a.AbsenceType)
-                .ToDictionary(g => g.Key, g => g.Count());
+                .Select(g => new { Type = g.Key, Count = g.Count() })
+                .ToListAsync();
+            stats.AbsencesByType = byType.ToDictionary(x => x.Type, x => x.Count);
 
-            stats.AbsencesByMonth = absences
-                .GroupBy(a => $"{a.AbsenceDate.Year:0000}-{a.AbsenceDate.Month:00}")
-                .OrderBy(g => g.Key)
-                .ToDictionary(g => g.Key, g => g.Count());
+            // Breakdown by month (Year-Month)
+            var byMonthRaw = await query
+                .GroupBy(a => new { Year = a.AbsenceDate.Year, Month = a.AbsenceDate.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync();
+            stats.AbsencesByMonth = byMonthRaw
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToDictionary(x => $"{x.Year:0000}-{x.Month:00}", x => x.Count);
 
             return Ok(stats);
         }
@@ -97,21 +114,23 @@ namespace payzen_backend.Controllers.Employees
         /// Delete une absence (soft delete) /// DELETE /api/absences/{id}
         /// </summary>
         [HttpDelete]
-        public async Task<IActionResult> SoftDeleteAbsence(int id) 
-        { 
+        public async Task<IActionResult> SoftDeleteAbsence(int id)
+        {
+            // Find absence by id (global query filters handle soft-deleted records)
             var absence = await _db.EmployeeAbsences
-                .Include(a => a.Employee) 
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
-            
-            if (absence == null) 
-                return NotFound(new { Message = "Absence non trouv�e" }); 
-            // On peut interdire la suppression des absences approuv�es
-            if (absence.Status == AbsenceStatus.Approved) 
-                return BadRequest(new { Message = "Impossible de supprimer une absence approuv�e" });
-            
-            absence.DeletedAt = DateTimeOffset.UtcNow; 
-            await _db.SaveChangesAsync(); 
-            return NoContent(); 
+                .Include(a => a.Employee)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (absence == null)
+                return NotFound(new { Message = "Absence non trouvée" });
+
+            // Interdire la suppression des absences approuvées
+            if (absence.Status == AbsenceStatus.Approved)
+                return BadRequest(new { Message = "Impossible de supprimer une absence approuvée" });
+
+            absence.DeletedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+            return NoContent();
         }
 
         /// <summary>
@@ -138,22 +157,21 @@ namespace payzen_backend.Controllers.Employees
 
             // V�rifier que la soci�t� existe
             var companyExists = await _db.Companies
-                .AnyAsync(c => c.Id == companyId && c.DeletedAt == null);
+                .AnyAsync(c => c.Id == companyId);
 
             if (!companyExists)
-                return NotFound(new { Message = "Soci�t� non trouv�e" });
+                return NotFound(new { Message = "Société non trouvée" });
 
-            // Construire la requ�te
+            // Construire la requête (pas d'Include nécessaire pour la projection)
             var query = _db.EmployeeAbsences
                 .AsNoTracking()
-                .Include(a => a.Employee)
-                .Where(a => a.Employee.CompanyId == companyId && a.Employee.DeletedAt == null);
+                .Where(a => a.Employee.CompanyId == companyId);
 
             // Filtrer par employ�
             if (employeeId.HasValue)
             {
                 var employeeExists = await _db.Employees
-                    .AnyAsync(e => e.Id == employeeId && e.CompanyId == companyId && e.DeletedAt == null);
+                    .AnyAsync(e => e.Id == employeeId && e.CompanyId == companyId);
 
                 if (!employeeExists)
                     return NotFound(new { Message = "Employ� non trouv� pour cette soci�t�" });
@@ -262,7 +280,7 @@ namespace payzen_backend.Controllers.Employees
 
             var employee = await _db.Employees
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null);
+                .FirstOrDefaultAsync(e => e.Id == dto.EmployeeId);
 
             if (employee == null)
                 return NotFound(new { Message = "Employ� non trouv�" });
@@ -408,7 +426,7 @@ namespace payzen_backend.Controllers.Employees
 
             var absence = await _db.EmployeeAbsences
                 .Include(a => a.Employee)
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (absence == null)
                 return NotFound(new { Message = "Absence non trouv�e" });
@@ -488,7 +506,7 @@ namespace payzen_backend.Controllers.Employees
 
             var absence = await _db.EmployeeAbsences
                 .Include(a => a.Employee)
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (absence == null)
                 return NotFound(new { Message = "Absence non trouv�e" });
@@ -556,7 +574,7 @@ namespace payzen_backend.Controllers.Employees
         {
             var absence = await _db.EmployeeAbsences
                 .AsNoTracking()
-                .Where(a => a.Id == id && a.Employee.DeletedAt == null)
+                .Where(a => a.Id == id)
                 .Select(a => new EmployeeAbsenceReadDto
                 {
                     Id = a.Id,
@@ -636,7 +654,7 @@ namespace payzen_backend.Controllers.Employees
         {
             var absence = await _db.EmployeeAbsences
                 .Include(a => a.Employee)
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (absence == null)
                 return NotFound(new { Message = "Absence non trouv�e" });
@@ -702,7 +720,7 @@ namespace payzen_backend.Controllers.Employees
         {
             var absence = await _db.EmployeeAbsences
                 .Include(a => a.Employee)
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (absence == null)
                 return NotFound(new { Message = "Absence non trouv�e" });
@@ -731,7 +749,7 @@ namespace payzen_backend.Controllers.Employees
 
             var absence = await _db.EmployeeAbsences
                 .Include(a => a.Employee)
-                .FirstOrDefaultAsync(a => a.Id == id && a.Employee.DeletedAt == null);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (absence == null)
                 return NotFound(new { Message = "Absence non trouv�e" });

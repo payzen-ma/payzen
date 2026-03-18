@@ -235,7 +235,7 @@ export class Sidebar {
       label: 'nav.simulation',
       icon: 'pi pi-calculator',
       routerLink: '/payroll/simulation',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.EMPLOYEE],
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
       groupe: 'payroll',
@@ -288,10 +288,20 @@ export class Sidebar {
       itemBadge: null
     },
     {
+      label: 'nav.absences',
+      icon: 'pi pi-calendar-times',
+      routerLink: '/absences',
+      requiredRoles: [UserRole.EMPLOYEE],
+      modes: ['standard'],
+      requiresCompanyContext: false,
+      groupe: 'employees',
+      itemBadge: null
+    },
+    {
       label: 'nav.leave',
       icon: 'pi pi-calendar',
       routerLink: '/hr-leave-management',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.EMPLOYEE],
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
       groupe: 'employees',
