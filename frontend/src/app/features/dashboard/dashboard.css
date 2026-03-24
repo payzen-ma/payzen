@@ -1,0 +1,337 @@
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.hr-dashboard-page {
+  min-height: 100%;
+}
+
+/* ========================================
+   TYPOGRAPHY ADJUSTMENTS
+   ======================================== */
+:host h1 {
+  font-size: 1.75rem; /* 28px - augmenté */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgb(75 85 99); /* gray-600 - same as sidebar */
+}
+
+:host h2 {
+  font-size: 1.25rem; /* 20px - augmenté */
+  font-weight: 600;
+  color: rgb(75 85 99); /* gray-600 */
+}
+
+:host h3 {
+  font-size: 1rem; /* 16px - augmenté */
+  font-weight: 600;
+  color: rgb(75 85 99); /* gray-600 */
+}
+
+:host p {
+  font-size: 0.875rem; /* 14px - augmenté de 13px */
+  color: rgb(75 85 99); /* gray-600 */
+}
+
+/* ========================================
+   METADATA & CONTROLS
+   ======================================== */
+.hr-dashboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.hr-dashboard-controls {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hr-month-picker {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.hr-filter-picker {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.hr-month-picker__label {
+  color: rgb(75 85 99); /* gray-600 - same as sidebar */
+  font-size: 0.75rem; /* 12px - augmenté */
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hr-filter-picker__label {
+  color: rgb(75 85 99); /* gray-600 - same as sidebar */
+  font-size: 0.75rem; /* 12px - augmenté */
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .hr-month-picker__select {
+  min-width: 11rem;
+  font-size: 0.875rem; /* 14px - augmenté */
+}
+
+:host ::ng-deep .hr-month-picker__select .p-select-label {
+  color: rgb(75 85 99);
+  text-align: center;
+}
+
+:host ::ng-deep .hr-month-picker__select:not(.p-disabled):hover {
+  border-color: rgba(253, 117, 31, 0.5);
+}
+
+:host ::ng-deep .hr-month-picker__select:not(.p-disabled).p-focus {
+  border-color: #1800ac;
+  box-shadow: 0 0 0 0.2rem rgba(24, 0, 172, 0.15);
+}
+
+:host ::ng-deep .hr-month-picker__select .p-select-dropdown-icon {
+  color: #1800ac;
+}
+
+:host ::ng-deep .hr-filter-picker__multi {
+  min-width: 12rem;
+  font-size: 0.875rem; /* 14px - augmenté */
+}
+
+:host ::ng-deep .hr-filter-picker__multi .p-multiselect-label {
+  color: rgb(75 85 99);
+  text-align: center;
+}
+
+:host ::ng-deep .hr-filter-picker__multi:not(.p-disabled):hover {
+  border-color: rgba(253, 117, 31, 0.5);
+}
+
+:host ::ng-deep .hr-filter-picker__multi:not(.p-disabled).p-focus {
+  border-color: #1800ac;
+  box-shadow: 0 0 0 0.2rem rgba(24, 0, 172, 0.15);
+}
+
+:host ::ng-deep .hr-filter-picker__multi .p-multiselect-dropdown-icon,
+:host ::ng-deep .hr-filter-picker__multi .p-multiselect-clear-icon {
+  color: #1800ac;
+}
+
+:host ::ng-deep .hr-filter-picker__select {
+  min-width: 8.5rem;
+  font-size: 0.875rem; /* 14px - augmenté */
+}
+
+:host ::ng-deep .hr-filter-picker__select .p-select-label {
+  color: rgb(75 85 99);
+  text-align: center;
+}
+
+:host ::ng-deep .hr-filter-picker__select:not(.p-disabled):hover {
+  border-color: rgba(253, 117, 31, 0.5);
+}
+
+:host ::ng-deep .hr-filter-picker__select:not(.p-disabled).p-focus {
+  border-color: #1800ac;
+  box-shadow: 0 0 0 0.2rem rgba(24, 0, 172, 0.15);
+}
+
+:host ::ng-deep .hr-filter-picker__select .p-select-dropdown-icon {
+  color: #1800ac;
+}
+
+/* Dropdown panels - Style uniforme pour multiselect et select */
+:host ::ng-deep .p-multiselect-overlay,
+:host ::ng-deep .p-select-overlay {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: white;
+}
+
+/* List container */
+:host ::ng-deep .p-multiselect-list-container,
+:host ::ng-deep .p-select-list-container {
+  padding: 0.25rem;
+}
+
+:host ::ng-deep .p-multiselect-list,
+:host ::ng-deep .p-select-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* Options - Style identique pour les deux types */
+:host ::ng-deep .p-multiselect-option,
+:host ::ng-deep .p-select-option {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: rgb(75 85 99);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .p-multiselect-option:hover,
+:host ::ng-deep .p-select-option:hover {
+  background: rgba(253, 117, 31, 0.1);
+  color: #1800ac;
+}
+
+:host ::ng-deep .p-multiselect-option.p-focus,
+:host ::ng-deep .p-select-option.p-focus {
+  background: rgba(253, 117, 31, 0.15);
+  color: #1800ac;
+}
+
+:host ::ng-deep .p-multiselect-option.p-multiselect-option-selected,
+:host ::ng-deep .p-select-option.p-selected {
+  background: rgba(103, 213, 247, 0.6);
+  color: white;
+}
+
+:host ::ng-deep .p-multiselect-option.p-multiselect-option-selected:hover,
+:host ::ng-deep .p-select-option.p-selected:hover {
+  background: rgba(62, 173, 224, 0.6);
+  color: white;
+}
+
+/* Masquer le header et le filtre du multiselect pour un style uniforme */
+:host ::ng-deep .p-multiselect-header {
+  display: none;
+}
+
+/* Checkboxes dans multiselect - style minimaliste */
+:host ::ng-deep .p-multiselect-option .p-checkbox {
+  display: none; /* Masquer les checkboxes */
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box {
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box.p-checked,
+:host ::ng-deep .p-checkbox .p-checkbox-box.p-highlight {
+  background: rgba(253, 117, 31, 0.6);
+  border-color: rgba(253, 117, 31, 0.6);
+}
+
+:host ::ng-deep .p-checkbox:not(.p-disabled):hover .p-checkbox-box {
+  border-color: rgba(253, 117, 31, 0.5);
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-icon {
+  color: white;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .hr-dashboard-controls {
+    margin-left: auto;
+  }
+}
+
+/* ========================================
+   METADATA CHIPS
+   ======================================== */
+.hr-meta-chip {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  color: rgb(75 85 99); /* gray-600 */
+  display: inline-flex;
+  font-size: 0.75rem; /* 12px - augmenté */
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  min-height: 1.75rem;
+  padding: 0.375rem 0.625rem;
+}
+
+.hr-meta-chip--source {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.hr-meta-chip--live {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0f766e;
+}
+
+/* ========================================
+   TAB NAVIGATION
+   ======================================== */
+.hr-tab-list {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.35rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.hr-tab-item {
+  border-radius: 0.5rem;
+  color: rgb(75 85 99); /* gray-600 - same as sidebar */
+  font-size: 0.875rem; /* 14px - augmenté */
+  font-weight: 600;
+  padding: 0.625rem 0.875rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.hr-tab-item[aria-selected='true'] {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.hr-tab-item:hover {
+  background: #f8fafc;
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+:host ::ng-deep .dashboard-table-header {
+  background: #f8fafc;
+  color: rgb(75 85 99); /* gray-600 */
+  font-size: 0.75rem; /* 12px - augmenté */
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+}
+
+:host ::ng-deep .dashboard-table-cell {
+  border-bottom: 1px solid #f1f5f9;
+  color: rgb(75 85 99); /* gray-600 */
+  font-size: 0.875rem; /* 14px - augmenté */
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+}
+
+:host ::ng-deep .p-datatable-tbody > tr:last-child > .dashboard-table-cell {
+  border-bottom: none;
+}

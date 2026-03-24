@@ -1,0 +1,286 @@
+<div class="min-h-screen bg-gray-50">
+  <p-toast />
+
+  @if (isLoading()) {
+    <div class="max-w-7xl mx-auto px-6 py-12">
+      <div class="card flex items-center justify-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
+          <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
+        </div>
+      </div>
+    </div>
+  } @else if (leaveType()) {
+    <!-- Page Header -->
+    <div class="bg-white border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-6 py-6">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-4">
+            <button
+              pButton
+              type="button"
+              icon="pi pi-arrow-left"
+              class="p-button-text p-button-rounded"
+              (click)="goBack()"
+            ></button>
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="font-mono text-sm" style="color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, white); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                  {{ leaveType()!.LeaveCode }}
+                </span>
+                <app-tag
+                  [label]="getScopeLabel(leaveType()!.Scope)"
+                  [variant]="getScopeVariant(leaveType()!.Scope)"
+                  size="sm"
+                ></app-tag>
+              </div>
+              <h1 class="text-2xl font-bold text-primary">
+                {{ getLocalizedName(leaveType()!) }}
+              </h1>
+              @if (leaveType()!.LeaveDescription) {
+                <p class="text-gray-500 mt-1">{{ leaveType()!.LeaveDescription }}</p>
+              }
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            @if (canEdit()) {
+              <button
+                pButton
+                type="button"
+                [label]="'common.edit' | translate"
+                class="btn btn-secondary"
+                icon="pi pi-pencil"
+                (click)="editLeaveType()"
+              ></button>
+            }
+            <button
+              pButton
+              type="button"
+              [label]="'leave.types.configurePolicy' | translate"
+              class="btn btn-primary"
+              icon="pi pi-cog"
+              (click)="configurePolicy()"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-6">
+      <!-- Info Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="card-compact flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <i class="pi pi-tag text-blue-600"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">{{ 'leave.types.detail.scope' | translate }}</p>
+            <p class="font-semibold">
+              {{ getScopeLabel(leaveType()!.Scope) }}
+            </p>
+          </div>
+        </div>
+
+        <div class="card-compact flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg" [class]="leaveType()!.IsActive ? 'bg-green-100' : 'bg-gray-100'">
+            <div class="w-full h-full flex items-center justify-center">
+              <i class="pi" [class]="leaveType()!.IsActive ? 'pi-check-circle text-green-600' : 'pi-times-circle text-gray-600'"></i>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">{{ 'leave.types.detail.status' | translate }}</p>
+            <p class="font-semibold" [class]="leaveType()!.IsActive ? 'text-green-600' : 'text-gray-600'">
+              {{ leaveType()!.IsActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <p-tabs [(value)]="activeTab">
+        <p-tablist>
+          <p-tab value="0">{{ 'leave.types.detail.legalRules' | translate }}</p-tab>
+          <p-tab value="1">{{ 'leave.types.detail.policy' | translate }}</p-tab>
+          <p-tab value="2">{{ 'leave.types.detail.translations' | translate }}</p-tab>
+        </p-tablist>
+        
+        <p-tabpanels>
+          <!-- Legal Rules Tab -->
+          <p-tabpanel value="0">
+          @if (legalRules().length === 0) {
+            <app-empty-state
+              [title]="'leave.types.detail.noRules' | translate"
+              [description]="'leave.types.detail.noRulesDesc' | translate"
+              icon="pi pi-book"
+            ></app-empty-state>
+          } @else {
+            <p-table [value]="legalRules()" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th class="saas-table-header">{{ 'leave.rules.table.eventCase' | translate }}</th>
+                  <th class="saas-table-header">{{ 'leave.rules.table.description' | translate }}</th>
+                  <th class="saas-table-header">{{ 'leave.rules.table.days' | translate }}</th>
+                  <th class="saas-table-header">{{ 'leave.rules.table.article' | translate }}</th>
+                  <th class="saas-table-header">{{ 'leave.rules.table.options' | translate }}</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-rule>
+                <tr class="saas-table-row">
+                  <td class="px-6 py-4">
+                    <span class="font-mono text-sm font-medium" style="color: var(--primary);">
+                      {{ rule.eventCaseCode }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <p class="text-primary">{{ rule.description }}</p>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="font-semibold text-primary">
+                      {{ rule.daysGranted }} {{ 'common.days' | translate }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-600">{{ rule.legalArticle }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-1">
+                      @if (rule.canBeDiscontinuous) {
+                        <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          {{ 'leave.rules.discontinuous' | translate }}
+                        </span>
+                      }
+                      @if (rule.mustBeUsedWithinDays) {
+                        <span class="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                          {{ rule.mustBeUsedWithinDays }}j max
+                        </span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+          </p-tabpanel>
+
+          <!-- Policy Tab -->
+          <p-tabpanel value="1">
+          @if (!policy()) {
+            <app-empty-state
+              [title]="'leave.types.detail.noPolicy' | translate"
+              [description]="'leave.types.detail.noPolicyDesc' | translate"
+              icon="pi pi-cog"
+            >
+              <button
+                pButton
+                type="button"
+                [label]="'leave.types.configurePolicy' | translate"
+                class="btn btn-primary mt-4"
+                icon="pi pi-plus"
+                (click)="configurePolicy()"
+              ></button>
+            </app-empty-state>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Accrual Configuration -->
+              <div class="card-compact">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                  {{ 'leave.policy.accrual' | translate }}
+                </h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-600">{{ 'leave.policy.method' | translate }}</span>
+                    <span class="font-medium">{{ getAccrualMethodLabel(policy()!.AccrualMethod) }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-600">{{ 'leave.policy.daysPerMonth' | translate }}</span>
+                    <span class="font-medium">{{ policy()!.DaysPerMonthAdult }} {{ 'common.days' | translate }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-600">{{ 'leave.policy.daysPerService' | translate }}</span>
+                    <span class="font-medium">{{ policy()!.BonusDaysPerYearAfter5Years }} {{ 'common.days' | translate }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-600">{{ 'leave.policy.annualCap' | translate }}</span>
+                    <span class="font-medium">{{ policy()!.AnnualCapDays }} {{ 'common.days' | translate }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Carryover & Rules -->
+              <div class="card-compact">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                  {{ 'leave.policy.rules' | translate }}
+                </h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-600">{{ 'leave.policy.carryover' | translate }}</span>
+                    <span class="font-medium" [class]="policy()!.AllowCarryover ? 'text-green-600' : 'text-red-600'">
+                      {{ policy()!.AllowCarryover ? ('common.yes' | translate) : ('common.no' | translate) }}
+                    </span>
+                  </div>
+                  @if (policy()!.AllowCarryover) {
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span class="text-gray-600">{{ 'leave.policy.maxCarryover' | translate }}</span>
+                      <span class="font-medium">{{ policy()!.MaxCarryoverYears }} {{ 'common.years' | translate }}</span>
+                    </div>
+                  }
+                  <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-600">{{ 'leave.policy.minConsecutive' | translate }}</span>
+                    <span class="font-medium">{{ policy()!.MinConsecutiveDays }} {{ 'common.days' | translate }}</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-600">{{ 'leave.policy.workingCalendar' | translate }}</span>
+                    <span class="font-medium" [class]="policy()!.UseWorkingCalendar ? 'text-green-600' : 'text-gray-600'">
+                      {{ policy()!.UseWorkingCalendar ? ('common.yes' | translate) : ('common.no' | translate) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button
+                pButton
+                type="button"
+                [label]="'leave.policy.edit' | translate"
+                class="btn btn-secondary"
+                icon="pi pi-pencil"
+                (click)="configurePolicy()"
+              ></button>
+            </div>
+          }
+          </p-tabpanel>
+
+          <!-- Translations Tab -->
+          <p-tabpanel value="2">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card-compact">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl">🇫🇷</span>
+                <span class="font-semibold text-gray-700">Français</span>
+              </div>
+              <p class="text-(--text-primary)">{{ leaveType()!.LeaveName }}</p>
+            </div>
+            <div class="card-compact">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl">🇬🇧</span>
+                <span class="font-semibold text-gray-700">English</span>
+              </div>
+              <p class="text-(--text-primary)">{{ leaveType()!.LeaveName }}</p>
+            </div>
+            <div class="card-compact">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl">🇸🇦</span>
+                <span class="font-semibold text-gray-700">العربية</span>
+              </div>
+              <p class="text-(--text-primary)" dir="rtl">{{ leaveType()!.LeaveName }}</p>
+            </div>
+          </div>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  }
+</div>

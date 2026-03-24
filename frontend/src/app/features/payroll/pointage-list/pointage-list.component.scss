@@ -1,0 +1,451 @@
+// =============================================================================
+// Pointage (Timesheet) Dashboard — BEM styles
+// Compatible light/dark via CSS custom properties.
+// =============================================================================
+
+:host {
+  // Semantic tokens (alias existing theme; override in [data-theme="dark"] for dark mode)
+  --color-background-primary: var(--bg-element, #ffffff);
+  --color-background-secondary: var(--bg-page, #f8fafc);
+  --color-text-primary: var(--text-primary, #1f2937);
+  --color-text-secondary: var(--text-muted, #6b7280);
+  --color-border-tertiary: rgba(0, 0, 0, 0.08);
+  --color-background-info: var(--primary-100, #ebf5ff);
+  --color-text-info: var(--primary-700, #0f4187);
+  display: block;
+}
+
+// -----------------------------------------------------------------------------
+// LAYOUT
+// -----------------------------------------------------------------------------
+.pointage-dashboard {
+  width: 100%;
+  padding: 1.5rem 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.pointage-dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pointage-dashboard__title-block {
+  flex: 1;
+}
+
+.pointage-dashboard__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.pointage-dashboard__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.pointage-dashboard__action {
+  flex-shrink: 0;
+}
+
+// -----------------------------------------------------------------------------
+// FILTER BAR CARD
+// -----------------------------------------------------------------------------
+.pointage-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 12px;
+}
+
+.pointage-filter-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pointage-filter-bar__label {
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.pointage-filter-bar__select {
+  min-height: 38px;
+  padding: 0.4rem 0.75rem;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-text-info);
+  }
+}
+
+.pointage-filter-bar__search {
+  min-height: 36px;
+  padding: 0.35rem 0.6rem;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 8px;
+  width: 220px;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-text-info);
+  }
+}
+
+.pointage-filter-bar__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0.4rem 0.75rem;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 8px;
+
+  .pointage-filter-bar__badge-month {
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// IMPORT BUTTON
+// -----------------------------------------------------------------------------
+.pointage-btn-import {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-background-primary);
+  background: var(--color-text-primary);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// SPLIT VIEW (two columns)
+// -----------------------------------------------------------------------------
+.pointage-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// CARDS (filter bar + column cards)
+// -----------------------------------------------------------------------------
+.pointage-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pointage-card__header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-secondary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+
+.pointage-card__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pointage-card__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.pointage-card__count {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.pointage-card__header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pointage-card__page-size-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.pointage-card__page-size-select {
+  min-height: 32px;
+  padding: 0.25rem 0.5rem;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pointage-card__body {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+.pointage-card__footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--color-background-secondary);
+  border-top: 0.5px solid var(--color-border-tertiary);
+}
+
+.pointage-card__footer-range {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+// -----------------------------------------------------------------------------
+// TABLE
+// -----------------------------------------------------------------------------
+.pointage-table-wrap {
+  overflow-x: auto;
+}
+
+.pointage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+
+  thead th {
+    padding: 0.6rem 1rem;
+    font-size: 11px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+    background: var(--color-background-secondary);
+    text-align: left;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    transition: background 0.1s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: var(--color-background-secondary);
+    }
+  }
+
+  tbody td {
+    padding: 0.6rem 1rem;
+    vertical-align: middle;
+  }
+}
+
+.pointage-table__employee {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.pointage-table__hours {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-info);
+  background: var(--color-background-info);
+  border-radius: 20px;
+}
+
+.pointage-table__matricule {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+// -----------------------------------------------------------------------------
+// PAGINATION
+// -----------------------------------------------------------------------------
+.pointage-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pointage-pagination__item {
+  display: inline-block;
+}
+
+.pointage-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.4rem;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover:not(.pointage-pagination__btn--disabled):not(.pointage-pagination__btn--active) {
+    background: var(--color-background-secondary);
+  }
+
+  &--active {
+    color: var(--color-background-primary);
+    background: var(--color-text-primary);
+    border-color: var(--color-text-primary);
+    cursor: default;
+  }
+
+  &--disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// ALERT & LOADING (keep minimal, use theme vars)
+// -----------------------------------------------------------------------------
+.pointage-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 0.5px solid var(--color-border-tertiary);
+}
+
+.pointage-alert--error {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.pointage-alert__dismiss {
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.1s ease, background 0.1s ease;
+
+  &:hover {
+    color: var(--color-text-primary);
+    background: var(--color-border-tertiary);
+  }
+}
+
+.pointage-loading {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.pointage-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 12px;
+}
+
+.pointage-empty__title {
+  margin: 0 0 0.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.pointage-empty__text {
+  margin: 0 0 1rem;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}

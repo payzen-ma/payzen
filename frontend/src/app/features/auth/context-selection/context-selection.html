@@ -1,0 +1,200 @@
+<div class="flex h-screen bg-(--color-bg) font-family-sans">
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Header -->
+    <app-header></app-header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto px-3 bg-(--bg-page) flex items-center justify-center">
+      <div class="w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-8 sm:mb-12">
+          <!-- Welcome Message -->
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        {{ 'contextSelection.title' | translate }}
+      </h1>
+      
+      @if (userName()) {
+        <p class="text-base sm:text-lg text-gray-600 mb-2">
+          {{ 'contextSelection.welcomeBack' | translate }}, <span class="font-semibold text-gray-800">{{ userName() }}</span>
+        </p>
+      }
+      
+      <p class="text-sm sm:text-base text-gray-500 max-w-lg mx-auto">
+        {{ 'contextSelection.subtitle' | translate }}
+      </p>
+    </header>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex flex-col items-center justify-center py-12" role="status" aria-label="Loading memberships">
+        <p-progressSpinner 
+          styleClass="w-12 h-12" 
+          strokeWidth="4" 
+          animationDuration=".8s"
+          aria-hidden="true">
+        </p-progressSpinner>
+        <p class="mt-4 text-gray-500">{{ 'contextSelection.loading' | translate }}</p>
+      </div>
+    }
+
+    <!-- Membership Cards Grid -->
+    @if (!isLoading() && hasMemberships()) {
+      <div 
+        class="grid gap-4 sm:gap-6"
+        [class.grid-cols-1]="memberships().length === 1"
+        [class.sm:grid-cols-2]="memberships().length >= 2"
+        [class.lg:grid-cols-3]="memberships().length >= 3"
+        role="radiogroup"
+        [attr.aria-label]="'contextSelection.selectWorkspace' | translate">
+        
+        @for (membership of memberships(); track trackByMembershipId($index, membership)) {
+          <button
+            type="button"
+            class="card group relative w-full text-left cursor-pointer transition-all duration-200 hover:shadow-md hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            [class.border-blue-500]="selectedCard() === getMembershipId(membership)"
+            [class.ring-1]="selectedCard() === getMembershipId(membership)"
+            [class.ring-blue-500]="selectedCard() === getMembershipId(membership)"
+            [disabled]="isNavigating()"
+            [attr.aria-pressed]="selectedCard() === getMembershipId(membership)"
+            [attr.aria-label]="membership.companyName + ' - ' + getRoleLabel(membership.role)"
+            (click)="selectMembership(membership)">
+            
+            <!-- Expert/Standard Badge -->
+            <div class="absolute top-4 right-4">
+              @if (membership.isExpertMode) {
+                <span 
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-100"
+                  pTooltip="Access to expert features and multi-company management"
+                  tooltipPosition="top">
+                  <i class="pi pi-briefcase text-[10px]" aria-hidden="true"></i>
+                  {{ 'contextSelection.expertMode' | translate }}
+                </span>
+              } @else {
+                <span 
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium bg-gray-50 text-gray-600 border border-gray-100"
+                  pTooltip="Standard company access"
+                  tooltipPosition="top">
+                  <i class="pi pi-building text-[10px]" aria-hidden="true"></i>
+                  {{ 'contextSelection.standardMode' | translate }}
+                </span>
+              }
+            </div>
+
+            <!-- Card Content -->
+            <div class="pt-8 sm:pt-6">
+              <!-- Company Icon -->
+              <div 
+                class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-all duration-300"
+                [class.bg-blue-50]="!membership.isExpertMode"
+                [class.text-blue-600]="!membership.isExpertMode"
+                [class.bg-purple-50]="membership.isExpertMode"
+                [class.text-purple-600]="membership.isExpertMode"
+                [class.ring-2]="selectedCard() === getMembershipId(membership)"
+                [class.ring-offset-2]="selectedCard() === getMembershipId(membership)"
+                [class.ring-blue-100]="selectedCard() === getMembershipId(membership) && !membership.isExpertMode"
+                [class.ring-purple-100]="selectedCard() === getMembershipId(membership) && membership.isExpertMode">
+                <i 
+                  class="pi text-xl"
+                  [class]="membership.isExpertMode ? 'pi-briefcase' : 'pi-building'"
+                  aria-hidden="true">
+                </i>
+              </div>
+
+              <!-- Company Name -->
+              <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors">
+                {{ membership.companyName }}
+              </h3>
+
+              <!-- Role Badge -->
+              <div class="flex items-center gap-2 mb-4">
+                <span 
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium"
+                  [class.bg-blue-50]="!membership.isExpertMode"
+                  [class.text-blue-700]="!membership.isExpertMode"
+                  [class.bg-purple-50]="membership.isExpertMode"
+                  [class.text-purple-700]="membership.isExpertMode">
+                  <i class="pi text-xs" [class]="getRoleIcon(membership.role)" aria-hidden="true"></i>
+                  {{ getRoleLabel(membership.role) }}
+                </span>
+              </div>
+
+              <!-- Access Arrow / Loading -->
+              <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                <span class="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
+                  {{ 'contextSelection.clickToAccess' | translate }}
+                </span>
+                
+                @if (isNavigating() && selectedCard() === getMembershipId(membership)) {
+                  <p-progressSpinner 
+                    styleClass="w-5 h-5" 
+                    strokeWidth="6"
+                    aria-hidden="true">
+                  </p-progressSpinner>
+                } @else {
+                  <i 
+                    class="pi pi-arrow-right text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" 
+                    aria-hidden="true">
+                  </i>
+                }
+              </div>
+            </div>
+
+            <!-- Selected Indicator -->
+            @if (selectedCard() === membership.companyId) {
+              <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-b-2xl" aria-hidden="true"></div>
+            }
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && !hasMemberships()) {
+      <div class="text-center py-12 px-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="pi pi-building text-2xl text-gray-400" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+          {{ 'contextSelection.noMemberships' | translate }}
+        </h3>
+        <p class="text-gray-500 mb-6 max-w-sm mx-auto">
+          {{ 'contextSelection.noMembershipsDesc' | translate }}
+        </p>
+        <button 
+          pButton 
+          type="button"
+          class="p-button-outlined"
+          [label]="'contextSelection.contactSupport' | translate"
+          icon="pi pi-headset">
+        </button>
+      </div>
+    }
+
+    <!-- Footer Actions -->
+    <footer class="mt-8 sm:mt-12 text-center">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button 
+          pButton 
+          type="button"
+          class="p-button-text p-button-secondary"
+          [label]="'auth.logout' | translate"
+          icon="pi pi-sign-out"
+          (click)="logout()">
+        </button>
+        
+        <span class="text-gray-300 hidden sm:inline">|</span>
+        
+        <a 
+          href="#" 
+          class="text-sm text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+          <i class="pi pi-question-circle" aria-hidden="true"></i>
+          {{ 'contextSelection.needHelp' | translate }}
+        </a>
+      </div>
+    </footer>
+      </div>
+    </main>
+  </div>
+</div>

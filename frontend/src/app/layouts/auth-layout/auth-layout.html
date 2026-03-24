@@ -1,0 +1,16 @@
+<div class="auth-layout min-h-screen bg-linear-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+  <!-- Language Switcher (Top Right) -->
+  <div class="absolute top-4 right-4 z-10">
+    <app-language-switcher></app-language-switcher>
+  </div>
+
+  <!-- Auth Content -->
+  <div class="w-full">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Footer -->
+  <footer class="absolute bottom-4 left-0 right-0 text-center text-sm text-gray-500">
+    <p>&copy; {{ currentYear }} {{ 'app.name' | translate }}. All rights reserved.</p>
+  </footer>
+</div>

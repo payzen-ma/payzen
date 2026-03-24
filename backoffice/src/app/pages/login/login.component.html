@@ -1,0 +1,51 @@
+<div class="min-h-screen flex items-center justify-center
+            bg-gradient-to-tl from-surface to-white px-4">
+
+  <div class="w-full max-w-md">
+
+    <app-auth-card>
+
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <div class="flex justify-center mb-4">
+          <div class="bg-primary text-white font-bold text-2xl px-4 py-2 rounded-md">
+            PayZen
+          </div>
+        </div>
+
+        <h1 class="text-3xl font-bold text-primary mb-2">
+          Bienvenue
+        </h1>
+        <p class="text-sm text-text-secondary">
+          Connectez-vous pour continuer
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form #loginForm="ngForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <app-text-input
+          label="Adresse email"
+          placeholder="admin@payzen.com"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          #emailField="ngModel"
+          [required]="true" /><br>
+
+        <app-password-input
+          label="Mot de passe"
+          placeholder="••••••••"
+          [(ngModel)]="password"
+          name="password"
+          #passwordField="ngModel"
+          [required]="true" /><br>
+
+        <app-primary-button
+          label="Se connecter"
+          [disabled]="loginForm.invalid || false" />
+      </form>
+
+    </app-auth-card>
+
+  </div>
+</div>

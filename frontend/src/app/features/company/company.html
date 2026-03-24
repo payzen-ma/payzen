@@ -1,0 +1,137 @@
+<div class="min-h-screen">
+  <!-- Page Header -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
+              <i class="pi pi-cog text-2xl"></i>
+            </div>
+            <div>
+              <h1 class="heading">
+                {{ 'nav.companySettings' | translate }}
+              </h1>
+              <p class="subheading mt-1">
+                {{ 'company.subtitle' | translate }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-6 py-6">
+    <div class="card pt-0">
+    <p-tabs value="info">
+      <p-tablist class="bg-(--bg-element) border-b border-(--border-color-subtle)">
+        <p-tab value="info" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-building"></i>
+            <span>{{ 'company.tabs.info' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="hrSettings" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-cog"></i>
+            <span>{{ 'company.tabs.hrSettings' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="departments" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-sitemap"></i>
+            <span>{{ 'company.tabs.departments' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="jobPositions" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-briefcase"></i>
+            <span>{{ 'company.tabs.jobPositions' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="contractTypes" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-file-edit"></i>
+            <span>{{ 'company.tabs.contractTypes' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="employeeCategories" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-tags"></i>
+            <span>{{ 'company.tabs.employeeCategories' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="holidays" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-calendar-plus"></i>
+            <span>{{ 'company.tabs.holidays' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="leaves" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-briefcase"></i>
+            <span>{{ 'company.tabs.leaves' | translate }}</span>
+          </div>
+        </p-tab>
+        
+        <p-tab value="users" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-users"></i>
+            <span>{{ 'company.tabs.users' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="documents" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-file"></i>
+            <span>{{ 'company.tabs.documents' | translate }}</span>
+          </div>
+        </p-tab>
+        <p-tab value="history" class="p-4 pr-6 hover:text-(--primary) border-b border-transparent hover:bg-(--bg-hover) hover:border-b hover:border-(--primary)">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-history"></i>
+            <span>{{ 'company.tabs.history' | translate }}</span>
+          </div>
+        </p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="info">
+          <app-company-info-tab></app-company-info-tab>
+        </p-tabpanel>
+        <p-tabpanel value="hrSettings">
+          <app-hr-settings-tab></app-hr-settings-tab>
+        </p-tabpanel>
+        <p-tabpanel value="departments">
+          <app-department-tab></app-department-tab>
+        </p-tabpanel>
+        <p-tabpanel value="jobPositions">
+          <app-job-position-tab></app-job-position-tab>
+        </p-tabpanel>
+        <p-tabpanel value="contractTypes">
+          <app-contract-type-tab></app-contract-type-tab>
+        </p-tabpanel>
+        <p-tabpanel value="employeeCategories">
+          <app-employee-categories-tab></app-employee-categories-tab>
+        </p-tabpanel>
+        <p-tabpanel value="holidays">
+          <app-holidays></app-holidays>
+        </p-tabpanel>
+        <p-tabpanel value="leaves">
+          <app-leave></app-leave>
+        </p-tabpanel>
+        
+        <p-tabpanel value="users">
+          <app-users-tab></app-users-tab>
+        </p-tabpanel>
+        <p-tabpanel value="documents">
+          <app-documents-tab></app-documents-tab>
+        </p-tabpanel>
+        <p-tabpanel value="history">
+          <app-history-tab></app-history-tab>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+    </div>
+  </div>
+</div>
