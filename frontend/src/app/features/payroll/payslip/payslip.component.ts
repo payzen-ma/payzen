@@ -49,6 +49,8 @@ export class PayslipComponent implements OnInit {
   readonly selectedMonth    = signal<number>(new Date().getMonth() + 1);
   readonly selectedYear     = signal<number>(new Date().getFullYear());
   readonly selectedEmployee = signal<number | null>(null);
+  // Vue d'affichage : 0 = mensuel, 1 = 1-15, 2 = 16-fin
+  readonly selectedHalf    = signal<number | null>(1);
 
   // ── Données ───────────────────────────────────────────────────────────────
   readonly employees = signal<Employee[]>([]);
@@ -57,6 +59,11 @@ export class PayslipComponent implements OnInit {
   readonly monthOptions  = signal<SelectOption[]>([]);
   readonly yearOptions   = signal<SelectOption[]>([]);
   readonly employeeOptions = signal<SelectOption[]>([]);
+  readonly halfOptions = signal<SelectOption[]>([
+    { label: 'Mensuel', value: 0 },
+    { label: '1-15', value: 1 },
+    { label: '16-31', value: 2 }
+  ]);
 
   // ── Nom de la société courante ────────────────────────────────────────────
   readonly currentCompanyName = this.contextService.companyName;
@@ -198,7 +205,12 @@ export class PayslipComponent implements OnInit {
     this.generating.set(true);
 
     this.payrollService
-      .downloadPayslip(employeeId, this.selectedYear(), this.selectedMonth())
+      .downloadPayslip(
+        employeeId,
+        this.selectedYear(),
+        this.selectedMonth(),
+        this.selectedHalf()
+      )
       .subscribe({
         next: (blob: Blob) => {
           this.generating.set(false);
@@ -210,10 +222,16 @@ export class PayslipComponent implements OnInit {
 
           const month = this.selectedMonth().toString().padStart(2, '0');
           const year  = this.selectedYear();
+          const periodSuffix =
+            this.selectedHalf() === 0
+              ? 'mensuel'
+              : this.selectedHalf() === 1
+                ? 'demi_1_15'
+                : 'demi_16_fin';
 
           if (this.isSimpleEmployee()) {
             const name = this.currentUserFullName().replace(/\s+/g, '_');
-            link.download = `Fiche_Paie_${name}_${month}_${year}.pdf`;
+            link.download = `Fiche_Paie_${name}_${month}_${year}_${periodSuffix}.pdf`;
           } else {
             const selected = this.employees().find(
               e => parseInt(e.id, 10) === this.selectedEmployee()
@@ -221,7 +239,7 @@ export class PayslipComponent implements OnInit {
             const name = selected
               ? `${selected.firstName}_${selected.lastName}`.replace(/\s+/g, '_')
               : 'Employe';
-            link.download = `Fiche_Paie_${name}_${month}_${year}.pdf`;
+            link.download = `Fiche_Paie_${name}_${month}_${year}_${periodSuffix}.pdf`;
           }
 
           document.body.appendChild(link);
@@ -264,5 +282,14 @@ export class PayslipComponent implements OnInit {
     const opts = this.monthOptions();
     const m = this.selectedMonth();
     return opts.find(o => o.value === m)?.label ?? '';
+  });
+
+  /** Libellé de la période bimensuelle (1-15 / 16-fin) */
+  readonly selectedHalfLabel = computed(() => {
+    const h = this.selectedHalf();
+    if (h === 0) return 'Mensuel';
+    if (h === 1) return '1-15';
+    if (h === 2) return '16-31';
+    return '';
   });
 }

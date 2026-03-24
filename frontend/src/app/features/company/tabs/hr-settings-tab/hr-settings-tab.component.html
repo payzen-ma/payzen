@@ -198,7 +198,7 @@
                               max="23"
                               [(ngModel)]="cal.startTimeHour"
                               [ngModelOptions]="{standalone: true}"
-                              (change)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
+                              (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
                               class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
                           </td>
                           
@@ -210,7 +210,7 @@
                               max="23"
                               [(ngModel)]="cal.endTimeHour"
                               [ngModelOptions]="{standalone: true}"
-                              (change)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
+                              (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
                               class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
                           </td>
                         </tr>
@@ -230,7 +230,7 @@
             <div class="flex items-center gap-3 pt-4 border-t border-gray-200">
               <button
                 type="submit"
-                [disabled]="loading() || !hrForm.get('workingDays')?.touched"
+                [disabled]="loading() || (!hrForm.dirty && !hrForm.get('workingDays')?.touched)"
                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg font-medium transition-colors duration-150 flex items-center gap-2">
                 <i class="pi pi-save" [class.animate-spin]="loading()"></i>
                 {{ 'common.save' | translate }}

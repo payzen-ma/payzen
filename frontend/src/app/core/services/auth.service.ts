@@ -191,6 +191,26 @@ export class AuthService {
   }
 
   /**
+   * Type C (Entra OTP email) : le frontend MSAL récupère l'identité (email + oid/externalId),
+   * puis le backend renvoie un JWT Payzen pour minimiser les changements côté UI.
+   */
+  loginWithEntra(email: string, externalId: string): Observable<LoginResponse> {
+    this.isLoading.set(true);
+    this.updateAuthState({ ...this.authStateSubject.value, isLoading: true, error: null });
+
+    const payload = { email, externalId };
+
+    return this.http.post<any>(`${this.API_URL}/entra-login`, payload).pipe(
+      map(response => this.normalizeLoginResponse(response)),
+      tap(response => this.handleLoginSuccess(response)),
+      catchError(error => {
+        this.handleAuthError(error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
    * Handle successful login
    */
   private handleLoginSuccess(response: LoginResponse): void {
@@ -485,6 +505,8 @@ export class AuthService {
       const candidates = [
         error?.error?.Message,
         error?.error?.message,
+        error?.error?.Error,
+        error?.error?.error,
         error?.Message,
         error?.message,
         typeof error === 'string' ? error : null,

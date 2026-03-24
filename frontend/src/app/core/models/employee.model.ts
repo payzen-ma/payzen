@@ -81,11 +81,15 @@ export interface Employee {
   addressLine2?: string;
   zipCode?: string;
   position: string;
+  /** Fourni par l’API détail ou à la sélection (autocomplete) pour un PATCH fiable */
+  jobPositionId?: number;
   genderId?: number | null;
   genderName?: string | null;
   department: string;
+  departementId?: number;
   manager?: string;
   contractType: string;
+  contractTypeId?: number;
   startDate: string;
   endDate?: string;
   probationPeriod: string;

@@ -274,7 +274,9 @@ export class UsersTabComponent implements OnInit, OnDestroy {
     if (!Number.isNaN(employeeIdNum)) {
       this.userService.getEmployeeRoles(employeeIdNum).subscribe({
         next: (assignments) => {
-          const mappedIds: string[] = (Array.isArray(assignments) ? assignments : [])
+          const arr = Array.isArray(assignments) ? assignments : [];
+
+          const mappedIds: string[] = arr
             .map(a => String(a?.RoleId ?? a?.roleId ?? a?.Role?.id ?? a?.role?.id ?? a?.id ?? ''))
             .filter(Boolean);
 
@@ -379,23 +381,22 @@ export class UsersTabComponent implements OnInit, OnDestroy {
 
     // Compute differences between initialAssignedRoleIds and selectedIds
     const initialIds = (this.initialAssignedRoleIds || []).map(String).filter(Boolean);
-    const toKeep = selectedIds.filter(id => initialIds.includes(id));
     const toAdd = selectedIds.filter(id => !initialIds.includes(id)).map(Number);
     const toRemove = initialIds.filter(id => !selectedIds.includes(id)).map(Number);
 
     const calls = [] as any[];
 
-    // Add assignments (use employee endpoint)
     if (toAdd.length > 0) {
       calls.push(this.permissionService.assignRolesToEmployee(employeeId, toAdd));
     }
 
-    // Removals: call removeRole per roleId (backend supports UserId+RoleId delete)
-    toRemove.forEach(roleId => {
-      calls.push(this.permissionService.removeRole(employeeId, roleId));
-    });
+    // Révocation par employé : le backend résout UserId (fonctionne même si GET roles renvoie []).
+    if (toRemove.length > 0) {
+      toRemove.forEach(roleId => {
+        calls.push(this.permissionService.removeRoleFromEmployee(employeeId, roleId));
+      });
+    }
 
-    // If nothing changed, short-circuit
     if (calls.length === 0) {
       this.assigningRoleLoading.set(false);
       this.assignRoleDialogVisible.set(false);
@@ -403,7 +404,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Execute all calls in parallel
     forkJoin(calls).subscribe({
       next: () => {
         this.assigningRoleLoading.set(false);

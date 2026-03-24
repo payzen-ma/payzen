@@ -162,11 +162,21 @@ export class WorkingCalendarComponent implements OnInit {
     });
   }
 
+  /**
+   * Les champs utilisent ngModel sur des objets déjà dans le signal : muter une propriété
+   * ne change pas la référence du signal, donc `hasChanges` ne se recalcule pas.
+   * On ré-émet un tableau (shallow copy) pour forcer la détection.
+   */
+  refreshEditableDaysSignal(): void {
+    this.editableDays.update((days) => [...days]);
+  }
+
   onWorkingDayChange(day: WorkingDay): void {
     if (day.isWorkingDay && (!day.startTime || !day.endTime)) {
       day.startTime = '09:00';
       day.endTime = '17:00';
     }
+    this.refreshEditableDaysSignal();
   }
 
   validateDay(day: WorkingDay): boolean {

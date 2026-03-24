@@ -520,7 +520,7 @@
                     <p-select
                       [options]="contractTypeSelectOptions()"
                       [ngModel]="employee().contractType"
-                      (ngModelChange)="updateField('contractType', $event)"
+                      (ngModelChange)="onContractTypeChange($event)"
                       [showClear]="true"
                       optionLabel="label"
                       optionValue="value"

@@ -111,6 +111,7 @@ interface EmployeeFormDataResponse {
   jobPositions?: JobPositionResponseItem[];
   contractTypes?: ContractTypeResponseItem[];
   potentialManagers?: PotentialManagerResponseItem[];
+  employeeCategories?: { id?: number; Id?: number; name?: string; Name?: string }[];
 }
 
 export interface LookupOption {
@@ -206,7 +207,9 @@ interface EmployeeAddressResponse {
   addressLine1?: string;
   addressLine2?: string;
   zipCode?: string;
+  cityId?: number;
   cityName?: string;
+  countryId?: number;
   countryName?: string;
 }
 
@@ -247,7 +250,10 @@ interface EmployeeDetailsResponse {
   phone: string | number;
   countryPhoneCode?: string | null;
   address?: EmployeeAddressResponse;
+  jobPositionId?: number | null;
   jobPositionName: string;
+  contractTypeId?: number | null;
+  departementId?: number | null;
   departments?: string | null;
   department?: string;
   departmentName?: string;
@@ -256,6 +262,8 @@ interface EmployeeDetailsResponse {
   contractTypeName: string;
   baseSalary: number;
   baseSalaryHourly?: number | null;
+  salaryEffectiveDate?: string | null;
+  SalaryEffectiveDate?: string | null;
   salaryComponents?: SalaryComponentResponse[];
   totalSalary?: number;
   cnss?: string | number;
@@ -277,6 +285,7 @@ interface EmployeeDetailsResponse {
   probationPeriod?: string;
   CategoryName?: string;
   events?: BackendEventResponse[];
+  Events?: BackendEventResponse[];
 }
 
 // ===== Sage Import interfaces =====
@@ -574,13 +583,28 @@ export class EmployeeService {
   patchEmployeeProfile(id: string, payload: Partial<EmployeeProfileModel>): Observable<EmployeeProfileModel> {
     const body: any = { ...payload };
     if ((payload as any).dateOfBirth) {
-      body.DateOfBirth = this.formatForDateInput((payload as any).dateOfBirth);
-      delete body.dateOfBirth;
+      body.dateOfBirth = this.formatForDateInput((payload as any).dateOfBirth);
       delete body.birthdate;
     }
-    if ((payload as any).startDate) {
-      body.StartDate = this.formatForDateInput((payload as any).startDate);
+    if ((payload as any).startDate !== undefined && (payload as any).startDate !== null && (payload as any).startDate !== '') {
+      body.contractStartDate = this.formatForDateInput((payload as any).startDate);
       delete body.startDate;
+    }
+    if ((payload as any).cin !== undefined) {
+      body.cinNumber = (payload as any).cin;
+      delete body.cin;
+    }
+    const pe = (payload as any).professionalEmail;
+    const pers = (payload as any).personalEmail;
+    if (pe !== undefined || pers !== undefined) {
+      if (pe !== undefined && pe !== null && String(pe).trim() !== '') body.email = String(pe).trim();
+      else if (pers !== undefined && pers !== null) body.email = String(pers).trim();
+      delete body.professionalEmail;
+      delete body.personalEmail;
+    }
+    if ((payload as any).baseSalary !== undefined && (payload as any).baseSalary !== null) {
+      body.salary = Number((payload as any).baseSalary);
+      delete body.baseSalary;
     }
     return this.http
       .patch<EmployeeDetailsResponse>(`${this.EMPLOYEE_URL}/${id}`, body)
@@ -595,29 +619,46 @@ export class EmployeeService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', documentType);
-    return this.http.post(`${this.EMPLOYEE_URL}/${employeeId}/documents`, formData);
+    return this.http.post(`${this.EMPLOYEE_URL}/${employeeId}/documents/upload`, formData);
   }
 
   getDocuments(employeeId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.EMPLOYEE_URL}/${employeeId}/documents`);
   }
 
+  deleteDocument(employeeId: string, documentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.EMPLOYEE_URL}/${employeeId}/documents/${documentId}`);
+  }
+
+  downloadDocument(employeeId: string, documentId: number): Observable<Blob> {
+    return this.http.get(`${this.EMPLOYEE_URL}/${employeeId}/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+  }
+
   getEmployeeSalaryDetails(employeeId: string): Observable<{ id: number, components: any[] }> {
     return this.http.get<any[]>(`${environment.apiUrl}/employee-salaries/employee/${employeeId}`).pipe(
       map(salaries => {
-        return salaries.find(s => !s.endDate);
+        const list = salaries ?? [];
+        // API Payzen : JSON PascalCase (EndDate, Id) — ne pas utiliser seulement endDate/id en camelCase.
+        return list.find((s: any) => {
+          const end = s.endDate ?? s.EndDate;
+          return end == null || end === '';
+        });
       }),
       switchMap(activeSalary => {
         if (!activeSalary) return of({ id: 0, components: [] });
-        return this.http.get<any[]>(`${environment.apiUrl}/employee-salary-components/salary/${activeSalary.id}`).pipe(
+        const sid = Number(activeSalary.id ?? activeSalary.Id ?? 0);
+        if (!Number.isFinite(sid) || sid <= 0) return of({ id: 0, components: [] });
+        return this.http.get<any[]>(`${environment.apiUrl}/employee-salary-components/salary/${sid}`).pipe(
           map(components => ({
-            id: activeSalary.id,
-            components: components.map(c => ({
-              id: c.id,
-              employeeSalaryId: c.employeeSalaryId,
-              type: c.componentType,
-              amount: c.amount,
-              isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true)
+            id: sid,
+            components: (components ?? []).map((c: any) => ({
+              id: c.id ?? c.Id,
+              employeeSalaryId: c.employeeSalaryId ?? c.EmployeeSalaryId,
+              type: c.componentType ?? c.ComponentType,
+              amount: c.amount ?? c.Amount,
+              isTaxable: c.isTaxable ?? c.IsTaxable ?? true
             }))
           }))
         );
@@ -730,10 +771,10 @@ export class EmployeeService {
   searchDepartments(query: string, companyId?: number): Observable<LookupOption[]> {
     if (!companyId) return this.http.get<DepartementResponseItem[]>(`${environment.apiUrl}/departements`)
       .pipe(map(items => {
-        const allItems = (items || []).map(item => ({
-          id: item.id,
-          label: item.departementName
-        }));
+        const allItems = (items || []).map((item: any) => ({
+          id: item.id ?? item.Id,
+          label: item.departementName ?? item.DepartementName ?? ''
+        })).filter((x: LookupOption) => x.id != null && !Number.isNaN(Number(x.id)));
         // Dédupliquer par ID
         const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
         if (!query) return uniqueItems;
@@ -743,10 +784,10 @@ export class EmployeeService {
     
     return this.http.get<DepartementResponseItem[]>(`${environment.apiUrl}/departements/company/${companyId}`)
       .pipe(map(items => {
-        const allItems = (items || []).map(item => ({
-          id: item.id,
-          label: item.departementName
-        }));
+        const allItems = (items || []).map((item: any) => ({
+          id: item.id ?? item.Id,
+          label: item.departementName ?? item.DepartementName ?? ''
+        })).filter((x: LookupOption) => x.id != null && !Number.isNaN(Number(x.id)));
         // Dédupliquer par ID
         const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
         if (!query) return uniqueItems;
@@ -758,10 +799,10 @@ export class EmployeeService {
   searchJobPositions(query: string, companyId?: number): Observable<LookupOption[]> {
     if (!companyId) return this.http.get<JobPositionResponseItem[]>(`${environment.apiUrl}/job-positions`)
       .pipe(map(items => {
-        const allItems = (items || []).map(item => ({
-          id: item.id,
-          label: item.name
-        }));
+        const allItems = (items || []).map((item: any) => ({
+          id: item.id ?? item.Id,
+          label: item.name ?? item.Name ?? ''
+        })).filter((x: LookupOption) => x.id != null && !Number.isNaN(Number(x.id)));
         // Dédupliquer par ID
         const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
         if (!query) return uniqueItems;
@@ -771,10 +812,10 @@ export class EmployeeService {
     
     return this.http.get<JobPositionResponseItem[]>(`${environment.apiUrl}/job-positions/by-company/${companyId}`)
       .pipe(map(items => {
-        const allItems = (items || []).map(item => ({
-          id: item.id,
-          label: item.name
-        }));
+        const allItems = (items || []).map((item: any) => ({
+          id: item.id ?? item.Id,
+          label: item.name ?? item.Name ?? ''
+        })).filter((x: LookupOption) => x.id != null && !Number.isNaN(Number(x.id)));
         // Dédupliquer par ID
         const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values());
         if (!query) return uniqueItems;
@@ -787,9 +828,9 @@ export class EmployeeService {
     return this.http.post<DepartementResponseItem>(`${environment.apiUrl}/departements`, {
       departementName: name,
       companyId: companyId
-    }).pipe(map(item => ({
-      id: item.id,
-      label: item.departementName
+    }).pipe(map((item: any) => ({
+      id: item.id ?? item.Id,
+      label: item.departementName ?? item.DepartementName ?? name
     })));
   }
 
@@ -797,13 +838,30 @@ export class EmployeeService {
     return this.http.post<JobPositionResponseItem>(`${environment.apiUrl}/job-positions`, {
       name: name,
       companyId: companyId
-    }).pipe(map(item => ({
-      id: item.id,
-      label: item.name
+    }).pipe(map((item: any) => ({
+      id: item.id ?? item.Id,
+      label: item.name ?? item.Name ?? name
     })));
   }
 
-  private mapEmployeeFormDataResponse(response: EmployeeFormDataResponse = {} as EmployeeFormDataResponse): EmployeeFormData {
+  private mapEmployeeFormDataResponse(raw: EmployeeFormDataResponse | Record<string, unknown> = {} as EmployeeFormDataResponse): EmployeeFormData {
+    const r = raw as Record<string, unknown>;
+    // Monolithe ASP.NET : PropertyNamingPolicy = null → JSON en PascalCase
+    const response: EmployeeFormDataResponse = {
+      statuses: (r['statuses'] ?? r['Statuses']) as LookupResponseItem[] | undefined,
+      genders: (r['genders'] ?? r['Genders']) as LookupResponseItem[] | undefined,
+      educationLevels: (r['educationLevels'] ?? r['EducationLevels']) as LookupResponseItem[] | undefined,
+      maritalStatuses: (r['maritalStatuses'] ?? r['MaritalStatuses']) as LookupResponseItem[] | undefined,
+      nationalities: (r['nationalities'] ?? r['Nationalities']) as LookupResponseItem[] | undefined,
+      countries: (r['countries'] ?? r['Countries']) as CountryResponseItem[] | undefined,
+      cities: (r['cities'] ?? r['Cities']) as CityResponseItem[] | undefined,
+      departements: (r['departements'] ?? r['Departements']) as DepartementResponseItem[] | undefined,
+      jobPositions: (r['jobPositions'] ?? r['JobPositions']) as JobPositionResponseItem[] | undefined,
+      contractTypes: (r['contractTypes'] ?? r['ContractTypes']) as ContractTypeResponseItem[] | undefined,
+      potentialManagers: (r['potentialManagers'] ?? r['PotentialManagers']) as PotentialManagerResponseItem[] | undefined,
+      employeeCategories: (r['employeeCategories'] ?? r['EmployeeCategories']) as EmployeeFormDataResponse['employeeCategories']
+    };
+
     const lang = (this.translate?.currentLang || (this.translate?.getBrowserLang && this.translate.getBrowserLang()) || 'fr').toString().toLowerCase();
     const suffix = lang.startsWith('fr') ? 'Fr' : lang.startsWith('ar') ? 'Ar' : 'En';
 
@@ -821,71 +879,96 @@ export class EmployeeService {
         it.nameAr ??
         it.code ??
         it.Code ??
-        String(it.id)
+        String(it.id ?? it.Id ?? '')
       );
     };
 
     const toLookupOption = (items?: LookupResponseItem[]): LookupOption[] =>
       (items ?? []).map(item => {
-        const rawVal = (item as any).Code ?? (item as any).code ?? (item as any).Id ?? (item as any).id;
+        const it = item as any;
+        const rawVal = it.Code ?? it.code ?? it.Id ?? it.id;
         return {
-          id: (item as any).Id ?? (item as any).id,
-          label: getLocalizedLabel(item),
+          id: it.Id ?? it.id,
+          label: getLocalizedLabel(it),
           value: String(rawVal ?? '').toLowerCase()
         };
       });
 
     const toCountryOption = (items?: CountryResponseItem[]): CountryLookupOption[] =>
-      (items ?? []).map(item => ({
-        id: item.id,
-        label: item.countryName,
-        phoneCode: item.countryPhoneCode
-      }));
+      (items ?? []).map(item => {
+        const it = item as any;
+        return {
+          id: it.id ?? it.Id,
+          label: it.countryName ?? it.CountryName ?? '',
+          phoneCode: it.countryPhoneCode ?? it.CountryPhoneCode ?? ''
+        };
+      });
 
     const toCityOption = (items?: CityResponseItem[]): CityLookupOption[] =>
-      (items ?? []).map(item => ({
-        id: item.id,
-        label: item.cityName,
-        countryId: item.countryId,
-        countryName: item.countryName
-      }));
+      (items ?? []).map(item => {
+        const it = item as any;
+        return {
+          id: it.id ?? it.Id,
+          label: it.cityName ?? it.CityName ?? '',
+          countryId: it.countryId ?? it.CountryId,
+          countryName: it.countryName ?? it.CountryName ?? ''
+        };
+      });
 
     const toDepartmentOption = (items?: DepartementResponseItem[]): LookupOption[] => {
-      const allItems = (items ?? []).map(item => ({ id: item.id, label: item.departementName }));
-      // Dédupliquer par ID
+      const allItems = (items ?? []).map(item => {
+        const it = item as any;
+        return { id: it.id ?? it.Id, label: it.departementName ?? it.DepartementName ?? '' };
+      });
       return Array.from(new Map(allItems.map(item => [item.id, item])).values());
     };
 
     const toJobPositionOption = (items?: JobPositionResponseItem[]): LookupOption[] => {
-      const allItems = (items ?? []).map(item => ({ id: item.id, label: item.name }));
-      // Dédupliquer par ID
+      const allItems = (items ?? []).map(item => {
+        const it = item as any;
+        return { id: it.id ?? it.Id, label: it.name ?? it.Name ?? '' };
+      });
       return Array.from(new Map(allItems.map(item => [item.id, item])).values());
     };
 
     const toContractTypeOption = (items?: ContractTypeResponseItem[]): LookupOption[] =>
-      (items ?? []).map(item => ({ id: item.id, label: item.contractTypeName }));
+      (items ?? []).map(item => {
+        const it = item as any;
+        return { id: it.id ?? it.Id, label: it.contractTypeName ?? it.ContractTypeName ?? '' };
+      });
 
     const toManagerOption = (items?: PotentialManagerResponseItem[]): ManagerLookupOption[] =>
-      (items ?? []).map(item => ({
-        id: item.id,
-        label: (item.fullName || `${item.firstName ?? ''} ${item.lastName ?? ''}`).trim(),
-        departmentName: item.departementName
-      }));
+      (items ?? []).map(item => {
+        const it = item as any;
+        const fn = it.firstName ?? it.FirstName ?? '';
+        const ln = it.lastName ?? it.LastName ?? '';
+        const full = it.fullName ?? it.FullName ?? '';
+        return {
+          id: it.id ?? it.Id,
+          label: (full || `${fn} ${ln}`).trim(),
+          departmentName: it.departementName ?? it.DepartementName ?? ''
+        };
+      });
 
-      
+    const toCategoryOption = (items?: EmployeeFormDataResponse['employeeCategories']): LookupOption[] =>
+      (items ?? []).map(c => {
+        const it = c as any;
+        return { id: it.id ?? it.Id, label: it.name ?? it.Name ?? '' };
+      });
 
     return {
-      statuses: toLookupOption(response?.statuses),
-      genders: toLookupOption(response?.genders),
-      educationLevels: toLookupOption(response?.educationLevels),
-      maritalStatuses: toLookupOption(response?.maritalStatuses),
-      nationalities: toLookupOption(response?.nationalities),
-      countries: toCountryOption(response?.countries),
-      cities: toCityOption(response?.cities),
-      departments: toDepartmentOption(response?.departements),
-      jobPositions: toJobPositionOption(response?.jobPositions),
-      contractTypes: toContractTypeOption(response?.contractTypes),
-      potentialManagers: toManagerOption(response?.potentialManagers)
+      statuses: toLookupOption(response.statuses),
+      genders: toLookupOption(response.genders),
+      educationLevels: toLookupOption(response.educationLevels),
+      maritalStatuses: toLookupOption(response.maritalStatuses),
+      nationalities: toLookupOption(response.nationalities),
+      countries: toCountryOption(response.countries),
+      cities: toCityOption(response.cities),
+      departments: toDepartmentOption(response.departements),
+      jobPositions: toJobPositionOption(response.jobPositions),
+      contractTypes: toContractTypeOption(response.contractTypes),
+      potentialManagers: toManagerOption(response.potentialManagers),
+      employeeCategories: toCategoryOption(response.employeeCategories)
     };
   }
 
@@ -919,21 +1002,41 @@ export class EmployeeService {
     // We treat the input as 'any' to handle both DashboardEmployee and EmployeeReadDto shapes
     // which might use PascalCase (Backend default) or camelCase (if auto-serialized)
     const rawStatus = this.extractStatusCode(employee);
-    const localizedName = employee.NameFr ?? employee.NameEn ?? employee.NameAr ?? employee.name ?? employee.StatusName ?? employee.statusName ?? '';
+    const localizedName =
+      employee.NameFr ??
+      employee.nameFr ??
+      employee.NameEn ??
+      employee.NameAr ??
+      employee.name ??
+      employee.StatusName ??
+      employee.statusName ??
+      '';
 
     return {
       id: this.toStringValue(employee.id || employee.Id),
       firstName: employee.firstName || employee.FirstName || '',
       lastName: employee.lastName || employee.LastName || '',
-      position:  employee.position || employee.Position || 'Non assigné',
+      position:
+        employee.position ||
+        employee.Position ||
+        employee.JobPositionName ||
+        employee.jobPositionName ||
+        'Non assigné',
       department: employee.department || employee.Department || '',
       status: this.mapEmployeeStatus(rawStatus),
       statusRaw: rawStatus || undefined,
       statusName: localizedName || undefined,
-      startDate: employee.startDate || employee.StartDate || '',
+      startDate:
+        employee.startDate ||
+        employee.StartDate ||
+        employee.ContractStartDate ||
+        employee.contractStartDate ||
+        '',
       missingDocuments: this.toNumberValue(employee.missingDocuments || employee.MissingDocuments),
-        contractType: this.mapContractType(employee.contractType || employee.ContractType),
-        manager: employee.manager || employee.Manager || undefined,
+      contractType: this.mapContractType(
+        employee.contractType || employee.ContractType || employee.ContractTypeName || employee.contractTypeName
+      ),
+      manager: employee.manager || employee.Manager || undefined,
         userId: employee.userId ?? employee.UserId ?? employee.user_id ?? employee.User_Id ?? undefined,
         // Preserve any role information the backend might include so callers can derive display roles
         roleName: employee.roleName ?? employee.RoleName ?? employee.RoleName ?? undefined,
@@ -989,6 +1092,8 @@ export class EmployeeService {
     
     const cityName = addressPayload?.cityName || addressPayload?.CityName || '';
     const countryName = addressPayload?.countryName || addressPayload?.CountryName || '';
+    const cityIdFromAddr = addressPayload?.cityId ?? addressPayload?.CityId;
+    const countryIdFromAddr = addressPayload?.countryId ?? addressPayload?.CountryId;
     const addressLine1 = addressPayload?.addressLine1 || addressPayload?.AddressLine1 || '';
     const addressLine2 = addressPayload?.addressLine2 || addressPayload?.AddressLine2 || '';
     const zipCode = addressPayload?.zipCode || addressPayload?.ZipCode || '';
@@ -1014,22 +1119,35 @@ export class EmployeeService {
       personalEmail: payload.email ?? '',
       phone: this.composePhone(payload.countryPhoneCode, payload.phone),
       address: this.formatAddress(addressPayload),
-      countryId: undefined,
+      countryId: countryIdFromAddr ?? undefined,
       countryName: countryName,
       city: cityName,
+      cityId: cityIdFromAddr ?? undefined,
       addressLine1: addressLine1,
       addressLine2: addressLine2,
       zipCode: zipCode,
       position: payload.jobPositionName ?? 'Non assigné',
+      jobPositionId: payload.jobPositionId ?? (payload as any).JobPositionId ?? undefined,
       department: payload.department ?? payload.departmentName ?? payload.departments ?? '',
+      departementId: payload.departementId ?? (payload as any).DepartementId ?? undefined,
       manager: payload.managerName ?? '',
       contractType: this.mapContractType(payload.contractTypeName),
+      contractTypeId: payload.contractTypeId ?? (payload as any).ContractTypeId ?? undefined,
       
       endDate: undefined,
       probationPeriod: payload.probationPeriod ?? '',
       exitReason: undefined,
       baseSalary: payload.baseSalary ?? 0,
       baseSalaryHourly: payload.baseSalaryHourly ?? (payload as any).BaseSalaryHourly ?? 0,
+      salaryEffectiveDate: (() => {
+        const raw =
+          payload.salaryEffectiveDate ??
+          (payload as any).SalaryEffectiveDate ??
+          null;
+        if (raw == null || raw === '') return null;
+        const formatted = this.formatForDateInput(raw as string | Date);
+        return formatted || null;
+      })(),
       salaryComponents,
       activeSalaryId: undefined,
       paymentMethod: this.mapPaymentMethod(payload.salaryPaymentMethod),
@@ -1060,24 +1178,29 @@ export class EmployeeService {
       updatedAt: payload.updatedAt ? new Date(payload.updatedAt) : undefined,
       dateOfBirth: this.formatForDateInput(payload.dateOfBirth),
       startDate: this.formatForDateInput(payload.contractStartDate),
-      events: (payload.events || []).map((event: any) => {
-        
+      events: (payload.events || payload.Events || []).map((event: any) => {
+        const details = event.details ?? event.Details;
+        const modifiedBy = event.modifiedBy ?? event.ModifiedBy;
         const mappedEvent = {
-          type: event.eventName || event.EventName || event.type || event.Event || event.EventType || 'general_update',
-          title: event.title ?? event.EventTitle ?? event.Title ?? '',
-          date: event.date ?? event.createdAt ?? event.CreatedAt ?? event.timestamp,
+          type: event.eventName || event.EventName || event.type || event.Type || event.Event || event.EventType || 'general_update',
+          title: event.title ?? event.Title ?? event.EventTitle ?? '',
+          date: event.date ?? event.Date ?? event.createdAt ?? event.CreatedAt ?? event.timestamp ?? event.Timestamp,
           description: event.description ?? event.Description ?? (event.newValue ? `→ ${event.newValue}` : ''),
-          details: event.details ?? {
+          details: details ?? {
             oldValue: event.oldValue ?? event.OldValue ?? (event.OldValue === '' ? '(vide)' : event.OldValue),
             newValue: event.newValue ?? event.NewValue
           },
-          modifiedBy: event.modifiedBy ?? (event.CreatorFullName ? {
-            name: event.CreatorFullName,
-            role: 'Admin'
-          } : undefined),
-          timestamp: event.timestamp ?? event.createdAt ?? event.CreatedAt
+          modifiedBy: modifiedBy
+            ? {
+                name: modifiedBy.name ?? modifiedBy.Name ?? '',
+                role: modifiedBy.role ?? modifiedBy.Role ?? ''
+              }
+            : (event.CreatorFullName
+                ? { name: event.CreatorFullName, role: 'Admin' }
+                : undefined),
+          timestamp: event.timestamp ?? event.Timestamp ?? event.createdAt ?? event.CreatedAt
         };
-        
+
         return mappedEvent;
       })
     };

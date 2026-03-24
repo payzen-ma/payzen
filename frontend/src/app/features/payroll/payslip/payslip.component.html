@@ -106,6 +106,15 @@
               [placeholder]="'payslip.placeholderYear' | translate"
             />
           </div>
+          <div class="w-full sm:w-40 shrink-0">
+            <app-select
+              [label]="'Période'"
+              [options]="halfOptions()"
+              [value]="selectedHalf()"
+              (valueChange)="selectedHalf.set($event)"
+              [placeholder]="'Sélectionnez la période'"
+            />
+          </div>
         </div>
 
         <!-- Récapitulatif de la période sélectionnée -->
@@ -116,6 +125,9 @@
               {{ 'payslip.periodSummary' | translate }}
               <strong class="text-(--text-primary) font-semibold">
                 {{ selectedMonthLabel() }} {{ selectedYear() }}
+                @if (selectedHalfLabel()) {
+                  <span> - {{ selectedHalfLabel() }}</span>
+                }
               </strong>
             </span>
           </div>

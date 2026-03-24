@@ -235,6 +235,11 @@ export class RolesComponent implements OnInit {
     this.usersLoading = false;
   }
 
+  private getCleanSelectedPermissionIds(): number[] {
+    return (this.formData.selectedPermissions ?? [])
+      .filter((id): id is number => typeof id === 'number' && Number.isFinite(id) && Number.isInteger(id) && id > 0);
+  }
+
   loadRoles() {
     this.isLoading = true;
     this.error = null;
@@ -262,9 +267,10 @@ export class RolesComponent implements OnInit {
             next: (perms) => {
               try {
                 const mapped = (perms || []).map((p: any) => ({
-                  id: p.Id ?? p.id,
-                  name: p.Name ?? p.name,
-                  description: p.Description ?? p.description,
+                  // API: RolePermissionSimpleDto => { PermissionId, PermissionName, PermissionDescription }
+                  id: p.PermissionId ?? p.Id ?? p.id,
+                  name: p.PermissionName ?? p.Name ?? p.name,
+                  description: p.PermissionDescription ?? p.Description ?? p.description,
                   action: p.Action ?? p.action
                 }));
                 r.permissions = mapped;
@@ -341,10 +347,17 @@ export class RolesComponent implements OnInit {
     this.roleService.getRolePermissions(role.id).subscribe({
       next: (perms) => {
         try {
-          const ids = (perms || []).map((p: any) => p.Id ?? p.id);
+          const ids = (perms || [])
+            .map((p: any) => p.PermissionId ?? p.Id ?? p.id)
+            .filter((id: any) => typeof id === 'number' && Number.isFinite(id) && Number.isInteger(id) && id > 0);
           this.formData.selectedPermissions = ids;
           // also populate role.permissions for display consistency
-          (this.currentRole as any).permissions = (perms || []).map((p: any) => ({ id: p.Id ?? p.id, name: p.Name ?? p.name, action: p.Action ?? p.action, description: p.Description ?? p.description }));
+          (this.currentRole as any).permissions = (perms || []).map((p: any) => ({
+            id: p.PermissionId ?? p.Id ?? p.id,
+            name: p.PermissionName ?? p.Name ?? p.name,
+            action: p.Action ?? p.action,
+            description: p.PermissionDescription ?? p.Description ?? p.description
+          }));
         } catch (e) {
           console.error('Error mapping role permissions', e);
           this.showNotification(this.extractApiError(e) || 'Erreur lors du mapping des permissions', 'error');
@@ -372,6 +385,9 @@ export class RolesComponent implements OnInit {
   }
 
   togglePermission(permissionId: number) {
+    // Le template peut passer `undefined` si l'objet Permission est incomplet (JSON => undefined devient null).
+    if (permissionId == null || !Number.isInteger(permissionId) || permissionId <= 0) return;
+
     const index = this.formData.selectedPermissions.indexOf(permissionId);
     if (index > -1) {
       this.formData.selectedPermissions.splice(index, 1);
@@ -381,6 +397,7 @@ export class RolesComponent implements OnInit {
   }
 
   isPermissionSelected(permissionId: number): boolean {
+    if (permissionId == null || !Number.isInteger(permissionId) || permissionId <= 0) return false;
     return this.formData.selectedPermissions.includes(permissionId);
   }
 
@@ -390,22 +407,24 @@ export class RolesComponent implements OnInit {
       return;
     }
 
+    const permissionIds = this.getCleanSelectedPermissionIds();
+
     const request: RoleCreateRequest | RoleUpdateRequest = {
       name: this.formData.name,
       description: this.formData.description,
-      permissionIds: this.formData.selectedPermissions
+      permissionIds
     };
 
     if (this.isEditMode && this.currentRole) {
       // ensure at least one permission selected (server validates this)
-      if (!this.formData.selectedPermissions || this.formData.selectedPermissions.length === 0) {
+      if (!permissionIds || permissionIds.length === 0) {
         this.showNotification('Au moins une permission doit être spécifiée', 'error');
         return;
       }
       this.roleService.updateRole(this.currentRole.id, request).subscribe({
         next: (updatedRole) => {
           // after updating role metadata, ensure permissions are assigned
-          this.roleService.assignPermissions(this.currentRole!.id, this.formData.selectedPermissions).subscribe({
+          this.roleService.assignPermissions(this.currentRole!.id, permissionIds).subscribe({
             next: () => {
               this.loadRoles();
               this.closeModal();
@@ -429,7 +448,7 @@ export class RolesComponent implements OnInit {
         next: (createdRole) => {
           const rid = (createdRole as any)?.id ?? (createdRole as any)?.Id ?? (createdRole as any)?.RoleId ?? null;
           if (rid) {
-            this.roleService.assignPermissions(rid, this.formData.selectedPermissions).subscribe({
+            this.roleService.assignPermissions(rid, permissionIds).subscribe({
               next: () => {
                 this.loadRoles();
                 this.closeModal();

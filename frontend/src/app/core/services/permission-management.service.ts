@@ -234,12 +234,12 @@ export class PermissionManagementService {
 
   /**
    * Remove a role from a user
-   * DELETE /api/users-roles
+   * DELETE /api/users-roles/{userId}/{roleId}
    */
   removeRoleFromUser(dto: UserRoleAssignDto): Observable<void> {
-    return this.http.request<void>('delete', `${this.apiUrl}/users-roles`, {
-      body: dto
-    });
+    // Backend signature: DELETE api/users-roles/{userId:int}/{roleId:int}
+    const url = `${this.apiUrl}/users-roles/${dto.UserId}/${dto.RoleId}`;
+    return this.http.delete<void>(url);
   }
 
   // ==================== HIGH-LEVEL USER-ROLE HELPERS ====================
@@ -337,6 +337,21 @@ export class PermissionManagementService {
       map(() => void 0),
       catchError((err: any) => {
         if (err?.status === 409) return of(void 0);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Retire un rôle à l'utilisateur lié à un employé (le backend résout UserId).
+   * DELETE /api/users-roles/employee/{employeeId}/{roleId}
+   */
+  removeRoleFromEmployee(employeeId: number, roleId: number): Observable<void> {
+    if (!employeeId || !roleId) return throwError(() => new Error('Invalid parameters'));
+    const url = `${this.apiUrl}/users-roles/employee/${employeeId}/${roleId}`;
+    return this.http.delete<void>(url).pipe(
+      catchError((err: any) => {
+        if (err?.status === 404) return of(void 0);
         return throwError(() => err);
       })
     );

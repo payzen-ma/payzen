@@ -1,82 +1,65 @@
-import { Component, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { PasswordModule } from 'primeng/password';
-import { MessageModule } from 'primeng/message';
-import { CardModule } from 'primeng/card';
+import { FormsModule } from '@angular/forms';
+import { NativeAuthService } from '@app/core/services/native-auth.service';
 import { AuthService } from '@app/core/services/auth.service';
+import { EntraOtpService } from '@app/core/services/entra-otp.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    TranslateModule,
-    InputTextModule,
-    ButtonModule,
-    CheckboxModule,
-    PasswordModule,
-    MessageModule,
-    CardModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
 export class LoginPage {
-  loginForm: FormGroup;
-  readonly isLoading = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly showPassword = signal(false);
+  private nativeAuth  = inject(NativeAuthService);
+  private authService = inject(AuthService);
+  private entraOtp    = inject(EntraOtpService);
+  private router      = inject(Router);
 
-  togglePasswordVisibility(): void {
-    this.showPassword.update(v => !v);
-  }
+  email       = signal('');
+  password    = signal('');
+  isLoading   = signal(false);
+  error       = signal<string | null>(null);
+  showPassword = signal(false);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
-    });
-  }
+  // ── Email + mot de passe (Native Auth) ────────────────────────────────────
 
-  onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
-
-    this.isLoading.set(true);
+  onSignIn() {
+    if (!this.email() || !this.password() || this.isLoading()) return;
     this.error.set(null);
+    this.isLoading.set(true);
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
+    this.nativeAuth.signIn(this.email(), this.password()).subscribe({
+      next: (res) => {
+        this.authService['handleLoginSuccess'](res);
         this.isLoading.set(false);
-        // Navigation is handled by auth service based on role
       },
       error: (err) => {
         this.isLoading.set(false);
-        const msg = err?.error?.Message || err?.error?.message || err?.Message || err?.message || (typeof err === 'string' ? err : null) || 'Login failed. Please check your credentials.';
-        this.error.set(msg);
+        this.error.set(
+          err?.error?.Message ?? 'Email ou mot de passe incorrect.'
+        );
       }
     });
   }
 
-  get emailControl() {
-    return this.loginForm.get('email');
+  // ── Google via Entra (redirect — inévitable avec IdP fédéré) ──────────────
+
+  onGoogleSignIn() {
+    this.error.set(null);
+    this.entraOtp.redirectToSignIn('google');  // EntraOtpService existant, inchangé
   }
 
-  get passwordControl() {
-    return this.loginForm.get('password');
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  goToSignUp() {
+    this.router.navigate(['/signup']);
+  }
+
+  togglePassword() {
+    this.showPassword.update(v => !v);
   }
 }

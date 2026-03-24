@@ -318,6 +318,9 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
         cal.endTime = `${String(endHour).padStart(2, '0')}:00:00`;
       }
     }
+    // Les heures sont liées en standalone ngModel : le formulaire réactif ne devient pas "dirty" tout seul.
+    // Le bouton Enregistrer ne doit plus dépendre uniquement de workingDays.touched.
+    this.hrForm.markAsDirty();
   }
 
   private resetFormToCompanyData() {

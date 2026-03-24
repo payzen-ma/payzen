@@ -33,7 +33,7 @@ import { EmployeeCategoryService } from '@app/core/services/employee-category.se
 import { FamilyService } from '@app/core/services/family.service';
 import { JobPosition } from '@app/core/models/job-position.model';
 import { ContractType } from '@app/core/models/contract-type.model';
-import { Employee as EmployeeProfileModel, EmployeeEvent } from '@app/core/models/employee.model';
+import { Employee as EmployeeProfileModel, EmployeeEvent, Spouse, Child } from '@app/core/models/employee.model';
 import { DraftService } from '@app/core/services/draft.service';
 import { ChangeTracker, ChangeSet } from '@app/core/utils/change-tracker.util';
 import { ChangeConfirmationDialog } from '@app/shared/components/change-confirmation-dialog/change-confirmation-dialog';
@@ -49,11 +49,12 @@ import { TagVariant } from '../../../shared/components/tag/tag.types';
 import { SpouseChildrenComponent } from '../family/spouse-children';
 
 interface Document {
+  id?: number;
   type: string;
   name: string;
   uploadDate: string;
   status: 'uploaded' | 'missing';
-  url?: string;
+  filePath?: string;
 }
 
 @Component({
@@ -123,7 +124,20 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     '0': ['firstName', 'lastName', 'cin', 'maritalStatus', 'dateOfBirth'],
     '1': ['personalEmail', 'phone', 'address', 'countryId', 'countryName', 'city', 'addressLine1', 'addressLine2', 'zipCode'],
     '2': [], // Family - Spouse & Children managed by separate component
-    '3': ['position', 'department', 'manager', 'contractType', 'status', 'startDate', 'endDate', 'probationPeriod'],
+    '3': [
+      'position',
+      'jobPositionId',
+      'department',
+      'departementId',
+      'manager',
+      'contractType',
+      'contractTypeId',
+      'employeeCategoryId',
+      'status',
+      'startDate',
+      'endDate',
+      'probationPeriod'
+    ],
     '4': ['baseSalary', 'baseSalaryHourly', 'salaryEffectiveDate', 'salaryComponents', 'paymentMethod'],
     '5': ['cnss', 'amo', 'cimr', 'cimrEmployeeRate', 'cimrCompanyRate', 'hasPrivateInsurance', 'privateInsuranceNumber', 'privateInsuranceRate', 'disableAmo', 'annualLeave'],
     '6': ['missingDocuments'],
@@ -229,35 +243,13 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   };
   readonly formData = signal<EmployeeFormData>(this.emptyFormData);
 
-  readonly documents = signal<Document[]>([
-    {
-      type: 'cin',
-      name: 'CIN - Youssef Amrani.pdf',
-      uploadDate: '2022-01-10',
-      status: 'uploaded',
-      url: '#'
-    },
-    {
-      type: 'contract',
-      name: 'Contrat CDI - Youssef Amrani.pdf',
-      uploadDate: '2022-01-10',
-      status: 'uploaded',
-      url: '#'
-    },
-    {
-      type: 'rib',
-      name: 'RIB - Youssef Amrani.pdf',
-      uploadDate: '2022-01-10',
-      status: 'uploaded',
-      url: '#'
-    },
-    {
-      type: 'job_description',
-      name: 'Fiche de poste',
-      uploadDate: '',
-      status: 'missing'
-    }
-  ]);
+  private readonly documentTemplates: Array<{ type: string; name: string }> = [
+    { type: 'cin', name: 'CIN' },
+    { type: 'contract', name: 'Contrat de travail' },
+    { type: 'rib', name: 'RIB' },
+    { type: 'job_description', name: 'Fiche de poste' }
+  ];
+  readonly documents = signal<Document[]>(this.buildDocumentCards([]));
 
   readonly history = computed(() => this.employee().events || []);
 
@@ -537,43 +529,24 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     forkJoin({
       details: this.employeeService.getEmployeeDetails(id),
       salary: this.employeeService.getEmployeeSalaryDetails(id),
+      documents: this.employeeService.getDocuments(id).pipe(catchError(() => of([]))),
       statuses: this.employeeService.getStatuses(false),
       form: this.employeeService.getEmployeeFormData(),
       spouse: this.familyService.getSpouse(id).pipe(catchError(() => of(null))),
       children: this.familyService.getChildren(id).pipe(catchError(() => of([]))),
-      history: this.employeeService.getEmployeeHistory(id).pipe(catchError(() => of([]))),
       assignment: this.employeeService.getActivePackageAssignment(id).pipe(catchError(() => of(null)))
     }).subscribe({
-      next: ({ details, salary, statuses, form, spouse, children, history, assignment }) => {
-        console.log('[EmployeeProfile] loaded details, statuses from API:', statuses, 'currentLang:', this.translate?.currentLang);
-        console.log('[EmployeeProfile] raw details for employee', id, ':', details);
-        console.log('[EmployeeProfile] backend gender fields:', { GenderId: (details as any).GenderId, GenderName: (details as any).GenderName });
-        
-        // Replace the events in details with the proper history events
-        if (history && history.length > 0) {
-          details.events = history.map((event: any) => ({
-            type: event.eventName || event.EventName || event.type || 'general_update',
-            title: event.title ?? '',
-            date: event.createdAt ?? event.date,
-            description: event.newValue ? `→ ${event.newValue}` : '',
-            details: {
-              oldValue: event.oldValue ?? '',
-              newValue: event.newValue ?? ''
-            },
-            modifiedBy: {
-              name: 'admin admin', // You may need to fetch this from another field
-              role: 'Admin'
-            },
-            timestamp: event.createdAt
-          }));
-        }
+      next: ({ details, salary, documents, statuses, form, spouse, children, assignment }) => {
+        // L'historique formaté (y compris filtrage RH / non-RH) vient de GET .../details → Events
         this.isRestoringDraft = true;
         
-        // Convert single spouse to array for consistency
-        const spouses = spouse ? [spouse] : [];
+        // API Payzen : GET .../spouse renvoie un tableau JSON ; ne pas envelopper une 2e fois.
+        // JSON PascalCase (Id, FirstName…) : normaliser pour que les filtres new/update utilisent `id`.
+        const spouses = this.normalizeSpousesFromApi(spouse);
 
         // Map backend PascalCase `details` to frontend camelCase employee shape
         const mappedDetails = this.mapBackendDetails(details);
+        this.documents.set(this.buildDocumentCards(documents));
 
         // If lookup form data returned, populate formData so labels (eg. genders) are localized
         if (form) {
@@ -583,16 +556,15 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         // Merge salary components with IDs
         const mergedEmployee = {
           ...mappedDetails,
-          activeSalaryId: salary.id,
+          activeSalaryId: salary.id ?? (salary as any).Id,
           salaryComponents: salary.components.length > 0 ? salary.components : (mappedDetails.salaryComponents || []),
           spouses: spouses,
-          children: children,
+          children: this.normalizeChildrenFromApi(children),
           assignedPackage: assignment
         } as EmployeeProfileModel;
 
         // We'll set the employee and try to enrich its `statusName` from referential statuses.
         this.employee.set(mergedEmployee);
-        console.debug('[EmployeeProfile] loaded details', { id: id, status: mergedEmployee.status });
         // Enrich statusName from referential statuses when available (robust matching)
         let finalEmployee = mergedEmployee;
         try {
@@ -827,14 +799,18 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.countryName = d.CountryName ?? d.countryName;
     out.countryId = d.CountryId ?? d.countryId;
     out.position = d.JobPositionName ?? d.Position ?? d.position;
-    out.department = d.DepartmentName ?? d.department ?? (d.departments ?? '')
+    out.jobPositionId = d.JobPositionId ?? d.jobPositionId ?? undefined;
+    out.department = d.DepartmentName ?? d.department ?? (d.departments ?? '');
+    out.departementId = d.DepartementId ?? d.departementId ?? undefined;
     out.manager = d.ManagerName ?? d.Manager ?? d.manager;
     out.contractType = d.ContractTypeName ?? d.ContractType ?? d.contractType;
+    out.contractTypeId = d.ContractTypeId ?? d.contractTypeId ?? undefined;
     out.startDate = d.ContractStartDate ?? d.StartDate ?? d.startDate;
     out.endDate = d.ContractEndDate ?? d.EndDate ?? d.endDate;
     out.probationPeriod = d.ProbationPeriod ?? d.probationPeriod;
     out.baseSalary = d.BaseSalary ?? d.baseSalary ?? 0;
     out.baseSalaryHourly = d.BaseSalaryHourly ?? d.baseSalaryHourly ?? 0;
+    out.salaryEffectiveDate = d.salaryEffectiveDate ?? d.SalaryEffectiveDate ?? null;
     out.salaryComponents = d.SalaryComponents ?? d.salaryComponents ?? [];
     out.statusName = d.StatusName ?? d.statusName ?? d.Status ?? d.status;
     out.status = (d.StatusCode ?? d.Status ?? d.status) as any;
@@ -875,7 +851,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   toggleEditMode(): void {
     if (!this.isEditMode()) {
       // Entering edit mode
-      console.debug('[EmployeeProfile] entering edit mode, current status:', this.employee().status);
       this.loadFormData();
       this.lastSerializedEmployee = JSON.stringify(this.employee());
       this.resetChangeTracking();
@@ -904,8 +879,6 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           const merged = { ...form, statuses } as EmployeeFormData;
           this.formData.set(merged);
           this.isLoadingFormData.set(false);
-          console.debug('[EmployeeProfile] formData.statuses:', merged.statuses);
-          console.debug('[EmployeeProfile] current employee status (signal):', this.employee()?.status, this.employee()?.statusRaw, this.employee()?.statusName);
 
           // Fallbacks: if jobPositions or contractTypes are missing, load them by companyId
           const companyIdRaw = this.contextService.companyId();
@@ -1061,16 +1034,23 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   });
 
   onDepartmentChange(value: any) {
+    const emp = this.employee();
     if (typeof value === 'string') {
-      this.updateField('department', value);
+      this.employee.set({ ...emp, department: value, departementId: undefined });
       this.pendingNewDepartment.set(value);
     } else if (value && typeof value === 'object') {
-      this.updateField('department', value.label);
-      this.pendingNewDepartment.set(null); // existing entry, no creation needed
+      const id = value.id != null && Number(value.id) > 0 ? Number(value.id) : undefined;
+      this.employee.set({ ...emp, department: value.label, departementId: id });
+      this.formData.update(f => ({
+        ...f,
+        departments: [...(f.departments || []).filter(d => d.id !== id), { id: value.id, label: value.label }]
+      }));
+      this.pendingNewDepartment.set(null);
     } else {
-      this.updateField('department', '');
+      this.employee.set({ ...emp, department: '', departementId: undefined });
       this.pendingNewDepartment.set(null);
     }
+    this.saveError.set(null);
   }
 
   searchJobPosition(event: any) {
@@ -1087,16 +1067,40 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   });
 
   onJobPositionChange(value: any) {
+    const emp = this.employee();
     if (typeof value === 'string') {
-      this.updateField('position', value);
+      this.employee.set({ ...emp, position: value, jobPositionId: undefined });
       this.pendingNewJobPosition.set(value);
     } else if (value && typeof value === 'object') {
-      this.updateField('position', value.label);
-      this.pendingNewJobPosition.set(null); // existing entry, no creation needed
+      const id = value.id != null && Number(value.id) > 0 ? Number(value.id) : undefined;
+      this.employee.set({ ...emp, position: value.label, jobPositionId: id });
+      this.formData.update(f => ({
+        ...f,
+        jobPositions: [...(f.jobPositions || []).filter(j => j.id !== id), { id: value.id, label: value.label }]
+      }));
+      this.pendingNewJobPosition.set(null);
     } else {
-      this.updateField('position', '');
+      this.employee.set({ ...emp, position: '', jobPositionId: undefined });
       this.pendingNewJobPosition.set(null);
     }
+    this.saveError.set(null);
+  }
+
+  onContractTypeChange(value: string | null): void {
+    const emp = this.employee();
+    const opts = this.contractTypeSelectOptions();
+    const match = opts.find(
+      o =>
+        (o.value === value || o.label === value) &&
+        typeof (o as { id?: number }).id === 'number' &&
+        (o as { id: number }).id > 0
+    ) as { id: number } | undefined;
+    this.employee.set({
+      ...emp,
+      contractType: (value ?? '') as EmployeeProfileModel['contractType'],
+      contractTypeId: match?.id
+    });
+    this.saveError.set(null);
   }
 
   addNonImposableComponent() {
@@ -1160,6 +1164,135 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.performSave();
   }
 
+  /**
+   * Le POST /api/countries exige CountryCode + CountryPhoneCode ; ne pas créer depuis le profil.
+   * On résout l’ID via le référentiel (GET) quand l’API détail n’a renvoyé que le nom.
+   */
+  private async resolveCountryIdFromName(name: string | undefined, existing?: number): Promise<number | undefined> {
+    if (existing != null && existing > 0) return existing;
+    const trimmed = name?.trim();
+    if (!trimmed) return undefined;
+    try {
+      const list = await firstValueFrom(this.employeeService.searchCountries(trimmed));
+      const norm = (s: string) => s.toLowerCase().trim();
+      const n = norm(trimmed);
+      const exact = list.find(c => norm(c.label) === n);
+      if (exact) return exact.id;
+      const loose = list.find(c => norm(c.label).includes(n) || n.includes(norm(c.label)));
+      return loose?.id;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async resolveCityIdFromName(
+    cityName: string | undefined,
+    countryId: number | undefined,
+    existing?: number
+  ): Promise<number | undefined> {
+    if (existing != null && existing > 0) return existing;
+    const trimmed = cityName?.trim();
+    if (!trimmed || countryId == null || countryId < 1) return undefined;
+    try {
+      const list = await firstValueFrom(this.employeeService.searchCities(trimmed));
+      const norm = (s: string) => s.toLowerCase().trim();
+      const n = norm(trimmed);
+      const inCountry = list.filter(c => c.countryId === countryId);
+      const pool = inCountry.length > 0 ? inCountry : list;
+      const exact = pool.find(c => norm(c.label) === n);
+      if (exact) return exact.id;
+      const loose = pool.find(c => norm(c.label).includes(n) || n.includes(norm(c.label)));
+      return loose?.id;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Map libellés UI (poste, service, type de contrat) vers les IDs attendus par l’API PATCH employé. */
+  private augmentProfilePatchForApi(patch: Record<string, unknown>): Record<string, unknown> {
+    const out: Record<string, unknown> = { ...patch };
+    const fd = this.formData();
+    const norm = (v: unknown) =>
+      v === undefined || v === null ? '' : String(v).toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+    const resolveJobPositionId = (label: string): number | undefined => {
+      const n = label.trim().toLowerCase();
+      if (!n) return undefined;
+      for (const pool of [fd.jobPositions || [], this.filteredJobPositions()]) {
+        const jp = pool.find(j => String(j.label).trim().toLowerCase() === n);
+        if (jp?.id != null && Number(jp.id) > 0) return Number(jp.id);
+      }
+      return undefined;
+    };
+
+    const resolveDepartementId = (name: string): number | undefined => {
+      const n = name.trim().toLowerCase();
+      if (!n) return undefined;
+      for (const pool of [fd.departments || [], this.filteredDepartments()]) {
+        const d = pool.find(x => String(x.label).trim().toLowerCase() === n);
+        if (d?.id != null && Number(d.id) > 0) return Number(d.id);
+      }
+      return undefined;
+    };
+
+    if ('jobPositionId' in out) {
+      const id = Number(out['jobPositionId']);
+      if (id > 0) {
+        delete out['position'];
+      } else {
+        delete out['jobPositionId'];
+      }
+    }
+    if ('position' in out && !('jobPositionId' in out)) {
+      const label = String(out['position'] ?? '').trim();
+      const resolved = label ? resolveJobPositionId(label) : undefined;
+      if (resolved != null) out['jobPositionId'] = resolved;
+      delete out['position'];
+    }
+
+    if ('departementId' in out) {
+      const id = Number(out['departementId']);
+      if (id > 0) {
+        delete out['department'];
+      } else {
+        delete out['departementId'];
+      }
+    }
+    if ('department' in out && !('departementId' in out)) {
+      const name = String(out['department'] ?? '').trim();
+      const resolved = name ? resolveDepartementId(name) : undefined;
+      if (resolved != null) out['departementId'] = resolved;
+      delete out['department'];
+    }
+
+    if ('contractTypeId' in out) {
+      const id = Number(out['contractTypeId']);
+      if (id > 0) {
+        delete out['contractType'];
+      } else {
+        delete out['contractTypeId'];
+      }
+    }
+    if ('contractType' in out && !('contractTypeId' in out)) {
+      const code = norm(out['contractType']);
+      let ctId: number | undefined;
+      const pool = [...(fd.contractTypes || []), ...this.contractTypeOptions];
+      for (const o of pool) {
+        const anyO = o as { id?: number; value?: unknown; label?: string };
+        const val = norm(anyO.value ?? anyO.id ?? '');
+        const lbl = norm(o.label ?? '');
+        if (code && (val === code || lbl === code || (code.length > 0 && (val.includes(code) || lbl.includes(code))))) {
+          ctId = typeof (o as { id: number }).id === 'number' ? (o as { id: number }).id : anyO.id;
+          break;
+        }
+      }
+      if (ctId != null && ctId > 0) out['contractTypeId'] = ctId;
+      delete out['contractType'];
+    }
+
+    return out;
+  }
+
   private async performSave(): Promise<void> {
     if (!this.originalEmployee || !this.employeeId()) {
       return;
@@ -1169,36 +1302,18 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.saveError.set(null);
 
     try {
-      // Handle new Country creation
       let currentCountryId = this.employee().countryId;
-      const currentCountryName = this.employee().countryName;
-      
-      if (!currentCountryId && currentCountryName) {
-        try {
-           const newCountry = await firstValueFrom(this.employeeService.createCountry(currentCountryName));
-           if (newCountry) {
-             this.updateField('countryId', newCountry.id);
-             currentCountryId = newCountry.id;
-           }
-        } catch (e) {
-           console.error('Failed to create country', e);
-        }
+      const resolvedCountryId = await this.resolveCountryIdFromName(this.employee().countryName, currentCountryId);
+      if (resolvedCountryId != null) {
+        currentCountryId = resolvedCountryId;
+        this.updateField('countryId', resolvedCountryId);
       }
 
-      // Handle new City creation
       let currentCityId = this.employee().cityId;
-      const currentCityName = this.employee().city;
-
-      if (!currentCityId && currentCityName) {
-        try {
-           const newCity = await firstValueFrom(this.employeeService.createCity(currentCityName, currentCountryId));
-           if (newCity) {
-             this.updateField('cityId', newCity.id);
-             currentCityId = newCity.id;
-           }
-        } catch (e) {
-           console.error('Failed to create city', e);
-        }
+      const resolvedCityId = await this.resolveCityIdFromName(this.employee().city, currentCountryId, currentCityId);
+      if (resolvedCityId != null) {
+        currentCityId = resolvedCityId;
+        this.updateField('cityId', resolvedCityId);
       }
 
       // Handle new Department creation
@@ -1208,9 +1323,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           const companyIdRaw = this.employee().companyId ?? this.contextService.companyId();
           const companyId = companyIdRaw ? Number(companyIdRaw) : 0;
           if (companyId) {
-            await firstValueFrom(this.employeeService.createDepartment(newDeptName, companyId));
-            this.pendingNewDepartment.set(null);
+            const dep = await firstValueFrom(this.employeeService.createDepartment(newDeptName, companyId));
+            this.formData.update(f => ({
+              ...f,
+              departments: [...(f.departments || []).filter(d => d.id !== dep.id), dep]
+            }));
+            this.employee.update(emp => ({ ...emp, departementId: dep.id }));
           }
+          this.pendingNewDepartment.set(null);
         } catch (e: any) {
           // If already exists (409), ignore; otherwise log
           if (e?.status !== 409) console.error('Failed to create department', e);
@@ -1225,9 +1345,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           const companyIdRaw = this.employee().companyId ?? this.contextService.companyId();
           const companyId = companyIdRaw ? Number(companyIdRaw) : 0;
           if (companyId) {
-            await firstValueFrom(this.employeeService.createJobPosition(newPositionName, companyId));
-            this.pendingNewJobPosition.set(null);
+            const jp = await firstValueFrom(this.employeeService.createJobPosition(newPositionName, companyId));
+            this.formData.update(f => ({
+              ...f,
+              jobPositions: [...(f.jobPositions || []).filter(j => j.id !== jp.id), jp]
+            }));
+            this.employee.update(emp => ({ ...emp, jobPositionId: jp.id }));
           }
+          this.pendingNewJobPosition.set(null);
         } catch (e: any) {
           if (e?.status !== 409) console.error('Failed to create job position', e);
           this.pendingNewJobPosition.set(null);
@@ -1247,8 +1372,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           delete (patch as any).employeeCategoryId;
         }
 
+        const apiPatch = this.augmentProfilePatchForApi(patch as Record<string, unknown>) as Partial<EmployeeProfileModel>;
+
         await firstValueFrom(
-          this.employeeService.patchEmployeeProfile(this.employeeId()!, patch)
+          this.employeeService.patchEmployeeProfile(this.employeeId()!, apiPatch)
         );
       }
 
@@ -1257,7 +1384,8 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       const newActiveSalaryId = salaryDetails.id;
       const oldActiveSalaryId = this.employee().activeSalaryId;
 
-      if (newActiveSalaryId) {
+      // Sans ligne salaire active, id vaut 0 — `if (newActiveSalaryId)` serait faux (0 est falsy en JS).
+      if (newActiveSalaryId > 0) {
         const currentComponents = this.employee().salaryComponents || [];
         const componentPromises = [];
 
@@ -1323,20 +1451,23 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       const currentSpouses = this.employee().spouses || [];
       const originalSpouses = this.originalEmployee?.spouses || [];
       
-      // Find new spouses (no id or temporary id > 1000000000000)
-      const newSpouses = currentSpouses.filter(s => !s.id || s.id > 1000000000000);
-      
-      // Find updated spouses
-      const updatedSpouses = currentSpouses.filter(s => {
-        if (!s.id || s.id > 1000000000000) return false;
-        const original = originalSpouses.find(o => o.id === s.id);
-        return original && JSON.stringify(s) !== JSON.stringify(original);
+      // Id : le backend peut renvoyer PascalCase (Id) et GET conjoint un tableau — utiliser relationId().
+      const newSpouses = currentSpouses.filter(s => {
+        const rid = this.relationId(s);
+        return !rid || rid > 1000000000000;
       });
-      
-      // Find deleted spouses
-      const deletedSpouses = originalSpouses.filter(o => 
-        o.id && !currentSpouses.find(s => s.id === o.id)
-      );
+
+      const updatedSpouses = currentSpouses.filter(s => {
+        const rid = this.relationId(s);
+        if (!rid || rid > 1000000000000) return false;
+        const original = originalSpouses.find(o => this.relationId(o) === rid);
+        return !!original && JSON.stringify(s) !== JSON.stringify(original);
+      });
+
+      const deletedSpouses = originalSpouses.filter(o => {
+        const oid = this.relationId(o);
+        return oid != null && !currentSpouses.find(s => this.relationId(s) === oid);
+      });
 
       const spousePromises = [];
       
@@ -1360,20 +1491,22 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       const currentChildren = this.employee().children || [];
       const originalChildren = this.originalEmployee?.children || [];
       
-      // Find new children (no id or temporary id > 1000000000000)
-      const newChildren = currentChildren.filter(c => !c.id || c.id > 1000000000000);
-      
-      // Find updated children
-      const updatedChildren = currentChildren.filter(c => {
-        if (!c.id || c.id > 1000000000000) return false;
-        const original = originalChildren.find(o => o.id === c.id);
-        return original && JSON.stringify(c) !== JSON.stringify(original);
+      const newChildren = currentChildren.filter(c => {
+        const rid = this.relationId(c);
+        return !rid || rid > 1000000000000;
       });
-      
-      // Find deleted children
-      const deletedChildren = originalChildren.filter(o => 
-        o.id && !currentChildren.find(c => c.id === o.id)
-      );
+
+      const updatedChildren = currentChildren.filter(c => {
+        const rid = this.relationId(c);
+        if (!rid || rid > 1000000000000) return false;
+        const original = originalChildren.find(o => this.relationId(o) === rid);
+        return !!original && JSON.stringify(c) !== JSON.stringify(original);
+      });
+
+      const deletedChildren = originalChildren.filter(o => {
+        const oid = this.relationId(o);
+        return oid != null && !currentChildren.find(c => this.relationId(c) === oid);
+      });
 
       const childPromises = [];
       
@@ -1382,11 +1515,11 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       }
       
       for (const child of updatedChildren) {
-        childPromises.push(firstValueFrom(this.employeeService.updateChild(this.employeeId()!, child.id!, child)));
+        childPromises.push(firstValueFrom(this.employeeService.updateChild(this.employeeId()!, this.relationId(child)!, child)));
       }
       
       for (const child of deletedChildren) {
-        childPromises.push(firstValueFrom(this.employeeService.deleteChild(this.employeeId()!, child.id!)));
+        childPromises.push(firstValueFrom(this.employeeService.deleteChild(this.employeeId()!, this.relationId(child)!)));
       }
       
       if (childPromises.length > 0) {
@@ -1483,16 +1616,107 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.router.navigate([`${this.routePrefix()}/salary-packages`]);
   }
 
+  private buildDocumentCards(items: any[]): Document[] {
+    const uploadedByType = new Map<string, any>();
+    for (const it of items || []) {
+      const type = String(it?.documentType ?? it?.DocumentType ?? '').trim().toLowerCase();
+      if (!type) continue;
+      const current = uploadedByType.get(type);
+      const currentDate = current ? new Date(current.createdAt ?? current.CreatedAt ?? 0).getTime() : 0;
+      const nextDate = new Date(it?.createdAt ?? it?.CreatedAt ?? 0).getTime();
+      if (!current || nextDate >= currentDate) {
+        uploadedByType.set(type, it);
+      }
+    }
+
+    const cards: Document[] = this.documentTemplates.map(t => {
+      const u = uploadedByType.get(t.type);
+      if (!u) {
+        return { type: t.type, name: t.name, uploadDate: '', status: 'missing' };
+      }
+      return {
+        id: Number(u.id ?? u.Id),
+        type: t.type,
+        name: String(u.name ?? u.Name ?? t.name),
+        uploadDate: String(u.createdAt ?? u.CreatedAt ?? ''),
+        status: 'uploaded',
+        filePath: String(u.filePath ?? u.FilePath ?? '')
+      };
+    });
+
+    // Keep additional uploaded document types not in default templates visible in UI.
+    for (const [type, u] of uploadedByType.entries()) {
+      if (cards.some(c => c.type === type)) continue;
+      cards.push({
+        id: Number(u.id ?? u.Id),
+        type,
+        name: String(u.name ?? u.Name ?? type),
+        uploadDate: String(u.createdAt ?? u.CreatedAt ?? ''),
+        status: 'uploaded',
+        filePath: String(u.filePath ?? u.FilePath ?? '')
+      });
+    }
+
+    return cards;
+  }
+
+  private refreshDocuments(): void {
+    const id = this.employeeId();
+    if (!id) return;
+    this.employeeService.getDocuments(id).subscribe({
+      next: docs => this.documents.set(this.buildDocumentCards(docs)),
+      error: () => {}
+    });
+  }
+
   uploadDocument(event: any, documentType: string): void {
-    // TODO: Handle document upload
+    const id = this.employeeId();
+    const file: File | undefined = event?.files?.[0];
+    if (!id || !file) return;
+
+    this.employeeService.uploadDocument(id, documentType, file).subscribe({
+      next: () => {
+        this.saveSuccess.set(this.translate.instant('employees.profile.saveSuccess'));
+        setTimeout(() => this.saveSuccess.set(null), 1500);
+        this.refreshDocuments();
+      },
+      error: () => {
+        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+        setTimeout(() => this.saveError.set(null), 2500);
+      }
+    });
   }
 
   downloadDocument(doc: Document) {
-    // TODO: Download document
+    const id = this.employeeId();
+    if (!id || !doc.id) return;
+
+    this.employeeService.downloadDocument(id, doc.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = window.document.createElement('a');
+        a.href = url;
+        a.download = doc.name || `document-${doc.id}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+        setTimeout(() => this.saveError.set(null), 2500);
+      }
+    });
   }
 
   deleteDocument(doc: Document) {
-    // TODO: Delete document
+    const id = this.employeeId();
+    if (!id || !doc.id) return;
+    this.employeeService.deleteDocument(id, doc.id).subscribe({
+      next: () => this.refreshDocuments(),
+      error: () => {
+        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+        setTimeout(() => this.saveError.set(null), 2500);
+      }
+    });
   }
 
   getEventIcon(type: string): string {
@@ -1533,7 +1757,8 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   formatRelativeTime(dateStr: string): string {
-    const date = new Date(dateStr);
+    const date = this.parseHistoryDate(dateStr);
+    if (!date) return '-';
     const now = new Date();
     const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
     const minutes = Math.round(seconds / 60);
@@ -1548,11 +1773,20 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   formatHistoryDate(dateStr: string): string {
-    const date = new Date(dateStr);
+    const date = this.parseHistoryDate(dateStr);
+    if (!date) return '-';
     return new Intl.DateTimeFormat('fr-FR', {
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(date);
+  }
+
+  private parseHistoryDate(dateInput: unknown): Date | null {
+    if (dateInput === null || dateInput === undefined) return null;
+    const raw = String(dateInput).trim();
+    if (!raw) return null;
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   // Return a raw backend title when it's meaningful and not generic.
@@ -1645,8 +1879,8 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     return normalizedKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  getHistoryTooltipText(dateStr: string): string {
-    return this.formatHistoryDate(dateStr);
+  getHistoryTooltipText(dateStr: string | undefined | null): string {
+    return this.formatHistoryDate(dateStr ?? '');
   }
 
   onHistorySearch(event: Event): void {
@@ -1832,6 +2066,57 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   private announce(message: string): void {
     this.ariaMessage.set(message);
+  }
+
+  /** Identifiant stable pour conjoint/enfant (camelCase ou PascalCase API .NET). */
+  private relationId(x: any): number | undefined {
+    if (!x || typeof x !== 'object') return undefined;
+    const v = x.id ?? x.Id;
+    if (v == null || v === '') return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  /**
+   * GET .../spouse renvoie souvent un tableau ; éviter [[{...}]].
+   * Normaliser les champs pour le reste du profil (camelCase).
+   */
+  private normalizeSpousesFromApi(spouse: any): Spouse[] {
+    if (spouse == null) return [];
+    const rawList = Array.isArray(spouse) ? spouse : [spouse];
+    return rawList.filter(Boolean).map(s => this.normalizeOneSpouse(s));
+  }
+
+  private normalizeOneSpouse(s: any): Spouse {
+    return {
+      ...s,
+      id: s.id ?? s.Id,
+      employeeId: s.employeeId ?? s.EmployeeId,
+      firstName: s.firstName ?? s.FirstName,
+      lastName: s.lastName ?? s.LastName,
+      dateOfBirth: s.dateOfBirth ?? s.DateOfBirth,
+      genderId: s.genderId ?? s.GenderId ?? null,
+      genderName: s.genderName ?? s.GenderName ?? null,
+      cinNumber: s.cinNumber ?? s.CinNumber ?? null,
+      marriageDate: s.marriageDate ?? s.MarriageDate ?? null,
+      isDependent: s.isDependent ?? s.IsDependent ?? false
+    };
+  }
+
+  private normalizeChildrenFromApi(children: any): Child[] {
+    if (!children || !Array.isArray(children)) return [];
+    return children.filter(Boolean).map(c => ({
+      ...c,
+      id: c.id ?? c.Id,
+      employeeId: c.employeeId ?? c.EmployeeId,
+      firstName: c.firstName ?? c.FirstName,
+      lastName: c.lastName ?? c.LastName,
+      dateOfBirth: c.dateOfBirth ?? c.DateOfBirth,
+      genderId: c.genderId ?? c.GenderId ?? null,
+      genderName: c.genderName ?? c.GenderName ?? null,
+      isDependent: c.isDependent ?? c.IsDependent ?? true,
+      isStudent: c.isStudent ?? c.IsStudent ?? false
+    }));
   }
 
   private createEmptyEmployee(): EmployeeProfileModel {

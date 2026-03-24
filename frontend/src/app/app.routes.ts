@@ -34,6 +34,25 @@ export const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'signup',
+    component: AuthLayout,
+    canActivate: [guestGuard],
+    children: [{ path: '', loadComponent: () =>
+      import('./features/auth/signup/signup').then(m => m.SignupPage) }]
+  },
+  {
+    path: 'auth',
+    component: AuthLayout,
+    children: [
+      {
+        path: 'callback',
+        loadComponent: () =>
+          import('./features/auth/entra-callback').then(m => (m as any).EntraCallbackComponent),
+        title: 'Authentification Entra - Payzen'
+      }
+    ]
+  },
 
   // ============================================
   // CONTEXT SELECTION (Post-login, pre-dashboard)
@@ -63,6 +82,11 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: Dashboard
+      },
+      {
+        path: 'employee/dashboard',
+        loadComponent: () => import('./features/employees/dashboard/employee-dashboard.component').then(m => m.EmployeeDashboardComponent),
+        title: 'Mon Espace - PayZen'
       },
       {
         path: 'company',

@@ -14,6 +14,7 @@ export interface PayrollResult {
   companyName: string;
   month: number;
   year: number;
+  payHalf?: number | null;
   status: PayrollResultStatus;
   errorMessage?: string;
   salaireBase: number;
@@ -163,6 +164,7 @@ export interface PayrollFilters {
   month?: number;
   year?: number;
   companyId?: number;
+  half?: number | null;
   status?: PayrollResultStatus;
   searchQuery?: string;
   employeeId?: number;

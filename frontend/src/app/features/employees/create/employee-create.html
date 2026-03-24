@@ -237,8 +237,9 @@
                   <p-autoComplete
                     [suggestions]="filteredDepartments()"
                     (completeMethod)="searchDepartment($event)"
-                    [(ngModel)]="selectedDepartment"
+                    [ngModel]="selectedDepartment()"
                     (ngModelChange)="onDepartmentChange($event)"
+                    [ngModelOptions]="{ standalone: true }"
                     field="label"
                     [forceSelection]="false"
                     [placeholder]="'employees.create.form.departmentPlaceholder' | translate"
@@ -258,8 +259,9 @@
                   <p-autoComplete
                     [suggestions]="filteredJobPositions()"
                     (completeMethod)="searchJobPosition($event)"
-                    [(ngModel)]="selectedJobPosition"
+                    [ngModel]="selectedJobPosition()"
                     (ngModelChange)="onJobPositionChange($event)"
+                    [ngModelOptions]="{ standalone: true }"
                     field="label"
                     [forceSelection]="false"
                     [placeholder]="'employees.create.form.jobPositionPlaceholder' | translate"

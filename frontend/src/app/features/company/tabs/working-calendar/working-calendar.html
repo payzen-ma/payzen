@@ -46,6 +46,7 @@
                   type="time"
                   [id]="'start-' + day.dayOfWeek"
                   [(ngModel)]="day.startTime"
+                  (ngModelChange)="refreshEditableDaysSignal()"
                   class="time-input"
                   required>
               </div>
@@ -58,6 +59,7 @@
                   type="time"
                   [id]="'end-' + day.dayOfWeek"
                   [(ngModel)]="day.endTime"
+                  (ngModelChange)="refreshEditableDaysSignal()"
                   class="time-input"
                   required>
               </div>

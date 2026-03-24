@@ -170,13 +170,31 @@ export class EmployeeCreatePage implements OnInit {
     });
   }
 
+  private resolveLookupId(value: any, options: LookupOption[] | undefined): number | null {
+    if (value == null) {
+      return null;
+    }
+    if (typeof value === 'object') {
+      const raw = value.id ?? value.Id;
+      if (raw != null && raw !== '') {
+        const n = Number(raw);
+        return Number.isNaN(n) ? null : n;
+      }
+      const label = (value.label ?? value.Label ?? '').toString().trim().toLowerCase();
+      if (label && options?.length) {
+        const hit = options.find((o) => o.label.trim().toLowerCase() === label);
+        return hit?.id != null ? Number(hit.id) : null;
+      }
+      return null;
+    }
+    return null;
+  }
+
   onDepartmentChange(value: any) {
     this.selectedDepartment.set(value);
-    if (value && typeof value === 'object' && value.id) {
-      this.employeeForm.controls.departmentId.setValue(value.id);
-    } else if (typeof value === 'string' && value.trim()) {
-      // Si c'est une nouvelle valeur texte, on va la créer lors de la soumission
-      this.employeeForm.controls.departmentId.setValue(null);
+    const id = this.resolveLookupId(value, this.formData().departments);
+    if (id != null) {
+      this.employeeForm.controls.departmentId.setValue(id);
     } else {
       this.employeeForm.controls.departmentId.setValue(null);
     }
@@ -184,11 +202,9 @@ export class EmployeeCreatePage implements OnInit {
 
   onJobPositionChange(value: any) {
     this.selectedJobPosition.set(value);
-    if (value && typeof value === 'object' && value.id) {
-      this.employeeForm.controls.jobPositionId.setValue(value.id);
-    } else if (typeof value === 'string' && value.trim()) {
-      // Si c'est une nouvelle valeur texte, on va la créer lors de la soumission
-      this.employeeForm.controls.jobPositionId.setValue(null);
+    const id = this.resolveLookupId(value, this.formData().jobPositions);
+    if (id != null) {
+      this.employeeForm.controls.jobPositionId.setValue(id);
     } else {
       this.employeeForm.controls.jobPositionId.setValue(null);
     }
@@ -268,37 +284,57 @@ export class EmployeeCreatePage implements OnInit {
   }
 
   submit(): void {
-    if (this.employeeForm.invalid) {
-      this.employeeForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSubmitting.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    const rawCompanyId = this.contextService.companyId();
-    const companyId = rawCompanyId !== null && rawCompanyId !== undefined ? Number(rawCompanyId) : null;
-
-    // Créer département/poste si nécessaire
     const departmentValue = this.selectedDepartment();
     const jobPositionValue = this.selectedJobPosition();
-    
-    const needsNewDepartment = typeof departmentValue === 'string' && departmentValue.trim() && !this.employeeForm.value.departmentId;
-    const needsNewJobPosition = typeof jobPositionValue === 'string' && jobPositionValue.trim() && !this.employeeForm.value.jobPositionId;
+    const rawCompanyId = this.contextService.companyId();
+    const companyId =
+      rawCompanyId !== null && rawCompanyId !== undefined ? Number(rawCompanyId) : null;
+
+    const needsNewDepartment =
+      typeof departmentValue === 'string' &&
+      departmentValue.trim().length > 0 &&
+      this.employeeForm.controls.departmentId.value == null;
+    const needsNewJobPosition =
+      typeof jobPositionValue === 'string' &&
+      jobPositionValue.trim().length > 0 &&
+      this.employeeForm.controls.jobPositionId.value == null;
+
+    const proceedAfterMissing = () => {
+      if (this.employeeForm.invalid) {
+        this.employeeForm.markAllAsTouched();
+        this.isSubmitting.set(false);
+        return;
+      }
+      this.submitEmployee();
+    };
 
     if (needsNewDepartment || needsNewJobPosition) {
+      if (!companyId || Number.isNaN(companyId)) {
+        this.employeeForm.markAllAsTouched();
+        return;
+      }
+      this.isSubmitting.set(true);
       this.createMissingEntities(departmentValue, jobPositionValue, companyId).subscribe({
-        next: () => this.submitEmployee(),
+        next: () => proceedAfterMissing(),
         error: (err: any) => {
           console.error('Error creating department/job position', err);
           this.isSubmitting.set(false);
           this.errorMessage.set(this.translate.instant('employees.create.error'));
         }
       });
-    } else {
-      this.submitEmployee();
+      return;
     }
+
+    if (this.employeeForm.invalid) {
+      this.employeeForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.submitEmployee();
   }
 
   private createMissingEntities(departmentValue: any, jobPositionValue: any, companyId: number | null): any {
@@ -307,8 +343,9 @@ export class EmployeeCreatePage implements OnInit {
     if (typeof departmentValue === 'string' && departmentValue.trim() && companyId) {
       createObservables.push(
         this.employeeService.createDepartment(departmentValue.trim(), companyId).pipe(
-          map(created => {
-            this.employeeForm.controls.departmentId.setValue(created.id);
+          map((created) => {
+            const id = created.id != null ? Number(created.id) : null;
+            this.employeeForm.controls.departmentId.setValue(id);
             return created;
           })
         )
@@ -318,8 +355,9 @@ export class EmployeeCreatePage implements OnInit {
     if (typeof jobPositionValue === 'string' && jobPositionValue.trim() && companyId) {
       createObservables.push(
         this.employeeService.createJobPosition(jobPositionValue.trim(), companyId).pipe(
-          map(created => {
-            this.employeeForm.controls.jobPositionId.setValue(created.id);
+          map((created) => {
+            const id = created.id != null ? Number(created.id) : null;
+            this.employeeForm.controls.jobPositionId.setValue(id);
             return created;
           })
         )
@@ -334,6 +372,7 @@ export class EmployeeCreatePage implements OnInit {
   private submitEmployee(): void {
     if (this.employeeForm.invalid) {
       this.employeeForm.markAllAsTouched();
+      this.isSubmitting.set(false);
       return;
     }
 
@@ -379,7 +418,6 @@ export class EmployeeCreatePage implements OnInit {
       companyId: companyId && !Number.isNaN(companyId) ? companyId : null
     };
 
-    this.isSubmitting.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
 

@@ -67,6 +67,10 @@ export class PayrollService {
     
     if (filters.month) params = params.set('month', filters.month.toString());
     if (filters.year) params = params.set('year', filters.year.toString());
+
+    if (filters.half !== undefined && filters.half !== null) {
+      params = params.set('half', filters.half.toString());
+    }
     
     // Convert companyId to number if it's from context (string)
     const contextCompanyId = this.contextService.companyId();
@@ -113,10 +117,20 @@ export class PayrollService {
    * Télécharge la fiche de paie PDF pour un employé et une période.
    * GET: /api/payslip/employee/{employeeId}/period/{year}/{month}
    */
-  downloadPayslip(employeeId: number, year: number, month: number): Observable<Blob> {
+  downloadPayslip(
+    employeeId: number,
+    year: number,
+    month: number,
+    half?: number | null
+  ): Observable<Blob> {
+    let params = new HttpParams();
+    if (half !== undefined && half !== null) {
+      params = params.set('half', String(half));
+    }
+
     return this.http.get(
       `${environment.apiUrl}/payslip/employee/${employeeId}/period/${year}/${month}`,
-      { responseType: 'blob' }
+      { responseType: 'blob', params }
     );
   }
 

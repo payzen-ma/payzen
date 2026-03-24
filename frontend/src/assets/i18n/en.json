@@ -472,8 +472,11 @@
     "login": {
       "welcome": "Welcome",
       "title": "Login",
-      "subtitle": "Connect to your account",
-      "emailAddress": "Email Address",
+      "subtitle": "Click to access your PayZen workspace",
+      "continue": "Continue with email",
+      "orContinue": "or continue with",
+      "footerNote": "By continuing, you agree to PayZen's terms of service.",
+      "emailAddress": "Email address",
       "email": "Email",
       "emailPlaceholder": "you@example.com",
       "emailRequired": "Email is required",
@@ -909,6 +912,7 @@
       "messages": {
         "loadRolesError": "Failed to load available roles",
         "employeeIdMissing": "Employee identifier is missing",
+        "userIdMissing": "User identifier is missing",
         "noRoleSelected": "Select at least one role",
         "rolesUpdated": "User role(s) updated successfully",
         "selectEmployee": "Select an employee before continuing",

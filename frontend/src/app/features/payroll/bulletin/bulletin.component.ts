@@ -195,7 +195,8 @@ export class BulletinComponent implements OnInit {
       month: this.selectedMonth(),
       year: this.selectedYear(),
       companyId: companyId ? parseInt(companyId.toString()) : undefined,
-      status: this.statusFilter() || undefined
+      status: this.statusFilter() || undefined,
+      half: this.selectedHalf() ?? undefined
     };
 
     this.loading.set(true);

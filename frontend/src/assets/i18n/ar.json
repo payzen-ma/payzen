@@ -464,7 +464,10 @@
     "login": {
       "welcome": "مرحباً",
       "title": "تسجيل الدخول",
-      "subtitle": "سجّل الدخول إلى حسابك",
+      "subtitle": "انقر للوصول إلى فضائك في PayZen",
+      "continue": "المتابعة عبر البريد الإلكتروني",
+      "orContinue": "أو تابع باستخدام",
+      "footerNote": "بالمتابعة، أنت توافق على شروط استخدام PayZen.",
       "emailAddress": "عنوان البريد الإلكتروني",
       "email": "البريد الإلكتروني",
       "emailPlaceholder": "you@example.com",
@@ -880,6 +883,7 @@
       "messages": {
         "loadRolesError": "Failed to load available roles",
         "employeeIdMissing": "Employee identifier is missing",
+        "userIdMissing": "User identifier is missing",
         "noRoleSelected": "Select at least one role",
         "rolesUpdated": "User role(s) updated successfully",
         "selectEmployee": "Select an employee before continuing",

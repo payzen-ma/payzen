@@ -483,8 +483,11 @@
     "login": {
       "welcome": "Bienvenue",
       "title": "Connexion",
-      "subtitle": "Connectez-vous à votre compte",
-      "emailAddress": "Email Address",
+      "subtitle": "Cliquez pour accéder à votre espace PayZen",
+      "continue": "Continuer avec un e-mail",
+      "orContinue": "ou continuez avec",
+      "footerNote": "En continuant, vous acceptez les conditions d'utilisation de PayZen.",
+      "emailAddress": "Adresse e-mail",
       "email": "Email",
       "emailPlaceholder": "you@example.com",
       "emailRequired": "L'email est requis",
@@ -910,6 +913,7 @@
       "messages": {
         "loadRolesError": "Failed to load available roles",
         "employeeIdMissing": "Employee identifier is missing",
+        "userIdMissing": "Impossible d'identifier le compte utilisateur lié à cet employé (UserId manquant). Vérifiez que l'employé a bien un compte ou rechargez la page.",
         "noRoleSelected": "Select at least one role",
         "rolesUpdated": "User role(s) updated successfully",
         "selectEmployee": "Select an employee before continuing",
