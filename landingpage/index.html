@@ -24,7 +24,7 @@
   <div class="nav-links">
     <a href="#features" class="nav-a">Fonctionnalités</a>
     <a href="#pricing" class="nav-a">Tarifs</a>
-    <button class="btn" onclick="scrollCTA()">Accès Prioritaire →</button>
+    <button class="btn" onclick="redirectToEntra()">Accès Prioritaire →</button>
   </div>
 </nav>
 
@@ -39,7 +39,7 @@
       <p class="hero-sub">Payzen HR calcule, contrôle et déclare vos obligations CNSS, AMO et IR — en temps réel. Vous gardez la main. L'IA accélère l'exécution.</p>
       <div class="hero-form" id="hf">
         <input type="email" id="hem" class="inp" placeholder="votre@email.com" />
-        <button class="btn" onclick="join('hem','hs','hf')">Démarrer →</button>
+        <button class="btn" onclick="redirectToEntra()">Démarrer →</button>
       </div>
       <div class="success" id="hs">🎉 Accès prioritaire confirmé. On vous contacte en avant-première.</div>
       <p class="hero-note">Déjà <strong>127 entreprises</strong> sur la liste · Aucun engagement</p>
@@ -287,8 +287,9 @@
         <ul class="pfl">
           <li class="pf">Bulletins illimités</li><li class="pf">CNSS · AMO · IR automatique</li><li class="pf">Export Damancom</li><li class="pf">Simulateur de paie</li><li class="pf">Copilote IA Paie</li>
         </ul>
-        <button class="pbtn" onclick="scrollCTA()">Démarrer →</button>
-      </div>
+        <button class="pbtn" onclick="redirectToEntra()">Démarrer →</button>
+        <button class="pbtn" onclick="redirectToEntra()">Accès Prioritaire →</button>
+              </div>
       <div class="pcard rec">
         <div class="rec-b">⭐ Recommandé</div>
         <div class="pp">Business</div><div class="pa">850</div><div class="pu">MAD / mois HT</div><div class="pscope">Salariés illimités + IA avancée</div>
@@ -310,7 +311,7 @@
     <p>Accès anticipé · Setup inclus · Aucun engagement.</p>
     <div class="hero-form" id="cf" style="max-width:440px;margin:0 auto 14px">
       <input type="email" id="cem" class="inp" placeholder="votre@email.com" />
-      <button class="btn" onclick="join('cem','cs','cf')">Accès Prioritaire →</button>
+      <button class="btn" onclick="redirectToEntra()">Accès Prioritaire →</button>
     </div>
     <div class="success" id="cs">🎉 Bienvenue. On vous contacte en priorité.</div>
     <p style="font-size:.72rem;color:var(--text-3)">Aucun spam · Aucun engagement · Un email au lancement</p>
@@ -330,6 +331,7 @@
   </div>
   <div>© 2026 Payzen HR Morocco — Conforme. Maîtrisé. Instantané.</div>
 </footer>
+<script src="auth.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import { Dashboard } from './features/dashboard/dashboard';
 import { EmployeesPage } from './features/employees/employees';
 import { EmployeeProfile } from './features/employees/profile/employee-profile';
 import { EmployeeCreatePage } from './features/employees/create/employee-create';
-import { LoginPage } from './features/auth/login/login';
+import { LoginComponent } from './features/auth/login/login.component';
 import { 
   authGuard, 
   guestGuard, 
@@ -25,33 +25,29 @@ export const routes: Routes = [
   // ============================================
   {
     path: 'login',
-    component: AuthLayout,
-    canActivate: [guestGuard],
-    children: [
-      {
-        path: '',
-        component: LoginPage
-      }
-    ]
+    loadComponent: () => import('./features/auth/login/login.component')
+      .then(m => m.LoginComponent)
   },
   {
-    path: 'signup',
-    component: AuthLayout,
-    canActivate: [guestGuard],
-    children: [{ path: '', loadComponent: () =>
-      import('./features/auth/signup/signup').then(m => m.SignupPage) }]
+    path: 'auth/callback',
+    loadComponent: () => import('./features/auth/entra-callback/entra-callback.component')
+      .then(m => m.EntraCallbackComponent)
   },
   {
-    path: 'auth',
-    component: AuthLayout,
-    children: [
-      {
-        path: 'callback',
-        loadComponent: () =>
-          import('./features/auth/entra-callback').then(m => (m as any).EntraCallbackComponent),
-        title: 'Authentification Entra - Payzen'
-      }
-    ]
+    path: 'auth/accept-invite',
+    loadComponent: () => import('./features/auth/accept-invite/accept-invite.component')
+      .then(m => m.AcceptInviteComponent)
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./features/dashboard/dashboard')
+      .then(m => m.Dashboard),
+    canActivate: [authGuard]
+  },
+  {
+    path: '',
+    redirectTo: '/dashboard',
+    pathMatch: 'full'
   },
 
   // ============================================

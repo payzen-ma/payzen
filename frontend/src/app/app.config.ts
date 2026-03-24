@@ -8,24 +8,18 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { camelCaseInterceptor } from './core/interceptors/camelcase.interceptor';
 import { routes } from './app.routes';
-import { EntraOtpService } from './core/services/entra-otp.service';
+import { initializeMsal } from './core/config/msal.config';
+
 
 import { providePrimeNG } from 'primeng/config';
 import { PayZenTheme } from '../assets/themes/payzen-theme';
 
-function initializeMsal(entraOtp: EntraOtpService) {
-  return () => entraOtp.initializeAndConsumeRedirect();
-}
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeMsal,
-      deps: [EntraOtpService],
-      multi: true
-    },
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor, camelCaseInterceptor])),
     providePrimeNG({
@@ -48,6 +42,11 @@ export const appConfig: ApplicationConfig = {
     provideTranslateHttpLoader({
       prefix: '/assets/i18n/',
       suffix: '.json'
-    })
+    }),
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => () => initializeMsal()
+    }
   ],
 };

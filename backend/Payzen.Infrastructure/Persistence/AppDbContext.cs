@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Permissions>        Permissions       { get; set; }
     public DbSet<RolesPermissions>   RolesPermissions  { get; set; }
     public DbSet<UsersRoles>         UsersRoles        { get; set; }
+    public DbSet<Invitation>         Invitations       { get; set; }
 
     // ── Company ──────────────────────────────────────────────────────────────
     public DbSet<Company>            Companies         { get; set; }

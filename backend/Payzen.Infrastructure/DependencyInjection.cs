@@ -17,6 +17,7 @@ using Payzen.Infrastructure.Services.LLM;
 using Payzen.Infrastructure.Services.Payroll;
 using Payzen.Infrastructure.Services.Referentiel;
 using Payzen.Infrastructure.Services.Timesheet;
+using Payzen.Infrastructure.Services.Email;
 
 namespace Payzen.Infrastructure;
 
@@ -46,6 +47,7 @@ public static class DependencyInjection
         // ── Auth ─────────────────────────────────────────────────────────────
         services.AddScoped<IJwtService,  JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IInvitationService, InvitationService>();
 
         // ── Company ──────────────────────────────────────────────────────────
         services.AddScoped<ICompanyService,            CompanyService>();
@@ -78,6 +80,9 @@ public static class DependencyInjection
         services.AddScoped<IPayComponentService,       PayComponentService>();
         services.AddScoped<IReferentielPayrollService, ReferentielPayrollService>();
         services.AddScoped<IConvergenceService,        ConvergenceAnalysisService>();
+
+        // ── Email ─────────────────────────────────────────────────────────────
+        services.AddScoped<IEmailService, EmailService>();
 
         // ── Referentiel ───────────────────────────────────────────────────────
         services.AddScoped<IReferentielService, ReferentielService>();

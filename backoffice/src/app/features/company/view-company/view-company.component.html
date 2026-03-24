@@ -123,5 +123,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Invitation Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        Inviter un admin company
+      </h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Envoyez une invitation d’administration à cette entreprise. L’utilisateur acceptera via Microsoft ou Google.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email de l'admin</label>
+          <input
+            type="email"
+            [(ngModel)]="inviteEmail"
+            placeholder="admin@entreprise.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <button
+            type="button"
+            (click)="inviteAdmin()"
+            [disabled]="isInviting"
+            class="w-full inline-flex justify-center items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ isInviting ? 'Envoi...' : 'Envoyer invitation' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
