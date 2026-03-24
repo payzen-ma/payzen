@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Payzen.Domain</RootNamespace>
+		<AssemblyName>Payzen.Domain</AssemblyName>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<!--
+    BCrypt is referenced by Users.VerifyPassword().
+    If you prefer to keep Domain free of infrastructure dependencies,
+    move VerifyPassword() to Payzen.Application (a domain service / value object)
+    and remove this package reference from Domain.
+  -->
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+	</ItemGroup>
+
+</Project>

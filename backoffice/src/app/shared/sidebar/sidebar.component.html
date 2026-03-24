@@ -1,0 +1,69 @@
+<aside 
+  [class.w-64]="!isCollapsed()"
+  [class.w-20]="isCollapsed()"
+  class="h-screen bg-white border-r border-surface-200 shadow-sm flex flex-col transition-all duration-300 ease-in-out overflow-hidden">
+
+  <!-- Brand Section -->
+  <div class="flex items-center justify-between px-6 py-6 border-b border-surface-200">
+    <div *ngIf="!isCollapsed()" class="flex items-center gap-2">
+      <span class="text-2xl font-bold text-primary-500">PayZen</span>
+      <span class="text-xs font-bold bg-primary-50 text-primary-500 px-2 py-1 rounded-full">Admin</span>
+    </div>
+    <div *ngIf="isCollapsed()" class="text-2xl font-bold text-primary-500">P</div>
+    
+    <!-- Toggle Button -->
+    <button
+      (click)="toggleCollapse()"
+      class="p-1 hover:bg-surface-100 rounded-lg transition-colors"
+      [title]="isCollapsed() ? 'Expand' : 'Collapse'"
+      aria-label="Toggle sidebar">
+      <svg class="w-5 h-5 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path *ngIf="!isCollapsed()" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        <path *ngIf="isCollapsed()" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-2">
+    <a
+      *ngFor="let item of menuItems"
+      [routerLink]="item.routerLink"
+      routerLinkActive="active"
+      (click)="onMenuItemClick()"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg text-surface-700 hover:bg-surface-100 hover:text-primary-500 transition-all duration-200 text-sm font-medium"
+      [class.justify-center]="isCollapsed()"
+      [title]="isCollapsed() ? item.label : ''">
+      <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
+      <span *ngIf="!isCollapsed()" class="truncate">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <!-- Active Menu Item Indicator -->
+
+
+  <!-- User Profile Section -->
+  <div class="border-t border-surface-200 p-4">
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-100 transition-colors"
+      [class.justify-center]="isCollapsed()">
+      <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+        {{ getCurrentUser().name.charAt(0).toUpperCase() || 'U' }}
+      </div>
+      <div *ngIf="!isCollapsed()" class="text-left min-w-0">
+        <div class="text-sm font-semibold text-surface-900 truncate">{{ getCurrentUser().name }}</div>
+        <div class="text-xs text-surface-500 truncate">{{ getCurrentUser().role }}</div>
+      </div>
+    </button>
+
+    <!-- Logout Button -->
+    <button
+      (click)="logout()"
+      class="w-full mt-3 flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-sm font-medium"
+      [class.justify-center]="isCollapsed()"
+      [title]="isCollapsed() ? 'Logout' : ''">
+      <span class="text-lg">🚪</span>
+      <span *ngIf="!isCollapsed()">Déconnexion</span>
+    </button>
+  </div>
+</aside>

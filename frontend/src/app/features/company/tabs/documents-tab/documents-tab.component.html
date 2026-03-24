@@ -1,0 +1,415 @@
+<!-- Loading Skeleton -->
+@if (loading() && documents().length === 0) {
+  <div class="animate-pulse p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-gray-200 rounded-xl h-48"></div>
+          <div class="bg-gray-200 rounded-xl h-64"></div>
+        </div>
+        <div class="bg-gray-200 rounded-xl h-80"></div>
+      </div>
+      <div class="bg-gray-200 rounded-xl h-64"></div>
+    </div>
+  </div>
+}
+
+<!-- Main Content -->
+@if (!loading() || documents().length > 0) {
+  <div class="p-4 sm:p-6 space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+
+      <!-- ── Top row: Signatory form + Stats card ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left: Signatory & Official Images -->
+        <main class="lg:col-span-2 space-y-6">
+          <form [formGroup]="signatoryForm" (ngSubmit)="onSubmit()">
+
+            <!-- Signatory Info -->
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6" aria-labelledby="signatory-heading">
+              <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 id="signatory-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i class="pi pi-user-edit text-blue-600"></i>
+                  {{ 'company.documents.signatoryTitle' | translate }}
+                </h2>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ 'company.documents.signatoryDesc' | translate }}
+                </p>
+              </div>
+              <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label for="signatoryName" class="block mb-2 text-sm font-medium text-gray-900">
+                    {{ 'company.documents.signatoryName' | translate }}
+                    <span class="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input pInputText id="signatoryName" formControlName="signatoryName" class="w-full"
+                    [placeholder]="'company.documents.placeholders.signatoryName' | translate"
+                    [attr.aria-invalid]="isFieldInvalid('signatoryName')" />
+                  @if (isFieldInvalid('signatoryName')) {
+                    <small class="block mt-1.5 text-sm text-red-600" role="alert">
+                      <i class="pi pi-exclamation-circle mr-1"></i>
+                      {{ 'common.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
+                <div>
+                  <label for="signatoryTitle" class="block mb-2 text-sm font-medium text-gray-900">
+                    {{ 'company.documents.signatoryRole' | translate }}
+                    <span class="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input pInputText id="signatoryTitle" formControlName="signatoryTitle" class="w-full"
+                    [placeholder]="'company.documents.placeholders.signatoryRole' | translate"
+                    [attr.aria-invalid]="isFieldInvalid('signatoryTitle')" />
+                  @if (isFieldInvalid('signatoryTitle')) {
+                    <small class="block mt-1.5 text-sm text-red-600" role="alert">
+                      <i class="pi pi-exclamation-circle mr-1"></i>
+                      {{ 'common.validation.required' | translate }}
+                    </small>
+                  }
+                </div>
+              </div>
+            </section>
+
+            <!-- Official Images -->
+            <section class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6" aria-labelledby="images-heading">
+              <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 id="images-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i class="pi pi-image text-amber-600"></i>
+                  {{ 'company.documents.officialImages' | translate }}
+                </h2>
+              </div>
+              <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+                <!-- Signature -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                  <span class="font-medium text-gray-700 mb-3">{{ 'company.documents.signature' | translate }}</span>
+                  <div class="w-full h-28 bg-white border-2 border-dashed border-gray-300 rounded-lg mb-3 grid place-items-center overflow-hidden relative">
+                    @if (uploadingImageType() === 'signature') {
+                      <i class="pi pi-spin pi-spinner text-2xl text-blue-500"></i>
+                    } @else if (signatureUrl()) {
+                      <img [src]="signatureUrl()" class="h-full object-contain" [attr.alt]="'company.documents.signatureAlt' | translate" />
+                    } @else {
+                      <span class="text-gray-400 text-sm">{{ 'company.documents.noSignature' | translate }}</span>
+                    }
+                  </div>
+                  <div class="flex gap-2 w-full justify-center flex-wrap">
+                    <p-fileUpload mode="basic" name="signature" accept="image/*" [maxFileSize]="5000000"
+                      [customUpload]="true" (uploadHandler)="onUploadSignature($event)" [auto]="true"
+                      [chooseLabel]="'common.upload' | translate"
+                      [disabled]="uploadingImageType() !== null"
+                      styleClass="p-button-sm p-button-outlined">
+                    </p-fileUpload>
+                    @if (signatureUrl()) {
+                      <button pButton icon="pi pi-trash" class="p-button-sm p-button-text p-button-danger"
+                        [pTooltip]="'common.delete' | translate" tooltipPosition="top"
+                        [disabled]="uploadingImageType() !== null"
+                        (click)="removeSignature()"></button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Stamp -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                  <span class="font-medium text-gray-700 mb-3">{{ 'company.documents.stamp' | translate }}</span>
+                  <div class="w-full h-28 bg-white border-2 border-dashed border-gray-300 rounded-lg mb-3 grid place-items-center overflow-hidden">
+                    @if (uploadingImageType() === 'stamp') {
+                      <i class="pi pi-spin pi-spinner text-2xl text-blue-500"></i>
+                    } @else if (stampUrl()) {
+                      <img [src]="stampUrl()" class="h-full object-contain" [attr.alt]="'company.documents.stampAlt' | translate" />
+                    } @else {
+                      <span class="text-gray-400 text-sm">{{ 'company.documents.noStamp' | translate }}</span>
+                    }
+                  </div>
+                  <div class="flex gap-2 w-full justify-center flex-wrap">
+                    <p-fileUpload mode="basic" name="stamp" accept="image/*" [maxFileSize]="5000000"
+                      [customUpload]="true" (uploadHandler)="onUploadStamp($event)" [auto]="true"
+                      [chooseLabel]="'common.upload' | translate"
+                      [disabled]="uploadingImageType() !== null"
+                      styleClass="p-button-sm p-button-outlined">
+                    </p-fileUpload>
+                    @if (stampUrl()) {
+                      <button pButton icon="pi pi-trash" class="p-button-sm p-button-text p-button-danger"
+                        [pTooltip]="'common.delete' | translate" tooltipPosition="top"
+                        [disabled]="uploadingImageType() !== null"
+                        (click)="removeStamp()"></button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Logo -->
+                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                  <span class="font-medium text-gray-700 mb-3">{{ 'company.documents.logo' | translate }}</span>
+                  <div class="w-full h-28 bg-white border-2 border-dashed border-gray-300 rounded-lg mb-3 grid place-items-center overflow-hidden">
+                    @if (uploadingImageType() === 'logo') {
+                      <i class="pi pi-spin pi-spinner text-2xl text-blue-500"></i>
+                    } @else if (logoUrl()) {
+                      <img [src]="logoUrl()" class="h-full object-contain" [attr.alt]="'company.documents.logoAlt' | translate" />
+                    } @else {
+                      <span class="text-gray-400 text-sm">{{ 'company.documents.noLogo' | translate }}</span>
+                    }
+                  </div>
+                  <div class="flex gap-2 w-full justify-center flex-wrap">
+                    <p-fileUpload mode="basic" name="logo" accept="image/*" [maxFileSize]="5000000"
+                      [customUpload]="true" (uploadHandler)="onUploadLogo($event)" [auto]="true"
+                      [chooseLabel]="'common.upload' | translate"
+                      [disabled]="uploadingImageType() !== null"
+                      styleClass="p-button-sm p-button-outlined">
+                    </p-fileUpload>
+                    @if (logoUrl()) {
+                      <button pButton icon="pi pi-trash" class="p-button-sm p-button-text p-button-danger"
+                        [pTooltip]="'common.delete' | translate" tooltipPosition="top"
+                        [disabled]="uploadingImageType() !== null"
+                        (click)="removeLogo()"></button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- Save Button -->
+            <div class="flex justify-end">
+              <p-button type="submit" [label]="'common.save' | translate" [loading]="loading()"
+                [disabled]="loading()" icon="pi pi-check">
+              </p-button>
+            </div>
+          </form>
+        </main>
+
+        <!-- Right: Stats card -->
+        <aside class="lg:col-span-1">
+          <section class="bg-white rounded-xl border border-gray-200 shadow-sm h-fit" aria-labelledby="stats-heading">
+            <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+              <h2 id="stats-heading" class="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <i class="pi pi-chart-bar text-indigo-600"></i>
+                {{ 'company.documents.stats.title' | translate }}
+              </h2>
+            </div>
+            <div class="p-5 space-y-4">
+              <!-- Total count -->
+              <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg">
+                <div class="size-10 rounded-full bg-indigo-100 grid place-items-center shrink-0">
+                  <i class="pi pi-folder text-indigo-600 text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-indigo-700">{{ documents().length }}</div>
+                  <div class="text-xs text-gray-500">{{ 'company.documents.stats.total' | translate }}</div>
+                </div>
+              </div>
+
+              <!-- Add document button -->
+              <p-button
+                [label]="'company.documents.addDocument' | translate"
+                icon="pi pi-upload"
+                styleClass="w-full p-button-outlined"
+                (onClick)="openUploadDialog()">
+              </p-button>
+
+              <!-- Last upload info -->
+              @if (documents().length > 0) {
+                <div class="text-xs text-gray-500 text-center pt-1">
+                  {{ 'company.documents.stats.lastUpload' | translate }}:
+                  {{ documents()[0].createdAt | date:'mediumDate' }}
+                </div>
+              }
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <!-- ── Full-width Documents Table ── -->
+      <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="docs-table-heading">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 id="docs-table-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <i class="pi pi-folder-open text-green-600"></i>
+              {{ 'company.documents.title' | translate }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-0.5">{{ 'company.documents.subtitle' | translate }}</p>
+          </div>
+          <p-button
+            [label]="'company.documents.addDocument' | translate"
+            icon="pi pi-plus"
+            (onClick)="openUploadDialog()">
+          </p-button>
+        </div>
+
+        <p-table
+          [value]="documents()"
+          [loading]="loading()"
+          [paginator]="documents().length > 10"
+          [rows]="10"
+          styleClass="p-datatable-sm">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="w-2/5">{{ 'company.documents.name' | translate }}</th>
+              <th class="w-1/5">{{ 'company.documents.docType' | translate }}</th>
+              <th class="w-1/5">{{ 'company.documents.date' | translate }}</th>
+              <th class="w-1/5 text-center">{{ 'common.actions' | translate }}</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-doc>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <!-- Name + icon -->
+              <td>
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                  <div class="shrink-0 size-8 rounded-lg bg-gray-100 grid place-items-center">
+                    <i class="pi text-sm" [class]="getFileIcon(doc.name)"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-800 truncate" [title]="doc.name">{{ doc.name }}</span>
+                </div>
+              </td>
+              <!-- Type badge -->
+              <td>
+                @if (doc.documentType) {
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {{ getDocumentTypeLabel(doc.documentType) }}
+                  </span>
+                } @else {
+                  <span class="text-gray-400 text-sm">—</span>
+                }
+              </td>
+              <!-- Date -->
+              <td class="text-sm text-gray-500">
+                {{ doc.createdAt | date:'dd/MM/yyyy' }}
+              </td>
+              <!-- Actions -->
+              <td>
+                <div class="flex items-center justify-center gap-1">
+                  <button
+                    pButton
+                    pTooltip="{{ 'common.download' | translate }}"
+                    tooltipPosition="top"
+                    icon="pi pi-download"
+                    class="p-button-text p-button-rounded p-button-sm text-blue-600"
+                    (click)="downloadDocument(doc)"
+                    [attr.aria-label]="'common.download' | translate">
+                  </button>
+                  <button
+                    pButton
+                    pTooltip="{{ 'common.delete' | translate }}"
+                    tooltipPosition="top"
+                    icon="pi pi-trash"
+                    class="p-button-text p-button-rounded p-button-sm p-button-danger"
+                    (click)="deleteDocument(doc)"
+                    [attr.aria-label]="'common.delete' | translate">
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center py-12">
+                <div class="flex flex-col items-center gap-3 text-gray-400">
+                  <i class="pi pi-folder-open text-4xl"></i>
+                  <span class="text-sm">{{ 'company.documents.noDocuments' | translate }}</span>
+                  <p-button
+                    [label]="'company.documents.addDocument' | translate"
+                    icon="pi pi-plus"
+                    styleClass="p-button-outlined p-button-sm mt-1"
+                    (onClick)="openUploadDialog()">
+                  </p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+
+    </div>
+  </div>
+}
+
+<!-- ══ Upload Document Dialog ══ -->
+<p-dialog
+  [visible]="showUploadDialog()"
+  (visibleChange)="showUploadDialog.set($event)"
+  [header]="'company.documents.uploadDialogTitle' | translate"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div class="space-y-5 py-2">
+    <!-- Document type -->
+    <div>
+      <label class="block mb-2 text-sm font-medium text-gray-700">
+        {{ 'company.documents.docType' | translate }}
+        <span class="text-gray-400 text-xs ml-1">({{ 'common.optional' | translate }})</span>
+      </label>
+      <p-select
+        [(ngModel)]="uploadDocumentType"
+        [options]="documentTypes"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        [placeholder]="'company.documents.selectDocType' | translate"
+        styleClass="w-full">
+      </p-select>
+    </div>
+
+    <!-- File picker -->
+    <div>
+      <label class="block mb-2 text-sm font-medium text-gray-700">
+        {{ 'company.documents.selectFile' | translate }}
+        <span class="text-red-500 ml-0.5">*</span>
+      </label>
+
+      <p-fileUpload
+        name="docFile"
+        mode="basic"
+        [customUpload]="true"
+        [auto]="true"
+        (uploadHandler)="onFileSelected($event)"
+        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+        [maxFileSize]="10000000"
+        [chooseLabel]="'company.documents.selectFile' | translate"
+        styleClass="p-button-outlined w-full">
+      </p-fileUpload>
+
+      @if (selectedFileName()) {
+        <div class="mt-2 flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">
+          <i class="pi pi-check-circle"></i>
+          <span class="truncate">{{ selectedFileName() }}</span>
+        </div>
+      }
+
+      <p class="mt-1.5 text-xs text-gray-400">
+        {{ 'company.documents.uploadHint' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        [label]="'common.cancel' | translate"
+        styleClass="p-button-text"
+        (onClick)="showUploadDialog.set(false)"
+        [disabled]="uploading()">
+      </p-button>
+      <p-button
+        [label]="'common.upload' | translate"
+        icon="pi pi-upload"
+        [loading]="uploading()"
+        [disabled]="!selectedFile || uploading()"
+        (onClick)="confirmUpload()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ══ Confirm Delete Dialog ══ -->
+<p-confirmDialog
+  [style]="{ width: '420px' }"
+  [acceptLabel]="'common.delete' | translate"
+  [rejectLabel]="'common.cancel' | translate"
+  rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>
+
+<p-toast />

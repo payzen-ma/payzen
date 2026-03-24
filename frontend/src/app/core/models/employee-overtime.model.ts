@@ -1,0 +1,36 @@
+export interface EmployeeOvertime {
+  id: number;
+  employeeId: number;
+  overTimeType: string;
+  entryMode: string;
+  holidayId?: number;
+  overtimeDate: string;
+  startTime?: string;
+  endTime?: string;
+  crossesMidnight: boolean;
+  durationInHours: number;
+  standardDayHours?: number;
+  rateRuleId?: number;
+  rateRuleCodeApplied?: string;
+  rateRuleNameApplied?: string;
+  rateMultiplierApplied: number;
+  multiplierCalculationDetails?: string;
+  splitBatchId?: string;
+  splitSequence?: number;
+  splitTotalSegments?: number;
+  status: string;
+  employeeComment?: string;
+  managerComment?: string;
+  approvedBy?: number;
+  approvedAt?: string;
+  isProcessedInPayroll: boolean;
+  payrollBatchId?: number;
+  processedInPayrollAt?: string;
+  createdBy: number;
+  createdAt: string;
+  modifiedBy?: number;
+  modifiedAt?: string;
+  deletedBy?: number;
+  deletedAt?: string;
+  rowVersion?: string;
+}

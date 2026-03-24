@@ -1,0 +1,23 @@
+/* Expert Mode Styles - Subtle & Professional */
+.expert-header {
+  background-color: #fcfcfc !important; /* Very subtle grey/off-white */
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Add a subtle top accent instead of a thick border */
+.expert-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #9333ea, #4f46e5); /* Purple to Indigo */
+  opacity: 0.8;
+}
+
+/* Ensure header transitions smoothly */
+header {
+  transition: all 0.3s ease;
+  position: relative; /* For the pseudo-element */
+}

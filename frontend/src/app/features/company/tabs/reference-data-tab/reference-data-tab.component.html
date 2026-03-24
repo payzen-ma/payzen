@@ -1,0 +1,253 @@
+<div class="p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Enhanced Header with Icon -->
+    <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div class="flex items-start gap-4">
+        <!-- Icon Badge -->
+        <div class="shrink-0 size-12 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
+          <i class="pi pi-database text-white text-xl"></i>
+        </div>
+        
+        <!-- Title & Description -->
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900 leading-tight">
+            {{ 'company.referenceData.title' | translate }}
+          </h1>
+          <p class="text-sm text-gray-500 mt-1">
+            {{ 'company.referenceData.subtitle' | translate }}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Education Levels Section -->
+    <section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="education-levels-heading">
+      <h2 id="education-levels-heading" class="sr-only">{{ 'company.referenceData.educationLevels.title' | translate }}</h2>
+      
+      <!-- Card Header -->
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="size-8 rounded-lg bg-orange-50 flex items-center justify-center">
+              <i class="pi pi-book text-orange-600 text-sm"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-900">
+                {{ 'company.referenceData.educationLevels.title' | translate }}
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Academic qualifications and degrees
+              </p>
+            </div>
+          </div>
+          
+          <p-button 
+            icon="pi pi-plus" 
+            [label]="'company.referenceData.educationLevels.add' | translate"
+            size="small"
+            (onClick)="openCreateDialog()">
+          </p-button>
+        </div>
+      </div>
+      
+      <!-- List Content -->
+      @if (loadingEducationLevels()) {
+        <div class="p-8 flex items-center justify-center">
+          <div class="flex flex-col items-center gap-3 text-gray-400">
+            <i class="pi pi-spin pi-spinner text-3xl"></i>
+            <span class="text-sm">{{ 'common.loading' | translate }}</span>
+          </div>
+        </div>
+      } @else if (educationLevels().length === 0) {
+        <div class="p-12">
+          <div class="max-w-sm mx-auto text-center">
+            <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-gray-100 mb-4">
+              <i class="pi pi-book text-3xl text-gray-400"></i>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 mb-1">
+              No education levels yet
+            </h3>
+            <p class="text-sm text-gray-500 mb-6">
+              Add education levels to categorize employee qualifications.
+            </p>
+            <p-button 
+              icon="pi pi-plus" 
+              [label]="'company.referenceData.educationLevels.add' | translate"
+              size="small"
+              (onClick)="openCreateDialog()">
+            </p-button>
+          </div>
+        </div>
+      } @else {
+        <div class="divide-y divide-gray-100">
+          @for (level of educationLevels(); track level.id) {
+            <div class="group px-6 py-4 hover:bg-gray-50/80 transition-colors">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <div class="shrink-0 size-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                    <i class="pi pi-book text-orange-600 text-sm"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-medium text-gray-900 truncate">
+                      {{ level.educationLevelName }}
+                    </h4>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      Education Level
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    (click)="openEditDialog(level)"
+                    class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all"
+                    [attr.aria-label]="'common.edit' | translate">
+                    <i class="pi pi-pencil text-sm"></i>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="confirmDelete(level)"
+                    class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-red-600 hover:shadow-sm transition-all"
+                    [attr.aria-label]="'common.delete' | translate">
+                    <i class="pi pi-trash text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <div class="px-6 py-3 bg-gray-50/50 border-t border-gray-100">
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>
+              {{ 'common.showing' | translate }} {{ educationLevels().length }} {{ educationLevels().length === 1 ? 'level' : 'levels' }}
+            </span>
+            <span class="flex items-center gap-1">
+              <i class="pi pi-info-circle text-blue-500"></i>
+              Last updated: now
+            </span>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+</div>
+
+<!-- Shared Dialog for all types -->
+<p-dialog 
+  [visible]="dialogVisible()" 
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [style]="{width: '32rem'}"
+  [draggable]="false"
+  [resizable]="false"
+  [showHeader]="false"
+  styleClass="app-dialog app-dialog--narrow">
+  
+  <!-- Custom Header -->
+  <div class="px-6 pt-6 pb-4 border-b border-gray-100">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 size-12 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
+        <i class="pi pi-book text-white text-xl"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-xl font-semibold text-gray-900 leading-tight">
+          {{ getDialogTitle() }}
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">
+          {{ isEditMode ? 'Update the education level information' : 'Add a new education level' }}
+        </p>
+      </div>
+      <button 
+        type="button"
+        (click)="dialogVisible.set(false)"
+        class="shrink-0 size-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        [attr.aria-label]="'common.close' | translate">
+        <i class="pi pi-times text-lg"></i>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Form Content -->
+  <div class="px-6 py-6">
+    <form [formGroup]="itemForm">
+      <div class="form-field">
+        <label for="itemName" class="form-label form-label-required">
+          {{ getFieldLabel() }}
+        </label>
+        <input 
+          pInputText 
+          id="itemName" 
+          formControlName="name" 
+          class="input"
+          type="text"
+          [placeholder]="getPlaceholder()"
+          [ngClass]="{'ng-invalid ng-dirty': itemForm.get('name')?.invalid && itemForm.get('name')?.touched}" />
+        @if (itemForm.get('name')?.invalid && itemForm.get('name')?.touched) {
+          <small class="form-error">
+            <i class="pi pi-exclamation-circle"></i>
+            {{ 'errors.required' | translate }}
+          </small>
+        }
+        <small class="block text-xs text-gray-500 mt-1.5">
+          Enter the name of the education level (e.g., Bachelor's Degree, Master's)
+        </small>
+      </div>
+      
+      <!-- Quick Examples -->
+      @if (!isEditMode) {
+        <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-lightbulb text-blue-600 text-sm mt-0.5"></i>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-blue-900 mb-1">
+                Common examples
+              </p>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" (click)="itemForm.patchValue({name: 'High School'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
+                  High School
+                </button>
+                <button type="button" (click)="itemForm.patchValue({name: 'Bachelor Degree'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
+                  Bachelor Degree
+                </button>
+                <button type="button" (click)="itemForm.patchValue({name: 'Master Degree'})" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-100 transition-colors">
+                  Master Degree
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </form>
+  </div>
+  
+  <!-- Footer Info & Actions -->
+  <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+    <div class="flex items-center justify-between gap-4">
+      <p class="text-xs text-gray-500 flex items-center gap-1.5">
+        <i class="pi pi-info-circle text-blue-500"></i>
+        Used to categorize employee qualifications
+      </p>
+      <div class="flex items-center gap-2">
+        <p-button 
+          [label]="'common.cancel' | translate" 
+          severity="secondary"
+          size="small"
+          (onClick)="dialogVisible.set(false)">
+        </p-button>
+        <p-button 
+          [label]="(isEditMode ? 'common.update' : 'common.create') | translate" 
+          icon="pi pi-check"
+          size="small"
+          [loading]="submitLoading()"
+          (onClick)="saveItem()">
+        </p-button>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<p-toast />
+<p-confirmDialog [style]="{width: '450px'}" />

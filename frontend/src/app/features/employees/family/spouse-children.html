@@ -1,0 +1,224 @@
+<div class="space-y-6">
+  <h3 class="section-title">{{ 'employees.profile.family.title' | translate }}</h3>
+
+  <!-- Spouse Section -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h4 class="text-lg font-semibold text-(--text-primary)">{{ 'employees.profile.family.spouses' | translate }}</h4>
+      @if (isEditMode && !showSpouseDialog()) {
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-plus" 
+          [label]="'common.add' | translate" 
+          class="p-button-text p-button-sm" 
+          (click)="openCreateSpouse()">
+        </button>
+      }
+    </div>
+
+    @if (showSpouseDialog()) {
+      <!-- Inline Spouse Edit Form -->
+      <div class="space-y-4 p-4 border rounded bg-(--surface-50) mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-field">
+            <label class="form-label required">{{ 'common.firstName' | translate }}</label>
+            <input pInputText [ngModel]="editingSpouse()!.firstName" (ngModelChange)="updateSpouseField('firstName', $event)" class="w-full input" />
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label required">{{ 'common.lastName' | translate }}</label>
+            <input pInputText [ngModel]="editingSpouse()!.lastName" (ngModelChange)="updateSpouseField('lastName', $event)" class="w-full input" />
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label required">{{ 'employees.profile.family.dob' | translate }}</label>
+            <input pInputText type="date" [ngModel]="editingSpouse()!.dateOfBirth" (ngModelChange)="updateSpouseField('dateOfBirth', $event)" class="w-full input" />
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">{{ 'employees.profile.family.gender' | translate }}</label>
+            <p-select 
+              [options]="genderOptions()" 
+              [ngModel]="editingSpouse()!.genderId" 
+              (ngModelChange)="updateSpouseField('genderId', $event)"
+              optionLabel="label" 
+              optionValue="id"
+              [placeholder]="'common.select' | translate"
+              class="w-full">
+            </p-select>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">{{ 'common.cin' | translate }}</label>
+            <input pInputText [ngModel]="editingSpouse()!.cinNumber" (ngModelChange)="updateSpouseField('cinNumber', $event)" class="w-full input" />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">{{ 'employees.profile.family.marriageDate' | translate }}</label>
+            <input pInputText type="date" [ngModel]="editingSpouse()!.marriageDate" (ngModelChange)="updateSpouseField('marriageDate', $event)" class="w-full input" />
+          </div>
+        </div>
+        
+        <div class="flex justify-end gap-3">
+          <button pButton type="button" [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="showSpouseDialog.set(false)"></button>
+          <button pButton type="button" [label]="'common.save' | translate" icon="pi pi-check" class="btn btn-primary" (click)="saveSpouse()"></button>
+        </div>
+      </div>
+    }
+
+    <p-table [value]="spousesSignal()" [loading]="loading()" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'employees.profile.family.spouseName' | translate }}</th>
+          <th>{{ 'employees.profile.family.dob' | translate }}</th>
+          <th>{{ 'employees.profile.family.gender' | translate }}</th>
+          <th>{{ 'common.cin' | translate }}</th>
+          <th>{{ 'employees.profile.family.marriageDate' | translate }}</th>
+          <th style="width: 120px"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-spouse>
+        <tr>
+          <td>{{ spouse.firstName }} {{ spouse.lastName }}</td>
+          <td>{{ spouse.dateOfBirth | date:'dd/MM/yyyy' }}</td>
+          <td>{{ spouse.genderName || '-' }}</td>
+          <td>{{ spouse.cinNumber || '-' }}</td>
+          <td>{{ spouse.marriageDate | date:'dd/MM/yyyy' }}</td>
+          <td class="text-right">
+            @if (isEditMode) {
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-pencil" 
+                class="p-button-text p-button-sm" 
+                (click)="openEditSpouse(spouse)">
+              </button>
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-trash" 
+                class="p-button-text p-button-danger p-button-sm" 
+                (click)="deleteSpouse(spouse)">
+              </button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center text-(--text-secondary) py-4">
+            {{ 'employees.profile.family.noSpouses' | translate }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Children Section -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h4 class="text-lg font-semibold text-(--text-primary)">{{ 'employees.profile.family.children' | translate }}</h4>
+      @if (isEditMode && !showChildDialog()) {
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-plus" 
+          [label]="'common.add' | translate" 
+          class="p-button-text p-button-sm" 
+          (click)="openCreateChild()">
+        </button>
+      }
+    </div>
+
+    @if (showChildDialog()) {
+      <!-- Inline Child Edit Form -->
+      <div class="space-y-4 p-4 border rounded bg-(--surface-50) mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-field">
+            <label class="form-label required">{{ 'common.firstName' | translate }}</label>
+            <input pInputText [ngModel]="editingChild()!.firstName" (ngModelChange)="updateChildField('firstName', $event)" class="w-full input" />
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label required">{{ 'common.lastName' | translate }}</label>
+            <input pInputText [ngModel]="editingChild()!.lastName" (ngModelChange)="updateChildField('lastName', $event)" class="w-full input" />
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label required">{{ 'employees.profile.family.dob' | translate }}</label>
+            <input pInputText type="date" [ngModel]="editingChild()!.dateOfBirth" (ngModelChange)="updateChildField('dateOfBirth', $event)" class="w-full input" />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">{{ 'employees.profile.family.gender' | translate }}</label>
+            <p-select 
+              [options]="genderOptions()" 
+              [ngModel]="editingChild()!.genderId" 
+              (ngModelChange)="updateChildField('genderId', $event)"
+              optionLabel="label" 
+              optionValue="id"
+              [placeholder]="'common.select' | translate"
+              class="w-full">
+            </p-select>
+          </div>
+
+          <div class="form-field flex items-center gap-2">
+            <input type="checkbox" [ngModel]="editingChild()!.isStudent" (ngModelChange)="updateChildField('isStudent', $event)" id="isStudent" />
+            <label for="isStudent" class="form-label mb-0">{{ 'employees.profile.family.isStudent' | translate }}</label>
+          </div>
+        </div>
+        
+        <div class="flex justify-end gap-3">
+          <button pButton type="button" [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="showChildDialog.set(false)"></button>
+          <button pButton type="button" [label]="'common.save' | translate" icon="pi pi-check" class="btn btn-primary" (click)="saveChild()"></button>
+        </div>
+      </div>
+    }
+
+    <p-table [value]="childrenSignal()" [loading]="loading()" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>{{ 'employees.profile.family.childName' | translate }}</th>
+          <th>{{ 'employees.profile.family.childDob' | translate }}</th>
+          <th>{{ 'employees.profile.family.gender' | translate }}</th>
+          <th>{{ 'employees.profile.family.isStudent' | translate }}</th>
+          <th style="width: 120px"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-child>
+        <tr>
+          <td>{{ child.firstName }} {{ child.lastName }}</td>
+          <td>{{ child.dateOfBirth | date:'dd/MM/yyyy' }}</td>
+          <td>{{ child.genderName || '-' }}</td>
+          <td>{{ child.isStudent ? ('common.yes' | translate) : ('common.no' | translate) }}</td>
+          <td class="text-right">
+            @if (isEditMode) {
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-pencil" 
+                class="p-button-text p-button-sm" 
+                (click)="openEditChild(child)">
+              </button>
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-trash" 
+                class="p-button-text p-button-danger p-button-sm" 
+                (click)="deleteChild(child)">
+              </button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center text-(--text-secondary) py-4">
+            {{ 'employees.profile.family.noChildren' | translate }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

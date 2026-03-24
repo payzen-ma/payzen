@@ -1,0 +1,16 @@
+<div class="p-6">
+  <h3 class="text-lg font-semibold text-(--text-primary) mb-6">
+    {{ 'company.history.title' | translate }}
+  </h3>
+
+  <!-- Integrated Audit Log Component -->
+  @if (companyId()) {
+    <app-audit-log [companyId]="Number(companyId())"></app-audit-log>
+  } @else {
+    <div class="text-center py-12 bg-(--bg-page) rounded-lg border border-dashed border-(--border)">
+      <p class="text-sm text-(--text-muted)">
+        {{ 'company.history.noCompanySelected' | translate }}
+      </p>
+    </div>
+  }
+</div>

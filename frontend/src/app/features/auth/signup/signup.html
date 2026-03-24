@@ -1,0 +1,196 @@
+<div class="min-h-screen flex items-center justify-center bg-linear-to-tl to-white from-(--bg-page) px-4">
+    <div class="w-full max-w-md">
+  
+      <!-- Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-(--primary) text-white rounded-xl text-2xl font-bold px-5 py-2 tracking-tight select-none">
+          PayZen
+        </div>
+      </div>
+  
+      <div class="bg-white border border-(--border-color-subtle) rounded-2xl shadow-sm px-8 py-8 flex flex-col gap-5">
+  
+        <!-- ══ ÉTAT : Succès — email de vérification envoyé ══ -->
+        @if (success()) {
+          <div class="flex flex-col items-center gap-4 py-4 text-center">
+            <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center">
+              <span class="pi pi-envelope text-green-600 text-2xl"></span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-(--text-primary) mb-1">
+                Vérifiez votre email
+              </h2>
+              <p class="text-sm text-(--text-muted) leading-relaxed">
+                Un email de vérification a été envoyé à<br/>
+                <strong class="text-(--text-primary)">{{ email() }}</strong>
+              </p>
+              <p class="text-sm text-(--text-muted) mt-2">
+                Cliquez sur le lien dans l'email pour activer votre compte, puis revenez vous connecter.
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="goToLogin()"
+              class="mt-2 w-full flex items-center justify-center gap-2 bg-(--primary) hover:bg-(--primary-hover)
+                     text-white font-semibold rounded-lg py-3 text-sm transition-colors cursor-pointer">
+              Aller à la connexion
+            </button>
+          </div>
+        }
+  
+        <!-- ══ ÉTAT : Formulaire d'inscription ══ -->
+        @if (!success()) {
+  
+          <!-- En-tête -->
+          <div>
+            <h1 class="text-2xl font-bold text-(--text-primary) text-center">
+              Créer un compte
+            </h1>
+  
+            <!-- Badge company si invitation -->
+            @if (inviteInfo()) {
+              <div class="mt-3 flex items-center justify-center gap-2 bg-blue-50 border border-blue-100
+                          rounded-lg px-4 py-2.5">
+                <span class="pi pi-building text-blue-600 text-sm flex-shrink-0"></span>
+                <p class="text-sm text-blue-700">
+                  Vous rejoignez <strong>{{ inviteInfo()!.companyName }}</strong>
+                  en tant que <strong>{{ inviteInfo()!.roleName }}</strong>
+                </p>
+              </div>
+            }
+          </div>
+  
+          <!-- Erreur globale -->
+          @if (error()) {
+            <div role="alert"
+                 class="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+              <span class="pi pi-times-circle flex-shrink-0 mt-0.5"></span>
+              <span>{{ error() }}</span>
+            </div>
+          }
+  
+          <!-- Champ email -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-(--text-primary)">
+              Adresse email
+            </label>
+            <input
+              type="email"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              [disabled]="!!invitationToken || isLoadingInvite()"
+              placeholder="vous@exemple.com"
+              autocomplete="email"
+              class="w-full border border-(--border-color-medium) rounded-lg px-4 py-2.5 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary)
+                     disabled:bg-(--bg-active) disabled:text-(--text-muted) disabled:cursor-not-allowed"
+            />
+            @if (invitationToken) {
+              <p class="text-xs text-(--text-muted)">
+                <span class="pi pi-lock text-xs mr-1"></span>
+                Email pré-rempli depuis votre invitation — non modifiable
+              </p>
+            }
+          </div>
+  
+          <!-- Champ mot de passe -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-(--text-primary)">
+              Mot de passe
+            </label>
+            <div class="relative">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                placeholder="Minimum 8 caractères"
+                autocomplete="new-password"
+                class="w-full border border-(--border-color-medium) rounded-lg px-4 py-2.5 text-sm pr-10
+                       focus:outline-none focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary)"
+              />
+              <button
+                type="button"
+                (click)="togglePassword()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text-primary) transition-colors">
+                <span [class]="showPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-sm"></span>
+              </button>
+            </div>
+  
+            <!-- Indicateur de force du mot de passe -->
+            @if (password().length > 0) {
+              <div class="flex gap-1 mt-1">
+                <div [class]="'h-1 flex-1 rounded-full transition-colors ' + (passwordStrength() >= 1 ? strengthColor() : 'bg-gray-200')"></div>
+                <div [class]="'h-1 flex-1 rounded-full transition-colors ' + (passwordStrength() >= 2 ? strengthColor() : 'bg-gray-200')"></div>
+                <div [class]="'h-1 flex-1 rounded-full transition-colors ' + (passwordStrength() >= 3 ? strengthColor() : 'bg-gray-200')"></div>
+                <div [class]="'h-1 flex-1 rounded-full transition-colors ' + (passwordStrength() >= 4 ? strengthColor() : 'bg-gray-200')"></div>
+              </div>
+              <p class="text-xs" [class]="strengthTextColor()">{{ strengthLabel() }}</p>
+            }
+          </div>
+  
+          <!-- Confirmation mot de passe -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-(--text-primary)">
+              Confirmer le mot de passe
+            </label>
+            <div class="relative">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                [ngModel]="confirmPassword()"
+                (ngModelChange)="confirmPassword.set($event)"
+                (keyup.enter)="onSignUp()"
+                placeholder="Répétez votre mot de passe"
+                autocomplete="new-password"
+                class="w-full border border-(--border-color-medium) rounded-lg px-4 py-2.5 text-sm pr-10
+                       focus:outline-none focus:ring-2 focus:ring-(--primary)/30 focus:border-(--primary)"
+                [class.border-red-400]="confirmPassword().length > 0 && password() !== confirmPassword()"
+                [class.border-green-400]="confirmPassword().length > 0 && password() === confirmPassword()"
+              />
+              @if (confirmPassword().length > 0) {
+                <span
+                  [class]="'absolute right-3 top-1/2 -translate-y-1/2 text-sm ' +
+                           (password() === confirmPassword() ? 'pi pi-check text-green-500' : 'pi pi-times text-red-400')">
+                </span>
+              }
+            </div>
+          </div>
+  
+          <!-- Bouton créer le compte -->
+          <button
+            type="button"
+            (click)="onSignUp()"
+            [disabled]="isLoading() || !isFormValid()"
+            class="w-full flex items-center justify-center gap-2 bg-(--primary) hover:bg-(--primary-hover)
+                   text-white font-semibold rounded-lg py-3 text-sm transition-colors
+                   disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
+            @if (isLoading()) {
+              <span class="pi pi-spin pi-spinner text-base"></span>
+            }
+            Créer mon compte
+          </button>
+  
+          <!-- Lien retour connexion -->
+          <p class="text-center text-sm text-(--text-muted)">
+            Déjà un compte ?
+            <button
+              type="button"
+              (click)="goToLogin()"
+              class="text-(--primary) hover:underline font-medium ml-1 cursor-pointer">
+              Se connecter
+            </button>
+          </p>
+  
+          <!-- CGU -->
+          <p class="text-center text-xs text-(--text-muted) leading-relaxed">
+            En créant un compte, vous acceptez les
+            <a href="/terms" class="text-(--primary) hover:underline">conditions d'utilisation</a>
+            et la
+            <a href="/privacy" class="text-(--primary) hover:underline">politique de confidentialité</a>
+            de Payzen.
+          </p>
+  
+        }
+  
+      </div>
+    </div>
+  </div>

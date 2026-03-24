@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Payzen.Api</RootNamespace>
+		<AssemblyName>Payzen.Api</AssemblyName>
+	  <UserSecretsId>0a5f2169-d970-4345-900a-8d6fb727eb43</UserSecretsId>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Payzen.Application\Payzen.Application.csproj" />
+		<ProjectReference Include="..\Payzen.Infrastructure\Payzen.Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+		<PackageReference Include="IronPdf" Version="2026.3.1" />
+		<PackageReference Include="ClosedXML" Version="0.105.0" />
+		<!-- Requis pour que 'dotnet ef' trouve le Design-time factory depuis le startup project -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Identity.Web" Version="4.6.0" />
+		<PackageReference Include="Microsoft.Identity.Web.UI" Version="4.6.0" />
+		<PackageReference Include="System.IO.Packaging" Version="10.0.5" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<!-- FluentValidation for MVC integration -->
+		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="appsettings.Development.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<DependentUpon>appsettings.json</DependentUpon>
+		</Content>
+	</ItemGroup>
+
+</Project>

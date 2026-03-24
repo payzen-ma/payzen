@@ -1,0 +1,421 @@
+@payzen_backend_HostAddress = http://localhost:5119
+
+###############################################
+# VARIABLES GLOBALES
+###############################################
+# Stockez le token ici apr�s le login
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1IiwidW5pcXVlX25hbWUiOiJtb2hhbW1lZEBleGVtcGxlLmNvbSIsInVpZCI6IjUiLCJlbWFpbCI6Im1vaGFtbWVkQGV4ZW1wbGUuY29tIiwianRpIjoiZDU0YTc2ZTAtNTg4MS00NWFlLWE1NTYtOWZhMTBiOWQ1YjMyIiwiZXhwIjoxNzY0MDg5NjkyLCJpc3MiOiJQYXl6ZW5BcGkiLCJhdWQiOiJQYXl6ZW5BcHAifQ.GAu6JnlV5zvOSIOWP4SxxSnlJtgR9L3ruLV4rBoCgvQ
+
+###############################################
+# 1. AUTHENTICATION
+###############################################
+
+### Login avec email
+# @name login
+POST {{payzen_backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "Email": "mohammed@exemple.com",
+  "Password": "12345678"
+}
+
+### Logout
+POST {{payzen_backend_HostAddress}}/api/auth/logout
+Authorization: Bearer {{token}}
+
+###############################################
+# 2. USERS - Gestion des utilisateurs
+###############################################
+
+### GET - R�cup�rer tous les utilisateurs
+GET {{payzen_backend_HostAddress}}/api/users
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### GET - R�cup�rer un utilisateur par ID
+GET {{payzen_backend_HostAddress}}/api/users/5
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### GET - Compter les utilisateurs
+GET {{payzen_backend_HostAddress}}/api/users/count
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### POST - Cr�er un nouvel utilisateur
+POST {{payzen_backend_HostAddress}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Username": "newuser",
+  "Email": "newuser@exemple.com",
+  "Password": "SecurePass123!"
+}
+
+### PUT - Mettre � jour un utilisateur
+PUT {{payzen_backend_HostAddress}}/api/users/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Username": "updateduser",
+  "Email": "updated@exemple.com"
+}
+
+### PUT - Changer le mot de passe
+PUT {{payzen_backend_HostAddress}}/api/users/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Password": "NewSecurePassword123!"
+}
+
+### PUT - D�sactiver un utilisateur
+PUT {{payzen_backend_HostAddress}}/api/users/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "IsActive": false
+}
+
+### DELETE - Supprimer un utilisateur (soft delete)
+DELETE {{payzen_backend_HostAddress}}/api/users/7
+Authorization: Bearer {{token}}
+
+###############################################
+# 3. ROLES - Gestion des r�les
+###############################################
+
+### GET - R�cup�rer tous les r�les
+GET {{payzen_backend_HostAddress}}/api/roles
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### GET - R�cup�rer un r�le par ID
+GET {{payzen_backend_HostAddress}}/api/roles/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### GET - Compter les r�les
+GET {{payzen_backend_HostAddress}}/api/roles/count
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### POST - Cr�er un nouveau r�le
+POST {{payzen_backend_HostAddress}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "Administrator",
+  "Description": "Administrateur syst�me avec tous les droits"
+}
+
+### POST - Cr�er un r�le Manager
+POST {{payzen_backend_HostAddress}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "Manager",
+  "Description": "Gestionnaire avec droits limit�s"
+}
+
+### POST - Cr�er un r�le User
+POST {{payzen_backend_HostAddress}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "User",
+  "Description": "Utilisateur standard"
+}
+
+### PUT - Mettre � jour un r�le
+PUT {{payzen_backend_HostAddress}}/api/roles/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "Super Admin",
+  "Description": "Super administrateur avec tous les privil�ges"
+}
+
+### DELETE - Supprimer un r�le (soft delete)
+DELETE {{payzen_backend_HostAddress}}/api/roles/3
+Authorization: Bearer {{token}}
+
+###############################################
+# 4. PERMISSIONS - Gestion des permissions
+###############################################
+
+### GET - R�cup�rer toutes les permissions
+GET {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### GET - R�cup�rer une permission par ID
+GET {{payzen_backend_HostAddress}}/api/permissions/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### POST - Cr�er une permission READ_USERS
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "READ_USERS",
+  "Description": "Lire les informations des utilisateurs"
+}
+
+### POST - Cr�er une permission WRITE_USERS
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "WRITE_USERS",
+  "Description": "Cr�er et modifier les utilisateurs"
+}
+
+### POST - Cr�er une permission DELETE_USERS
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "DELETE_USERS",
+  "Description": "Supprimer des utilisateurs"
+}
+
+### POST - Cr�er une permission READ_ROLES
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "READ_ROLES",
+  "Description": "Lire les r�les du syst�me"
+}
+
+### POST - Cr�er une permission WRITE_ROLES
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "WRITE_ROLES",
+  "Description": "Cr�er et modifier les r�les"
+}
+
+### POST - Cr�er une permission DELETE_ROLES
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "DELETE_ROLES",
+  "Description": "Supprimer des r�les"
+}
+
+### POST - Cr�er une permission MANAGE_PERMISSIONS
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "MANAGE_PERMISSIONS",
+  "Description": "G�rer les permissions du syst�me"
+}
+
+### PUT - Mettre � jour une permission
+PUT {{payzen_backend_HostAddress}}/api/permissions/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Description": "Lire toutes les informations des utilisateurs du syst�me"
+}
+
+### DELETE - Supprimer une permission (soft delete)
+DELETE {{payzen_backend_HostAddress}}/api/permissions/7
+Authorization: Bearer {{token}}
+
+###############################################
+# 5. ROLES-PERMISSIONS - Liaison
+###############################################
+
+### GET - R�cup�rer les permissions d'un r�le
+GET {{payzen_backend_HostAddress}}/api/roles/1/permissions
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### POST - Assigner une permission � un r�le
+# Assigner READ_USERS (id:1) au r�le Admin (id:1)
+POST {{payzen_backend_HostAddress}}/api/roles/1/permissions/1
+Authorization: Bearer {{token}}
+
+### POST - Assigner plusieurs permissions au r�le Admin
+POST {{payzen_backend_HostAddress}}/api/roles/1/permissions/2
+Authorization: Bearer {{token}}
+
+###
+POST {{payzen_backend_HostAddress}}/api/roles/1/permissions/3
+Authorization: Bearer {{token}}
+
+###
+POST {{payzen_backend_HostAddress}}/api/roles/1/permissions/4
+Authorization: Bearer {{token}}
+
+###
+POST {{payzen_backend_HostAddress}}/api/roles/1/permissions/5
+Authorization: Bearer {{token}}
+
+### DELETE - Retirer une permission d'un r�le
+DELETE {{payzen_backend_HostAddress}}/api/roles/1/permissions/3
+Authorization: Bearer {{token}}
+
+###############################################
+# 6. TESTS DE VALIDATION
+###############################################
+
+### TEST - Cr�er un utilisateur avec email invalide (doit �chouer)
+POST {{payzen_backend_HostAddress}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Username": "testuser",
+  "Email": "invalid-email",
+  "Password": "12345678"
+}
+
+### TEST - Cr�er un utilisateur avec mot de passe trop court (doit �chouer)
+POST {{payzen_backend_HostAddress}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Username": "testuser",
+  "Email": "test@exemple.com",
+  "Password": "123"
+}
+
+### TEST - Cr�er un r�le avec nom trop court (doit �chouer)
+POST {{payzen_backend_HostAddress}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "Ab",
+  "Description": "Description valide"
+}
+
+### TEST - Cr�er une permission avec description trop courte (doit �chouer)
+POST {{payzen_backend_HostAddress}}/api/permissions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Name": "TEST_PERM",
+  "Description": "Court"
+}
+
+### TEST - Acc�der sans authentification (doit retourner 401)
+GET {{payzen_backend_HostAddress}}/api/users
+Accept: application/json
+
+###############################################
+# 7. TESTS ANCIENS (pour compatibilit�)
+###############################################
+
+### TEST - Ancien endpoint de test status
+GET {{payzen_backend_HostAddress}}/api/test/status
+Accept: application/json
+
+### TEST - Ancien endpoint de test database
+GET {{payzen_backend_HostAddress}}/api/test/database
+Accept: application/json
+
+### TEST - Ancien endpoint de test ping
+GET {{payzen_backend_HostAddress}}/api/test/ping
+Accept: application/json
+
+###############################################
+# 8. SC�NARIOS COMPLETS
+###############################################
+
+### SC�NARIO 1: Cr�er un syst�me complet
+# 1. Login
+# 2. Cr�er des permissions
+# 3. Cr�er des r�les
+# 4. Assigner permissions aux r�les
+# 5. Cr�er des utilisateurs
+
+### SC�NARIO 2: V�rifier les contraintes
+# 1. Tenter de supprimer un r�le assign� (doit �chouer)
+# 2. Tenter de supprimer une permission assign�e (doit �chouer)
+# 3. Tenter de cr�er un doublon (doit �chouer)
+
+###
+# ==================== CR�ER UN EMPLOYEE AVEC COMPTE USER AUTOMATIQUE ====================
+
+###
+# Option 1 : Avec mot de passe personnalis�
+POST {{payzen_backend_HostAddress}}/api/employees
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "FirstName": "Mohammed",
+  "LastName": "Benali",
+  "CinNumber": "AB123456",
+  "DateOfBirth": "1990-05-15",
+  "Phone": 612345678,
+  "Email": "mohammed.benali@company.com",
+  "CompanyId": 1,
+  "ManagerId": null,
+  "StatusId": 1,
+  "GenderId": 1,
+  "Password": "MyCustomPass123!",
+  "CreateUserAccount": true
+}
+
+###
+# Option 2 : Sans mot de passe (g�n�ration automatique)
+POST {{payzen_backend_HostAddress}}/api/employees
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "FirstName": "Fatima",
+  "LastName": "El Amrani",
+  "CinNumber": "CD789012",
+  "DateOfBirth": "1995-08-20",
+  "Phone": 698765432,
+  "Email": "fatima.elamrani@company.com",
+  "CompanyId": 1,
+  "CreateUserAccount": true
+}
+
+###
+# Option 3 : Sans cr�er de compte user
+POST {{payzen_backend_HostAddress}}/api/employees
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "FirstName": "Youssef",
+  "LastName": "Alaoui",
+  "CinNumber": "EF345678",
+  "DateOfBirth": "1988-12-10",
+  "Phone": 654321098,
+  "Email": "youssef.alaoui@company.com",
+  "CompanyId": 1,
+  "CreateUserAccount": false
+}

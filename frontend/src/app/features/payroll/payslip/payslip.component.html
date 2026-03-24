@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-gray-50">
+
+  <!-- ── En-tête de page ────────────────────────────────────────────────── -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
+          <i class="pi pi-file-pdf text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="heading">
+            {{ 'payslip.title' | translate }}
+          </h1>
+          <p class="subheading mt-1">
+            @if (isSimpleEmployee()) {
+              {{ 'payslip.subtitleEmployee' | translate }}
+            } @else {
+              {{ 'payslip.subtitleHR' | translate }} {{ currentCompanyName() }}
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Contenu principal ──────────────────────────────────────────────── -->
+  <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6">
+
+    <!-- ── Message succès ────────────────────────────────────────────────── -->
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <i class="pi pi-check-circle text-lg shrink-0"></i>
+        <span>{{ successMessage() }}</span>
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="successMessage.set(null)">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    <!-- ── Message erreur ─────────────────────────────────────────────────── -->
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <i class="pi pi-exclamation-circle text-lg shrink-0"></i>
+        <span>{{ errorMessage() }}</span>
+        <button class="ml-auto opacity-60 hover:opacity-100" (click)="errorMessage.set(null)">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+      </div>
+    }
+
+    <!-- ── Formulaire de génération ───────────────────────────────────────── -->
+    <div class="card card-compact">
+      <h2 class="text-base font-semibold text-(--text-primary) mb-5">
+        {{ 'payslip.formTitle' | translate }}
+      </h2>
+
+      <div class="flex flex-col gap-4">
+
+        <!-- Sélecteur employé (non-EMPLOYEE uniquement) -->
+        @if (canChooseEmployee()) {
+          <div>
+            <app-select
+              [label]="'payslip.selectEmployee' | translate"
+              [options]="employeeOptions()"
+              [value]="selectedEmployee()"
+              (valueChange)="selectedEmployee.set($event)"
+              [placeholder]="'payslip.placeholderEmployee' | translate"
+              [searchable]="true"
+            />
+          </div>
+        }
+
+        <!-- Employé courant (mode EMPLOYEE) -->
+        @if (isSimpleEmployee()) {
+          <div>
+            <label class="form-label mb-1.5">
+              {{ 'payslip.selectEmployee' | translate }}
+            </label>
+            <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-(--rads) text-sm text-(--text-primary)">
+              <i class="pi pi-user text-(--primary)"></i>
+              <span class="font-medium">{{ currentUserFullName() }}</span>
+              <span class="ml-auto bg-(--primary)/10 text-(--primary) text-xs px-2 py-0.5 rounded-full font-semibold">
+                {{ 'payslip.myself' | translate }}
+              </span>
+            </div>
+          </div>
+        }
+
+        <!-- Ligne mois + année -->
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <app-select
+              [label]="'payslip.selectMonth' | translate"
+              [options]="monthOptions()"
+              [value]="selectedMonth()"
+              (valueChange)="onMonthChange($event)"
+              [placeholder]="'payslip.placeholderMonth' | translate"
+            />
+          </div>
+          <div class="w-full sm:w-40 shrink-0">
+            <app-select
+              [label]="'payslip.selectYear' | translate"
+              [options]="yearOptions()"
+              [value]="selectedYear()"
+              (valueChange)="onYearChange($event)"
+              [placeholder]="'payslip.placeholderYear' | translate"
+            />
+          </div>
+          <div class="w-full sm:w-40 shrink-0">
+            <app-select
+              [label]="'Période'"
+              [options]="halfOptions()"
+              [value]="selectedHalf()"
+              (valueChange)="selectedHalf.set($event)"
+              [placeholder]="'Sélectionnez la période'"
+            />
+          </div>
+        </div>
+
+        <!-- Récapitulatif de la période sélectionnée -->
+        @if (selectedMonthLabel()) {
+          <div class="text-xs text-(--text-secondary) flex items-center gap-1.5">
+            <i class="pi pi-calendar"></i>
+            <span>
+              {{ 'payslip.periodSummary' | translate }}
+              <strong class="text-(--text-primary) font-semibold">
+                {{ selectedMonthLabel() }} {{ selectedYear() }}
+                @if (selectedHalfLabel()) {
+                  <span> - {{ selectedHalfLabel() }}</span>
+                }
+              </strong>
+            </span>
+          </div>
+        }
+
+        <!-- Bouton Générer -->
+        <div class="mt-2">
+          <app-button
+            variant="primary"
+            size="md"
+            [loading]="generating()"
+            [disabled]="!canGenerate()"
+            (click)="generatePayslip()"
+            class="w-full sm:w-auto"
+          >
+            <i class="pi pi-download me-2"></i>
+            {{ 'payslip.generate' | translate }}
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Aide / info ────────────────────────────────────────────────────── -->
+    <div class="card card-compact bg-blue-50 border-blue-100">
+      <div class="flex items-start gap-3 text-sm text-blue-800">
+        <i class="pi pi-info-circle text-blue-500 text-lg mt-0.5 shrink-0"></i>
+        <div class="flex flex-col gap-1">
+          <p class="font-semibold">{{ 'payslip.infoTitle' | translate }}</p>
+          <p class="text-blue-700">{{ 'payslip.infoBody' | translate }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,103 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { TabsModule } from 'primeng/tabs';
+import { LeaveTypesPage } from './leave-types/leave-types';
+import { LeavePoliciesPage } from './leave-policies/leave-policies';
+import { LeaveLegalRulesPage } from './leave-legal-rules/leave-legal-rules';
+
+@Component({
+  selector: 'app-leave',
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TabsModule,
+    LeaveTypesPage,
+    LeavePoliciesPage,
+    LeaveLegalRulesPage
+  ],
+  template: `
+    <div class="p-6">
+      <div class="max-w-7xl mx-auto">
+        <header class="mb-6">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
+              <i class="pi pi-briefcase text-blue-600 text-xl"></i>
+            </div>
+            <div>
+              <h1 class="text-2xl font-semibold text-gray-900">{{ 'leave.title' | translate }}</h1>
+              <p class="text-gray-600 mt-1">{{ 'leave.description' | translate }}</p>
+            </div>
+          </div>
+        </header>
+        
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+          <p-tabs value="types" class="leave-tabs">
+            <p-tablist class="border-b border-gray-200">
+              <p-tab value="types" class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-list"></i>
+                  <span>{{ 'leave.tabs.types' | translate }}</span>
+                </div>
+              </p-tab>
+              <p-tab value="policies" class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-cog"></i>
+                  <span>{{ 'leave.tabs.policies' | translate }}</span>
+                </div>
+              </p-tab>
+              <p-tab value="legal-rules" class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-file-text"></i>
+                  <span>{{ 'leave.legalRules.title' | translate }}</span>
+                </div>
+              </p-tab>
+            </p-tablist>
+            
+            <p-tabpanels class="p-0">
+              <p-tabpanel value="types">
+                <app-leave-types></app-leave-types>
+              </p-tabpanel>
+              <p-tabpanel value="policies">
+                <app-leave-policies></app-leave-policies>
+              </p-tabpanel>
+              <p-tabpanel value="legal-rules">
+                <app-leave-legal-rules></app-leave-legal-rules>
+              </p-tabpanel>
+            </p-tabpanels>
+          </p-tabs>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .leave-tabs {
+      --p-tabs-tablist-border-width: 0;
+    }
+    
+    .leave-tabs p-tab {
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    
+    .leave-tabs p-tab:hover {
+      background-color: #f8fafc;
+      border-bottom-color: #e2e8f0;
+    }
+    
+    .leave-tabs p-tab[aria-selected="true"] {
+      background-color: #fff;
+      border-bottom-color: #3b82f6;
+      color: #3b82f6;
+    }
+  `]
+})
+export class LeaveComponent implements OnInit {
+  
+  constructor() { }
+
+  ngOnInit(): void {
+    // Component initialization
+  }
+}
