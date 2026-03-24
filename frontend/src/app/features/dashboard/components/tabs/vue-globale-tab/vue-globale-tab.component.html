@@ -1,0 +1,43 @@
+<section class="space-y-6">
+  <app-section-header
+    [eyebrow]="data().meta.eyebrow ?? ''"
+    [title]="data().meta.title"
+    [subtitle]="data().meta.subtitle"
+    [badge]="data().meta.badge ?? ''"
+    [icon]="data().meta.icon ?? 'pi pi-home'"
+  />
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    @for (metric of data().kpis; track metric.label) {
+      <app-kpi-card [metric]="metric" />
+    }
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h3 class="text-base font-semibold text-gray-600">Évolution effectif - 6 derniers mois</h3>
+      <div class="mt-4">
+        <app-bar-chart [config]="data().effectifEvolution" />
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h3 class="text-base font-semibold text-gray-600">Répartition par département</h3>
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr] md:items-center">
+        <app-donut-chart [config]="data().repartitionDepartement" />
+
+        <ul class="space-y-2">
+          @for (slice of data().repartitionDepartement.slices; track slice.label) {
+            <li class="flex items-center justify-between gap-3 text-sm text-gray-600">
+              <span class="inline-flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full" [style.background]="slice.color"></span>
+                {{ slice.label }}
+              </span>
+              <span class="font-semibold">{{ slice.value }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </article>
+  </div>
+</section>

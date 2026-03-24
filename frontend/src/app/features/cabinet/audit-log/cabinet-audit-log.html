@@ -1,0 +1,212 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Audit Log</h1>
+      <p class="text-gray-500 mt-1">Track all activities and changes across your cabinet</p>
+    </div>
+    <div class="flex gap-2">
+      <p-selectButton 
+        [options]="[{label: 'Timeline', value: 'timeline', icon: 'pi pi-list'}, {label: 'Table', value: 'table', icon: 'pi pi-table'}]" 
+        [(ngModel)]="viewMode" 
+        optionLabel="label" 
+        optionValue="value">
+        <ng-template let-item pTemplate="item">
+            <i [class]="item.icon" class="mr-2"></i>
+            <span>{{item.label}}</span>
+        </ng-template>
+      </p-selectButton>
+      <button *ngIf="contextService.role() === 'Owner'" pButton label="Export" icon="pi pi-download" class="p-button-outlined" (click)="exportLogs()"></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Filters Sidebar -->
+    <div class="lg:col-span-1">
+      <div class="card bg-white border border-gray-200 rounded-lg shadow-sm p-4 sticky top-4">
+        <h3 class="font-semibold text-gray-900 mb-4">Filters</h3>
+        
+        <div class="flex flex-col gap-4">
+          <!-- Search -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Search</label>
+            <span class="p-input-icon-left w-full">
+              <i class="pi pi-search"></i>
+              <input pInputText type="text" [(ngModel)]="searchQuery" placeholder="Search logs..." class="w-full p-inputtext-sm" />
+            </span>
+          </div>
+
+          <!-- Date Range -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Date Range</label>
+            <p-datepicker 
+              [(ngModel)]="dateRange" 
+              selectionMode="range" 
+              [readonlyInput]="true" 
+              placeholder="Select dates"
+              styleClass="w-full"
+              inputStyleClass="w-full p-inputtext-sm"
+              [showIcon]="true">
+            </p-datepicker>
+          </div>
+
+          <!-- Event Type -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Event Type</label>
+            <p-multiSelect 
+              [options]="eventTypes" 
+              [(ngModel)]="selectedEventTypes" 
+              defaultLabel="All Events" 
+              optionLabel="label" 
+              optionValue="value"
+              styleClass="w-full"
+              [maxSelectedLabels]="1">
+            </p-multiSelect>
+          </div>
+
+          <!-- Company -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Company</label>
+            <p-select 
+              [options]="companies()" 
+              [(ngModel)]="selectedCompany" 
+              optionLabel="legalName" 
+              placeholder="All Companies"
+              [showClear]="true"
+              styleClass="w-full">
+            </p-select>
+          </div>
+          
+          <button pButton label="Reset Filters" class="p-button-text p-button-sm mt-2" (click)="searchQuery.set(''); dateRange.set(null); selectedEventTypes.set([]); selectedCompany.set(null)"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:col-span-3">
+      
+      <!-- Timeline View -->
+      <div *ngIf="viewMode() === 'timeline'" class="card bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <p-timeline [value]="filteredLogs()" align="left" styleClass="customized-timeline">
+          <ng-template pTemplate="marker" let-log>
+            <span class="flex w-8 h-8 items-center justify-center rounded-full shadow-sm" 
+              [ngClass]="{
+                'bg-blue-100 text-blue-600': log.severity === 'info',
+                'bg-green-100 text-green-600': log.severity === 'success',
+                'bg-amber-100 text-amber-600': log.severity === 'warn',
+                'bg-red-100 text-red-600': log.severity === 'error'
+              }">
+              <i [class]="log.icon"></i>
+            </span>
+          </ng-template>
+          <ng-template pTemplate="content" let-log>
+            <div class="flex flex-col gap-1 mb-6 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors" (click)="viewDetails(log)">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900">{{ log.description }}</span>
+                <small class="text-gray-500">{{ log.timestamp | date:'medium' }}</small>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="font-medium">{{ log.actor.name }}</span>
+                <p-tag [value]="log.actor.role" severity="secondary" class="scale-75 origin-left"></p-tag>
+                <span>&bull;</span>
+                <span>{{ log.entityType }}: {{ log.entityName }}</span>
+              </div>
+            </div>
+          </ng-template>
+        </p-timeline>
+        
+        <div *ngIf="!isLoading() && filteredLogs().length === 0" class="text-center py-8 text-gray-500">
+          No logs found matching your filters.
+        </div>
+        
+        <div *ngIf="isLoading()" class="flex flex-col gap-4">
+           <p-skeleton height="4rem" styleClass="mb-2" *ngFor="let i of [1,2,3,4]"></p-skeleton>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div *ngIf="viewMode() === 'table'" class="card bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <p-table [value]="filteredLogs()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 20%">Timestamp</th>
+              <th style="width: 20%">Actor</th>
+              <th style="width: 40%">Description</th>
+              <th style="width: 20%">Target</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-log>
+            <tr class="cursor-pointer hover:bg-gray-50" (click)="viewDetails(log)">
+              <td>{{ log.timestamp | date:'short' }}</td>
+              <td>
+                <div class="flex flex-col">
+                  <span class="font-medium">{{ log.actor.name }}</span>
+                  <span class="text-xs text-gray-500">{{ log.actor.role }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <i [class]="log.icon" [ngClass]="{
+                    'text-blue-600': log.severity === 'info',
+                    'text-green-600': log.severity === 'success',
+                    'text-amber-600': log.severity === 'warn',
+                    'text-red-600': log.severity === 'error'
+                  }"></i>
+                  <span>{{ log.description }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="flex flex-col">
+                  <span class="font-medium">{{ log.entityName }}</span>
+                  <span class="text-xs text-gray-500">{{ log.entityType }}</span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <p-dialog 
+    [(visible)]="showDetailModal" 
+    header="Log Details" 
+    [modal]="true" 
+    [style]="{width: '600px'}"
+    [draggable]="false"
+    [resizable]="false">
+    <div *ngIf="selectedLog()" class="flex flex-col gap-4 py-2">
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <label class="block text-gray-500 mb-1">Timestamp</label>
+          <span class="font-medium">{{ selectedLog()!.timestamp | date:'medium' }}</span>
+        </div>
+        <div>
+          <label class="block text-gray-500 mb-1">Event Type</label>
+          <p-tag [value]="selectedLog()!.eventType" severity="info"></p-tag>
+        </div>
+        <div>
+          <label class="block text-gray-500 mb-1">Actor</label>
+          <div class="flex items-center gap-2">
+            <span class="font-medium">{{ selectedLog()!.actor.name }}</span>
+            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">{{ selectedLog()!.actor.role }}</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-500 mb-1">Target</label>
+          <span class="font-medium">{{ selectedLog()!.entityName }} ({{ selectedLog()!.entityType }})</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded border border-gray-200 mt-2">
+        <label class="block text-gray-500 mb-2 text-xs uppercase tracking-wide font-semibold">Changes / Details</label>
+        <pre class="text-xs overflow-auto max-h-60 bg-white p-2 rounded border border-gray-100">{{ selectedLog()!.details | json }}</pre>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <button pButton label="Close" class="p-button-text" (click)="showDetailModal.set(false)"></button>
+    </ng-template>
+  </p-dialog>
+</div>

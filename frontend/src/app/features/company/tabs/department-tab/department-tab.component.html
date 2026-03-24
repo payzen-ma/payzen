@@ -1,0 +1,292 @@
+<div class="p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Enhanced Header with Icon -->
+    <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div class="flex items-start gap-4">
+        <!-- Icon Badge -->
+        <div class="shrink-0 size-12 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+          <i class="pi pi-building text-white text-xl"></i>
+        </div>
+        
+        <!-- Title & Description -->
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-900 leading-tight">
+            {{ 'company.departments.title' | translate }}
+          </h1>
+          <p class="text-sm text-gray-500 mt-1">
+            {{ 'company.departments.subtitle' | translate }}
+          </p>
+          
+          <!-- Stats Badge -->
+          @if (departments().length > 0) {
+            <div class="flex items-center gap-2 mt-3">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                <i class="pi pi-chart-bar text-[10px]"></i>
+                {{ 'company.departments.stats.count' | translate:{ count: departments().length } }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+      
+      <!-- Action Button -->
+      <p-button 
+        icon="pi pi-plus" 
+        [label]="'company.departments.add' | translate"
+        size="small"
+        (onClick)="openCreateDialog()">
+      </p-button>
+    </header>
+
+    <!-- Main Content Card -->
+    <section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="departments-heading">
+      <h2 id="departments-heading" class="sr-only">{{ 'company.departments.title' | translate }}</h2>
+      
+      <!-- Card Header with Search -->
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900">
+              {{ 'company.departments.table.name' | translate }}
+            </h3>
+            <p class="text-xs text-gray-500 mt-0.5">
+              {{ 'company.departments.table.description' | translate }}
+            </p>
+          </div>
+          
+          <!-- Search Bar (Optional Enhancement) -->
+          @if (departments().length > 5) {
+            <div class="relative max-w-xs w-full sm:w-64">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <i class="pi pi-search text-sm"></i>
+              </span>
+              <input 
+                type="text"
+                [placeholder]="'company.departments.searchPlaceholder' | translate"
+                class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+            </div>
+          }
+        </div>
+      </div>
+      
+      <!-- Department List -->
+      @if (loading()) {
+        <!-- Loading State -->
+        <div class="p-8 flex items-center justify-center">
+          <div class="flex flex-col items-center gap-3 text-gray-400">
+            <i class="pi pi-spin pi-spinner text-3xl"></i>
+            <span class="text-sm">{{ 'common.loading' | translate }}</span>
+          </div>
+        </div>
+      } @else if (departments().length === 0) {
+        <!-- Empty State -->
+        <div class="p-12">
+          <div class="max-w-sm mx-auto text-center">
+            <!-- Icon -->
+            <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-gray-100 mb-4">
+              <i class="pi pi-building text-3xl text-gray-400"></i>
+            </div>
+            
+            <!-- Message -->
+            <h3 class="text-base font-semibold text-gray-900 mb-1">
+              {{ 'company.departments.empty.title' | translate }}
+            </h3>
+            <p class="text-sm text-gray-500 mb-6">
+              {{ 'company.departments.empty.description' | translate }}
+            </p>
+            
+            <!-- CTA -->
+            <p-button 
+              icon="pi pi-plus" 
+              [label]="'company.departments.add' | translate"
+              size="small"
+              (onClick)="openCreateDialog()">
+            </p-button>
+          </div>
+        </div>
+      } @else {
+        <!-- Departments List -->
+        <div class="divide-y divide-gray-100">
+          @for (department of departments(); track department.id) {
+            <div class="group px-6 py-4 hover:bg-gray-50/80 transition-colors">
+              <div class="flex items-center justify-between gap-4">
+                <!-- Department Info -->
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <!-- Department Icon -->
+                  <div class="shrink-0 size-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <i class="pi pi-building text-blue-600 text-sm"></i>
+                  </div>
+                  
+                  <!-- Department Details -->
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-medium text-gray-900 truncate">
+                      {{ department.departementName }}
+                    </h4>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      {{ 'company.departments.itemMeta' | translate }}
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    (click)="openEditDialog(department)"
+                    class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all"
+                    [attr.aria-label]="'common.edit' | translate">
+                    <i class="pi pi-pencil text-sm"></i>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="confirmDelete(department)"
+                    class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-red-600 hover:shadow-sm transition-all"
+                    [attr.aria-label]="'common.delete' | translate">
+                    <i class="pi pi-trash text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <!-- Footer Stats -->
+        <div class="px-6 py-3 bg-gray-50/50 border-t border-gray-100">
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>
+              {{ 'company.departments.footer.showing' | translate:{ count: departments().length } }}
+            </span>
+            <span class="flex items-center gap-1">
+              <i class="pi pi-info-circle text-blue-500"></i>
+              {{ 'company.departments.footer.lastUpdated' | translate }}: {{ 'common.now' | translate }}
+            </span>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+</div>
+
+<!-- Enhanced Department Dialog with Modern Design -->
+<p-dialog 
+  [visible]="dialogVisible()" 
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="app-dialog app-dialog--narrow">
+  
+  <!-- Custom Header with Icon -->
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="shrink-0 size-10 rounded-lg flex items-center justify-center"
+           [class]="isEditMode ? 'bg-blue-100' : 'bg-green-100'">
+        <i [class]="'text-lg ' + (isEditMode ? 'pi pi-pencil text-blue-600' : 'pi pi-plus text-green-600')"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 leading-tight">
+          {{ (isEditMode ? 'company.departments.edit' : 'company.departments.create') | translate }}
+        </h2>
+        <p class="text-xs text-gray-500 mt-0.5">
+          {{ (isEditMode ? 'company.departments.editDescription' : 'company.departments.createDescription') | translate }}
+        </p>
+      </div>
+    </div>
+  </ng-template>
+  
+  <!-- Form Content -->
+  <form [formGroup]="departmentForm" (ngSubmit)="saveDepartment()" class="py-1">
+    <!-- Department Name Field -->
+    <div class="form-field">
+      <label for="departementName" class="form-label form-label-required">
+        {{ 'company.departments.fields.name' | translate }}
+      </label>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <i class="pi pi-building text-sm"></i>
+        </span>
+        <input 
+          pInputText 
+          id="departementName" 
+          formControlName="departementName" 
+          class="input pl-10"
+          type="text"
+          [placeholder]="'company.departments.placeholders.name' | translate"
+          [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': departmentForm.get('departementName')?.invalid && departmentForm.get('departementName')?.touched}"
+          autocomplete="off"
+          autofocus />
+      </div>
+      @if (departmentForm.get('departementName')?.invalid && departmentForm.get('departementName')?.touched) {
+        <small class="form-error flex items-center gap-1.5">
+          <i class="pi pi-exclamation-circle"></i>
+          {{ 'errors.required' | translate }}
+        </small>
+      }
+      <small class="block mt-2 text-xs text-gray-500">
+        {{ 'company.departments.nameHint' | translate }}
+      </small>
+    </div>
+
+    <!-- Quick Examples (Optional Enhancement) -->
+    @if (!isEditMode) {
+      <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+        <div class="flex items-start gap-2 mb-2">
+          <i class="pi pi-lightbulb text-blue-600 text-sm mt-0.5"></i>
+          <div class="flex-1">
+            <p class="text-xs font-medium text-blue-900 mb-1">
+              {{ 'company.departments.examples' | translate }}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              @for (example of ['IT', 'HR', 'Finance', 'Sales', 'Marketing']; track example) {
+                <button
+                  type="button"
+                  (click)="departmentForm.patchValue({departementName: example})"
+                  class="px-2 py-1 text-xs rounded-md bg-white border border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors">
+                  {{ example }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </form>
+  
+  <!-- Enhanced Footer with Clear Actions -->
+  <ng-template pTemplate="footer">
+    <div class="flex items-center justify-between gap-3">
+      <!-- Info Message -->
+      <div class="flex-1 flex items-center gap-1.5 text-xs text-gray-500">
+        <i class="pi pi-info-circle text-blue-500"></i>
+        <span>{{ 'company.departments.footerInfo' | translate }}</span>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-2">
+        <p-button 
+          type="button"
+          [label]="'common.cancel' | translate" 
+          severity="secondary"
+          size="small"
+          [disabled]="submitLoading()"
+          (onClick)="dialogVisible.set(false)">
+        </p-button>
+        <p-button 
+          type="button"
+          [label]="(isEditMode ? 'common.update' : 'common.create') | translate" 
+          [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
+          size="small"
+          [loading]="submitLoading()"
+          [disabled]="departmentForm.invalid || submitLoading()"
+          (onClick)="saveDepartment()">
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-toast />
+<p-confirmDialog [style]="{width: '450px'}" />

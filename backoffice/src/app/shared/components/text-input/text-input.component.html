@@ -1,0 +1,21 @@
+<div class="space-y-1">
+  <label class="block text-sm text-text-primary">
+    {{ label }} <span *ngIf="required" class="text-red-500">*</span>
+  </label>
+
+  <input
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="value"
+    [disabled]="disabled"
+    [required]="required"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+    [class]="'w-full px-3 py-2 border rounded-md transition focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary' +
+             (touched && required && !value ? ' border-red-500' : ' border-border')"
+  />
+  
+  <p *ngIf="touched && required && !value" class="text-xs text-red-500 mt-1">
+    Ce champ est requis
+  </p>
+</div>

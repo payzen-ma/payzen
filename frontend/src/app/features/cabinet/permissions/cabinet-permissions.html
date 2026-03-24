@@ -1,0 +1,188 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Permission Management</h1>
+      <p class="text-gray-500 mt-1">Manage user access and roles across your cabinet portfolio</p>
+    </div>
+    <button *ngIf="canManagePermissions()" pButton label="Add User" icon="pi pi-plus" class="p-button-primary"></button>
+  </div>
+
+  <!-- Users Table -->
+  <div class="card bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+    <p-table 
+      [value]="users()" 
+      [loading]="isLoading()"
+      [paginator]="true" 
+      [rows]="10"
+      styleClass="p-datatable-sm">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 25%">User</th>
+          <th style="width: 25%">Email</th>
+          <th style="width: 15%">Role</th>
+          <th style="width: 20%">Access Scope</th>
+          <th style="width: 15%">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr [class.bg-gray-50]="user.isOwner">
+          <td>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-medium">
+                {{ user.name.charAt(0) }}
+              </div>
+              <span class="font-medium text-gray-900">{{ user.name }}</span>
+              <i *ngIf="user.isOwner" class="pi pi-lock text-gray-400 text-xs" pTooltip="Owner account is locked"></i>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>
+            <p-tag [value]="user.role" [severity]="getSeverity(user.role)"></p-tag>
+          </td>
+          <td>
+            <span *ngIf="user.accessScope === 'All'" class="text-green-600 font-medium">All Companies</span>
+            <span *ngIf="user.accessScope === 'Limited'" class="text-gray-600">
+              {{ user.accessibleCompanies.length }} Companies
+            </span>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <button 
+                pButton 
+                icon="pi pi-pencil" 
+                class="p-button-text p-button-sm p-button-rounded" 
+                [disabled]="user.isOwner || !canManagePermissions()"
+                (click)="openEditor(user)"
+                pTooltip="Edit Permissions">
+              </button>
+              <button 
+                pButton 
+                icon="pi pi-trash" 
+                class="p-button-text p-button-danger p-button-sm p-button-rounded" 
+                [disabled]="user.isOwner || !canManagePermissions()"
+                pTooltip="Remove User">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="loadingbody">
+        <tr *ngFor="let i of [1,2,3]">
+          <td><p-skeleton></p-skeleton></td>
+          <td><p-skeleton></p-skeleton></td>
+          <td><p-skeleton></p-skeleton></td>
+          <td><p-skeleton></p-skeleton></td>
+          <td><p-skeleton></p-skeleton></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Permission Editor Drawer/Dialog -->
+  <p-dialog 
+    [(visible)]="showEditor" 
+    [header]="'Edit Permissions: ' + (selectedUser()?.name || '')"
+    [modal]="true"
+    [style]="{width: '800px'}"
+    [draggable]="false"
+    [resizable]="false">
+    
+    <div class="flex flex-col gap-6 py-4" *ngIf="selectedUser()">
+      
+      <!-- 1. Company Access Scope -->
+      <div class="border-b border-gray-200 pb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Company Access</h3>
+        
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-2 mb-2">
+            <p-radioButton name="scope" value="All" label="All Companies (Full Portfolio)" [(ngModel)]="selectedUser()!.accessScope" [disabled]="true"></p-radioButton>
+          </div>
+          <div class="flex items-center gap-2">
+            <p-radioButton name="scope" value="Limited" label="Selected Companies Only" [(ngModel)]="selectedUser()!.accessScope" [disabled]="true"></p-radioButton>
+          </div>
+          
+          <!-- Company Selector (if Limited) -->
+          <div class="mt-3 pl-6 grid grid-cols-2 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded p-3 bg-gray-50">
+            <div *ngFor="let company of managedCompanies()" class="flex items-center gap-2">
+              <p-checkbox 
+                [value]="company.id" 
+                [(ngModel)]="selectedCompanies" 
+                [inputId]="company.id">
+              </p-checkbox>
+              <label [for]="company.id" class="cursor-pointer">{{ company.legalName }}</label>
+            </div>
+            <div *ngIf="managedCompanies().length === 0" class="text-gray-500 italic">
+              No companies available.
+            </div>
+          </div>
+          <small class="text-red-500" *ngIf="selectedCompanies().length === 0">
+            At least one company must be selected.
+          </small>
+        </div>
+      </div>
+
+      <!-- 2. Permission Matrix -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Module Permissions</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3">Module</th>
+                <th scope="col" class="px-4 py-3 text-center">
+                  <div class="flex flex-col items-center gap-1">
+                    <span>Read</span>
+                    <p-checkbox [binary]="true" (onChange)="toggleColumn('read', $event.checked)"></p-checkbox>
+                  </div>
+                </th>
+                <th scope="col" class="px-4 py-3 text-center">
+                  <div class="flex flex-col items-center gap-1">
+                    <span>Write</span>
+                    <p-checkbox [binary]="true" (onChange)="toggleColumn('write', $event.checked)"></p-checkbox>
+                  </div>
+                </th>
+                <th scope="col" class="px-4 py-3 text-center">
+                  <div class="flex flex-col items-center gap-1">
+                    <span>Delete</span>
+                    <p-checkbox [binary]="true" (onChange)="toggleColumn('delete', $event.checked)"></p-checkbox>
+                  </div>
+                </th>
+                <th scope="col" class="px-4 py-3 text-center">All</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let module of modules(); let i = index" class="bg-white border-b hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ module.name }}</td>
+                <td class="px-4 py-3 text-center">
+                  <p-checkbox [(ngModel)]="module.actions.read" [binary]="true"></p-checkbox>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <p-checkbox [(ngModel)]="module.actions.write" [binary]="true"></p-checkbox>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <p-checkbox [(ngModel)]="module.actions.delete" [binary]="true"></p-checkbox>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <p-checkbox [binary]="true" (onChange)="toggleRow(i, $event.checked)"></p-checkbox>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancel" icon="pi pi-times" class="p-button-text" (click)="closeEditor()"></button>
+      <button pButton label="Save Changes" icon="pi pi-check" (click)="savePermissions()" [loading]="isSaving()"></button>
+    </ng-template>
+  </p-dialog>
+  
+  <p-toast></p-toast>
+</div>

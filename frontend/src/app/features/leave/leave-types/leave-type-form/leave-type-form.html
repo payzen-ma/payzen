@@ -1,0 +1,196 @@
+<div class="min-h-screen bg-gray-50">
+  <p-toast />
+
+  <!-- Page Header -->
+  <div class="max-w-7xl mx-auto px-6 pt-4">
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-arrow-left"
+        class="p-button-text p-button-rounded"
+        (click)="goBack()"
+      ></button>
+      <div>
+        <h1 class="heading">{{ pageTitle() }}</h1>
+        <p class="subheading mt-1">
+          @if (isEditMode()) {
+            {{ 'leave.types.editSubtitle' | translate }}
+          } @else {
+            {{ 'leave.types.createSubtitle' | translate }}
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-6 pb-6">
+    @if (isLoading()) {
+      <div class="card flex items-center justify-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
+          <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
+        </div>
+      </div>
+    } @else {
+      @if (isGlobalType()) {
+        <div class="card alert-warning mb-4">
+          <div class="flex items-center gap-3">
+            <i class="pi pi-info-circle text-xl"></i>
+            <div>
+              <p class="font-medium">{{ 'leave.types.globalWarningTitle' | translate }}</p>
+              <p class="text-sm">{{ 'leave.types.globalWarningDesc' | translate }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- Basic Information -->
+        <div class="card mb-6">
+          <div class="mb-6">
+            <h2 class="text-lg font-semibold text-primary">
+              {{ 'leave.types.form.basicInfo' | translate }}
+            </h2>
+            <p class="text-sm text-gray-500">
+              {{ 'leave.types.form.basicInfoDesc' | translate }}
+            </p>
+          </div>
+
+          <div class="grid gap-5 md:grid-cols-2">
+            <!-- Code -->
+            <app-input-field
+              formControlName="leaveCode"
+              [label]="'leave.types.form.code' | translate"
+              [placeholder]="'leave.types.form.codePlaceholder' | translate"
+              [requiredMark]="true"
+              icon="pi pi-tag"
+            ></app-input-field>
+
+            <!-- Name FR -->
+            <app-input-field
+              formControlName="leaveNameFr"
+              [label]="'leave.types.form.nameFr' | translate"
+              [placeholder]="'leave.types.form.nameFrPlaceholder' | translate"
+              [requiredMark]="true"
+            ></app-input-field>
+
+            <!-- Name EN -->
+            <app-input-field
+              formControlName="leaveNameEn"
+              [label]="'leave.types.form.nameEn' | translate"
+              [placeholder]="'leave.types.form.nameEnPlaceholder' | translate"
+              [requiredMark]="true"
+            ></app-input-field>
+
+            <!-- Name AR -->
+            <app-input-field
+              formControlName="leaveNameAr"
+              [label]="'leave.types.form.nameAr' | translate"
+              [placeholder]="'leave.types.form.nameArPlaceholder' | translate"
+              [requiredMark]="true"
+            ></app-input-field>
+          </div>
+
+          <!-- Description (full width) -->
+          <div class="mt-5">
+            <app-input-field
+              formControlName="leaveDescription"
+              [label]="'leave.types.form.description' | translate"
+              [placeholder]="'leave.types.form.descriptionPlaceholder' | translate"
+              [requiredMark]="true"
+            ></app-input-field>
+          </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="card mb-6">
+          <div class="mb-6">
+            <h2 class="text-lg font-semibold text-primary">
+              {{ 'leave.types.form.configuration' | translate }}
+            </h2>
+            <p class="text-sm text-gray-500">
+              {{ 'leave.types.form.configurationDesc' | translate }}
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- isPaid -->
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <p-checkbox
+                formControlName="isPaid"
+                [binary]="true"
+                inputId="isPaid"
+              ></p-checkbox>
+              <label for="isPaid" class="cursor-pointer">
+                <span class="font-medium text-primary">{{ 'leave.types.form.isPaid' | translate }}</span>
+                <p class="text-sm text-gray-500">{{ 'leave.types.form.isPaidDesc' | translate }}</p>
+              </label>
+            </div>
+
+            <!-- requiresBalance -->
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <p-checkbox
+                formControlName="requiresBalance"
+                [binary]="true"
+                inputId="requiresBalance"
+              ></p-checkbox>
+              <label for="requiresBalance" class="cursor-pointer">
+                <span class="font-medium text-primary">{{ 'leave.types.form.requiresBalance' | translate }}</span>
+                <p class="text-sm text-gray-500">{{ 'leave.types.form.requiresBalanceDesc' | translate }}</p>
+              </label>
+            </div>
+
+            <!-- requiresEligibility6Months -->
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <p-checkbox
+                formControlName="requiresEligibility6Months"
+                [binary]="true"
+                inputId="requiresEligibility6Months"
+              ></p-checkbox>
+              <label for="requiresEligibility6Months" class="cursor-pointer">
+                <span class="font-medium text-primary">{{ 'leave.types.form.requiresEligibility' | translate }}</span>
+                <p class="text-sm text-gray-500">{{ 'leave.types.form.requiresEligibilityDesc' | translate }}</p>
+              </label>
+            </div>
+
+            <!-- isActive -->
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <p-checkbox
+                formControlName="isActive"
+                [binary]="true"
+                inputId="isActive"
+              ></p-checkbox>
+              <label for="isActive" class="cursor-pointer">
+                <span class="font-medium text-primary">{{ 'leave.types.form.isActive' | translate }}</span>
+                <p class="text-sm text-gray-500">{{ 'leave.types.form.isActiveDesc' | translate }}</p>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-3">
+          <button
+            pButton
+            type="button"
+            [label]="'common.cancel' | translate"
+            class="btn btn-secondary"
+            (click)="goBack()"
+            [disabled]="isSaving()"
+          ></button>
+          <button
+            pButton
+            type="submit"
+            [label]="isEditMode() ? ('common.save' | translate) : ('common.create' | translate)"
+            class="btn btn-primary"
+            icon="pi pi-check"
+            [loading]="isSaving()"
+            [disabled]="isSaving() || isGlobalType()"
+          ></button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

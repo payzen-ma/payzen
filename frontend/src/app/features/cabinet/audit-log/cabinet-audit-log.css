@@ -1,0 +1,26 @@
+/* Custom Timeline Styles */
+:host ::ng-deep .customized-timeline .p-timeline-event-opposite {
+    display: none;
+}
+
+:host ::ng-deep .customized-timeline .p-timeline-event-content {
+    padding-bottom: 1.5rem;
+}
+
+/* Ensure the marker line connects properly */
+:host ::ng-deep .p-timeline-event:last-child .p-timeline-event-connector {
+    display: none;
+}
+
+/* PrimeNG Overrides for cleaner look */
+:host ::ng-deep .p-calendar .p-inputtext {
+    width: 100%;
+}
+
+:host ::ng-deep .p-multiselect {
+    width: 100%;
+}
+
+:host ::ng-deep .p-dropdown {
+    width: 100%;
+}
