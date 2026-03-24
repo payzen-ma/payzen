@@ -1,6 +1,0 @@
-/* payroll-exports.component.css
-   Tailwind handles layout; only component-specific tweaks here */
-
-:host {
-  display: block;
-}

@@ -1,6 +1,0 @@
-/* Payslip Component Styles */
-/* Most styling is handled via Tailwind utility classes. */
-
-:host {
-  display: block;
-}
