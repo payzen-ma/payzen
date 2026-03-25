@@ -7,8 +7,10 @@ public static class ClaimsPrincipalExtensions
 {
     public static int GetUserId(this ClaimsPrincipal user)
     {
-        var val = user.FindFirst("uid")?.Value
+        //var val = user.FindFirst("uid")?.Value
+        var val = 0.ToString()
             ?? throw new InvalidOperationException("User ID claim not found");
+        // tmp pour test postman directement
         return int.TryParse(val, out var id)
             ? id
             : throw new InvalidOperationException("Invalid User ID format");

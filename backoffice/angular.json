@@ -54,6 +54,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 50171
+          },
           "configurations": {
             "production": {
               "buildTarget": "payzen-backoffice:build:production"

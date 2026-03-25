@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Application.Common;
+using Payzen.Application.DTOs.Auth;
 using Payzen.Application.DTOs.Company;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Company;
@@ -9,9 +10,6 @@ using Payzen.Domain.Entities.Referentiel;
 using Payzen.Domain.Entities.Auth;
 using Payzen.Infrastructure.Hosting;
 using Payzen.Infrastructure.Persistence;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
 
 namespace Payzen.Infrastructure.Services.Company;
 
@@ -21,13 +19,20 @@ public class CompanyService : ICompanyService
     private readonly IWebHostEnvironment _env;
     private readonly ICompanyOnboardingService _onboarding;
     private readonly ICompanyEventLogService _companyEventLog;
+    private readonly IInvitationService _invitationService;
 
-    public CompanyService(AppDbContext db, IWebHostEnvironment env, ICompanyOnboardingService onboarding, ICompanyEventLogService companyEventLog)
+    public CompanyService(
+        AppDbContext db,
+        IWebHostEnvironment env,
+        ICompanyOnboardingService onboarding,
+        ICompanyEventLogService companyEventLog,
+        IInvitationService invitationService)
     {
         _db  = db;
         _env = env;
         _onboarding = onboarding;
         _companyEventLog = companyEventLog;
+        _invitationService = invitationService;
     }
 
     // ── Queries ──────────────────────────────────────────────────────────────
@@ -116,8 +121,7 @@ public class CompanyService : ICompanyService
         => await _db.Cities.AnyAsync(c => c.Id == cityId && c.CountryId == countryId && c.DeletedAt == null, ct);
 
     // ── Commands ─────────────────────────────────────────────────────────────
-    // This implementation recreates the controller behaviour: validate uniqueness,
-    // create company, create onboarding, create admin employee + user, assign Admin role.
+    // Validate uniqueness, create company, onboarding, fiche employé admin, invitation e-mail (Entra).
 
     public async Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(CompanyCreateDto dto, int createdBy, CancellationToken ct = default)
     {
@@ -197,6 +201,7 @@ public class CompanyService : ICompanyService
                 FoundingDate    = dto.FoundingDate,
                 BusinessSector  = dto.BusinessSector?.Trim(),
                 PaymentMethod   = dto.PaymentMethod?.Trim(),
+                AuthType        = "C",
                 CreatedBy       = createdBy
             };
 
@@ -227,40 +232,6 @@ public class CompanyService : ICompanyService
             _db.Employees.Add(adminEmployee);
             await _db.SaveChangesAsync(ct);
 
-            // ---------- créer le compte utilisateur ----------
-            string password;
-            if (dto.GeneratePassword)
-            {
-                password = GenerateTemporaryPassword();
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(dto.AdminPassword))
-                    return ServiceResult<CompanyCreateResponseDto>.Fail("Le mot de passe est requis si GeneratePassword est false");
-                password = dto.AdminPassword;
-            }
-
-            var username = GenerateUsername(dto.AdminFirstName, dto.AdminLastName);
-            var suffix = 1;
-            while (await _db.Users.AnyAsync(u => u.Username == username && u.DeletedAt == null, ct))
-            {
-                username = GenerateUsername(dto.AdminFirstName, dto.AdminLastName, suffix);
-                suffix++;
-            }
-
-            var adminUser = new Users
-            {
-                EmployeeId   = adminEmployee.Id,
-                Username     = username,
-                Email        = dto.AdminEmail.Trim(),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                IsActive     = true,
-                CreatedBy    = createdBy
-            };
-            _db.Users.Add(adminUser);
-            await _db.SaveChangesAsync(ct);
-
-            // ---------- assigner rôle Admin ----------
             var adminRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "admin" && r.DeletedAt == null, ct);
             if (adminRole == null)
             {
@@ -274,14 +245,14 @@ public class CompanyService : ICompanyService
                 await _db.SaveChangesAsync(ct);
             }
 
-            var userRole = new Domain.Entities.Auth.UsersRoles
-            {
-                UserId = adminUser.Id,
-                RoleId = adminRole.Id,
-                CreatedBy = createdBy
-            };
-            _db.UsersRoles.Add(userRole);
-            await _db.SaveChangesAsync(ct);
+            await _invitationService.CreateInvitationAsync(
+                new InviteAdminDto
+                {
+                    Email = dto.AdminEmail.Trim(),
+                    CompanyId = company.Id,
+                    RoleId = adminRole.Id
+                },
+                ct);
 
             await tx.CommitAsync(ct);
 
@@ -313,16 +284,15 @@ public class CompanyService : ICompanyService
                 Admin = new AdminAccountDto
                 {
                     EmployeeId = adminEmployee.Id,
-                    UserId = adminUser.Id,
-                    Username = adminUser.Username,
-                    Email = adminUser.Email,
+                    UserId = null,
+                    Username = null,
+                    Email = adminEmployee.Email,
                     FirstName = adminEmployee.FirstName,
                     LastName = adminEmployee.LastName,
                     Phone = adminEmployee.Phone,
-                    Password = dto.GeneratePassword ? password : null,
-                    Message = dto.GeneratePassword
-                        ? "Un mot de passe temporaire a été généré. Veuillez le changer lors de la première connexion."
-                        : "Compte administrateur créé avec succès."
+                    Password = null,
+                    Message =
+                        "Une invitation a été envoyée à l'adresse indiquée. L'administrateur activera son compte via Microsoft Entra (lien dans l'e-mail ou logs si mode mock)."
                 }
             };
 
@@ -1393,40 +1363,4 @@ public class CompanyService : ICompanyService
         CreatedAt          = c.CreatedAt.DateTime
     };
 
-    // ── Helpers ────────────────────────────────────────────────────────────
-
-    private static string GenerateTemporaryPassword(int length = 12)
-    {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#";
-        var sb = new StringBuilder();
-        var rng = Random.Shared;
-        for (int i = 0; i < length; i++)
-            sb.Append(chars[rng.Next(chars.Length)]);
-        return sb.ToString();
-    }
-
-    private static string Normalize(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return string.Empty;
-        var normalized = s.Normalize(NormalizationForm.FormD);
-        var sb = new StringBuilder();
-        foreach (var ch in normalized)
-        {
-            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
-            if (uc != System.Globalization.UnicodeCategory.NonSpacingMark)
-                sb.Append(ch);
-        }
-        var ret = sb.ToString().Normalize(NormalizationForm.FormC);
-        // remove non word chars
-        ret = Regex.Replace(ret, @"[^\w\-]", "");
-        return ret.ToLowerInvariant();
-    }
-
-    private static string GenerateUsername(string firstName, string lastName, int suffix = 0)
-    {
-        var f = Normalize(firstName).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "user";
-        var l = Normalize(lastName).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "x";
-        var baseName = $"{f}.{l}";
-        return suffix <= 0 ? baseName : $"{baseName}{suffix}";
-    }
 }

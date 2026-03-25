@@ -40,8 +40,6 @@ export class CreateCompanyComponent implements OnInit {
   adminEmail = '';
   adminPhone = '';
   adminDateOfBirth = '';
-  adminPassword = '';
-  generatePassword = true;
 
   // Options
   countryCodes = [
@@ -141,13 +139,6 @@ export class CreateCompanyComponent implements OnInit {
       this.showCityDropdown = false;
     }, 200);
   }
-  togglePasswordGeneration() {
-    this.generatePassword = !this.generatePassword;
-    if (this.generatePassword) {
-      this.adminPassword = '';
-    }
-  }
-
   nextStep() {
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
@@ -180,9 +171,7 @@ export class CreateCompanyComponent implements OnInit {
       adminLastName: this.adminLastName,
       adminEmail: this.adminEmail,
       adminDateOfBirth: this.adminDateOfBirth,
-      adminPhone: this.adminPhone,
-      adminPassword: this.generatePassword ? undefined : this.adminPassword,
-      generatePassword: this.generatePassword
+      adminPhone: this.adminPhone
     };
     
     // Add cityId if existing city selected, otherwise add cityName for new city
@@ -200,14 +189,10 @@ export class CreateCompanyComponent implements OnInit {
         const admin = response.admin || response.Admin;
         this.createdAdmin = {
           email: admin?.email || admin?.Email,
-          password: admin?.password || admin?.Password,
-          username: admin?.username || admin?.Username,
           firstName: admin?.firstName || admin?.FirstName,
           lastName: admin?.lastName || admin?.LastName,
           message: admin?.message || admin?.Message
         };
-        
-        console.log('Admin credentials:', this.createdAdmin);
         this.showSuccessModal = true;
         this.isSubmitting = false;
       },

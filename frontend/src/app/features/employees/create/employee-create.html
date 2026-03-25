@@ -114,6 +114,19 @@
                   formControlName="email"
                 ></app-input-field>
 
+                <app-select-field
+                  [label]="'Rôle pour invitation'"
+                  [requiredMark]="true"
+                  [options]="inviteRoleOptions()"
+                  optionLabel="label"
+                  optionValue="id"
+                  [placeholder]="'--'"
+                  [filter]="false"
+                  [appendTo]="'body'"
+                  [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
+                  formControlName="inviteRoleId"
+                ></app-select-field>
+
                 <app-input-field
                   [label]="'employees.create.form.cin' | translate"
                   [placeholder]="'AA123456'"

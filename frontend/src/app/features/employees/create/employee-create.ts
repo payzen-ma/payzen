@@ -21,6 +21,7 @@ import { ContractTypeService } from '@app/core/services/contract-type.service';
 import { AttendanceTypeService, AttendanceTypeLookupOption } from '@app/core/services/attendance-type.service';
 import { EmployeeCategoryService, EmployeeCategoryLookupOption } from '@app/core/services/employee-category.service';
 import { SalaryPackageService } from '@app/core/services/salary-package.service';
+import { UserService } from '@app/core/services/user.service';
 import {
   CityLookupOption,
   CreateEmployeeRequest,
@@ -59,6 +60,7 @@ export class EmployeeCreatePage implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly salaryPackageOptions = signal<LookupOption[]>([]);
+  readonly inviteRoleOptions = signal<LookupOption[]>([]);
   private readonly baseUrl = environment.apiUrl.replace('/api', '');
   private readonly emptyFormData: EmployeeFormData = {
     statuses: [],
@@ -84,6 +86,7 @@ export class EmployeeCreatePage implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly messageService = inject(MessageService);
   private readonly contextService = inject(CompanyContextService);
+  private readonly userService = inject(UserService);
   private readonly jobPositionService = inject(JobPositionService);
   private readonly contractTypeService = inject(ContractTypeService);
   private readonly attendanceTypeService = inject(AttendanceTypeService);
@@ -96,6 +99,8 @@ export class EmployeeCreatePage implements OnInit {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    // Rôle utilisé pour envoyer l'invitation (sans mot de passe, activation via Entra/Google)
+    inviteRoleId: [null as number | null, Validators.required],
     cinNumber: ['', Validators.required],
     birthDate: ['', Validators.required],
     phone: ['', Validators.required],
@@ -212,6 +217,7 @@ export class EmployeeCreatePage implements OnInit {
 
   ngOnInit(): void {
     this.loadFormData();
+    this.loadInviteRoles();
 
     // Reload form lookups when the selected company changes
     this.contextService.contextChanged$
@@ -279,6 +285,30 @@ export class EmployeeCreatePage implements OnInit {
         console.error('Error loading employee form data', err);
         this.errorMessage.set(err.error?.message || this.translate.instant('employees.create.error'));
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  private loadInviteRoles(): void {
+    const ALLOWED_ROLES = ['Employee', 'Manager', 'RH'];
+    this.userService.getRoles().subscribe({
+      next: (roles) => {
+        const options: LookupOption[] = (roles ?? []).map(r => ({
+          id: Number(r.id),
+          label: String(r.name ?? r.code ?? r.id)
+        }))
+        .filter(r => ALLOWED_ROLES.includes(r.label));
+        this.inviteRoleOptions.set(options);
+
+        // Par défaut : rôle "Employee" si on le trouve, sinon le premier rôle disponible.
+        const employeeRole = options.find(o => o.label.toLowerCase().includes('employee'));
+        const defaultId = employeeRole?.id ?? options[0]?.id ?? null;
+        if (defaultId != null) {
+          this.employeeForm.controls.inviteRoleId.setValue(defaultId);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load roles for invitation', err);
       }
     });
   }
@@ -385,6 +415,7 @@ export class EmployeeCreatePage implements OnInit {
 
     const selectedPhoneCode = this.phoneCode();
     const selectedSalaryPackageId = value.salaryPackageId ? Number(value.salaryPackageId) : null;
+    const inviteRoleId = value.inviteRoleId ? Number(value.inviteRoleId) : null;
     const payload: CreateEmployeeRequest = {
       firstName: value.firstName ?? '',
       lastName: value.lastName ?? '',
@@ -393,6 +424,7 @@ export class EmployeeCreatePage implements OnInit {
       dateOfBirth: value.birthDate ?? '',
       cinNumber: value.cinNumber || null,
       statusId: Number(value.statusId),
+      inviteRoleId: inviteRoleId,
       genderId: value.genderId ? Number(value.genderId) : null,
       educationLevelId: value.educationLevelId ? Number(value.educationLevelId) : null,
       maritalStatusId: value.maritalStatusId ? Number(value.maritalStatusId) : null,
@@ -423,12 +455,13 @@ export class EmployeeCreatePage implements OnInit {
 
     this.employeeService.createEmployeeRecord(payload).subscribe({
       next: (createdEmployee) => {
+        const employeeId = this.extractCreatedEmployeeId(createdEmployee);
+
         if (!selectedSalaryPackageId) {
           this.handleEmployeeCreationSuccess();
           return;
         }
 
-        const employeeId = this.extractCreatedEmployeeId(createdEmployee);
         if (!employeeId) {
           this.handleEmployeeCreationSuccess(true);
           return;

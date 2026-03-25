@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,62 +8,59 @@ import { AuthService } from '../../../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
+  private auth = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   email = '';
   password = '';
-  isLoading = signal(false);
   error = signal('');
-
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private authService: AuthService
-  ) {}
+  isLoading = signal(false);
 
   ngOnInit(): void {
-    const reason = this.route.snapshot.queryParamMap.get('reason');
+    const qp = this.route.snapshot.queryParamMap;
+    const reason = qp.get('reason');
     if (reason === 'expired') {
-      this.error.set('Votre session a expire. Veuillez vous reconnecter.');
+      this.error.set('Votre session a expiré. Veuillez vous reconnecter.');
     } else if (reason === 'unauthorized') {
-      this.error.set('Acces refuse. Veuillez vous reconnecter.');
+      this.error.set('Accès refusé ou session invalide.');
+    }
+    const err = qp.get('error');
+    if (err === 'auth_failed') {
+      this.error.set('La connexion a échoué. Réessayez.');
+    }
+    if (err === 'missing_claims') {
+      this.error.set('Informations de compte incomplètes. Réessayez.');
     }
   }
 
   onSubmit(): void {
-    this.login();
-  }
+    if (this.isLoading()) return;
+    const email = this.email.trim();
+    const password = this.password;
+    if (!email || !password) return;
 
-  login(): void {
-    if (!this.email || !this.password) {
-      this.error.set('Veuillez saisir votre email et mot de passe');
-      return;
-    }
-
-    this.isLoading.set(true);
     this.error.set('');
+    this.isLoading.set(true);
 
-    this.authService.login(this.email, this.password).subscribe({
-      next: (response) => {
+    this.auth.login(email, password).subscribe({
+      next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.isLoading.set(false);
-        
-        if (err.message && err.message.includes('admin payzen')) {
-          this.error.set('Accès refusé. Seuls les administrateurs PayZen peuvent se connecter.');
-        } else if (err.status === 401) {
-          this.error.set('Email ou mot de passe incorrect');
-        } else if (err.status === 0) {
-          this.error.set('Impossible de se connecter au serveur. Vérifiez que l\'API est démarrée.');
-        } else {
-          this.error.set('Une erreur est survenue lors de la connexion');
-        }
-        
-        console.error('Login error:', err);
-      }
+        const e = err as { message?: string; error?: { Message?: string; message?: string } };
+        const msg =
+          e?.message ??
+          e?.error?.Message ??
+          e?.error?.message ??
+          'Email ou mot de passe incorrect.';
+        this.error.set(msg);
+      },
     });
   }
 }

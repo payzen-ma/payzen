@@ -70,4 +70,12 @@ public class InvitationAcceptResult
             ExpectedEmail = expected, 
             ReceivedEmail = received 
         };
+
+    /// <summary>Aucun utilisateur Payzen ne correspond (JWT ou e-mail invitation).</summary>
+    public static InvitationAcceptResult UserNotLinked()
+        => new() { IsSuccess = false, Error = "USER_NOT_LINKED" };
+
+    /// <summary>Référentiel incomplet (ex. statut employé « Active » introuvable).</summary>
+    public static InvitationAcceptResult MissingActiveStatus()
+        => new() { IsSuccess = false, Error = "MISSING_ACTIVE_STATUS" };
 }

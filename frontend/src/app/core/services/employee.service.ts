@@ -157,6 +157,8 @@ export interface CreateEmployeeRequest {
   phone: string;
   email: string;
   statusId: number;
+  // Rôle utilisé pour envoyer une invitation d’activation (sans mot de passe)
+  inviteRoleId?: number | null;
   genderId?: number | null;
   educationLevelId?: number | null;
   maritalStatusId?: number | null;

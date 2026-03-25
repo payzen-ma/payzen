@@ -48,7 +48,7 @@
           </div>
           <span [class]="'ml-3 text-sm font-medium ' + 
                         (currentStep >= 2 ? 'text-primary' : 'text-gray-500')">
-            Compte administrateur
+            Invitation administrateur
           </span>
         </div>
       </div>
@@ -274,11 +274,11 @@
                type="tel"
                [(ngModel)]="adminPhone"
                name="adminPhone"
-               [required]="false" />
+               [required]="true" />
 
             <!-- Date of Birth -->
             <div class="md:col-span-2">
-              <label class="block text-sm text-text-primary">Date de naissance</label>
+              <label class="block text-sm text-text-primary">Date de naissance <span class="text-gray-400 font-normal">(optionnel)</span></label>
               <input
                 type="date"
                 [(ngModel)]="adminDateOfBirth"
@@ -286,35 +286,6 @@
                 class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
               />
             </div>
-
-             <!-- Password Generation -->
-             <div class="md:col-span-2">
-               <label class="flex items-center gap-3 cursor-pointer">
-                 <input
-                   type="checkbox"
-                   [(ngModel)]="generatePassword"
-                   name="generatePassword"
-                   (change)="togglePasswordGeneration()"
-                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                 />
-                 <div>
-                   <span class="text-sm font-medium text-gray-700">Générer un mot de passe automatiquement</span>
-                   <p class="text-xs text-gray-500">Le mot de passe sera envoyé par email à l'administrateur</p>
-                 </div>
-               </label>
-             </div>
-
-             <!-- Manual Password (if not auto-generated) -->
-             <div *ngIf="!generatePassword" class="md:col-span-2">
-               <app-text-input
-                 label="Mot de passe"
-                 placeholder="Entrez un mot de passe"
-                 type="password"
-                 [(ngModel)]="adminPassword"
-                 name="adminPassword"
-                 [required]="!generatePassword" />
-               <p class="text-xs text-gray-500 mt-1">Minimum 8 caractères avec lettres et chiffres</p>
-             </div>
            </div>
          </div>
       </div>
@@ -377,13 +348,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">Entreprise créée avec succès!</h3>
-      <p class="text-sm text-gray-600">Les informations du compte administrateur ont été générées.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Entreprise créée avec succès</h3>
+      <p class="text-sm text-gray-600">Une invitation a été envoyée à l’administrateur (e-mail réel ou logs si mode mock).</p>
     </div>
 
     <div class="bg-gray-50 rounded-lg p-4 space-y-3 mb-6">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">E-mail invité</label>
         <div class="flex items-center justify-between bg-white border border-gray-200 rounded px-3 py-2">
           <span class="text-sm font-mono text-gray-900">{{ createdAdmin?.email }}</span>
           <button (click)="copyToClipboard(createdAdmin?.email)" class="text-primary hover:text-primary/80 ml-2" title="Copier">
@@ -394,30 +365,14 @@
         </div>
       </div>
 
-      <div *ngIf="createdAdmin?.password">
-        <label class="block text-xs font-medium text-gray-500 mb-1">Mot de passe temporaire</label>
-        <div class="flex items-center justify-between bg-white border border-gray-200 rounded px-3 py-2">
-          <span class="text-sm font-mono text-gray-900">{{ createdAdmin?.password }}</span>
-          <button (click)="copyToClipboard(createdAdmin?.password)" class="text-primary hover:text-primary/80 ml-2" title="Copier">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div *ngIf="createdAdmin?.message" class="bg-yellow-50 border border-yellow-200 rounded p-3">
-        <p class="text-xs text-yellow-800">{{ createdAdmin?.message }}</p>
+      <div *ngIf="createdAdmin?.message" class="bg-blue-50 border border-blue-100 rounded p-3">
+        <p class="text-xs text-blue-900">{{ createdAdmin?.message }}</p>
       </div>
     </div>
 
     <div class="flex gap-3">
-      <button (click)="copyToClipboard(createdAdmin?.email + '\\n' + createdAdmin?.password)" 
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition text-sm">
-        Copier tout
-      </button>
       <button (click)="closeSuccessModal()" 
-              class="flex-1 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition text-sm">
+              class="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition text-sm">
         Terminer
       </button>
     </div>

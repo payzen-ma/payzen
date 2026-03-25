@@ -29,6 +29,9 @@ public class EmployeeCreateValidator : AbstractValidator<EmployeeCreateDto>
 
         When(x => x.Password != null, () =>
             RuleFor(x => x.Password!).MinimumLength(8));
+
+        When(x => x.InviteRoleId.HasValue, () =>
+            RuleFor(x => x.InviteRoleId!.Value).GreaterThan(0));
     }
 }
 

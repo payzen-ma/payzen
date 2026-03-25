@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { CheckboxModule } from 'primeng/checkbox';
 import { Company, CompanyCreateByExpertDto } from '@app/core/models/company.model';
 import { CompanyService } from '@app/core/services/company.service';
 import { AuthService } from '@app/core/services/auth.service';
@@ -21,7 +20,6 @@ import { TranslateService } from '@ngx-translate/core';
     TranslateModule,
     ButtonModule,
     InputTextModule,
-    CheckboxModule,
     SelectFieldComponent
   ],
   templateUrl: './client-form.component.html',
@@ -120,9 +118,7 @@ export class ClientFormComponent implements OnInit {
       adminFirstName: [''],
       adminLastName: [''],
       adminEmail: [''],
-      adminPhone: [''],
-      generatePassword: [true],
-      adminPassword: ['']
+      adminPhone: ['']
     });
 
     if (this.mode === 'create') {
@@ -197,8 +193,6 @@ export class ClientFormComponent implements OnInit {
       AdminLastName: formValue.adminLastName,
       AdminEmail: formValue.adminEmail,
       AdminPhone: formValue.adminPhone,
-      GeneratePassword: formValue.generatePassword,
-      AdminPassword: formValue.adminPassword,
       IceNumber: formValue.ice,
       IfNumber: formValue.if,
       RcNumber: formValue.rc,

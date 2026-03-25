@@ -42,6 +42,10 @@ nav.s{box-shadow:0 2px 20px rgba(42,44,224,0.07)}
 .btn:hover{background:var(--blue-h);box-shadow:0 4px 18px rgba(42,44,224,0.28);transform:translateY(-1px)}
 .btn.ghost{background:transparent;color:var(--text);border:1.5px solid var(--bd)}
 .btn.ghost:hover{border-color:var(--blue);color:var(--blue);box-shadow:none}
+.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
+.btn-outline:hover{background:var(--blue-dim);box-shadow:none;transform:translateY(-1px)}
+.btn-lg{padding:13px 32px;font-size:.95rem;border-radius:11px}
+.hero-ctas{display:flex;gap:12px;margin-bottom:16px;animation:fu .6s ease .24s both}
 
 /* HERO */
 .hero{min-height:100vh;padding:130px 52px 80px;display:flex;align-items:center;position:relative;overflow:hidden}

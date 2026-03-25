@@ -19,6 +19,10 @@ function isTokenExpired(token: string): boolean {
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (req.url.includes('/auth/entra-login') || req.url.includes('/auth/login')) {
+    return next(req);
+  }
+
   const auth = inject(AuthService);
   const token = auth.getToken();
 

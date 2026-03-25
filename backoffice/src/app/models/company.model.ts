@@ -56,14 +56,12 @@ export interface CompanyCreateRequest {
   cnssNumber: string;
   isCabinetExpert: boolean;
   
-  // Admin account
+  // Futur admin (invitation Entra)
   adminFirstName: string;
   adminLastName: string;
   adminEmail: string;
   adminDateOfBirth?: string;
-  adminPhone?: string;
-  adminPassword?: string;
-  generatePassword: boolean;
+  adminPhone: string;
 }
 
 export interface CompanyCreateResponse {
@@ -84,13 +82,13 @@ export interface CompanyCreateResponse {
   };
   admin: {
     employeeId: number;
-    userId: number;
-    username: string;
+    userId?: number | null;
+    username?: string | null;
     email: string;
     firstName: string;
     lastName: string;
     phone: string;
-    password?: string;
+    password?: string | null;
     message?: string;
   };
 }

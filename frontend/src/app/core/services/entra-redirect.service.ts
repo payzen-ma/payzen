@@ -9,6 +9,8 @@ import { AuthenticationResult, BrowserAuthError } from '@azure/msal-browser';
 export class EntraRedirectService {
   private router = inject(Router);
   private static readonly INTERACTION_KEY = 'msal.interaction.status';
+  /** À chaque appel : évite la navigation vers l’URL ayant lancé loginRedirect (ex. accept-invite). */
+  private static readonly HANDLE_REDIRECT_OPTS = { navigateToLoginRequestUrl: false as const };
 
   private async ensureInitialized(): Promise<void> {
     await initializeMsal();
@@ -22,7 +24,7 @@ export class EntraRedirectService {
     await this.ensureInitialized();
 
     // Nettoie un éventuel state de redirect en attente avant de relancer une interaction.
-    await msalInstance.handleRedirectPromise();
+    await msalInstance.handleRedirectPromise(EntraRedirectService.HANDLE_REDIRECT_OPTS);
 
     if (this.isInteractionInProgress()) {
       console.warn('MSAL interaction already in progress, skipping duplicate redirect.');
@@ -48,7 +50,31 @@ export class EntraRedirectService {
   async loginWithEntra(): Promise<void> {
     await this.safeLoginRedirect({
       scopes: ['openid', 'profile', 'email'],
-      prompt: 'select_account'
+      prompt: 'select_account',
+    });
+  }
+
+  /**
+   * Inscription dans le tenant External ID (`prompt: 'create'`).
+   * Utilisé pour les liens d'invitation et pour `/login?mode=signup` (landing).
+   * Évite le message « This account does not exist in this organization » sur un simple sign-in.
+   * @see https://learn.microsoft.com/en-us/entra/identity-platform/msal-js-prompt-behavior
+   */
+  async signupWithEntra(): Promise<void> {
+    await this.safeLoginRedirect({
+      scopes: ['openid', 'profile', 'email'],
+      prompt: 'create',
+    });
+  }
+
+  /** Invitation + compte Google (email invité @gmail). */
+  async loginForInviteAcceptanceWithGoogle(): Promise<void> {
+    await this.safeLoginRedirect({
+      scopes: ['openid', 'profile', 'email'],
+      prompt: 'create',
+      extraQueryParameters: {
+        identity_provider: 'Google',
+      },
     });
   }
 
@@ -86,7 +112,9 @@ export class EntraRedirectService {
   async handleRedirectPromise(): Promise<AuthenticationResult | null> {
     try {
       await this.ensureInitialized();
-      const result = await msalInstance.handleRedirectPromise();
+      const result = await msalInstance.handleRedirectPromise(
+        EntraRedirectService.HANDLE_REDIRECT_OPTS
+      );
       
       if (result) {
         console.log('✅ Authentication successful:', result);
@@ -94,16 +122,32 @@ export class EntraRedirectService {
       }
       
       return null;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error handling redirect:', error);
-      
-      // Gérer les erreurs spécifiques
-      if (error?.errorCode === 'invalid_request') {
-        console.error('Invalid request - PKCE may be misconfigured');
+      const err = error as { errorCode?: string; errorMessage?: string; message?: string };
+      const msg = `${err?.errorMessage ?? ''} ${err?.message ?? ''}`;
+
+      // AADSTS16000 : compte IdP (ex. Google) pas encore provisionné dans le tenant External ID — config portail, pas PKCE.
+      if (msg.includes('AADSTS16000')) {
+        console.warn(
+          '[Entra] Ce compte Google n’existe pas encore dans le tenant Payzen HR. ' +
+          'Dans le portail : External Identities → fournisseurs d’identité Google + user flow « Sign up and sign in » avec inscription, ' +
+          'et lier l’app SPA. L’utilisateur doit compléter une première inscription dans ce tenant.'
+        );
+        await this.router.navigate(['/login'], {
+          queryParams: { error: 'idp_user_not_in_tenant' },
+        });
+        return null;
       }
-      
-      this.router.navigate(['/login'], { 
-        queryParams: { error: 'auth_failed' } 
+
+      if (err?.errorCode === 'invalid_request') {
+        console.error(
+          'invalid_request : lire le message AADSTS ci-dessus (souvent config tenant / user flow, pas PKCE).'
+        );
+      }
+
+      await this.router.navigate(['/login'], {
+        queryParams: { error: 'auth_failed' },
       });
       return null;
     }

@@ -10,6 +10,13 @@ export interface InvitationInfo {
   expiresAt: string;
 }
 
+export interface InviteEmployeeRequest {
+  email: string;
+  companyId: number;
+  roleId: number;
+  employeeId: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,5 +33,9 @@ export class InvitationService {
 
   acceptViaIdp(token: string): Observable<any> {
     return this.http.post(`${this.api}/invitations/accept-via-idp`, { token });
+  }
+
+  inviteEmployee(payload: InviteEmployeeRequest): Observable<any> {
+    return this.http.post(`${this.api}/invitations/invite-employee`, payload);
   }
 }

@@ -3,6 +3,7 @@ using Payzen.Application.Common;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Auth;
+using Payzen.Domain.Enums.Auth;
 using Payzen.Infrastructure.Persistence;
 using Payzen.Infrastructure.Services.EventLog;
 
@@ -160,44 +161,59 @@ public class AuthService : IAuthService
         {
             // Auto-activation (si employé éligible) ou mise à jour simple (compte visiteur).
             user.ExternalId = externalId;
-            user.Source = isEmployeeEligible ? "entra" : "visitor_entra";
+            // Important: lors du flux invitation, le front appelle `loginWithEntra` avant puis après `acceptViaIdp`.
+            // `acceptViaIdp` peut lier `User.EmployeeId` même si la company n'est pas "C" (cas admin invitation).
+            // On ne doit donc pas écraser un lien existant ici.
+            user.Source = isEmployeeEligible
+                ? "entra"
+                : (user.EmployeeId.HasValue ? "entra" : "visitor_entra");
+
             if (isEmployeeEligible)
-                user.EmployeeId = employee.Id;
-            else
+                user.EmployeeId = employee!.Id;
+            else if (user.EmployeeId == null)
                 user.EmployeeId = null;
             user.PasswordHash = null; // purge éventuelle valeur existante
             user.IsActive = true;
             await _db.SaveChangesAsync(ct);
         }
 
-        // 3) Assurer un rôle minimal côté RBAC:
-        // - compte employé éligible => Employee
-        // - compte visiteur => Visitor (fallback Employee si Visitor non présent)
-        var targetRoleName = isEmployeeEligible ? "Employee" : "Visitor";
-        var targetRole = await _db.Roles
-            .FirstOrDefaultAsync(r => r.Name == targetRoleName && r.DeletedAt == null, ct);
+        // 3) RBAC : ne pas forcer Employee/Visitor si l'utilisateur a déjà un rôle métier (ex. Admin Payzen / backoffice).
+        const string adminPayZenRoleName = "Admin Payzen";
+        var hasAdminPayZen = await _db.UsersRoles
+            .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
+            .Join(_db.Roles.Where(r => r.DeletedAt == null),
+                ur => ur.RoleId, r => r.Id, (_, r) => r.Name)
+            .AnyAsync(name => name == adminPayZenRoleName, ct);
 
-        if (targetRole == null && !isEmployeeEligible)
+        if (!hasAdminPayZen)
         {
-            targetRole = await _db.Roles
-                .FirstOrDefaultAsync(r => r.Name == "Employee" && r.DeletedAt == null, ct);
-        }
+            // compte employé éligible => Employee ; sinon Visitor (fallback Employee)
+            var targetRoleName = isEmployeeEligible ? "Employee" : "Visitor";
+            var targetRole = await _db.Roles
+                .FirstOrDefaultAsync(r => r.Name == targetRoleName && r.DeletedAt == null, ct);
 
-        if (targetRole == null)
-            return ServiceResult<LoginResponse>.Fail($"Rôle '{targetRoleName}' introuvable dans la base.");
-
-        var hasRole = await _db.UsersRoles
-            .AnyAsync(ur => ur.UserId == user.Id && ur.RoleId == targetRole.Id && ur.DeletedAt == null, ct);
-
-        if (!hasRole)
-        {
-            _db.UsersRoles.Add(new UsersRoles
+            if (targetRole == null && !isEmployeeEligible)
             {
-                UserId = user.Id,
-                RoleId = targetRole.Id,
-                CreatedBy = 1
-            });
-            await _db.SaveChangesAsync(ct);
+                targetRole = await _db.Roles
+                    .FirstOrDefaultAsync(r => r.Name == "Employee" && r.DeletedAt == null, ct);
+            }
+
+            if (targetRole == null)
+                return ServiceResult<LoginResponse>.Fail($"Rôle '{targetRoleName}' introuvable dans la base.");
+
+            var hasRole = await _db.UsersRoles
+                .AnyAsync(ur => ur.UserId == user.Id && ur.RoleId == targetRole.Id && ur.DeletedAt == null, ct);
+
+            if (!hasRole)
+            {
+                _db.UsersRoles.Add(new UsersRoles
+                {
+                    UserId = user.Id,
+                    RoleId = targetRole.Id,
+                    CreatedBy = 1
+                });
+                await _db.SaveChangesAsync(ct);
+            }
         }
 
         // 4) Générer JWT + payload utilisateur (même format que /api/auth/login)
@@ -225,6 +241,14 @@ public class AuthService : IAuthService
                 .FirstOrDefaultAsync(ec => ec.Id == employee!.CategoryId && ec.DeletedAt == null, ct)
             : null;
 
+        var companyIdForPayload = isEmployeeEligible ? (employee?.CompanyId ?? 0) : 0;
+        if (companyIdForPayload == 0)
+        {
+            var fromAdminInvite = await TryResolveCompanyIdFromAcceptedCompanyAdminInvitationAsync(email, ct);
+            if (fromAdminInvite.HasValue)
+                companyIdForPayload = fromAdminInvite.Value;
+        }
+
         var response = new LoginResponse
         {
             Message = "Connexion réussie.",
@@ -242,11 +266,43 @@ public class AuthService : IAuthService
                 EmployeeCategoryId = isEmployeeEligible ? employee?.CategoryId : null,
                 Mode = category != null ? category.Mode.ToString() : null,
                 IsCabinetExpert = isEmployeeEligible ? (employee?.Company?.IsCabinetExpert ?? false) : false,
-                companyId = isEmployeeEligible ? (employee?.CompanyId ?? 0) : 0
+                companyId = companyIdForPayload
             }
         };
 
         return ServiceResult<LoginResponse>.Ok(response);
+    }
+
+    /// <summary>
+    /// Admin société invité sans fiche employé : l'invitation acceptée porte le rôle « Admin » et le CompanyId.
+    /// </summary>
+    private async Task<int?> TryResolveCompanyIdFromAcceptedCompanyAdminInvitationAsync(string email, CancellationToken ct)
+    {
+        const string companyAdminRoleName = "Admin";
+        var normalized = email.Trim().ToLowerInvariant();
+
+        var invitationRow = await _db.Invitations
+            .AsNoTracking()
+            .Where(i => i.Email == normalized && i.Status == InvitationStatus.Accepted && i.DeletedAt == null)
+            .Join(_db.Roles.Where(r => r.Name == companyAdminRoleName && r.DeletedAt == null),
+                i => i.RoleId, r => r.Id, (i, _) => i)
+            .OrderByDescending(i => i.Id)
+            .Select(i => i.CompanyId)
+            .FirstOrDefaultAsync(ct);
+
+        if (invitationRow == 0)
+            return null;
+
+        var company = await _db.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == invitationRow && c.DeletedAt == null, ct);
+
+        if (company == null || !company.isActive)
+            return null;
+        if (!string.Equals(company.AuthType, "C", System.StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return invitationRow;
     }
 
     public async Task<ServiceResult<UserReadDto>> GetMeAsync(int userId, CancellationToken ct = default)

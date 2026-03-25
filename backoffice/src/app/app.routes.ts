@@ -14,11 +14,23 @@ import { HolidaysComponent } from './features/holidays/holidays/holidays.compone
 import { PayrollReferentielComponent } from './features/payroll-referentiel/payroll-referentiel.component';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 import { SalaryPackagesComponent } from './features/salary-packages/salary-packages.component';
 
 export const routes: Routes = [
-    {path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-    {path: 'login', component: LoginComponent },
+    { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    {
+      path: 'login',
+      canActivate: [guestGuard],
+      component: LoginComponent,
+    },
+    {
+      path: 'auth/callback',
+      loadComponent: () =>
+        import('./features/auth/entra-callback/entra-callback.component').then(
+          (m) => m.EntraCallbackComponent
+        ),
+    },
     {
         path: 'dashboard',
         component: AdminLayoutComponent,

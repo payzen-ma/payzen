@@ -369,9 +369,8 @@
     }
     ,
     "client": {
-      "adminUser": "Admin User",
-      "adminDescription": "Create an administrator account for this company.",
-      "autoGeneratePassword": "Auto-generate secure password"
+      "adminUser": "Invited administrator",
+      "adminDescription": "Enter the future administrator: they will receive an email invitation to activate access via Microsoft Entra (no Payzen password)."
     }
   },
   "attendance": {

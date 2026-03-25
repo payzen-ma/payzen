@@ -145,9 +145,7 @@ export class CompanyService {
       AdminLastName: company.adminLastName,
       AdminEmail: company.adminEmail,
       AdminDateOfBirth: company.adminDateOfBirth,
-      AdminPhone: company.adminPhone,
-      AdminPassword: company.adminPassword,
-      GeneratePassword: company.generatePassword
+      AdminPhone: company.adminPhone
     };
 
     return this.http.post<CompanyCreateResponse>(this.apiUrl, payload);

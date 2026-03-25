@@ -146,8 +146,6 @@ export interface CompanyCreateByExpertDto {
   AdminLastName: string;
   AdminEmail: string;
   AdminPhone: string;
-  GeneratePassword?: boolean;
-  AdminPassword?: string;
   CountryPhoneCode?: string;
   IsCabinetExpert?: boolean;
   IceNumber?: string;

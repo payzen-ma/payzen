@@ -1,4 +1,6 @@
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Auth;
@@ -11,16 +13,24 @@ public class InvitationService : IInvitationService
 {
     private readonly AppDbContext _db;
     private readonly IEmailService _emailService;
+    private readonly ILogger<InvitationService> _logger;
 
-    public InvitationService(AppDbContext db, IEmailService emailService)
+    public InvitationService(AppDbContext db, IEmailService emailService, ILogger<InvitationService> logger)
     {
         _db = db;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<string> CreateInvitationAsync(InviteAdminDto dto, CancellationToken ct = default)
     {
         var token = Guid.NewGuid().ToString("N");
+        _logger.LogInformation(
+            "CreateInvitationAsync(admin) Email={Email} CompanyId={CompanyId} RoleId={RoleId} Token={Token}",
+            dto.Email,
+            dto.CompanyId,
+            dto.RoleId,
+            token);
         
         var invitation = new Invitation
         {
@@ -61,6 +71,13 @@ public class InvitationService : IInvitationService
     public async Task<string> CreateEmployeeInvitationAsync(InviteEmployeeDto dto, CancellationToken ct = default)
     {
         var token = Guid.NewGuid().ToString("N");
+        _logger.LogInformation(
+            "CreateEmployeeInvitationAsync Email={Email} CompanyId={CompanyId} RoleId={RoleId} EmployeeId={EmployeeId} Token={Token}",
+            dto.Email,
+            dto.CompanyId,
+            dto.RoleId,
+            dto.EmployeeId,
+            token);
         
         var invitation = new Invitation
         {
@@ -124,63 +141,116 @@ public class InvitationService : IInvitationService
         };
     }
 
-    public async Task<InvitationAcceptResult> AcceptViaIdpAsync(
-        string token, 
-        string idpEmail, 
-        CancellationToken ct = default)
+    public async Task<InvitationAcceptResult> AcceptViaIdpAsync(string token, int? jwtUserId, CancellationToken ct = default)
     {
         var invitation = await _db.Invitations
             .Include(i => i.Company)
             .Include(i => i.Role)
             .Where(i => i.Token == token && i.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
-        
+
         if (invitation == null)
             return InvitationAcceptResult.NotFound();
-        
+
         if (invitation.Status != InvitationStatus.Pending)
             return InvitationAcceptResult.AlreadyUsed();
-        
+
         if (invitation.ExpiresAt < DateTime.UtcNow)
         {
             invitation.Status = InvitationStatus.Expired;
             await _db.SaveChangesAsync(ct);
             return InvitationAcceptResult.Expired();
         }
-        
-        // Vérification critique : l'email IdP doit correspondre à l'invitation
-        if (!string.Equals(invitation.Email, idpEmail, StringComparison.OrdinalIgnoreCase))
-            return InvitationAcceptResult.EmailMismatch(invitation.Email, idpEmail);
-        
-        // Marquer l'invitation comme acceptée
-        invitation.Status = InvitationStatus.Accepted;
-        
-        // Lier l'utilisateur à l'employé si nécessaire
-        var user = await _db.Users
-            .Where(u => u.Email == idpEmail.ToLowerInvariant())
-            .FirstOrDefaultAsync(ct);
-        
-        if (user != null && invitation.EmployeeId.HasValue)
+
+        var normalizedInvitationEmail = invitation.Email.Trim().ToLowerInvariant();
+
+        // 1) Utilisateur du JWT (premier entra-login) — plus fiable que l’e-mail seul (casse, UPN IdP).
+        Users? user = null;
+        if (jwtUserId.HasValue)
         {
-            user.EmployeeId = invitation.EmployeeId.Value;
-            
-            // Assigner le rôle
-            var existingRole = await _db.UsersRoles
-                .Where(ur => ur.UserId == user.Id && ur.RoleId == invitation.RoleId)
-                .FirstOrDefaultAsync(ct);
-            
-            if (existingRole == null)
+            var byId = await _db.Users
+                .FirstOrDefaultAsync(u => u.Id == jwtUserId.Value && u.DeletedAt == null, ct);
+            if (byId != null)
             {
-                _db.UsersRoles.Add(new UsersRoles
-                {
-                    UserId = user.Id,
-                    RoleId = invitation.RoleId
-                });
+                if (!string.Equals(byId.Email.Trim(), invitation.Email.Trim(), StringComparison.OrdinalIgnoreCase))
+                    return InvitationAcceptResult.EmailMismatch(invitation.Email, byId.Email);
+
+                user = byId;
             }
         }
-        
+
+        // 2) Secours : même e-mail que l’invitation (normalisé)
+        if (user == null)
+        {
+            user = await _db.Users
+                .FirstOrDefaultAsync(
+                    u => u.Email.ToLower() == normalizedInvitationEmail && u.DeletedAt == null,
+                    ct);
+        }
+
+        if (user == null)
+            return InvitationAcceptResult.UserNotLinked();
+
+        if (invitation.EmployeeId.HasValue)
+        {
+            user.EmployeeId = invitation.EmployeeId.Value;
+        }
+        else
+        {
+            var empForCompany = await _db.Employees
+                .FirstOrDefaultAsync(
+                    e => e.Email.ToLower() == normalizedInvitationEmail
+                         && e.CompanyId == invitation.CompanyId
+                         && e.DeletedAt == null,
+                    ct);
+            if (empForCompany != null)
+            {
+                user.EmployeeId = empForCompany.Id;
+            }
+            else
+            {
+                var activeStatus = await _db.Statuses
+                    .FirstOrDefaultAsync(s => s.Code.ToLower() == "active" && s.DeletedAt == null, ct);
+                if (activeStatus == null)
+                    return InvitationAcceptResult.MissingActiveStatus();
+
+                var (firstName, lastName) = DeriveNameFromEmail(user.Email);
+                var newEmployee = new Payzen.Domain.Entities.Employee.Employee
+                {
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = user.Email.Trim(),
+                    Phone = string.Empty,
+                    CinNumber = "TEMP-" + Guid.NewGuid().ToString("N")[..12].ToUpperInvariant(),
+                    DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)),
+                    CompanyId = invitation.CompanyId,
+                    StatusId = activeStatus.Id,
+                    CreatedBy = user.Id
+                };
+                _db.Employees.Add(newEmployee);
+                await _db.SaveChangesAsync(ct);
+                user.EmployeeId = newEmployee.Id;
+            }
+        }
+
+        invitation.Status = InvitationStatus.Accepted;
+
+        var existingRole = await _db.UsersRoles
+            .Where(ur => ur.UserId == user.Id && ur.RoleId == invitation.RoleId && ur.DeletedAt == null)
+            .FirstOrDefaultAsync(ct);
+
+        if (existingRole == null)
+        {
+            _db.UsersRoles.Add(new UsersRoles
+            {
+                UserId = user.Id,
+                RoleId = invitation.RoleId,
+                CreatedBy = 1
+            });
+        }
+
         await _db.SaveChangesAsync(ct);
-        
+
         return InvitationAcceptResult.Success();
     }
 
@@ -189,5 +259,22 @@ public class InvitationService : IInvitationService
         var at = email.IndexOf('@');
         if (at <= 1) return "***" + email[at..];
         return email[0] + "***" + email[(at - 1)..];
+    }
+
+    /// <summary>Prénom / nom provisoires à partir de l’e-mail (complétables en RH).</summary>
+    private static (string FirstName, string LastName) DeriveNameFromEmail(string email)
+    {
+        var local = email.Trim().Split('@')[0];
+        var parts = local
+            .Split('.', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => s.Length > 0)
+            .ToArray();
+        var first = parts.Length > 0 ? parts[0] : "Utilisateur";
+        var last = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : "Invité";
+        const int max = 80;
+        if (first.Length > max) first = first[..max];
+        if (last.Length > max) last = last[..max];
+        return (first, last);
     }
 }

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.Interfaces;
-using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Payzen.Api.Controllers.Auth;
 
@@ -35,8 +35,8 @@ public class InvitationController : ControllerBase
     }
 
     /// <summary>
-    /// Accepte une invitation après authentification via IdP (Microsoft ou Google)
-    /// L'email est extrait du JWT Entra (claim "email" ou "preferred_username")
+    /// Accepte une invitation après authentification (JWT PayZen, obtenu après Entra côté SPA).
+    /// L’utilisateur est résolu par <c>uid</c>/<c>sub</c> (fiable) puis par e-mail d’invitation ; pas uniquement par les claims e-mail du JWT.
     /// </summary>
     [HttpPost("accept-via-idp")]
     [Authorize]
@@ -44,15 +44,11 @@ public class InvitationController : ControllerBase
         [FromBody] AcceptInvitationViaIdpDto dto, 
         CancellationToken ct)
     {
-        // L'email vient du claim "email" du JWT Entra — jamais du body
-        var idpEmail = User.FindFirstValue(ClaimTypes.Email)
-                    ?? User.FindFirstValue("preferred_username")
-                    ?? User.FindFirstValue("email");
-        
-        if (string.IsNullOrEmpty(idpEmail))
-            return Unauthorized(new { Message = "Impossible de récupérer l'email depuis l'IdP." });
-        
-        var result = await _invitationService.AcceptViaIdpAsync(dto.Token, idpEmail, ct);
+        var uidStr = User.FindFirst("uid")?.Value
+                     ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        int? jwtUserId = int.TryParse(uidStr, out var parsedId) ? parsedId : null;
+
+        var result = await _invitationService.AcceptViaIdpAsync(dto.Token, jwtUserId, ct);
         
         if (result.IsSuccess)
             return Ok(new { Message = "Invitation acceptée avec succès." });
@@ -77,6 +73,16 @@ public class InvitationController : ControllerBase
                 Message = "Cette invitation a déjà été utilisée.", 
                 Code = result.Error 
             }),
+            "USER_NOT_LINKED" => BadRequest(new
+            {
+                Message = "Compte introuvable pour finaliser l’invitation. Réessayez après connexion ou contactez le support.",
+                Code = result.Error
+            }),
+            "MISSING_ACTIVE_STATUS" => StatusCode(500, new
+            {
+                Message = "Configuration serveur incomplète : statut employé « Active » introuvable.",
+                Code = result.Error
+            }),
             _ => NotFound(new 
             { 
                 Message = "Invitation introuvable.", 
@@ -89,7 +95,7 @@ public class InvitationController : ControllerBase
     /// Créer une invitation pour un admin company
     /// </summary>
     [HttpPost("invite-admin")]
-    //[Authorize(Roles = "Admin,Admin Payzen")]
+    //[Authorize(Roles = "Admin Payzen")]
     public async Task<IActionResult> InviteAdmin(
         [FromBody] InviteAdminDto dto, 
         CancellationToken ct)
@@ -110,7 +116,7 @@ public class InvitationController : ControllerBase
     /// Créer une invitation pour un employé
     /// </summary>
     [HttpPost("invite-employee")]
-    [Authorize(Roles = "Admin,RH,AdminPayzen")]
+    [Authorize(Roles = "Admin,RH,Admin Payzen")]
     public async Task<IActionResult> InviteEmployee(
         [FromBody] InviteEmployeeDto dto, 
         CancellationToken ct)

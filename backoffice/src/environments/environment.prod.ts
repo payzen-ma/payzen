@@ -1,6 +1,12 @@
-// Production environment variables
 export const environment = {
   production: true,
-  // In CI/CD, set this to the real key via file replacement or build-time secrets
-  CALENDARIFIC_API_KEY: ''
+  apiUrl: 'https://api.payzen.ma/api',
+  CALENDARIFIC_API_KEY: '',
+  entra: {
+    clientId: '4524266d-a29c-4c05-97c9-03e5ee5034ab',
+    authority: 'https://payzenhr.ciamlogin.com',
+    knownAuthorities: ['payzenhr.ciamlogin.com'],
+    redirectUri: 'https://admin.payzen.ma/auth/callback',
+    postLogoutRedirectUri: 'https://admin.payzen.ma/login',
+  },
 };

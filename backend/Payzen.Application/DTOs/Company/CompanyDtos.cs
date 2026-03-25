@@ -94,13 +94,6 @@ public class CompanyCreateDto
     [StringLength(20)]
     public required string AdminPhone { get; set; }
 
-    /// <summary>Si true, génère un mot de passe temporaire automatiquement.</summary>
-    public bool GeneratePassword { get; set; } = true;
-
-    /// <summary>Mot de passe personnalisé (requis si GeneratePassword = false)</summary>
-    [StringLength(100, MinimumLength = 8)]
-    public string? AdminPassword { get; set; }
-
     public bool isActive { get; set; } = true;
 }
 
@@ -248,7 +241,7 @@ public class CompanyReadDto
     public string? AuthType { get; set; }
 }
 
-/// <summary>Réponse après création d'une entreprise (inclut le compte admin généré)</summary>
+/// <summary>Réponse après création d'une entreprise (fiche employé admin + invitation e-mail Entra)</summary>
 public class CompanyCreateResponseDto
 {
     public CompanyReadDto Company { get; set; } = null!;
@@ -258,13 +251,13 @@ public class CompanyCreateResponseDto
 public class AdminAccountDto
 {
     public int EmployeeId { get; set; }
-    public int UserId { get; set; }
-    public string Username { get; set; } = string.Empty;
+    /// <summary>Null tant que l'admin n'a pas accepté l'invitation (connexion Entra).</summary>
+    public int? UserId { get; set; }
+    public string? Username { get; set; }
     public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
-    /// <summary>Mot de passe temporaire (null si l'utilisateur a fourni le sien)</summary>
     public string? Password { get; set; }
     public string Message { get; set; } = string.Empty;
 }

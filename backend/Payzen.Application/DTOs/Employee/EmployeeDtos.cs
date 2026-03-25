@@ -92,6 +92,9 @@ public class EmployeeCreateDto
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir au moins 8 caractères")]
     public string? Password { get; set; }
 
+    // ── Invitation employee (sans mot de passe, activation via Entra/Google) ──
+    public int? InviteRoleId { get; set; }
+
     public bool CreateUserAccount { get; set; } = true;
 }
 

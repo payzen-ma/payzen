@@ -378,9 +378,8 @@
     }
     ,
     "client": {
-      "adminUser": "Utilisateur Admin",
-      "adminDescription": "Créez un compte administrateur pour cette entreprise.",
-      "autoGeneratePassword": "Générer automatiquement un mot de passe sécurisé"
+      "adminUser": "Administrateur invité",
+      "adminDescription": "Saisissez le futur administrateur : il recevra une invitation par e-mail pour activer son accès via Microsoft Entra (sans mot de passe Payzen)."
     }
   },
   "attendance": {

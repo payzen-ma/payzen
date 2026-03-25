@@ -143,24 +143,6 @@
             <label class="form-label form-label-required">{{ 'common.phone' | translate }}</label>
             <input pInputText formControlName="adminPhone" class="input" />
           </div>
-
-          <!-- Password Generation -->
-          <div class="form-field-full">
-            <div class="form-info-box-gray">
-              <div class="flex items-center gap-2">
-                <p-checkbox formControlName="generatePassword" [binary]="true" inputId="genPass"></p-checkbox>
-                <label for="genPass" class="form-label cursor-pointer select-none">{{ 'expert.client.autoGeneratePassword' | translate }}</label>
-              </div>
-              
-              <!-- Manual Password (if not generated) -->
-              @if (!form.get('generatePassword')?.value) {
-                <div class="form-field mt-3 pl-7">
-                  <label class="form-label">{{ 'auth.password' | translate }}</label>
-                  <input pInputText type="password" formControlName="adminPassword" class="input" placeholder="{{ 'auth.passwordPlaceholder' | translate }}" />
-                </div>
-              }
-            </div>
-          </div>
         </div>
       </section>
     }

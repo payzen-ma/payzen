@@ -194,7 +194,11 @@ export class AuthService {
    * Type C (Entra OTP email) : le frontend MSAL récupère l'identité (email + oid/externalId),
    * puis le backend renvoie un JWT Payzen pour minimiser les changements côté UI.
    */
-  loginWithEntra(email: string, externalId: string): Observable<LoginResponse> {
+  loginWithEntra(
+    email: string,
+    externalId: string,
+    options?: { skipNavigation?: boolean }
+  ): Observable<LoginResponse> {
     this.isLoading.set(true);
     this.updateAuthState({ ...this.authStateSubject.value, isLoading: true, error: null });
 
@@ -202,7 +206,7 @@ export class AuthService {
 
     return this.http.post<any>(`${this.API_URL}/entra-login`, payload).pipe(
       map(response => this.normalizeLoginResponse(response)),
-      tap(response => this.handleLoginSuccess(response)),
+      tap(response => this.handleLoginSuccess(response, { skipNavigation: options?.skipNavigation })),
       catchError(error => {
         this.handleAuthError(error);
         return throwError(() => error);
@@ -213,7 +217,10 @@ export class AuthService {
   /**
    * Handle successful login
    */
-  private handleLoginSuccess(response: LoginResponse): void {
+  private handleLoginSuccess(
+    response: LoginResponse,
+    opts?: { skipNavigation?: boolean }
+  ): void {
     // Store tokens and user
     this.storeToken(response.token);
     this.storeUser(response.user);
@@ -233,6 +240,10 @@ export class AuthService {
       isLoading: false,
       error: null
     });
+
+    if (opts?.skipNavigation) {
+      return;
+    }
 
     // Helper to set memberships and navigate
     const proceedWithMemberships = (userWithName: User) => {
@@ -696,15 +707,15 @@ export class AuthService {
    */
   getRoleDefaultRoute(role: string): string {
     const roleRoutes: Record<string, string> = {
-      [UserRole.ADMIN]: '/dashboard',
-      [UserRole.RH]: '/dashboard',
-      [UserRole.MANAGER]: '/employees',
-      [UserRole.EMPLOYEE]: '/my-profile',
-      [UserRole.CABINET]: '/companies',
-      [UserRole.ADMIN_PAYZEN]: '/admin/dashboard'
+      [UserRole.ADMIN]: '/app/dashboard',
+      [UserRole.RH]: '/app/dashboard',
+      [UserRole.MANAGER]: '/app/dashboard',
+      [UserRole.EMPLOYEE]: '/app/employee/dashboard',
+      [UserRole.CABINET]: '/cabinet/dashboard',
+      [UserRole.ADMIN_PAYZEN]: '/app/dashboard'
     };
 
-    return roleRoutes[role] || '/dashboard';
+    return roleRoutes[role] || '/app/dashboard';
   }
 }
 

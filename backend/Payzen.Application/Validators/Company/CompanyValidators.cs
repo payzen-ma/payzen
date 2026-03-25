@@ -39,11 +39,6 @@ public class CompanyCreateValidator : AbstractValidator<CompanyCreateDto>
         RuleFor(x => x.AdminEmail).NotEmpty().EmailAddress().MaximumLength(500);
         RuleFor(x => x.AdminPhone).NotEmpty().MaximumLength(20);
 
-        When(x => !x.GeneratePassword, () =>
-            RuleFor(x => x.AdminPassword)
-                .NotEmpty().WithMessage("Le mot de passe est requis quand GeneratePassword est false")
-                .MinimumLength(8));
-
         When(x => x.WebsiteUrl != null, () =>
             RuleFor(x => x.WebsiteUrl!)
                 .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))

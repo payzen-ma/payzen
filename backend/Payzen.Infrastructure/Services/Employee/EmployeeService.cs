@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Application.Common;
+using Payzen.Application.DTOs.Auth;
 using Payzen.Application.DTOs.Dashboard;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.Interfaces;
@@ -9,6 +10,7 @@ using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Employee;
 using Payzen.Domain.Enums;
 using Payzen.Infrastructure.Persistence;
+using Microsoft.Extensions.Logging;
 
 namespace Payzen.Infrastructure.Services.Employee;
 
@@ -19,6 +21,8 @@ public class EmployeeService : IEmployeeService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
+    private readonly IInvitationService _invitationService;
+    private readonly ILogger<EmployeeService> _logger;
     private readonly EmployeeContractService   _contracts;
     private readonly EmployeeSalaryService     _salaries;
     private readonly EmployeeDocumentService   _documents;
@@ -28,10 +32,17 @@ public class EmployeeService : IEmployeeService
     private readonly EmployeeOvertimeService   _overtimes;
     private readonly EmployeeAttendanceService _attendances;
 
-    public EmployeeService(AppDbContext db, IWebHostEnvironment env, IEmployeeEventLogService eventLog)
+    public EmployeeService(
+        AppDbContext db,
+        IWebHostEnvironment env,
+        IEmployeeEventLogService eventLog,
+        IInvitationService invitationService,
+        ILogger<EmployeeService> logger)
     {
         _db          = db;
         _eventLog    = eventLog;
+        _invitationService = invitationService;
+        _logger      = logger;
         _contracts   = new EmployeeContractService(db, eventLog);
         _salaries    = new EmployeeSalaryService(db, eventLog);
         _documents   = new EmployeeDocumentService(db, env);
@@ -473,6 +484,7 @@ public class EmployeeService : IEmployeeService
         });
     }
 
+    // Crée un nouvel employé, aprés la création du employé, on doit crée un utilisateur lié à l'employé, envoyer un email d'invitation à l'employé pour qu'il active son compte et login.
     public async Task<ServiceResult<EmployeeReadDto>> CreateAsync(EmployeeCreateDto dto, int createdBy, CancellationToken ct = default)
     {
         var syncContract = dto.JobPositionId is > 0 && dto.ContractTypeId is > 0 && dto.StartDate.HasValue;
@@ -605,6 +617,28 @@ public class EmployeeService : IEmployeeService
             }
 
             await transaction.CommitAsync(ct);
+
+            // Option 2: invitation automatique si le front indique un rôle
+            _logger.LogInformation(
+                "Employee created id={EmployeeId} InviteRoleId={InviteRoleId} CompanyId={CompanyId} Email={Email}",
+                id,
+                dto.InviteRoleId,
+                companyId,
+                dto.Email);
+            if (dto.InviteRoleId.HasValue
+                && dto.InviteRoleId.Value > 0
+                && companyId > 0
+                && !string.IsNullOrWhiteSpace(dto.Email))
+            {
+                // Envoi invitation employee (pas de mot de passe)
+                await _invitationService.CreateEmployeeInvitationAsync(new InviteEmployeeDto
+                {
+                    Email = dto.Email,
+                    CompanyId = companyId,
+                    RoleId = dto.InviteRoleId.Value,
+                    EmployeeId = id
+                }, ct);
+            }
         }
         catch (Exception ex)
         {
