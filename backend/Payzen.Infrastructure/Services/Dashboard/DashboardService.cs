@@ -377,4 +377,151 @@ public class DashboardService : IDashboardService
 
         return ServiceResult<DashboardResponseDto>.Ok(response);
     }
+
+    public async Task<ServiceResult<EmployeeDashboardDataDto>> GetEmployeeDashboardAsync(int userId, CancellationToken ct = default)
+    {
+        var user = await _db.Users
+            .AsNoTracking()
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Departement)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Manager)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Documents)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Contracts!)
+                    .ThenInclude(c => c.JobPosition)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Contracts!)
+                    .ThenInclude(c => c.ContractType)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive && u.DeletedAt == null, ct);
+
+        if (user == null)
+            return ServiceResult<EmployeeDashboardDataDto>.Fail("Utilisateur non trouvé");
+
+        if (user.Employee == null)
+            return ServiceResult<EmployeeDashboardDataDto>.Fail("L'utilisateur n'est pas associé à un employé");
+
+        var employee = user.Employee;
+
+        var activeContract = employee.Contracts
+            .Where(c => c.DeletedAt == null && c.EndDate == null)
+            .OrderByDescending(c => c.StartDate)
+            .FirstOrDefault();
+
+        var firstName = (employee.FirstName ?? string.Empty).Trim();
+        var lastName = (employee.LastName ?? string.Empty).Trim();
+        var employeeName = $"{firstName} {lastName}".Trim();
+
+        var initials = string.Empty;
+        if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
+            initials = string.Concat(firstName[0], lastName[0]).ToUpperInvariant();
+        else if (!string.IsNullOrWhiteSpace(firstName))
+            initials = firstName[..1].ToUpperInvariant();
+        else if (!string.IsNullOrWhiteSpace(lastName))
+            initials = lastName[..1].ToUpperInvariant();
+
+        // Rôle côté back-office : on lit le premier rôle actif.
+        var roleName = await _db.UsersRoles
+            .AsNoTracking()
+            .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
+            .Include(ur => ur.Role)
+            .Select(ur => ur.Role.Name)
+            .FirstOrDefaultAsync(ct);
+
+        roleName ??= "Employee";
+
+        var department = employee.Departement?.DepartementName ?? string.Empty;
+        var contractType = activeContract?.ContractType?.ContractTypeName ?? string.Empty;
+        var manager = employee.Manager != null
+            ? $"{employee.Manager.FirstName} {employee.Manager.LastName}".Trim()
+            : string.Empty;
+
+        var matricule = employee.Matricule?.ToString() ?? string.Empty;
+
+        // Ancienneté (MVP) : calcul depuis le startDate du contrat actif.
+        var seniority = string.Empty;
+        if (activeContract != null)
+        {
+            var start = DateOnly.FromDateTime(activeContract.StartDate);
+            var now = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var totalMonths = (now.Year - start.Year) * 12 + (now.Month - start.Month);
+            totalMonths = Math.Max(0, totalMonths);
+
+            var years = totalMonths / 12;
+            var months = totalMonths % 12;
+            seniority = years > 0 ? $"{years} ans" : $"{months} mois";
+        }
+
+        // Documents (UI attend "À venir" / "Expiré")
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var documents = employee.Documents
+            .Where(d => d.DeletedAt == null)
+            .Select(d =>
+            {
+                var exp = d.ExpirationDate.HasValue
+                    ? DateOnly.FromDateTime(d.ExpirationDate.Value)
+                    : (DateOnly?)null;
+
+                var status = !exp.HasValue || exp.Value >= today ? "À venir" : "Expiré";
+
+                return new EmployeeDocumentDto
+                {
+                    Title = d.Name,
+                    Subtitle = d.DocumentType,
+                    Status = status
+                };
+            })
+            .ToList();
+
+        var contractInfo = new List<ContractInfoDto>();
+        if (activeContract != null)
+        {
+            contractInfo.Add(new ContractInfoDto
+            {
+                Label = "Poste",
+                Value = activeContract.JobPosition?.Name ?? "Non assigné",
+                IsTag = false
+            });
+
+            contractInfo.Add(new ContractInfoDto
+            {
+                Label = "Type contrat",
+                Value = contractType,
+                IsTag = true
+            });
+        }
+
+        // KPI MVP (pour que le front fonctionne) : initialement à 0/vides.
+        var dto = new EmployeeDashboardDataDto
+        {
+            EmployeeName = employeeName,
+            Initials = initials,
+            Role = roleName,
+            Department = department,
+            ContractType = contractType,
+            Matricule = matricule,
+            Manager = manager,
+            Seniority = seniority,
+
+            SalaryNet = 0m,
+            PaidDate = string.Empty,
+
+            LeavesRemaining = 0,
+            LeavesTotal = 0,
+
+            PresenceDays = 0,
+            PresenceTotal = 0,
+
+            ExtraHours = 0m,
+
+            LeavesDetails = new List<LeaveDetailDto>(),
+            ContractInfo = contractInfo,
+            PayslipDetails = new List<PayslipDetailDto>(),
+            Documents = documents
+        };
+
+        return ServiceResult<EmployeeDashboardDataDto>.Ok(dto);
+    }
 }

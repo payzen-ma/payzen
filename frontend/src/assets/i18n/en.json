@@ -27,6 +27,9 @@
     "leave": "Leave",
     "leaveConfiguration": "Configuration",
     "myLeaveRequests": "My Leave Requests",
+    "mySpace": {
+      "dashboard": "My Space - Dashboard"
+    },
     "hrLeaveManagement": "HR Leave Management",
     "attendance": "Attendance",
     "absences": "Absences",
@@ -55,6 +58,7 @@
     "pointageImport": "Import Timesheet",
     "groups": {
       "overview": "Overview",
+      "mySpace": "My Space",
       "payroll": "Payroll",
       "employees": "Employees",
       "intelligence": "Intelligence",

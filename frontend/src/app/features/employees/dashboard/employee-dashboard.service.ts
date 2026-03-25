@@ -10,12 +10,13 @@ import { EmployeeDashboardData } from './employee-dashboard.model';
 export class EmployeeDashboardService {
   private http = inject(HttpClient);
   // Using environment.apiUrl which points to your .NET Backend
-  private apiUrl = `${environment.apiUrl}/DashboardEmployee`;
+  private apiUrl = `${environment.apiUrl}/dashboard/employee`;
 
   /**
    * Fetches the employee dashboard data directly from the C# Backend API.
    */
   getDashboardData(employeeId?: number): Observable<EmployeeDashboardData> {
-    return this.http.get<EmployeeDashboardData>(`${this.apiUrl}/GetEmployeeDashboardData`);
+    // Backend: GET /api/dashboard/employee (userId is taken from JWT claim "uid")
+    return this.http.get<EmployeeDashboardData>(`${this.apiUrl}`);
   }
 }

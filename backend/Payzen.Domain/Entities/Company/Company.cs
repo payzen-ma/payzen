@@ -27,8 +27,8 @@ public class Company : BaseEntity
     [Required] public required int CityId { get; set; }
     [Required] public required int CountryId { get; set; }
 
-    [Required][StringLength(100)]
-    public required string CnssNumber { get; set; }
+    [StringLength(100)]
+    public string? CnssNumber { get; set; }
 
     public bool IsCabinetExpert { get; set; } = false;
 

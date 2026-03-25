@@ -27,6 +27,9 @@
     "leave": "Congés",
     "leaveConfiguration": "Configuration",
     "myLeaveRequests": "Mes Demandes de Congé",
+    "mySpace": {
+      "dashboard": "Mon espace - Dashboard"
+    },
     "hrLeaveManagement": "Gestion RH - Congés",
     "absences": "Absences",
     "absencesTeam": "Absence Équipe",
@@ -55,6 +58,7 @@
     "pointageImport": "Import de pointage",
     "groups": {
       "overview": "Vue d'ensemble",
+      "mySpace": "Mon espace",
       "payroll": "Paie",
       "employees": "Collaborateurs",
       "intelligence": "Intelligence",

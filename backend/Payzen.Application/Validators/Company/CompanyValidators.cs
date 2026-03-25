@@ -32,12 +32,12 @@ public class CompanyCreateValidator : AbstractValidator<CompanyCreateDto>
         When(x => !string.IsNullOrWhiteSpace(x.CityName), () =>
             RuleFor(x => x.CityName!).MaximumLength(200));
 
-        RuleFor(x => x.CnssNumber).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.CnssNumber).MaximumLength(100);
 
         RuleFor(x => x.AdminFirstName).NotEmpty().Length(2, 100);
         RuleFor(x => x.AdminLastName).NotEmpty().Length(2, 100);
         RuleFor(x => x.AdminEmail).NotEmpty().EmailAddress().MaximumLength(500);
-        RuleFor(x => x.AdminPhone).NotEmpty().MaximumLength(20);
+        RuleFor(x => x.AdminPhone).MaximumLength(20);
 
         When(x => x.WebsiteUrl != null, () =>
             RuleFor(x => x.WebsiteUrl!)

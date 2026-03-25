@@ -19,10 +19,11 @@ public interface IDashboardService
     Task<DashboardHrPariteDiversiteDto> GetPariteDiversiteAsync(int? companyId, string? month, CancellationToken ct = default);
     Task<DashboardHrConformiteSocialeDto> GetConformiteSocialeAsync(int? companyId, string? month, CancellationToken ct = default);
 
-    // ── Backoffice / Expert / Dashboard général ──────────────
+    // ── Backoffice / Expert / Dashboard général / Dashboard Employee ──────────────
     Task<ServiceResult<DashboardSummaryDto>> GetBackofficeSummaryAsync(CancellationToken ct = default);
     Task<ServiceResult<DashboardSummaryDto>> GetSummaryAsync(CancellationToken ct = default);
     Task<ServiceResult<object>> GetEmployeesSnapshotAsync(int? companyId, CancellationToken ct = default);
     Task<ServiceResult<ExpertDashboardDto>> GetExpertDashboardAsync(int expertCompanyId, CancellationToken ct = default);
     Task<ServiceResult<DashboardResponseDto>> GetEmployeesDashboardAsync(int userId, CancellationToken ct = default);
+    Task<ServiceResult<EmployeeDashboardDataDto>> GetEmployeeDashboardAsync(int userId, CancellationToken ct = default);
 }

@@ -15,7 +15,9 @@ import {
   expertModeGuard,
   standardModeGuard,
   viewPresenceGuard,
-  viewAbsenceGuard
+  viewAbsenceGuard,
+  employeeDashboardGuard,
+  denyEmployeeFromHrDashboardsGuard
 } from '@app/core/guards/auth.guard';
 import { unsavedChangesGuard } from '@app/core/guards/unsaved-changes.guard';
 
@@ -28,6 +30,11 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/login/login.component')
       .then(m => m.LoginComponent)
+  },
+  {
+    path: 'signup/company',
+    loadComponent: () => import('./features/auth/company-signup/company-signup.component')
+      .then(m => m.CompanySignupComponent)
   },
   {
     path: 'auth/callback',
@@ -43,7 +50,7 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard')
       .then(m => m.Dashboard),
-    canActivate: [authGuard]
+    canActivate: [authGuard, denyEmployeeFromHrDashboardsGuard]
   },
   {
     path: '',
@@ -78,11 +85,13 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: Dashboard
+        component: Dashboard,
+        canActivate: [denyEmployeeFromHrDashboardsGuard]
       },
       {
         path: 'employee/dashboard',
         loadComponent: () => import('./features/employees/dashboard/employee-dashboard.component').then(m => m.EmployeeDashboardComponent),
+        canActivate: [employeeDashboardGuard],
         title: 'Mon Espace - PayZen'
       },
       {
@@ -377,6 +386,7 @@ export const routes: Routes = [
         loadComponent: () => 
           import('./features/expert/dashboard/expert-dashboard')
             .then(m => m.ExpertDashboard),
+        canActivate: [denyEmployeeFromHrDashboardsGuard],
         title: 'Expert Dashboard - PayZen'
       },
       {

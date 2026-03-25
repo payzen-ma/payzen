@@ -358,3 +358,30 @@ public class DashboardExpertController : ControllerBase
         return r.Success ? Ok(r.Data) : BadRequest(new { r.Error });
     }
 }
+
+
+// ── Dashboard Employee ──────────────────────────────────────────────────────────
+
+[ApiController]
+[Route("api/dashboard/employee")]
+[Authorize]
+public class DashboardEmployeeController : ControllerBase
+{
+    private readonly IDashboardService _svc;
+    public DashboardEmployeeController(IDashboardService svc) => _svc = svc;
+    [HttpGet]
+    public async Task<ActionResult> GetEmployeeDashboard()
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "uid");
+
+        if (userIdClaim == null)
+            return Unauthorized(new { Message = "Utilisateur non authentifié" });
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+            return BadRequest(new { Message = "ID utilisateur invalide" });
+
+        var r = await _svc.GetEmployeesDashboardAsync(userId);
+
+        return r.Success ? Ok(r.Data) : BadRequest(new { r.Error });
+    }
+}

@@ -39,9 +39,8 @@ public class CompanyCreateDto
     [StringLength(500)]
     public string? CityName { get; set; }
 
-    [Required(ErrorMessage = "Le numéro CNSS employeur est requis")]
     [StringLength(100)]
-    public required string CnssNumber { get; set; }
+    public string? CnssNumber { get; set; }
 
     public bool IsCabinetExpert { get; set; } = false;
 
@@ -90,9 +89,8 @@ public class CompanyCreateDto
     [StringLength(500)]
     public required string AdminEmail { get; set; }
 
-    [Required(ErrorMessage = "Le téléphone de l'administrateur est requis")]
     [StringLength(20)]
-    public required string AdminPhone { get; set; }
+    public string? AdminPhone { get; set; }
 
     public bool isActive { get; set; } = true;
 }
@@ -191,7 +189,7 @@ public class CompanyListDto
     public string? CityName { get; set; }
     public string? CountryName { get; set; }
     public string? CompanyAddress { get; set; } = string.Empty;
-    public string CnssNumber { get; set; } = string.Empty;
+    public string? CnssNumber { get; set; } = string.Empty;
     public string? IceNumber { get; set; }
     public string? IfNumber { get; set; }
     public string? RcNumber { get; set; }
@@ -221,7 +219,7 @@ public class CompanyReadDto
     public string? CityName { get; set; }
     public int CountryId { get; set; }
     public string? CountryName { get; set; }
-    public string CnssNumber { get; set; } = string.Empty;
+    public string? CnssNumber { get; set; }
     public bool IsCabinetExpert { get; set; }
     public string? IceNumber { get; set; }
     public string? IfNumber { get; set; }
@@ -257,7 +255,7 @@ public class AdminAccountDto
     public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
+    public string? Phone { get; set; } = string.Empty;
     public string? Password { get; set; }
     public string Message { get; set; } = string.Empty;
 }

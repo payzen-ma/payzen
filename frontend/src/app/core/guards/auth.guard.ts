@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { CompanyContextService } from '../services/companyContext.service';
+import { UserRole } from '../models/user.model';
 
 /**
  * Auth Guard - Protects routes requiring authentication
@@ -130,6 +131,64 @@ export const standardModeGuard: CanActivateFn = (route, state) => {
   if (contextService.isExpertMode()) {
     // In expert mode, redirect to expert dashboard
     router.navigate(['/expert/dashboard']);
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * "Mon espace" (employee dashboard) guard.
+ * Only allow roles that must access the employee personal dashboard.
+ * `/app/employee/dashboard`.
+ */
+export const employeeDashboardGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    router.navigate(['/login'], {
+      queryParams: { returnUrl: state.url }
+    });
+    return false;
+  }
+
+  const user = authService.getCurrentUser();
+  const allowedRoles: UserRole[] = [
+    UserRole.EMPLOYEE,
+    UserRole.RH,
+    UserRole.ADMIN,
+    UserRole.ADMIN_PAYZEN,
+    UserRole.MANAGER // souvent utilisé pour "CEO" si le rôle exact n'existe pas
+  ];
+
+  if (user?.role && allowedRoles.includes(user.role)) {
+    return true;
+  }
+
+  router.navigate(['/access-denied']);
+  return false;
+};
+
+/**
+ * Deny employee users from accessing HR dashboards.
+ * When an employee tries to open another dashboard, we redirect them
+ * to `/app/employee/dashboard`.
+ */
+export const denyEmployeeFromHrDashboardsGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    router.navigate(['/login'], {
+      queryParams: { returnUrl: state.url }
+    });
+    return false;
+  }
+
+  const user = authService.getCurrentUser();
+  if (user?.role === UserRole.EMPLOYEE) {
+    router.navigate(['/app/employee/dashboard']);
     return false;
   }
 

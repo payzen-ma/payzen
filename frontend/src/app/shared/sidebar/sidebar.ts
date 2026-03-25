@@ -291,10 +291,30 @@ export class Sidebar {
       label: 'nav.absences',
       icon: 'pi pi-calendar-times',
       routerLink: '/absences',
-      requiredRoles: [UserRole.EMPLOYEE],
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
       modes: ['standard'],
       requiresCompanyContext: false,
-      groupe: 'employees',
+      groupe: 'my-space',
+      itemBadge: null
+    },
+    {
+      label: 'nav.mySpace.dashboard',
+      icon: 'pi pi-id-card',
+      routerLink: '/employee/dashboard',
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
+      modes: ['standard'],
+      requiresCompanyContext: false,
+      groupe: 'my-space',
+      itemBadge: null
+    },
+    {
+      label: 'nav.myLeaveRequests',
+      icon: 'pi pi-calendar-plus',
+      routerLink: '/my-leave-requests',
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
+      modes: ['standard'],
+      requiresCompanyContext: false,
+      groupe: 'my-space',
       itemBadge: null
     },
     {
@@ -474,10 +494,11 @@ export class Sidebar {
   // === Group configuration ===
   private readonly groupConfig: Record<string, { label: string; order: number }> = {
     'overview': { label: 'nav.groups.overview', order: 1 },
-    'payroll': { label: 'nav.groups.payroll', order: 2 },
-    'employees': { label: 'nav.groups.employees', order: 3 },
-    'intelligence': { label: 'nav.groups.intelligence', order: 4 },
-    'administration': { label: 'nav.groups.administration', order: 5 }
+    'my-space': { label: 'nav.groups.mySpace', order: 2 },
+    'payroll': { label: 'nav.groups.payroll', order: 3 },
+    'employees': { label: 'nav.groups.employees', order: 4 },
+    'intelligence': { label: 'nav.groups.intelligence', order: 5 },
+    'administration': { label: 'nav.groups.administration', order: 6 }
   };
 
   // === Filtered menu items based on user role with dynamic route prefix ===
@@ -507,9 +528,16 @@ export class Sidebar {
           return false;
         }
 
-        // Hide Leave and Absences entirely in expert mode sidebar
-        if (isExpert && (item.label === 'nav.leave' || item.label === 'nav.absences')) {
-          return false;
+        // En expert mode, on masque uniquement les écrans RH "globaux"
+        // (ex: gestion congés RH + absences équipe), mais on garde les pages
+        // personnelles "Mon espace" (ex: `/absences`, `/my-leave-requests`).
+        if (isExpert) {
+          const routerLink = item.routerLink ?? '';
+          const isHrLeave = routerLink.includes('/hr-leave-management');
+          const isHrAbsencesTeam = routerLink.includes('/absences/hr');
+          if (isHrLeave || isHrAbsencesTeam) {
+            return false;
+          }
         }
 
         // 1. Check Mode

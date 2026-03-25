@@ -31,6 +31,7 @@ public class CompanyController : ControllerBase
     }
 
     [HttpGet("form-data")]
+    [AllowAnonymous]
     public async Task<ActionResult> GetFormData()
     {
         var r = await _svc.GetFormDataAsync();

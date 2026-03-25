@@ -9,7 +9,6 @@ public static class ClaimsPrincipalExtensions
     {
         var val = user.FindFirst("uid")?.Value
             ?? throw new InvalidOperationException("User ID claim not found");
-        // tmp pour test postman directement
         return int.TryParse(val, out var id)
             ? id
             : throw new InvalidOperationException("Invalid User ID format");

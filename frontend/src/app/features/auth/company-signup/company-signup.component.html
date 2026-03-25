@@ -1,0 +1,95 @@
+<section class="signup-page">
+  <main class="signup-wrap">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-on-surface mb-3">Détails de l'organisation</h2>
+      <p class="text-on-surface-variant text-sm leading-relaxed max-w-md">
+        L'administrateur recevra une invitation par email pour configurer le compte une fois l'inscription validée.
+      </p>
+    </div>
+
+    @if (isLoadingCountries()) {
+      <div class="grid gap-3 py-4 text-center">
+        <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-(--border-color-subtle) border-t-(--primary)"></div>
+        <p class="text-xs text-(--text-muted)">Chargement des pays…</p>
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()" class="space-y-8">
+        @if (error()) {
+          <div class="alert alert-error text-left">{{ error() }}</div>
+        }
+
+        @if (successMessage()) {
+          <div class="alert alert-success text-left">{{ successMessage() }}</div>
+          <div class="text-center">
+            <button type="button" class="btn btn-outline" (click)="goLogin()">Aller à la connexion</button>
+          </div>
+        } @else {
+          <section class="card-box">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary">business</span>
+              <h3 class="font-semibold text-lg">Informations Générales</h3>
+            </div>
+            <div class="space-y-4">
+              <div class="group">
+                <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Nom de l'entreprise</label>
+                <input class="field-input" placeholder="ex: Payzen Global" type="text" name="CompanyName" required [(ngModel)]="form.CompanyName"/>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="group">
+                  <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Email professionnel</label>
+                  <input class="field-input" placeholder="contact@entreprise.com" type="email" name="CompanyEmail" required [(ngModel)]="form.CompanyEmail"/>
+                </div>
+                <div class="group">
+                  <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Téléphone</label>
+                  <input class="field-input" placeholder="+212 1 23 45 67 89" type="tel" name="CompanyPhoneNumber" required [(ngModel)]="form.CompanyPhoneNumber"/>
+                </div>
+              </div>
+              </div>
+          </section>
+
+          <section class="card-box">
+            <div class="flex items-center gap-2 mb-6">
+              <h3 class="font-semibold text-lg">Administrateur</h3>
+            </div>
+            <div class="inner-box space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="group">
+                  <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Prénom</label>
+                  <input class="field-input white" placeholder="Karime" type="text" name="AdminFirstName" required [(ngModel)]="form.AdminFirstName"/>
+                </div>
+                <div class="group">
+                  <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Nom</label>
+                  <input class="field-input white" placeholder="El Haddi" type="text" name="AdminLastName" required [(ngModel)]="form.AdminLastName"/>
+                </div>
+              </div>
+              <div class="group">
+                <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Email de l'administrateur</label>
+                <input class="field-input white" placeholder="j.dupont@entreprise.com" type="email" name="AdminEmail" required [(ngModel)]="form.AdminEmail"/>
+              </div>
+              <div class="group">
+                <label class="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">Mobile direct</label>
+                <input class="field-input white" placeholder="+33 6 00 00 00 00" type="tel" name="AdminPhone" required [(ngModel)]="form.AdminPhone"/>
+              </div>
+            </div>
+          </section>
+
+          <div class="flex flex-col gap-3 pt-1 pb-5">
+            <button type="submit" class="submit-btn w-full py-3 text-on-primary font-bold rounded-full shadow-lg transition-all flex items-center justify-center gap-2 group" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <span>Création en cours…</span>
+              } @else {
+                <span>Confirmer l'inscription</span>
+              }
+              <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </button>
+            <button type="button" class="cancel-btn w-full py-3 text-primary font-semibold rounded-full transition-colors" (click)="goLogin()">
+              Annuler
+            </button>
+          </div>
+        }
+      </form>
+    }
+  </main>
+</section>
+

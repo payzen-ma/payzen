@@ -298,6 +298,12 @@ export class CompanyContextService {
     if (!this.hasContext()) {
       return '/select-context';
     }
+    // If the selected membership role is "employee", always go to the
+    // employee dashboard (even if in standard mode).
+    if ((this.currentContext()?.role ?? '').toLowerCase() === 'employee') {
+      return '/app/employee/dashboard';
+    }
+
     return this.isExpertMode() ? '/expert/dashboard' : '/app/dashboard';
   }
 

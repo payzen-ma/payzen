@@ -1,0 +1,93 @@
+.signup-page {
+  min-height: 100vh;
+  background: #f1f0fb;
+  color: #2a2c52;
+}
+
+.signup-wrap {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 22px 30px;
+}
+
+.card-box {
+  background: #f8f7fe;
+  border: 1px solid #ecebfa;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.inner-box {
+  background: #eeedf8;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.field-input {
+  width: 100%;
+  background: #ecebfa;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #383a63;
+  font-size: 12px;
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: #94a6ff;
+  box-shadow: 0 0 0 2px rgba(0, 80, 212, 0.12);
+}
+
+.field-input.white {
+  background: #f7f6fd;
+}
+
+.field-textarea {
+  resize: none;
+}
+
+.alert {
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+}
+
+.alert-error {
+  background: rgba(245, 98, 28, 0.12);
+  border: 1px solid rgba(245, 98, 28, 0.35);
+}
+
+.alert-success {
+  background: rgba(11, 143, 80, 0.12);
+  border: 1px solid rgba(11, 143, 80, 0.35);
+}
+
+.check-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #e8e7f8;
+}
+
+.submit-btn {
+  background: linear-gradient(90deg, #0e58dd 0%, #6f8bf2 100%);
+}
+
+.submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #ecebfa;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+}
+

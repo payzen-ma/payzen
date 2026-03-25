@@ -320,12 +320,13 @@ public static class DbSeeder
         {
             var roles = new[]
             {
-                new Roles { Name = "Admin Payzen",  Description = "Administrateur de Payzen.",                                  CreatedBy = 1 },
-                new Roles { Name = "Admin",         Description = "Administration de la société.",                              CreatedBy = 1 },
-                new Roles { Name = "RH",            Description = "Responsable des Ressources Humaines.",                       CreatedBy = 1 },
-                new Roles { Name = "Manager",       Description = "Manager d'équipe — accès lecture + approbations.",            CreatedBy = 1 },
-                new Roles { Name = "Employee",      Description = "Employé — accès à son propre profil et ses demandes de congé.", CreatedBy = 1 },
-                new Roles { Name = "CabinetExpert", Description = "Cabinet d'expertise comptable — gestion multi-sociétés.",   CreatedBy = 1 },
+                new Roles { Name = "Admin Payzen",  Description = "Administrateur de Payzen.",                                      CreatedBy = 1 },
+                new Roles { Name = "Admin",         Description = "Administration de la société.",                                  CreatedBy = 1 },
+                new Roles { Name = "RH",            Description = "Responsable des Ressources Humaines.",                           CreatedBy = 1 },
+                new Roles { Name = "Manager",       Description = "Manager d'équipe — accès lecture + approbations.",               CreatedBy = 1 },
+                new Roles { Name = "Employee",      Description = "Employé — accès à son propre profil et ses demandes de congé.",  CreatedBy = 1 },
+                new Roles { Name = "CEO",           Description = "CEO de la société.",                                             CreatedBy = 1 },
+                new Roles { Name = "CabinetExpert", Description = "Cabinet d'expertise comptable — gestion multi-sociétés.",        CreatedBy = 1 },
             };
             db.Roles.AddRange(roles);
             db.Permissions.AddRange(permissions);
