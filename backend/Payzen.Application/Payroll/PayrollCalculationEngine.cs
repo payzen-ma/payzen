@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Payzen.Application.DTOs.Payroll;
 using Payzen.Domain.Enums;
+using System.Globalization;
 using System.Text.Json;
+using System.Text;
 
 namespace Payzen.Application.Payroll;
 
@@ -124,19 +126,31 @@ public class PayrollCalculationEngine
 
         foreach (var c in data.SalaryComponents?.Where(c => c.IsTaxable)
                           ?? Array.Empty<PayrollSalaryComponentDto>())
-            ctx.PrimesImposables.Add(new PrimeImposableItem
+        {
+            // La classification métier NI (ex: représentation, transport, panier...) prime
+            // sur le simple flag IsTaxable pour éviter les mauvaises imputations.
+            if (!TryAssignNiDedicatedCategory(ctx, c.ComponentType, c.Amount))
             {
-                Label   = c.ComponentType,
-                Montant = MontantPanierProratiseSiLibelle(c.ComponentType, c.Amount, ctx.JoursTravailles)
-            });
+                ctx.PrimesImposables.Add(new PrimeImposableItem
+                {
+                    Label   = c.ComponentType,
+                    Montant = MontantPanierProratiseSiLibelle(c.ComponentType, c.Amount, ctx.JoursTravailles)
+                });
+            }
+        }
 
         foreach (var p in data.PackageItems?.Where(p => p.IsTaxable)
                           ?? Array.Empty<PayrollPackageItemDto>())
-            ctx.PrimesImposables.Add(new PrimeImposableItem
+        {
+            if (!TryAssignNiDedicatedCategory(ctx, p.Label, p.DefaultValue))
             {
-                Label   = p.Label,
-                Montant = MontantPanierProratiseSiLibelle(p.Label, p.DefaultValue, ctx.JoursTravailles)
-            });
+                ctx.PrimesImposables.Add(new PrimeImposableItem
+                {
+                    Label   = p.Label,
+                    Montant = MontantPanierProratiseSiLibelle(p.Label, p.DefaultValue, ctx.JoursTravailles)
+                });
+            }
+        }
 
         // ── CIMR ─────────────────────────────────────────────────────────────
         // Heuristique Phase 2 : Al Kamil si taux patronal > taux salarial.
@@ -200,11 +214,11 @@ public class PayrollCalculationEngine
     /// </summary>
     private static bool TryAssignNiDedicatedCategory(PayrollCalculationContext ctx, string? label, decimal amount)
     {
-        var u = (label ?? string.Empty).ToUpperInvariant();
+        var u = NormalizeLabel(label);
 
         if (u.Contains("TRANSPORT") && !u.Contains("KILOM")) { ctx.NiTransport += amount; return true; }
         if (u.Contains("KILOM")) { ctx.NiKilometrique += amount; return true; }
-        if (u.Contains("TOURNEE") || u.Contains("TOURNÉE")) { ctx.NiTournee += amount; return true; }
+        if (u.Contains("TOURNEE")) { ctx.NiTournee += amount; return true; }
         if (u.Contains("REPRES")) { ctx.NiRepresentation += amount; return true; }
         if (u.Contains("PANIER"))
         {
@@ -219,6 +233,19 @@ public class PayrollCalculationEngine
         if (u.Contains("GRATIF") || u.Contains("SOCIAL")) { ctx.NiGratifSociale += amount; return true; }
 
         return false;
+    }
+
+    private static string NormalizeLabel(string? raw)
+    {
+        var s = (raw ?? string.Empty).Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(s.Length);
+        foreach (var ch in s)
+        {
+            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != UnicodeCategory.NonSpacingMark)
+                sb.Append(ch);
+        }
+        return sb.ToString().Normalize(NormalizationForm.FormC).ToUpperInvariant();
     }
 
     /// <summary>

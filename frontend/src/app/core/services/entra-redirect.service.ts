@@ -118,6 +118,18 @@ export class EntraRedirectService {
       
       if (result) {
         console.log('✅ Authentication successful:', result);
+        const claims = (result as any)?.idTokenClaims as Record<string, unknown> | undefined;
+        const keys = Object.keys(claims ?? {});
+        console.log('[EntraRedirectService] idTokenClaims keys:', keys);
+        console.log('[EntraRedirectService] idTokenClaims snapshot:', {
+          email: claims?.['email'],
+          name: claims?.['name'],
+          preferred_username: claims?.['preferred_username'],
+          oid: claims?.['oid'],
+          companyName: (claims as any)?.['companyName'],
+          company_name: (claims as any)?.['company_name'],
+          organization: (claims as any)?.['organization'],
+        });
         return result;
       }
       

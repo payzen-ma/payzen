@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '@environments/environment';
+import { AuthService } from '@app/core/services/auth.service';
 
 @Component({
   selector: 'app-company-signup',
@@ -15,6 +16,7 @@ import { environment } from '@environments/environment';
 export class CompanySignupComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   private readonly apiUrl = environment.apiUrl;
 
@@ -22,33 +24,29 @@ export class CompanySignupComponent implements OnInit {
   readonly isSubmitting = signal(false);
 
   readonly error = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
 
   // Formulaire public minimal demandé
   readonly form = {
     CompanyName: '',
-    CompanyEmail: '',
-    CompanyPhoneNumber: '',
     AdminFirstName: '',
     AdminLastName: '',
-    AdminEmail: '',
     AdminPhone: '',
   };
 
   ngOnInit(): void {
-    // Aucun chargement de référentiel nécessaire pour la version minimaliste.
+    const currentUser = this.auth.getCurrentUser();
+    if (!currentUser?.email) {
+      this.router.navigate(['/login'], { queryParams: { mode: 'signup' } });
+      return;
+    }
   }
 
   private validateClientSide(): string | null {
     const f = this.form;
     if (!f.CompanyName.trim()) return 'Le nom de l’entreprise est requis.';
-    if (!f.CompanyEmail.trim() || !f.CompanyEmail.includes('@')) return "L'email de l’entreprise est invalide.";
-    if (!f.CompanyPhoneNumber.trim()) return 'Le téléphone de l’entreprise est requis.';
 
     if (!f.AdminFirstName.trim()) return "Le prénom de l'administrateur est requis.";
     if (!f.AdminLastName.trim()) return "Le nom de l'administrateur est requis.";
-    if (!f.AdminEmail.trim() || !f.AdminEmail.includes('@'))
-      return "L'email de l’administrateur est invalide.";
     if (!f.AdminPhone.trim()) return "Le téléphone de l’administrateur est requis.";
 
     return null;
@@ -56,7 +54,6 @@ export class CompanySignupComponent implements OnInit {
 
   submit(): void {
     this.error.set(null);
-    this.successMessage.set(null);
 
     const clientError = this.validateClientSide();
     if (clientError) {
@@ -67,18 +64,36 @@ export class CompanySignupComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const payload: any = {
-      ...this.form,
-      // backend utilise `isActive` (lowercase) mais valeur par défaut à true côté DTO.
-      isActive: true,
+      CompanyName: this.form.CompanyName,
+      AdminFirstName: this.form.AdminFirstName,
+      AdminLastName: this.form.AdminLastName,
+      AdminPhone: this.form.AdminPhone
     };
 
-    this.http.post<any>(`${this.apiUrl}/public/signup-company-admin`, payload).subscribe({
+    this.http.post<any>(`${this.apiUrl}/public/complete-company-onboarding`, payload).subscribe({
       next: (r) => {
-        this.isSubmitting.set(false);
-        const msg =
-          r?.Admin?.Message ??
-          "Entreprise créée. Un email d’invitation a été envoyé à l’administrateur.";
-        this.successMessage.set(msg);
+        const user = this.auth.getCurrentUser();
+        const oid = localStorage.getItem('payzen_entra_oid');
+        const email = user?.email ?? null;
+
+        if (!email || !oid) {
+          // Fallback: navigate anyway (guards may redirect if needed)
+          this.isSubmitting.set(false);
+          this.router.navigate(['/app/dashboard']);
+          return;
+        }
+
+        // Refresh JWT so it includes companyId/roles after onboarding.
+        this.auth.loginWithEntra(email, oid).subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+          },
+          error: () => {
+            this.isSubmitting.set(false);
+            // Even if refresh fails, try to proceed.
+            this.router.navigate(['/app/dashboard']);
+          }
+        });
       },
       error: (err: any) => {
         this.isSubmitting.set(false);

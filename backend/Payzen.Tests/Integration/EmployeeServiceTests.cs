@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
 using Payzen.Application.DTOs.Employee;
+using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Company;
 using Payzen.Domain.Entities.Referentiel;
 using Payzen.Infrastructure.Persistence;
@@ -29,13 +30,22 @@ public class EmployeeServiceTests : IDisposable
 
         _db  = new AppDbContext(opts);
         var env = new Mock<IWebHostEnvironment>().Object;
-        _svc = new EmployeeService(_db, env);
+        var eventLog = new Mock<IEmployeeEventLogService>().Object;
+        var invitationService = new Mock<IInvitationService>().Object;
+        var leaveRecalc = new Mock<ILeaveBalanceRecalculationService>().Object;
+        var logger = new Mock<Microsoft.Extensions.Logging.ILogger<EmployeeService>>().Object;
+        _svc = new EmployeeService(_db, env, eventLog, invitationService, leaveRecalc, logger);
 
         // Données référentielles minimales
         _db.Companies.Add(new Company
         {
             Id          = CompanyId,
             CompanyName = "Société Test SARL",
+            Email = "societe@test.ma",
+            PhoneNumber = "0600000000",
+            CompanyAddress = "Adresse Test",
+            CityId = 1,
+            CountryId = 1,
             CreatedBy   = UserId
         });
         _db.Genders.Add(new Gender

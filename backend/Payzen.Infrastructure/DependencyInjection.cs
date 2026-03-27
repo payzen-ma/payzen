@@ -15,6 +15,7 @@ using Payzen.Infrastructure.Services.EventLog;
 using Payzen.Infrastructure.Services.Leave;
 using Payzen.Infrastructure.Services.LLM;
 using Payzen.Infrastructure.Services.Payroll;
+using Payzen.Infrastructure.Services.Public;
 using Payzen.Infrastructure.Services.Referentiel;
 using Payzen.Infrastructure.Services.Timesheet;
 using Payzen.Infrastructure.Services.Email;
@@ -54,6 +55,9 @@ public static class DependencyInjection
         services.AddScoped<ICompanyOnboardingService,  CompanyOnboardingService>();
         services.AddScoped<ICompanyDocumentService,    CompanyDocumentService>();
         services.AddScoped<ICompanyDefaultsSeeder,     CompanyDefaultsSeederService>();
+
+        // ── Public signup / onboarding ──────────────────────────────────────
+        services.AddScoped<IPublicSignupService,        PublicSignupService>();
 
         // ── Employee ─────────────────────────────────────────────────────────
         services.AddScoped<IEmployeeService,                EmployeeService>();

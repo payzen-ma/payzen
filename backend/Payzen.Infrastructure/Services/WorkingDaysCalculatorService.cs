@@ -29,7 +29,7 @@ public class WorkingDaysCalculatorService : IWorkingDaysCalculator
         var holidaySet = holidays.ToHashSet();
         decimal workingDays = 0;
         var current = startDate;
-
+        int i = 1;
         while (current <= endDate)
         {
             var dow = current.DayOfWeek;
@@ -45,6 +45,8 @@ public class WorkingDaysCalculatorService : IWorkingDaysCalculator
             }
             current = current.AddDays(1);
         }
+        
+        Console.WriteLine($"---------------------------WorkingDays is : {workingDays}");
 
         return workingDays;
     }

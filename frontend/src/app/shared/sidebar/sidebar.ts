@@ -99,6 +99,7 @@ export class Sidebar {
       [UserRole.ADMIN]: 'user.role.admin',
       [UserRole.RH]: 'user.role.hr',
       [UserRole.MANAGER]: 'user.role.manager',
+      [UserRole.CEO]: 'CEO',
       [UserRole.EMPLOYEE]: 'user.role.employee',
       [UserRole.CABINET]: 'user.role.cabinet',
       [UserRole.ADMIN_PAYZEN]: 'user.role.adminPayzen'
@@ -170,8 +171,18 @@ export class Sidebar {
       label: 'nav.dashboard', 
       icon: 'pi pi-home', 
       routerLink: '/dashboard',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE, UserRole.CEO],
       modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'overview',
+      itemBadge: null
+    },
+    {
+      label: 'CEO Dashboard',
+      icon: 'pi pi-briefcase',
+      routerLink: '/ceo/dashboard',
+      requiredRoles: [UserRole.CEO, UserRole.ADMIN_PAYZEN],
+      modes: ['standard'],
       requiresCompanyContext: false,
       groupe: 'overview',
       itemBadge: null
@@ -225,10 +236,10 @@ export class Sidebar {
       label: 'nav.myPayslip',
       icon: 'pi pi-file-pdf',
       routerLink: '/payroll/payslip',
-      requiredRoles: [UserRole.EMPLOYEE],
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
-      groupe: 'payroll',
+      groupe: 'my-space',
       itemBadge: null
     },
     {
@@ -288,10 +299,11 @@ export class Sidebar {
       itemBadge: null
     },
     {
+      id: 'my-absence-entry',
       label: 'nav.absences',
       icon: 'pi pi-calendar-times',
       routerLink: '/absences',
-      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.ADMIN, UserRole.RH],
       modes: ['standard'],
       requiresCompanyContext: false,
       groupe: 'my-space',
@@ -301,7 +313,7 @@ export class Sidebar {
       label: 'nav.mySpace.dashboard',
       icon: 'pi pi-id-card',
       routerLink: '/employee/dashboard',
-      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
+      requiredRoles: [UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
       modes: ['standard'],
       requiresCompanyContext: false,
       groupe: 'my-space',
@@ -311,7 +323,17 @@ export class Sidebar {
       label: 'nav.myLeaveRequests',
       icon: 'pi pi-calendar-plus',
       routerLink: '/my-leave-requests',
-      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN, UserRole.ADMIN_PAYZEN, UserRole.MANAGER],
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN],
+      modes: ['standard'],
+      requiresCompanyContext: false,
+      groupe: 'my-space',
+      itemBadge: null
+    },
+    {
+      label: 'nav.overtime',
+      icon: 'pi pi-clock',
+      routerLink: '/overtime',
+      requiredRoles: [UserRole.EMPLOYEE, UserRole.RH, UserRole.ADMIN],
       modes: ['standard'],
       requiresCompanyContext: false,
       groupe: 'my-space',
@@ -321,7 +343,7 @@ export class Sidebar {
       label: 'nav.leave',
       icon: 'pi pi-calendar',
       routerLink: '/hr-leave-management',
-      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.EMPLOYEE],
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
       groupe: 'employees',
@@ -333,7 +355,9 @@ export class Sidebar {
       routerLink: '/overtime-management',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
-      requiresCompanyContext: false,
+      // En expert mode, cette page nécessite une société client sélectionnée
+      // (sinon les services "No company selected")
+      requiresCompanyContext: true,
       groupe: 'employees',
       itemBadge: null
     },
@@ -510,8 +534,10 @@ export class Sidebar {
     
     // Use context role if available, fallback to user role
     // This ensures the role matches the selected membership context
-    const contextRole = this.contextService.role();
-    const effectiveRole = contextRole ?? user?.role;
+    const contextRole = (this.contextService.role() ?? '').toLowerCase();
+    const userRole = (user?.role ?? '').toLowerCase();
+    const userRoles = Array.isArray(user?.roles) ? user.roles.map(r => String(r).toLowerCase()) : [];
+    const effectiveRoles = [contextRole, userRole, ...userRoles].filter(Boolean);
     
     // Determine current mode
     let currentMode: 'expert' | 'standard' | 'expert-client' | 'expert-all' = 'standard';
@@ -519,7 +545,7 @@ export class Sidebar {
       currentMode = isClientView ? 'expert-client' : 'expert';
     }
 
-    if (!user || !effectiveRole) return [];
+    if (!user || effectiveRoles.length === 0) return [];
 
     return this.menuItemsTemplate
       .filter(item => {
@@ -559,8 +585,9 @@ export class Sidebar {
           }
           return true;
         }
-        // Check if effective role is in the required roles
-        if (!item.requiredRoles.includes(effectiveRole as UserRole)) return false;
+        // Check if any effective role is in the required roles
+        const hasRequiredRole = item.requiredRoles.some(rr => effectiveRoles.includes(String(rr).toLowerCase()));
+        if (!hasRequiredRole) return false;
 
         // 3. Check Permissions (if specified)
         if (item.requiredPermissions && item.requiredPermissions.length > 0) {
@@ -574,7 +601,7 @@ export class Sidebar {
         // since they manage all employees rather than viewing their own data.
         if (user?.mode) {
           const userMode = user.mode.toLowerCase();
-          const isPrivilegedRole = effectiveRole === UserRole.ADMIN || effectiveRole === UserRole.RH || isExpert;
+          const isPrivilegedRole = effectiveRoles.includes(UserRole.ADMIN) || effectiveRoles.includes(UserRole.RH) || isExpert;
           // Mode 'attendance' or 'presence' = attendance only (hide absence menu)
           if ((userMode === 'attendance' || userMode === 'presence') && item.routerLink?.includes('/absences')) {
             if (!isPrivilegedRole) return false;
@@ -588,9 +615,21 @@ export class Sidebar {
         return true;
       })
       .map(item => {
+        let resolvedRouterLink = item.routerLink ?? '';
+
+        // Personal absence entry: for employee in presence mode route to attendance.
+        if (item.id === 'my-absence-entry') {
+          const userMode = (user?.mode ?? '').toLowerCase();
+          if (userMode === 'presence' || userMode === 'attendance') {
+            resolvedRouterLink = '/attendance';
+          } else {
+            resolvedRouterLink = '/absences';
+          }
+        }
+
         return {
           ...item,
-          routerLink: `${prefix}${item.routerLink}`,
+          routerLink: `${prefix}${resolvedRouterLink}`,
           // Keep track if this item requires company context
           requiresCompanyContext: item.requiresCompanyContext ?? false
         };
@@ -710,16 +749,7 @@ export class Sidebar {
         label: 'contextSelection.switchWorkspace',
         icon: 'pi pi-sync',
         command: () => this.switchWorkspace()
-      });
-    }
-
-    // 4. Company Settings – only for Admins and HR
-    if (user && [UserRole.ADMIN, UserRole.RH, UserRole.ADMIN_PAYZEN].includes(user.role as UserRole)) {
-      if (!canSwitchWorkspace) items.push({ separator: true });
-      items.push({
-        label: 'nav.companySettings',
-        icon: 'pi pi-cog',
-        routerLink: `${this.routePrefix()}/company`
+      // (HR leave for employees is available in my-space as 'nav.leave')
       });
     }
 

@@ -95,7 +95,7 @@ public class InvitationController : ControllerBase
     /// Créer une invitation pour un admin company
     /// </summary>
     [HttpPost("invite-admin")]
-    [Authorize(Roles = "Admin Payzen")]
+    //[Authorize(Roles = "Admin Payzen")]
     public async Task<IActionResult> InviteAdmin(
         [FromBody] InviteAdminDto dto, 
         CancellationToken ct)

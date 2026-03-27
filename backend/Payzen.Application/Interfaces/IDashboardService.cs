@@ -26,4 +26,10 @@ public interface IDashboardService
     Task<ServiceResult<ExpertDashboardDto>> GetExpertDashboardAsync(int expertCompanyId, CancellationToken ct = default);
     Task<ServiceResult<DashboardResponseDto>> GetEmployeesDashboardAsync(int userId, CancellationToken ct = default);
     Task<ServiceResult<EmployeeDashboardDataDto>> GetEmployeeDashboardAsync(int userId, CancellationToken ct = default);
+    Task<ServiceResult<CeoDashboardDto>> GetCeoDashboardDataAsync(
+        int userId,
+        string? parity = null,
+        string? fromMonth = null,
+        string? toMonth = null,
+        CancellationToken ct = default);
 }

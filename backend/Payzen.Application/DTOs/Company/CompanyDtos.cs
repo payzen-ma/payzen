@@ -626,3 +626,32 @@ public class CompanyDocumentReadDto
     public string? DocumentType { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+// ════════════════════════════════════════════════════════════
+// PUBLIC SIGNUP COMPANY (sans authentification, pour formulaire d'inscription public) - utilisé par PublicSignupController
+// ════════════════════════════════════════════════════════════
+
+[Serializable]
+public class PublicCompanySignupDto
+{
+    public required string CompanyName { get; set; }
+    public required string CompanyEmail { get; set; }
+    public required string CompanyPhoneNumber { get; set; }
+    public required string AdminFirstName { get; set; }
+    public required string AdminLastName { get; set; }
+    public required string AdminEmail { get; set; }
+    public required string AdminPhone { get; set; }
+}
+
+[Serializable]
+public class AuthenticatedCompanySignupDto
+{
+    public required string CompanyName { get; set; }
+    public required string AdminFirstName { get; set; }
+    public required string AdminLastName { get; set; }
+    public required string AdminPhone { get; set; }
+
+    // Optionnels : ancien formulaire. Si non fournis, le serveur dérive à partir de l'email Entra et du mobile admin.
+    public string? CompanyEmail { get; set; }
+    public string? CompanyPhoneNumber { get; set; }
+}

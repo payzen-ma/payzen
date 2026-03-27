@@ -101,8 +101,9 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
     // Load current user info using effect
     effect(() => {
       const user = this.authService.currentUser();
-      if (user?.id) {
-        this.currentEmployeeId.set(Number(user.id));
+      const employeeId = Number(user?.employee_id ?? 0);
+      if (employeeId > 0) {
+        this.currentEmployeeId.set(employeeId);
         // Reload leave requests when employee ID changes
         if (this.currentEmployeeId()) {
           this.loadLeaveRequests();

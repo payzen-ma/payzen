@@ -82,6 +82,10 @@ public class EmployeeCreateDto
     [Range(0, double.MaxValue, ErrorMessage = "Le salaire horaire doit être positif")]
     public decimal? SalaryHourly { get; set; }
 
+    [JsonPropertyName("annualLeave")]
+    [Range(0, double.MaxValue, ErrorMessage = "Le solde initial des congés annuels doit être positif")]
+    public decimal? AnnualLeave { get; set; }
+
     /// <summary>
     /// Date d'effet du salaire.
     /// Si non renseignée, la date de début de contrat (StartDate) est utilisée.
@@ -157,6 +161,10 @@ public class EmployeeUpdateDto
     /// <summary>Salaire horaire actif. Clé JSON <c>baseSalaryHourly</c> (patch profil Angular).</summary>
     [JsonPropertyName("baseSalaryHourly")]
     public decimal? SalaryHourly { get; set; }
+
+    [JsonPropertyName("annualLeave")]
+    [Range(0, double.MaxValue, ErrorMessage = "Le solde initial des congés annuels doit être positif")]
+    public decimal? AnnualLeave { get; set; }
 
     public DateTime? SalaryEffectiveDate { get; set; }
 
@@ -261,6 +269,7 @@ public class EmployeeDetailDto
     public string? privateInsuranceNumber { get; set; }
     public decimal? privateInsuranceRate { get; set; }
     public bool disableAmo { get; set; }
+    public decimal? annualLeave { get; set; }
 
     // Événements
     public List<EmployeeDetailHistoryEventDto> Events { get; set; } = new();

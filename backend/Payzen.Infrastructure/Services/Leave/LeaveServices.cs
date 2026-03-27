@@ -1093,8 +1093,53 @@ public class LeaveService : ILeaveService
             .ToListAsync(ct);
 
         if (balances.Count == 0)
-            return ServiceResult<LeaveBalanceRecalculateResultDto>.Fail(
-                "Aucun solde trouvé pour cet employé et ce mois. Créez d'abord une demande ou un solde pour ce mois.");
+        {
+            var employee = await _db.Employees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
+
+            if (employee == null)
+                return ServiceResult<LeaveBalanceRecalculateResultDto>.Fail("Employé non trouvé.");
+
+            var effectiveCompanyId = companyId ?? employee.CompanyId;
+
+            var leaveTypesQuery = _db.LeaveTypes
+                .AsNoTracking()
+                .Where(lt => lt.DeletedAt == null && lt.IsActive);
+
+            if (leaveTypeId.HasValue)
+                leaveTypesQuery = leaveTypesQuery.Where(lt => lt.Id == leaveTypeId.Value);
+            else
+                leaveTypesQuery = leaveTypesQuery.Where(lt => lt.CompanyId == null || lt.CompanyId == effectiveCompanyId);
+
+            var leaveTypes = await leaveTypesQuery.ToListAsync(ct);
+            if (leaveTypes.Count == 0)
+                return ServiceResult<LeaveBalanceRecalculateResultDto>.Fail("Aucun type de congé actif trouvé.");
+
+            var seedBalances = leaveTypes.Select(lt => new LeaveBalance
+            {
+                EmployeeId = employeeId,
+                CompanyId = effectiveCompanyId,
+                LeaveTypeId = lt.Id,
+                Year = year,
+                Month = month,
+                OpeningDays = 0m,
+                AccruedDays = 0m,
+                UsedDays = 0m,
+                CarryInDays = 0m,
+                CarryOutDays = 0m,
+                ClosingDays = 0m,
+                LastRecalculatedAt = null,
+                CreatedBy = userId
+            }).ToList();
+
+            _db.LeaveBalances.AddRange(seedBalances);
+            await _db.SaveChangesAsync(ct);
+
+            balances = await _db.LeaveBalances
+                .Where(b => b.EmployeeId == employeeId && b.Year == year && b.Month == month && b.DeletedAt == null)
+                .ToListAsync(ct);
+        }
 
         var filtered = balances
             .Where(b => !companyId.HasValue || b.CompanyId == companyId.Value)

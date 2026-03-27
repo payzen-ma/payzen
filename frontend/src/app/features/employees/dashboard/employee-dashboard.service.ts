@@ -11,6 +11,7 @@ export class EmployeeDashboardService {
   private http = inject(HttpClient);
   // Using environment.apiUrl which points to your .NET Backend
   private apiUrl = `${environment.apiUrl}/dashboard/employee`;
+  private leaveBalancesApiUrl = `${environment.apiUrl}/leave-balances`;
 
   /**
    * Fetches the employee dashboard data directly from the C# Backend API.
@@ -18,5 +19,12 @@ export class EmployeeDashboardService {
   getDashboardData(employeeId?: number): Observable<EmployeeDashboardData> {
     // Backend: GET /api/dashboard/employee (userId is taken from JWT claim "uid")
     return this.http.get<EmployeeDashboardData>(`${this.apiUrl}`);
+  }
+
+  recalculateLeaveBalance(employeeId: number, year: number, month: number): Observable<any> {
+    return this.http.post(
+      `${this.leaveBalancesApiUrl}/recalculate/${employeeId}/${year}/${month}`,
+      null
+    );
   }
 }

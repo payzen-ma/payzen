@@ -271,6 +271,13 @@ export class EmployeeCreatePage implements OnInit {
                 error: () => {}
               });
             }
+            // If backend didn't return departments, load them for the selected company as well
+            if (!data.departments || data.departments.length === 0) {
+              this.employeeService.searchDepartments('', companyIdNum).subscribe({
+                next: (items: LookupOption[]) => this.formData.update(f => ({ ...f, departments: items })),
+                error: () => {}
+              });
+            }
             if (!data.contractTypes || data.contractTypes.length === 0) {
               this.contractTypeService.getByCompany(companyIdNum).subscribe({
                 next: (items: ContractType[]) => this.formData.update(f => ({ ...f, contractTypes: items.map((i: ContractType) => ({ id: i.id, label: i.contractTypeName })) })),
@@ -290,7 +297,7 @@ export class EmployeeCreatePage implements OnInit {
   }
 
   private loadInviteRoles(): void {
-    const ALLOWED_ROLES = ['Employee', 'Manager', 'RH'];
+    const ALLOWED_ROLES = ['Employee', 'Manager', 'RH', 'CEO'];
     this.userService.getRoles().subscribe({
       next: (roles) => {
         const options: LookupOption[] = (roles ?? []).map(r => ({

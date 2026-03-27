@@ -88,8 +88,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
         var contractFirstMonth = new DateOnly(contractStart.Value.Year, contractStart.Value.Month, 1);
 
-        // Si des soldes existent pour ce triplet, on repart depuis le dernier mois déjà calculé
-        // (évite de tout rejouer depuis le contrat). Sinon on part du début du contrat.
+        // Mode incrémental: si un solde existe déjà pour ce triplet,
+        // on repart du dernier mois calculé; sinon on démarre depuis le début du contrat.
         var latestExisting = await _db.LeaveBalances
             .AsNoTracking()
             .Where(b =>
@@ -97,7 +97,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
                 b.CompanyId == companyId &&
                 b.LeaveTypeId == leaveTypeId &&
                 b.DeletedAt == null)
-            .OrderByDescending(b => b.Year).ThenByDescending(b => b.Month)
+            .OrderByDescending(b => b.Year)
+            .ThenByDescending(b => b.Month)
             .Select(b => new { b.Year, b.Month })
             .FirstOrDefaultAsync(ct);
 
@@ -105,7 +106,7 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             ? contractFirstMonth
             : new DateOnly(latestExisting.Year, latestExisting.Month, 1);
 
-        // S'assurer qu'on ne commence jamais avant le contrat
+        // Ne jamais recalculer avant le mois du début de contrat.
         if (chainStart < contractFirstMonth)
             chainStart = contractFirstMonth;
 
@@ -275,6 +276,7 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             .Where(lr => lr.CompanyId == companyId
                          && lr.EmployeeId == employeeId
                          && lr.LeaveTypeId == leaveTypeId)
+            // Les congés annulés / renoncés ne doivent jamais être déduits.
             .Where(lr => lr.Status == LeaveRequestStatus.Approved)
             .Where(lr => !lr.IsRenounced)
             .Where(lr => lr.StartDate.Year == year && lr.StartDate.Month == month)

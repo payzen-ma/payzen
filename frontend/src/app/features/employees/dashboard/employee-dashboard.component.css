@@ -1,1 +1,117 @@
-/* Styles par défaut du tableau de bord employé */
+/* Styles Employee Dashboard
+   Objectif : harmoniser la palette avec les variables globales (design tokens)
+   afin que l'UI "Mon espace" suive le thème partout. */
+
+.employee-dashboard {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+/* Typography mappings */
+.employee-dashboard .text-gray-900,
+.employee-dashboard .text-gray-950 {
+  color: var(--text-primary) !important;
+}
+
+.employee-dashboard .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.employee-dashboard .text-gray-500,
+.employee-dashboard .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+.employee-dashboard .text-success {
+  color: var(--success) !important;
+}
+
+/* Surfaces / cards */
+.employee-dashboard .bg-white {
+  background-color: var(--bg-element) !important;
+}
+
+.employee-dashboard .bg-gray-100,
+.employee-dashboard .bg-gray-50 {
+  background-color: var(--bg-hover) !important;
+}
+
+.employee-dashboard .border-gray-100,
+.employee-dashboard .border-gray-50 {
+  border-color: var(--border-color-subtle) !important;
+}
+
+.employee-dashboard .bg-emerald-50 {
+  background-color: var(--success-light) !important;
+}
+
+.employee-dashboard .text-emerald-600 {
+  color: var(--success) !important;
+}
+
+.employee-dashboard .text-blue-600 {
+  color: var(--primary) !important;
+}
+
+.employee-dashboard .bg-blue-50 {
+  background-color: var(--primary-light) !important;
+}
+
+/* Spinner */
+.employee-dashboard .border-t-blue-600 {
+  border-top-color: var(--primary) !important;
+}
+
+/* Status pill */
+.status-pill {
+  background: var(--success-light);
+  color: var(--success);
+  border-radius: 9999px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.status-active {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+/* Document status */
+.doc-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+/* Leave progress color mapping used by DashboardService */
+.employee-dashboard .bg-success {
+  background-color: var(--success) !important;
+}
+
+.employee-dashboard .bg-success-light {
+  background-color: var(--success-light) !important;
+}
+
+.doc-status-coming {
+  background: color-mix(in srgb, var(--warning-light) 35%, #ffffff);
+  color: var(--warning-dark);
+}
+
+.doc-status-action {
+  background: color-mix(in srgb, var(--info-light) 40%, #ffffff);
+  color: var(--primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.doc-status-action:hover {
+  background: color-mix(in srgb, var(--primary-light) 55%, #ffffff);
+}
+

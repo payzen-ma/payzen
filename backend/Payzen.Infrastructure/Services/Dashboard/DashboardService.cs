@@ -1,20 +1,218 @@
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Dashboard;
 using Payzen.Application.Interfaces;
 using Payzen.Infrastructure.Persistence;
+using Payzen.Domain.Enums;
+using System.Text;
 
 namespace Payzen.Infrastructure.Services.Dashboard;
 
 public class DashboardService : IDashboardService
 {
     private readonly AppDbContext _db;
-    public DashboardService(AppDbContext db) => _db = db;
+    private readonly IWorkingDaysCalculator _workingDays;
+    public DashboardService(AppDbContext db, IWorkingDaysCalculator workingDays)
+    {
+        _db = db;
+        _workingDays = workingDays;
+    }
+
+    public async Task<ServiceResult<CeoDashboardDto>> GetCeoDashboardDataAsync(
+        int userId,
+        string? parity = null,
+        string? fromMonth = null,
+        string? toMonth = null,
+        CancellationToken ct = default)
+    {
+        var user = await _db.Users
+            .AsNoTracking()
+            .Include(u => u.Employee)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null, ct);
+
+        if (user == null)
+            return ServiceResult<CeoDashboardDto>.Fail("Utilisateur introuvable");
+
+        int? companyId = user.Employee?.CompanyId;
+        if (!companyId.HasValue)
+            return ServiceResult<CeoDashboardDto>.Fail("Aucune société associée à l'utilisateur.");
+
+        var (startMonth, endMonth) = ResolvePeriod(fromMonth, toMonth);
+        var employeeQuery = _db.Employees
+            .AsNoTracking()
+            .Include(e => e.Gender)
+            .Include(e => e.Departement)
+            .Where(e => e.DeletedAt == null && e.CompanyId == companyId.Value);
+
+        var parityNormalized = NormalizeParity(parity);
+        if (parityNormalized != null)
+        {
+            employeeQuery = employeeQuery.Where(e => e.Gender != null && e.Gender.Code == parityNormalized);
+        }
+
+        var employees = await employeeQuery.ToListAsync(ct);
+        var employeeIds = employees.Select(e => e.Id).ToList();
+
+        // Masse salariale réelle: basée sur les résultats de paie (PayrollResults) en base.
+        // Cela reflète ce qui est effectivement calculé (NetAPayer/TotalNet et charges patronales).
+        var months = EnumerateMonths(startMonth, endMonth).ToList();
+        var monthKeys = months.Select(m => new { m.Year, m.Month }).ToList();
+
+        var payrollRows = await _db.PayrollResults
+            .AsNoTracking()
+            .Where(pr => pr.DeletedAt == null)
+            .Where(pr => pr.CompanyId == companyId.Value)
+            .Where(pr => pr.Status == PayrollResultStatus.OK)
+            .Where(pr => employeeIds.Contains(pr.EmployeeId))
+            .Where(pr => pr.Year > startMonth.Year || (pr.Year == startMonth.Year && pr.Month >= startMonth.Month))
+            .Where(pr => pr.Year < endMonth.Year || (pr.Year == endMonth.Year && pr.Month <= endMonth.Month))
+            .Select(pr => new
+            {
+                pr.Year,
+                pr.Month,
+                Net = pr.TotalNet ?? pr.NetAPayer ?? pr.TotalNet2 ?? 0m,
+                Charges = pr.TotalCotisationsPatronales ?? 0m
+            })
+            .ToListAsync(ct);
+
+        var grouped = payrollRows
+            .GroupBy(x => (x.Year, x.Month))
+            .ToDictionary(g => g.Key, g => new
+            {
+                Net = g.Sum(x => x.Net),
+                Charges = g.Sum(x => x.Charges)
+            });
+
+        var chart = months.Select(m =>
+        {
+            grouped.TryGetValue((m.Year, m.Month), out var g);
+            var netMad = g?.Net ?? 0m;
+            var chargesMad = g?.Charges ?? 0m;
+            return new CeoChartPointDto
+            {
+                Month = $"{m.Year:D4}-{m.Month:D2}",
+                NetMad = netMad,
+                ChargesMad = chargesMad
+            };
+        }).ToList();
+
+        var totalEmployees = employees.Count;
+        var women = employees.Count(e => e.Gender?.Code == "F");
+        var men = employees.Count(e => e.Gender?.Code == "M");
+        var parityPct = totalEmployees > 0 ? Math.Round((decimal)women / totalEmployees * 100m, 1) : 0m;
+
+        var currentMonthPoint = chart.LastOrDefault();
+        var previousMonthPoint = chart.Count > 1 ? chart[^2] : null;
+        var netCurrent = currentMonthPoint?.NetMad ?? 0m;
+        var netPrevious = previousMonthPoint?.NetMad ?? 0m;
+        var netDeltaPct = netPrevious > 0m ? Math.Round(((netCurrent - netPrevious) / netPrevious) * 100m, 1) : 0m;
+
+        var departments = employees
+            .GroupBy(e => string.IsNullOrWhiteSpace(e.Departement?.DepartementName) ? "Non affecté" : e.Departement!.DepartementName)
+            .Select(g => new CeoDepartmentDto
+            {
+                Name = g.Key,
+                Value = g.Count(),
+                Percentage = totalEmployees > 0 ? Math.Round((decimal)g.Count() / totalEmployees * 100m, 1) : 0m,
+                Color = ResolveDepartmentColor(g.Key)
+            })
+            .OrderByDescending(d => d.Value)
+            .Take(6)
+            .ToList();
+
+        var dto = new CeoDashboardDto
+        {
+            Kpis = new List<CeoKpiDto>
+            {
+                new() { Title = "EFFECTIF TOTAL", Value = totalEmployees.ToString(), Subtitle = $"Période {months.First():MM/yyyy} - {months.Last():MM/yyyy}", SubtitleColor = "text-gray-500" },
+                new() { Title = "PARITÉ H/F", Value = $"{women}/{men}", Subtitle = $"{parityPct}% femmes", SubtitleColor = "text-gray-500" },
+                new() { Title = "MASSE SALARIALE", Value = $"{Math.Round(netCurrent, 0):N0} MAD", Subtitle = $"{(netDeltaPct >= 0 ? "+" : "")}{netDeltaPct}% vs mois précédent", SubtitleColor = netDeltaPct >= 0 ? "text-emerald-600" : "text-red-600" },
+                new() { Title = "CHARGES PATR.", Value = $"{Math.Round((currentMonthPoint?.ChargesMad ?? 0m), 0):N0} MAD", Subtitle = "Total cotisations patronales", SubtitleColor = "text-gray-500" }
+            },
+            EvolutionChart = chart,
+            Departments = departments,
+            PayIndicators = new List<CeoPayIndicatorDto>
+            {
+                new() { Label = "Masse nette (période)", Value = $"{Math.Round(chart.Sum(c => c.NetMad), 0):N0} MAD" },
+                new() { Label = "Charges patronales (période)", Value = $"{Math.Round(chart.Sum(c => c.ChargesMad), 0):N0} MAD" },
+                new() { Label = "Filtre parité", Value = parityNormalized == null ? "Tous" : (parityNormalized == "F" ? "Femmes" : "Hommes") },
+                new() { Label = "Période", Value = $"{months.First():MM/yyyy} - {months.Last():MM/yyyy}" }
+            },
+            Alerts = new List<CeoAlertDto>()
+        };
+
+        return ServiceResult<CeoDashboardDto>.Ok(dto);
+    }
+
+    private static string? NormalizeParity(string? parity)
+    {
+        if (string.IsNullOrWhiteSpace(parity)) return null;
+        var p = parity.Trim().ToUpperInvariant();
+        if (p is "F" or "FEMME" or "FEMALE" or "W") return "F";
+        if (p is "H" or "M" or "HOMME" or "MALE") return "M";
+        return null;
+    }
+
+    private static (DateTime startMonth, DateTime endMonth) ResolvePeriod(string? fromMonth, string? toMonth)
+    {
+        var now = DateTime.UtcNow;
+        var end = ParseMonth(toMonth) ?? new DateTime(now.Year, now.Month, 1);
+        var start = ParseMonth(fromMonth) ?? end.AddMonths(-5);
+        if (start > end)
+        {
+            (start, end) = (end, start);
+        }
+
+        return (new DateTime(start.Year, start.Month, 1), new DateTime(end.Year, end.Month, 1));
+    }
+
+    private static DateTime? ParseMonth(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return DateTime.TryParseExact(value + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)
+            ? new DateTime(d.Year, d.Month, 1)
+            : null;
+    }
+
+    private static IEnumerable<DateTime> EnumerateMonths(DateTime startMonth, DateTime endMonth)
+    {
+        var cursor = new DateTime(startMonth.Year, startMonth.Month, 1);
+        var end = new DateTime(endMonth.Year, endMonth.Month, 1);
+        while (cursor <= end)
+        {
+            yield return cursor;
+            cursor = cursor.AddMonths(1);
+        }
+    }
+
+    private static string ResolveDepartmentColor(string department)
+    {
+        var hash = Math.Abs(department.GetHashCode());
+        var palette = new[]
+        {
+            "bg-emerald-500",
+            "bg-blue-500",
+            "bg-purple-500",
+            "bg-amber-500",
+            "bg-rose-500",
+            "bg-cyan-500"
+        };
+        return palette[hash % palette.Length];
+    }
 
     public async Task<DashboardHrRawDto> GetHrDashboardRawAsync(int? companyId, string? month, CancellationToken ct = default)
     {
-        var empQ = _db.Employees.Include(e => e.Departement).Include(e => e.Status).Include(e => e.Gender).AsQueryable();
-        if (companyId.HasValue) empQ = empQ.Where(e => e.CompanyId == companyId.Value);
+        var empQ = _db.Employees
+            .Include(e => e.Departement)
+            .Include(e => e.Status)
+            .Include(e => e.Gender)
+            .AsQueryable();
+
+        if (companyId.HasValue) 
+            empQ = empQ
+                .Where(e => e.CompanyId == companyId.Value);
+        
         var employees = await empQ.ToListAsync(ct);
 
         var empIds = employees.Select(e => e.Id).ToList();
@@ -32,10 +230,39 @@ public class DashboardService : IDashboardService
 
         return new DashboardHrRawDto
         {
-            Meta = new DashboardHrMetaDto { CompanyId = companyId ?? 0, Month = month ?? DateTime.Today.ToString("yyyy-MM"), GeneratedAt = DateTimeOffset.UtcNow },
-            Employees = employees.Select(e => new DashboardHrRawEmployeeDto { Id = e.Id, FirstName = e.FirstName, LastName = e.LastName, Department = e.Departement?.DepartementName ?? string.Empty, StatusCode = e.Status?.Code ?? string.Empty, GenderCode = e.Gender?.Code ?? string.Empty }).ToList(),
-            Contracts = contracts.Select(c => new DashboardHrRawContractDto { EmployeeId = c.EmployeeId, StartDate = DateOnly.FromDateTime(c.StartDate), EndDate = c.EndDate.HasValue ? DateOnly.FromDateTime(c.EndDate.Value) : null, Position = c.JobPosition?.Name ?? string.Empty, ContractType = c.ContractType?.ContractTypeName ?? string.Empty }).ToList(),
-            Salaries  = salaries.Select(s => new DashboardHrRawSalaryDto { EmployeeId = s.EmployeeId, BaseSalary = s.BaseSalary ?? 0m, EffectiveDate = DateOnly.FromDateTime(s.EffectiveDate), EndDate = s.EndDate.HasValue ? DateOnly.FromDateTime(s.EndDate.Value) : null }).ToList()
+            Meta = new DashboardHrMetaDto 
+            { 
+                CompanyId = companyId ?? 0, 
+                Month = month ?? DateTime.Today.ToString("yyyy-MM"), 
+                GeneratedAt = DateTimeOffset.UtcNow 
+            },
+
+            Employees = employees.Select(e => new DashboardHrRawEmployeeDto 
+            { 
+                Id = e.Id, 
+                FirstName = e.FirstName, 
+                LastName = e.LastName, 
+                Department = e.Departement?.DepartementName ?? string.Empty, 
+                StatusCode = e.Status?.Code ?? string.Empty, 
+                GenderCode = e.Gender?.Code ?? string.Empty 
+            }).ToList(),
+
+            Contracts = contracts.Select(c => new DashboardHrRawContractDto 
+            { 
+                EmployeeId = c.EmployeeId, 
+                StartDate = DateOnly.FromDateTime(c.StartDate), 
+                EndDate = c.EndDate.HasValue ? DateOnly.FromDateTime(c.EndDate.Value) : null, 
+                Position = c.JobPosition?.Name ?? string.Empty, 
+                ContractType = c.ContractType?.ContractTypeName ?? string.Empty 
+            }).ToList(),
+
+            Salaries  = salaries.Select(s => new DashboardHrRawSalaryDto 
+            { 
+                EmployeeId = s.EmployeeId, 
+                BaseSalary = s.BaseSalary ?? 0m, 
+                EffectiveDate = DateOnly.FromDateTime(s.EffectiveDate), 
+                EndDate = s.EndDate.HasValue ? DateOnly.FromDateTime(s.EndDate.Value) : null 
+            }).ToList()
         };
     }
 
@@ -107,8 +334,12 @@ public class DashboardService : IDashboardService
     public async Task<DashboardHrMasseSalarialeDto> GetMasseSalarialeAsync(int? companyId, string? month, CancellationToken ct = default)
     {
         var q = _db.EmployeeSalaries.Include(s => s.Employee).ThenInclude(e => e!.Departement).AsQueryable();
-        if (companyId.HasValue) q = q.Where(s => s.Employee.CompanyId == companyId.Value);
+
+        if (companyId.HasValue) 
+            q = q.Where(s => s.Employee.CompanyId == companyId.Value);
+        
         var salaries = await q.ToListAsync(ct);
+        
         var total = salaries.Sum(s => s.BaseSalary ?? 0m);
 
         return new DashboardHrMasseSalarialeDto
@@ -444,9 +675,9 @@ public class DashboardService : IDashboardService
         if (activeContract != null)
         {
             var start = DateOnly.FromDateTime(activeContract.StartDate);
-            var now = DateOnly.FromDateTime(DateTime.UtcNow);
+            var nowDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            var totalMonths = (now.Year - start.Year) * 12 + (now.Month - start.Month);
+            var totalMonths = (nowDate.Year - start.Year) * 12 + (nowDate.Month - start.Month);
             totalMonths = Math.Max(0, totalMonths);
 
             var years = totalMonths / 12;
@@ -493,9 +724,170 @@ public class DashboardService : IDashboardService
             });
         }
 
-        // KPI MVP (pour que le front fonctionne) : initialement à 0/vides.
+        // KPI - calcul via données existantes (PayrollResult / LeaveBalances / Attendance / Overtime)
+        var now = DateTime.UtcNow;
+        var year = now.Year;
+        var month = now.Month;
+        var monthStart = new DateOnly(year, month, 1);
+        var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+
+        var fr = CultureInfo.GetCultureInfo("fr-FR");
+        var currentMonthLabel = new DateTime(year, month, 1).ToString("MMMM yyyy", fr);
+
+        // 1) Payroll (Net à payer)
+        var payroll = await _db.PayrollResults
+            .AsNoTracking()
+            .Where(pr =>
+                pr.EmployeeId == employee.Id &&
+                pr.DeletedAt == null &&
+                pr.Year == year &&
+                pr.Month == month &&
+                pr.Status == PayrollResultStatus.OK)
+            .OrderByDescending(pr => pr.Id)
+            .FirstOrDefaultAsync(ct);
+
+        payroll ??= await _db.PayrollResults
+            .AsNoTracking()
+            .Where(pr =>
+                pr.EmployeeId == employee.Id &&
+                pr.DeletedAt == null &&
+                pr.Status == PayrollResultStatus.OK)
+            .OrderByDescending(pr => pr.Year)
+            .ThenByDescending(pr => pr.Month)
+            .ThenByDescending(pr => pr.Id)
+            .FirstOrDefaultAsync(ct);
+
+        var salaryNet = payroll?.NetAPayer ?? payroll?.TotalNet ?? payroll?.TotalNet2 ?? 0m;
+        var paidDate = payroll != null
+            ? new DateTime(payroll.Year, payroll.Month, 1).ToString("MMMM yyyy", fr)
+            : string.Empty;
+
+        // 2) Congés (solde annuel)
+        var annualLeaveType = await _db.LeaveTypes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(lt => lt.LeaveCode == "ANNUAL" && lt.DeletedAt == null, ct);
+
+        decimal leavesRemainingDec = 0m;
+        decimal leavesTotalDec = 0m;
+        LeaveDetailDto? annualLeaveDetail = null;
+
+        if (annualLeaveType != null)
+        {
+            var lb = await _db.LeaveBalances
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.EmployeeId == employee.Id &&
+                    x.CompanyId == employee.CompanyId &&
+                    x.LeaveTypeId == annualLeaveType.Id &&
+                    x.DeletedAt == null &&
+                    x.Year == year &&
+                    x.Month == month, ct);
+
+            lb ??= await _db.LeaveBalances
+                .AsNoTracking()
+                .Where(x =>
+                    x.EmployeeId == employee.Id &&
+                    x.CompanyId == employee.CompanyId &&
+                    x.LeaveTypeId == annualLeaveType.Id &&
+                    x.DeletedAt == null)
+                .OrderByDescending(x => x.Year)
+                .ThenByDescending(x => x.Month)
+                .ThenByDescending(x => x.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (lb != null)
+            {
+                // Remaining = closing; Total = opening + accrued + carry-in
+                leavesRemainingDec = lb.ClosingDays;
+                leavesTotalDec = lb.OpeningDays + lb.AccruedDays + lb.CarryInDays;
+
+                var leavesRemaining = Math.Max(0, leavesRemainingDec);
+                var leavesTotal = Math.Max(0, leavesTotalDec);
+
+                annualLeaveDetail = new LeaveDetailDto
+                {
+                    Label = "Solde annuel",
+                    Remaining = leavesRemaining,
+                    Total = leavesTotal,
+                    ColorClass = "bg-success",
+                    IsText = leavesTotal <= 0,
+                    Text = leavesTotal <= 0
+                        ? $"{leavesRemaining:0.##} j"
+                        : null
+                };
+            }
+        }
+
+        var leavesRemainingValue = Math.Max(0, leavesRemainingDec);
+        var leavesTotalValue = Math.Max(0, leavesTotalDec);
+
+        // 3) Présences = jours ouvrés - absences approuvées (1 jour / 0.5 jour) jusqu'aujourd'hui sur le mois en cours.
+        var todayDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var workingDaysMonth = await _workingDays.CalculateWorkingDaysAsync(employee.CompanyId, monthStart, todayDate, ct);
+
+        var absencesApproved = await _db.EmployeeAbsences
+            .AsNoTracking()
+            .Where(a =>
+                a.DeletedAt == null &&
+                a.EmployeeId == employee.Id &&
+                a.AbsenceDate >= monthStart &&
+                a.AbsenceDate <= todayDate &&
+                a.Status == AbsenceStatus.Approved)
+            .Select(a => a.DurationType)
+            .ToListAsync(ct);
+
+        var absencesDays = absencesApproved.Sum(dt => dt == AbsenceDurationType.HalfDay ? 0.5m : 1.0m);
+
+        // PresenceDays = max(0, workingDays - absences)
+        var presenceDaysDec = Math.Max(0m, workingDaysMonth - absencesDays);
+        var presenceTotalDec = Math.Max(0m, workingDaysMonth);
+
+        // Front attend des int pour l'instant => arrondi au 0.5 n'existe pas sur ce KPI.
+        // On choisit une représentation stable: arrondi à l'entier inférieur pour "jours" affichés.
+        var presenceDays = (int)Math.Floor(presenceDaysDec);
+        var presenceTotal = (int)Math.Floor(presenceTotalDec);
+
+        // 4) Heures sup en attente validation (Submitted)
+        var overtimeRows = await _db.EmployeeOvertimes
+            .AsNoTracking()
+            .Where(o =>
+                o.EmployeeId == employee.Id &&
+                o.DeletedAt == null &&
+                o.OvertimeDate >= monthStart &&
+                o.OvertimeDate <= monthEnd &&
+                o.Status == OvertimeStatus.Submitted)
+            .ToListAsync(ct);
+
+        var extraHours = overtimeRows.Sum(o => o.DurationInHours);
+
+        // 5) Payslip details (minimaux, pour éviter un panneau vide)
+        var payslipDetails = new List<PayslipDetailDto>();
+        if (payroll != null)
+        {
+            if (payroll.TotalBrut.HasValue)
+            {
+                payslipDetails.Add(new PayslipDetailDto
+                {
+                    Label = "Total brut",
+                    Value = $"{payroll.TotalBrut.Value:0} MAD",
+                    Type = "normal"
+                });
+            }
+
+            if (payroll.TotalCotisationsSalariales.HasValue)
+            {
+                payslipDetails.Add(new PayslipDetailDto
+                {
+                    Label = "Total cotisations salariales",
+                    Value = $"{payroll.TotalCotisationsSalariales.Value:0} MAD",
+                    Type = "deduction"
+                });
+            }
+        }
+
         var dto = new EmployeeDashboardDataDto
         {
+            EmployeeId = employee.Id,
             EmployeeName = employeeName,
             Initials = initials,
             Role = roleName,
@@ -505,20 +897,22 @@ public class DashboardService : IDashboardService
             Manager = manager,
             Seniority = seniority,
 
-            SalaryNet = 0m,
-            PaidDate = string.Empty,
+            SalaryNet = salaryNet,
+            PaidDate = paidDate,
 
-            LeavesRemaining = 0,
-            LeavesTotal = 0,
+            LeavesRemaining = leavesRemainingValue,
+            LeavesTotal = leavesTotalValue,
 
-            PresenceDays = 0,
-            PresenceTotal = 0,
+            PresenceDays = presenceDays,
+            PresenceTotal = presenceTotal,
 
-            ExtraHours = 0m,
+            ExtraHours = extraHours,
 
-            LeavesDetails = new List<LeaveDetailDto>(),
+            LeavesDetails = annualLeaveDetail != null
+                ? new List<LeaveDetailDto> { annualLeaveDetail }
+                : new List<LeaveDetailDto>(),
             ContractInfo = contractInfo,
-            PayslipDetails = new List<PayslipDetailDto>(),
+            PayslipDetails = payslipDetails,
             Documents = documents
         };
 

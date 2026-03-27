@@ -1,42 +1,23 @@
-using FluentValidation;
+using Payzen.Application.DTOs.Company;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Payzen.Application.DTOs.Company;
+using Payzen.Api.Extensions;
 using Payzen.Application.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Payzen.Infrastructure.Persistence;
-using System.Linq;
+using Payzen.Application.Common;
 
 namespace Payzen.Api.Controllers.Public;
 
-[Serializable]
-public class PublicCompanySignupDto
-{
-    public required string CompanyName { get; set; }
-    public required string CompanyEmail { get; set; }
-    public required string CompanyPhoneNumber { get; set; }
-    public required string AdminFirstName { get; set; }
-    public required string AdminLastName { get; set; }
-    public required string AdminEmail { get; set; }
-    public required string AdminPhone { get; set; }
-}
 
 [ApiController]
 [Route("api/public")]
 public class PublicSignupController : ControllerBase
 {
-    private readonly ICompanyService _svc;
-    private readonly IValidator<CompanyCreateDto> _createValidator;
-    private readonly AppDbContext _db;
+    private readonly IPublicSignupService _signup;
 
     public PublicSignupController(
-        ICompanyService svc,
-        IValidator<CompanyCreateDto> createValidator,
-        AppDbContext db)
+        IPublicSignupService signup)
     {
-        _svc = svc;
-        _createValidator = createValidator;
-        _db = db;
+        _signup = signup;
     }
 
     /// <summary>
@@ -59,57 +40,51 @@ public class PublicSignupController : ControllerBase
             return BadRequest(new { Message = "Tous les champs obligatoires du formulaire sont requis." });
         }
 
-        var fallbackCountry = await _db.Countries
-            .AsNoTracking()
-            .Where(c => c.DeletedAt == null)
-            .OrderBy(c => c.Id)
-            .Select(c => new { c.Id, c.CountryPhoneCode })
-            .FirstOrDefaultAsync(ct);
+        var r = await _signup.SignupCompanyAdminAsync(
+            new PublicSignupRequest(
+                dto.CompanyName.Trim(),
+                dto.CompanyEmail.Trim(),
+                dto.CompanyPhoneNumber.Trim(),
+                dto.AdminFirstName.Trim(),
+                dto.AdminLastName.Trim(),
+                dto.AdminEmail.Trim(),
+                dto.AdminPhone.Trim()),
+            ct);
 
-        if (fallbackCountry == null)
-            return BadRequest(new { Message = "Aucun pays actif n'est configuré dans le système." });
-
-        // Mapping vers le DTO métier complet avec valeurs techniques par défaut.
-        var mapped = new CompanyCreateDto
-        {
-            CompanyName = dto.CompanyName.Trim(),
-            CompanyEmail = dto.CompanyEmail.Trim(),
-            CompanyPhoneNumber = dto.CompanyPhoneNumber.Trim(),
-            CompanyAddress = "Adresse à compléter",
-            CountryId = fallbackCountry.Id,
-            CityName = "Ville à compléter",
-            CnssNumber = $"TEMP-CNSS-{Guid.NewGuid():N}"[..22],
-            CountryPhoneCode = fallbackCountry.CountryPhoneCode,
-            IsCabinetExpert = false,
-            AdminFirstName = dto.AdminFirstName.Trim(),
-            AdminLastName = dto.AdminLastName.Trim(),
-            AdminEmail = dto.AdminEmail.Trim(),
-            AdminPhone = dto.AdminPhone.Trim(),
-            isActive = true
-        };
-
-        var validation = await _createValidator.ValidateAsync(mapped, ct);
-        if (!validation.IsValid)
-        {
-            return BadRequest(new
-            {
-                Message = "Données invalides.",
-                Errors = validation.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.ErrorMessage).ToArray()
-                    )
-            });
-        }
-
-        // MVP: créé par un "system user" fictif (admin + onboarding + invitation).
-        var createdBy = 1;
-
-        var r = await _svc.CreateAsync(mapped, createdBy, ct);
         if (!r.Success)
         {
             if (r.Error?.Contains("existe déjà") == true)
+                return Conflict(new { Message = r.Error });
+
+            return BadRequest(new { Message = r.Error });
+        }
+
+        return Ok(r.Data);
+    }
+
+    /// <summary>
+    /// Signup post-authentification Entra : complète les informations société après vérification d'email.
+    /// Le compte utilisateur courant devient admin de la société, sans flux d'invitation.
+    /// </summary>
+    [HttpPost("complete-company-onboarding")]
+    [Authorize]
+    public async Task<ActionResult> CompleteCompanyOnboarding([FromBody] AuthenticatedCompanySignupDto dto, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(dto.CompanyName) ||
+            string.IsNullOrWhiteSpace(dto.AdminFirstName) ||
+            string.IsNullOrWhiteSpace(dto.AdminLastName) ||
+            string.IsNullOrWhiteSpace(dto.AdminPhone))
+        {
+            return BadRequest(new { Message = "Tous les champs obligatoires du formulaire sont requis." });
+        }
+
+        var currentUserId = User.GetUserId();
+        var currentUserEmail = User.GetUserEmail();
+
+        var r = await _signup.CompleteCompanyOnboardingAsync(dto, currentUserId, currentUserEmail, ct);
+        if (!r.Success)
+        {
+            if (r.Error?.Contains("déjà") == true || r.Error?.Contains("rattach") == true)
                 return Conflict(new { Message = r.Error });
 
             return BadRequest(new { Message = r.Error });

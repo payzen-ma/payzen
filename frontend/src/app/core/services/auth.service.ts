@@ -241,19 +241,25 @@ export class AuthService {
       error: null
     });
 
-    if (opts?.skipNavigation) {
-      return;
-    }
-
-    // Helper to set memberships and navigate
-    const proceedWithMemberships = (userWithName: User) => {
+    // Helper to set memberships and (optionally) navigate
+    const proceedWithMemberships = (userWithName: User, navigate: boolean) => {
       const memberships = this.buildMembershipsFromUser(userWithName as User);
       this.contextService.setMemberships(memberships);
 
+      // Important:
+      // Même si on "skipNavigation" (ex: callback Entra), on DOIT initialiser le contexte
+      // afin que `companyId()` soit disponible et que l'interceptor envoie `X-Company-Id`.
+      if (memberships.length === 1) {
+        this.contextService.selectContext(memberships[0], navigate);
+        return;
+      }
+
+      if (!navigate) {
+        return;
+      }
+
       if (memberships.length > 1) {
         this.router.navigate(['/select-context']);
-      } else if (memberships.length === 1) {
-        this.contextService.selectContext(memberships[0], true);
       } else {
         const defaultRoute = this.getRoleDefaultRoute(userWithName.role);
         this.router.navigate([defaultRoute]);
@@ -268,15 +274,15 @@ export class AuthService {
           response.user.companyName = name;
           this.storeUser(response.user);
           this.currentUser.set(response.user);
-          proceedWithMemberships(response.user as User);
+          proceedWithMemberships(response.user as User, !opts?.skipNavigation);
         },
         error: () => {
           // Fallback if company fetch fails
-          proceedWithMemberships(response.user as User);
+          proceedWithMemberships(response.user as User, !opts?.skipNavigation);
         }
       });
     } else {
-      proceedWithMemberships(response.user as User);
+      proceedWithMemberships(response.user as User, !opts?.skipNavigation);
     }
 
     // Check for subordinates after successful login
@@ -614,6 +620,9 @@ export class AuthService {
   private normalizeUserPayload(userRaw: any, fallbackUser: User | null = null): User {
     const permissions = Array.isArray(userRaw?.permissions ?? userRaw?.Permissions) ? (userRaw?.permissions ?? userRaw?.Permissions) : [];
     const rolesArray = Array.isArray(userRaw?.roles ?? userRaw?.Roles) ? (userRaw?.roles ?? userRaw?.Roles) : [];
+    const normalizedRoles = rolesArray
+      .map((r: any) => (typeof r === 'string' ? r : (r?.name ?? r?.role ?? r?.code ?? r?.id ?? '')).toString().toLowerCase())
+      .filter((r: string) => !!r);
     // Prefer 'admin' role if present in the roles array (regardless of order)
     let resolvedRole: any = null;
     if (rolesArray && rolesArray.length) {
@@ -628,9 +637,10 @@ export class AuthService {
     // Fallback to explicit role field or first role in array
     resolvedRole = resolvedRole ?? (userRaw?.role ?? userRaw?.Role ?? rolesArray[0]);
     
-    // Try to get companyId from payload, fallback to existing user if missing
+    // Try to get companyId from payload, fallback to existing user if missing.
+    // "0" means "no company yet" and must be normalized to undefined.
     const rawCompanyId = userRaw?.companyId ?? userRaw?.CompanyId;
-    const companyId = this.normalizeString(rawCompanyId) ?? fallbackUser?.companyId;
+    const companyId = this.normalizeCompanyId(rawCompanyId, fallbackUser?.companyId);
 
     // Get companyName from backend response
     const companyName = this.normalizeString(userRaw?.companyName ?? userRaw?.CompanyName) ?? fallbackUser?.companyName;
@@ -651,8 +661,8 @@ export class AuthService {
       firstName: this.normalizeString(userRaw?.firstName ?? userRaw?.FirstName) ?? '',
       lastName: this.normalizeString(userRaw?.lastName ?? userRaw?.LastName) ?? '',
       role: this.mapBackendRole(resolvedRole),
-      roles: rolesArray,
-      employee_id: this.normalizeString(userRaw?.employeeId ?? userRaw?.EmployeeId),
+      roles: normalizedRoles,
+      employee_id: this.normalizeString(userRaw?.employeeId ?? userRaw?.EmployeeId) ?? fallbackUser?.employee_id,
       companyId,
       companyName,
       isCabinetExpert,
@@ -669,14 +679,31 @@ export class AuthService {
     return String(value);
   }
 
+  private normalizeCompanyId(rawValue: any, fallback?: string): string | undefined {
+    if (rawValue === null || rawValue === undefined) {
+      return fallback;
+    }
+
+    const asString = String(rawValue).trim();
+    const asNumber = Number(asString);
+    if (!Number.isNaN(asNumber) && asNumber <= 0) {
+      return undefined;
+    }
+
+    return asString || fallback;
+  }
+
   private mapBackendRole(role?: string): UserRole {
     const normalized = (role ?? '').toLowerCase();
     const roleMap: Record<string, UserRole> = {
       admin: UserRole.ADMIN,
       rh: UserRole.RH,
       manager: UserRole.MANAGER,
+      ceo: UserRole.CEO,
       employee: UserRole.EMPLOYEE,
       cabinet: UserRole.CABINET,
+      cabinetexpert: UserRole.CABINET,
+      cabinet_expert: UserRole.CABINET,
       admin_payzen: UserRole.ADMIN_PAYZEN
     };
     return roleMap[normalized] ?? UserRole.EMPLOYEE;
@@ -710,6 +737,7 @@ export class AuthService {
       [UserRole.ADMIN]: '/app/dashboard',
       [UserRole.RH]: '/app/dashboard',
       [UserRole.MANAGER]: '/app/dashboard',
+      [UserRole.CEO]: '/app/ceo/dashboard',
       [UserRole.EMPLOYEE]: '/app/employee/dashboard',
       [UserRole.CABINET]: '/cabinet/dashboard',
       [UserRole.ADMIN_PAYZEN]: '/app/dashboard'

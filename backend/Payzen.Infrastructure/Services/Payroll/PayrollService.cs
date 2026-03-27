@@ -562,11 +562,26 @@ public class PayrollService : IPayrollService
     {
         var employee = await _db.Employees.FindAsync(new object[] { employeeId }, ct);
 
-        // Supprimer l'ancien résultat pending s'il existe
-        var old = await _db.PayrollResults
-            .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf
-                                    && pr.Status == PayrollResultStatus.Pending, ct);
-        if (old != null) { old.DeletedAt = DateTimeOffset.UtcNow; old.DeletedBy = userId; }
+        // Règle métier: un seul résultat "actif" par employé/période.
+        // Avant de persister, on soft-delete tout résultat existant (quel que soit le statut).
+        var existingResults = await _db.PayrollResults
+            .Where(pr =>
+                pr.DeletedAt == null
+                && pr.EmployeeId == employeeId
+                && pr.Month == month
+                && pr.Year == year
+                && pr.PayHalf == payHalf)
+            .ToListAsync(ct);
+
+        if (existingResults.Count > 0)
+        {
+            var now = DateTimeOffset.UtcNow;
+            foreach (var pr in existingResults)
+            {
+                pr.DeletedAt = now;
+                pr.DeletedBy = userId;
+            }
+        }
 
         var entity = new PayrollResult
         {

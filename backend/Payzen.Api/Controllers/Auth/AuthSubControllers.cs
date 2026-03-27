@@ -32,6 +32,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult> GetAll()
     {
         var r = await _auth.GetAllUsersAsync();
+        
         return r.Success ? Ok(r.Data) : BadRequest(new { r.Error });
     }
 
@@ -41,6 +42,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult> GetById(int id)
     {
         var r = await _auth.GetUserByIdAsync(id);
+        
         return r.Success ? Ok(r.Data) : NotFound(new { r.Error });
     }
 
@@ -50,6 +52,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult> Create([FromBody] UserCreateDto dto)
     {
         var r = await _auth.CreateUserAsync(dto, User.GetUserId());
+        
         return r.Success ? Ok(r.Data) : BadRequest(new { r.Error });
     }
 
@@ -62,24 +65,31 @@ public class UsersController : ControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == dto.CompanyId && c.DeletedAt == null, ct);
+        
         if (company == null)
             return NotFound(new { Message = "Company introuvable." });
 
         var employee = await _db.Employees
             .FirstOrDefaultAsync(e => e.CompanyId == dto.CompanyId && e.Email == dto.Email && e.DeletedAt == null, ct);
+        
         if (employee == null)
             return BadRequest(new { Message = "Aucun employé trouvé pour cet email et cette société." });
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && u.DeletedAt == null, ct);
 
         var createdBy = User.GetUserId();
+        
         if (user == null)
         {
             var baseUsername = dto.Email.Split('@')[0];
-            if (baseUsername.Length < 3) baseUsername = baseUsername.PadRight(3, 'u');
+            
+            if (baseUsername.Length < 3) 
+                baseUsername = baseUsername.PadRight(3, 'u');
 
             var usernameCandidate = baseUsername;
+            
             var suffix = 1;
+            
             while (await _db.Users.AnyAsync(u => u.Username == usernameCandidate && u.DeletedAt == null, ct))
             {
                 usernameCandidate = $"{baseUsername}{suffix}";

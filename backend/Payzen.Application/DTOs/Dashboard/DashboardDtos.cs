@@ -317,6 +317,7 @@ public class ExpertDashboardDto
 
 public class EmployeeDashboardDataDto
 {
+    public int EmployeeId { get; set; }
     public string EmployeeName { get; set; } = string.Empty;
     public string Initials { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
@@ -329,8 +330,8 @@ public class EmployeeDashboardDataDto
     public decimal SalaryNet { get; set; }
     public string PaidDate { get; set; } = string.Empty;
 
-    public int LeavesRemaining { get; set; }
-    public int LeavesTotal { get; set; }
+    public decimal LeavesRemaining { get; set; }
+    public decimal LeavesTotal { get; set; }
 
     public int PresenceDays { get; set; }
     public int PresenceTotal { get; set; }
@@ -346,8 +347,8 @@ public class EmployeeDashboardDataDto
 public class LeaveDetailDto
 {
     public string Label { get; set; } = string.Empty;
-    public int? Remaining { get; set; }
-    public int? Total { get; set; }
+    public decimal? Remaining { get; set; }
+    public decimal? Total { get; set; }
     public string ColorClass { get; set; } = string.Empty;
     public bool? IsText { get; set; }
     public string? Text { get; set; }
@@ -373,4 +374,54 @@ public class EmployeeDocumentDto
     public string Title { get; set; } = string.Empty;
     public string Subtitle { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
+}
+
+// ════════════════════════════════════════════════════════════
+// DASHBOARD CEO
+// ════════════════════════════════════════════════════════════
+
+public class CeoDashboardDto
+{
+    public List<CeoKpiDto> Kpis { get; set; } = new();
+    public List<CeoChartPointDto> EvolutionChart { get; set; } = new();
+    public List<CeoDepartmentDto> Departments { get; set; } = new();
+    public List<CeoPayIndicatorDto> PayIndicators { get; set; } = new();
+    public List<CeoAlertDto> Alerts { get; set; } = new();
+}
+
+public class CeoKpiDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public string SubtitleColor { get; set; } = "text-gray-500";
+}
+
+public class CeoChartPointDto
+{
+    public string Month { get; set; } = string.Empty; // yyyy-MM
+    public decimal NetMad { get; set; }
+    public decimal ChargesMad { get; set; }
+}
+
+public class CeoDepartmentDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int Value { get; set; }
+    public string Color { get; set; } = "bg-gray-400";
+    public decimal Percentage { get; set; }
+}
+
+public class CeoPayIndicatorDto
+{
+    public string Label { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? ValueColor { get; set; }
+}
+
+public class CeoAlertDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public string DotColor { get; set; } = "bg-gray-400";
 }

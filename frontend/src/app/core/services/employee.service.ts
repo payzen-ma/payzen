@@ -318,8 +318,9 @@ export interface SageImportResult {
 })
 export class EmployeeService {
   private readonly EMPLOYEE_URL = `${environment.apiUrl}/employee`;
-  // We keep this for the fallback, but we will prefer the company-specific endpoint
-  private readonly EMPLOYEE_SUMMARY_URL = `${environment.apiUrl}/employee/summary`;
+  // Fallback when company context isn't established yet:
+  // this endpoint derives company from the authenticated user and returns both counts + list.
+  private readonly EMPLOYEE_DASHBOARD_URL = `${environment.apiUrl}/dashboard/employees`;
   private readonly EMPLOYEES_URL = `${environment.apiUrl}/employees`;
 
   private readonly contextService = inject(CompanyContextService);
@@ -346,8 +347,22 @@ export class EmployeeService {
    * Utilisé comme fallback quand employee_id n'est pas dans le token.
    */
   getMyEmployee(): Observable<{ employeeId: number; firstName: string; lastName: string }> {
-    return this.http.get<{ employeeId: number; firstName: string; lastName: string }>(
-      `${this.EMPLOYEE_URL}/me`
+    return this.http.get<any>(`${this.EMPLOYEE_URL}/me`).pipe(
+      map((response) => {
+        const employeeId = Number(
+          response?.employeeId ??
+          response?.EmployeeId ??
+          response?.id ??
+          response?.Id ??
+          0
+        );
+
+        return {
+          employeeId,
+          firstName: String(response?.firstName ?? response?.FirstName ?? ''),
+          lastName: String(response?.lastName ?? response?.LastName ?? '')
+        };
+      })
     );
   }
 
@@ -355,7 +370,7 @@ export class EmployeeService {
    * Get all employees with optional filters.
    * INTELLIGENT ROUTING FIX:
    * 1. If a specific companyId is requested, use /api/employee/company/{id}
-   * 2. Otherwise fallback to /api/employee/summary
+   * 2. Otherwise fallback to /api/dashboard/employees (derived from current user)
    */
   getEmployees(filters?: EmployeeFilters): Observable<EmployeesResponse> {
     // Prefer company-specific endpoint when companyId is provided (from filters or current context)
@@ -394,7 +409,7 @@ export class EmployeeService {
 
     const params = this.buildFilterParams(filters);
     return this.http
-      .get<DashboardEmployeesResponse>(this.EMPLOYEE_SUMMARY_URL, { params })
+      .get<DashboardEmployeesResponse>(this.EMPLOYEE_DASHBOARD_URL, { params })
       .pipe(map(response => this.mapDashboardEmployeesResponse(response)));
   }
 

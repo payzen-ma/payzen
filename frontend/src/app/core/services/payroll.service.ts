@@ -23,6 +23,22 @@ export class PayrollService {
   constructor(private http: HttpClient) {}
 
   /**
+   * Normalise `half` reçu depuis des UI composants select (souvent 'null' en string).
+   * Retourne `undefined` si on veut calculer un "mois entier" (donc ne pas envoyer `half` au backend).
+   */
+  private normalizeHalfParam(half: unknown): number | undefined {
+    if (half === undefined || half === null) return undefined;
+    if (typeof half === 'string') {
+      const s = half.trim().toLowerCase();
+      if (s === '' || s === 'null' || s === 'undefined') return undefined;
+    }
+
+    const n = typeof half === 'number' ? half : Number(half);
+    if (Number.isNaN(n)) return undefined;
+    return n;
+  }
+
+  /**
    * Calcule la paie pour tous les employés d'une période
    */
   calculatePayrollForAll(month: number, year: number, half?: number): Observable<any> {
@@ -38,9 +54,8 @@ export class PayrollService {
       .set('companyId', companyId.toString())
       .set('month', month.toString())
       .set('year', year.toString());
-    if (half) {
-      params = params.set('half', String(half));
-    }
+    const normalizedHalf = this.normalizeHalfParam(half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
 
     return this.http.post(`${this.PAYROLL_URL}/calculate?useNativeEngine=true`, null, { params });
   }
@@ -52,9 +67,8 @@ export class PayrollService {
     let params = new HttpParams()
       .set('month', month.toString())
       .set('year', year.toString());
-    if (half) {
-      params = params.set('half', String(half));
-    }
+    const normalizedHalf = this.normalizeHalfParam(half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
 
     return this.http.post(`${this.PAYROLL_URL}/recalculate/${employeeId}?useNativeEngine=true`, null, { params });
   }
@@ -68,9 +82,8 @@ export class PayrollService {
     if (filters.month) params = params.set('month', filters.month.toString());
     if (filters.year) params = params.set('year', filters.year.toString());
 
-    if (filters.half !== undefined && filters.half !== null) {
-      params = params.set('half', filters.half.toString());
-    }
+    const normalizedHalf = this.normalizeHalfParam(filters.half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
     
     // Convert companyId to number if it's from context (string)
     const contextCompanyId = this.contextService.companyId();
@@ -124,9 +137,8 @@ export class PayrollService {
     half?: number | null
   ): Observable<Blob> {
     let params = new HttpParams();
-    if (half !== undefined && half !== null) {
-      params = params.set('half', String(half));
-    }
+    const normalizedHalf = this.normalizeHalfParam(half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
 
     return this.http.get(
       `${environment.apiUrl}/payslip/employee/${employeeId}/period/${year}/${month}`,

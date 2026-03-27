@@ -1,4 +1,5 @@
 export interface EmployeeDashboardData {
+  employeeId: number;
   employeeName: string;
   initials: string;
   role: string;

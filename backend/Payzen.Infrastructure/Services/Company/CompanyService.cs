@@ -123,7 +123,12 @@ public class CompanyService : ICompanyService
     // ── Commands ─────────────────────────────────────────────────────────────
     // Validate uniqueness, create company, onboarding, fiche employé admin, invitation e-mail (Entra).
 
-    public async Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(CompanyCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(
+        CompanyCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default,
+        bool sendInvitation = true,
+        int? existingAdminUserId = null)
     {
         // Ville et pays sont validés par CompanyCreateValidator (pays existant, ville existante ou nom, pas les deux).
 
@@ -142,8 +147,15 @@ public class CompanyService : ICompanyService
         if (await _db.Employees.AnyAsync(e => e.Email == dto.AdminEmail && e.DeletedAt == null, ct))
             return ServiceResult<CompanyCreateResponseDto>.Fail("Un employé avec cet email existe déjà");
 
-        if (await _db.Users.AnyAsync(u => u.Email == dto.AdminEmail && u.DeletedAt == null, ct))
-            return ServiceResult<CompanyCreateResponseDto>.Fail("Un utilisateur avec cet email existe déjà");
+        var existingUserWithAdminEmail = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == dto.AdminEmail && u.DeletedAt == null, ct);
+        if (existingUserWithAdminEmail != null)
+        {
+            var isExpectedExistingUser =
+                existingAdminUserId.HasValue && existingUserWithAdminEmail.Id == existingAdminUserId.Value;
+            if (!isExpectedExistingUser)
+                return ServiceResult<CompanyCreateResponseDto>.Fail("Un utilisateur avec cet email existe déjà");
+        }
 
         // ---------- déterminer / créer la ville ----------
         int cityId;
@@ -245,14 +257,17 @@ public class CompanyService : ICompanyService
                 await _db.SaveChangesAsync(ct);
             }
 
-            await _invitationService.CreateInvitationAsync(
-                new InviteAdminDto
-                {
-                    Email = dto.AdminEmail.Trim(),
-                    CompanyId = company.Id,
-                    RoleId = adminRole.Id
-                },
-                ct);
+            if (sendInvitation)
+            {
+                await _invitationService.CreateInvitationAsync(
+                    new InviteAdminDto
+                    {
+                        Email = dto.AdminEmail.Trim(),
+                        CompanyId = company.Id,
+                        RoleId = adminRole.Id
+                    },
+                    ct);
+            }
 
             await tx.CommitAsync(ct);
 
@@ -291,8 +306,9 @@ public class CompanyService : ICompanyService
                     LastName = adminEmployee.LastName,
                     Phone = adminEmployee.Phone,
                     Password = null,
-                    Message =
-                        "Une invitation a été envoyée à l'adresse indiquée. L'administrateur activera son compte via Microsoft Entra (lien dans l'e-mail ou logs si mode mock)."
+                    Message = sendInvitation
+                        ? "Une invitation a été envoyée à l'adresse indiquée. L'administrateur activera son compte via Microsoft Entra (lien dans l'e-mail ou logs si mode mock)."
+                        : "Inscription finalisée. Le compte administrateur est activé via la session Microsoft Entra en cours."
                 }
             };
 

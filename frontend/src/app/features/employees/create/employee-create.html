@@ -192,19 +192,6 @@
                 ></app-select-field>
 
                 <app-select-field
-                  [label]="'employees.create.form.status' | translate"
-                  [requiredMark]="true"
-                  [options]="data.statuses"
-                  optionLabel="label"
-                  optionValue="id"
-                  [placeholder]="'employees.create.form.statusPlaceholder' | translate"
-                  [filter]="false"
-                  [appendTo]="'body'"
-                  [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
-                  formControlName="statusId"
-                ></app-select-field>
-
-                <app-select-field
                   [label]="'employees.create.form.maritalStatus' | translate"
                   [placeholder]="'--'"
                   [options]="data.maritalStatuses"
@@ -223,16 +210,6 @@
                   [filter]="true"
                   formControlName="educationLevelId"
                 ></app-select-field>
-
-                <app-select-field
-                  [label]="'employees.create.form.nationality' | translate"
-                  [placeholder]="'--'"
-                  [options]="data.nationalities"
-                  optionLabel="label"
-                  optionValue="id"
-                  [filter]="true"
-                  formControlName="nationalityId"
-                ></app-select-field>
               </div>
             </section>
 
@@ -245,51 +222,33 @@
                 </div>
               </div>
               <div class="grid gap-5 md:grid-cols-2">
-                <div class="form-field">
-                  <label class="form-label form-label-required">{{ 'employees.create.form.department' | translate }}</label>
-                  <p-autoComplete
-                    [suggestions]="filteredDepartments()"
-                    (completeMethod)="searchDepartment($event)"
-                    [ngModel]="selectedDepartment()"
-                    (ngModelChange)="onDepartmentChange($event)"
-                    [ngModelOptions]="{ standalone: true }"
-                    field="label"
-                    [forceSelection]="false"
+                  <app-select-field
+                    [label]="'employees.create.form.department' | translate"
+                    [requiredMark]="true"
+                    [options]="data.departments"
+                    optionLabel="label"
+                    optionValue="id"
                     [placeholder]="'employees.create.form.departmentPlaceholder' | translate"
-                    styleClass="w-full"
-                    inputStyleClass="w-full"
-                  ></p-autoComplete>
-                  @if (employeeForm.controls.departmentId.invalid && (employeeForm.controls.departmentId.dirty || employeeForm.controls.departmentId.touched)) {
-                    <small class="form-error">
-                      <i class="pi pi-exclamation-circle"></i>
-                      {{ 'employees.create.validation.required' | translate }}
-                    </small>
-                  }
-                </div>
-
-                <div class="form-field">
-                  <label class="form-label form-label-required">{{ 'employees.create.form.jobPosition' | translate }}</label>
-                  <p-autoComplete
-                    [suggestions]="filteredJobPositions()"
-                    (completeMethod)="searchJobPosition($event)"
-                    [ngModel]="selectedJobPosition()"
-                    (ngModelChange)="onJobPositionChange($event)"
-                    [ngModelOptions]="{ standalone: true }"
-                    field="label"
-                    [forceSelection]="false"
+                    [filter]="true"
+                    [appendTo]="'body'"
+                    [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
+                    formControlName="departmentId"
+                  ></app-select-field>
+                  
+                  <app-select-field
+                    [label]="'employees.create.form.jobPosition' | translate"
+                    [requiredMark]="true"
+                    [options]="data.jobPositions"
+                    optionLabel="label"
+                    optionValue="id"
                     [placeholder]="'employees.create.form.jobPositionPlaceholder' | translate"
-                    styleClass="w-full"
-                    inputStyleClass="w-full"
-                  ></p-autoComplete>
-                  @if (employeeForm.controls.jobPositionId.invalid && (employeeForm.controls.jobPositionId.dirty || employeeForm.controls.jobPositionId.touched)) {
-                    <small class="form-error">
-                      <i class="pi pi-exclamation-circle"></i>
-                      {{ 'employees.create.validation.required' | translate }}
-                    </small>
-                  }
-                </div>
+                    [filter]="true"
+                    [appendTo]="'body'"
+                    [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
+                    formControlName="jobPositionId"
+                  ></app-select-field>
 
-                <app-select-field
+                  <app-select-field
                   [label]="'employees.create.form.contractType' | translate"
                   [requiredMark]="true"
                   [options]="data.contractTypes"
@@ -346,7 +305,7 @@
                   [hint]="'employees.create.form.salaryEffectiveDateHint' | translate"
                   formControlName="salaryEffectiveDate"
                 ></app-input-field>
-
+              <!--
                 <app-select-field
                   [label]="'employees.create.form.salaryPackage' | translate"
                   [options]="salaryPackageOptions()"
@@ -357,7 +316,7 @@
                   [showClear]="true"
                   [appendTo]="'body'"
                   formControlName="salaryPackageId"
-                ></app-select-field>
+                ></app-select-field>-->
 
                 <app-select-field
                   [label]="'employees.create.form.employeeCategory' | translate"

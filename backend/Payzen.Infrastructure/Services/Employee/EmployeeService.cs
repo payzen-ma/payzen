@@ -22,6 +22,7 @@ public class EmployeeService : IEmployeeService
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
     private readonly IInvitationService _invitationService;
+    private readonly ILeaveBalanceRecalculationService _leaveBalanceRecalculation;
     private readonly ILogger<EmployeeService> _logger;
     private readonly EmployeeContractService   _contracts;
     private readonly EmployeeSalaryService     _salaries;
@@ -37,11 +38,13 @@ public class EmployeeService : IEmployeeService
         IWebHostEnvironment env,
         IEmployeeEventLogService eventLog,
         IInvitationService invitationService,
+        ILeaveBalanceRecalculationService leaveBalanceRecalculation,
         ILogger<EmployeeService> logger)
     {
         _db          = db;
         _eventLog    = eventLog;
         _invitationService = invitationService;
+        _leaveBalanceRecalculation = leaveBalanceRecalculation;
         _logger      = logger;
         _contracts   = new EmployeeContractService(db, eventLog);
         _salaries    = new EmployeeSalaryService(db, eventLog);
@@ -266,9 +269,143 @@ public class EmployeeService : IEmployeeService
             privateInsuranceNumber = e.PrivateInsuranceNumber,
             privateInsuranceRate = e.PrivateInsuranceRate,
             disableAmo = e.DisableAmo,
+            annualLeave = await GetAnnualLeaveOpeningBalanceAsync(e.Id, e.CompanyId, ct),
             Events = formattedEvents,
             CreatedAt = e.CreatedAt.DateTime
         });
+    }
+
+    private async Task<decimal> GetAnnualLeaveOpeningBalanceAsync(int employeeId, int companyId, CancellationToken ct)
+    {
+        var annualLeaveTypeId = await _db.LeaveTypes
+            .AsNoTracking()
+            .Where(lt => lt.DeletedAt == null && lt.LeaveCode == "ANNUAL")
+            .Where(lt => lt.CompanyId == companyId || lt.CompanyId == null)
+            .OrderByDescending(lt => lt.CompanyId == companyId)
+            .Select(lt => (int?)lt.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (!annualLeaveTypeId.HasValue)
+            return 0m;
+
+        var contractStart = await _db.EmployeeContracts
+            .AsNoTracking()
+            .Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
+            .OrderBy(c => c.StartDate)
+            .Select(c => c.StartDate)
+            .FirstOrDefaultAsync(ct);
+
+        if (contractStart == default)
+            return 0m;
+
+        var opening = await _db.LeaveBalances
+            .AsNoTracking()
+            .Where(lb =>
+                lb.DeletedAt == null &&
+                lb.EmployeeId == employeeId &&
+                lb.CompanyId == companyId &&
+                lb.LeaveTypeId == annualLeaveTypeId.Value &&
+                lb.Year == contractStart.Year &&
+                lb.Month == contractStart.Month)
+            .Select(lb => (decimal?)lb.OpeningDays)
+            .FirstOrDefaultAsync(ct);
+
+        return opening ?? 0m;
+    }
+
+    private async Task UpsertAnnualLeaveOpeningBalanceAsync(
+        int employeeId,
+        int companyId,
+        decimal openingDays,
+        int userId,
+        CancellationToken ct)
+    {
+        if (openingDays < 0m)
+            openingDays = 0m;
+
+        var annualLeaveType = await _db.LeaveTypes
+            .FirstOrDefaultAsync(lt =>
+                lt.DeletedAt == null &&
+                lt.LeaveCode == "ANNUAL" &&
+                (lt.CompanyId == companyId || lt.CompanyId == null), ct);
+
+        if (annualLeaveType == null)
+            return;
+
+        var contractStart = await _db.EmployeeContracts
+            .AsNoTracking()
+            .Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
+            .OrderBy(c => c.StartDate)
+            .Select(c => c.StartDate)
+            .FirstOrDefaultAsync(ct);
+
+        if (contractStart == default)
+            return;
+
+        var firstYear = contractStart.Year;
+        var firstMonth = contractStart.Month;
+
+        var balance = await _db.LeaveBalances
+            .FirstOrDefaultAsync(lb =>
+                lb.DeletedAt == null &&
+                lb.EmployeeId == employeeId &&
+                lb.CompanyId == companyId &&
+                lb.LeaveTypeId == annualLeaveType.Id &&
+                lb.Year == firstYear &&
+                lb.Month == firstMonth, ct);
+
+        if (balance == null)
+        {
+            balance = new Domain.Entities.Leave.LeaveBalance
+            {
+                CompanyId = companyId,
+                EmployeeId = employeeId,
+                LeaveTypeId = annualLeaveType.Id,
+                Year = firstYear,
+                Month = firstMonth,
+                OpeningDays = openingDays,
+                AccruedDays = 0m,
+                UsedDays = 0m,
+                CarryInDays = 0m,
+                CarryOutDays = 0m,
+                ClosingDays = openingDays,
+                LastRecalculatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = userId
+            };
+            _db.LeaveBalances.Add(balance);
+        }
+        else
+        {
+            balance.OpeningDays = openingDays;
+            balance.ClosingDays = balance.OpeningDays + balance.AccruedDays + balance.CarryInDays - balance.UsedDays - balance.CarryOutDays;
+            balance.LastRecalculatedAt = DateTimeOffset.UtcNow;
+            balance.UpdatedBy = userId;
+            balance.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+    }
+
+    private async Task RecalculateAnnualLeaveBalancesAsync(int employeeId, int companyId, int userId, CancellationToken ct)
+    {
+        var annualLeaveTypeId = await _db.LeaveTypes
+            .AsNoTracking()
+            .Where(lt => lt.DeletedAt == null && lt.LeaveCode == "ANNUAL")
+            .Where(lt => lt.CompanyId == companyId || lt.CompanyId == null)
+            .OrderByDescending(lt => lt.CompanyId == companyId)
+            .Select(lt => (int?)lt.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (!annualLeaveTypeId.HasValue)
+            return;
+
+        var now = DateTime.UtcNow;
+        await _leaveBalanceRecalculation.RecalculateRangeThroughMonthAsync(
+            companyId: companyId,
+            employeeId: employeeId,
+            leaveTypeId: annualLeaveTypeId.Value,
+            endYear: now.Year,
+            endMonth: now.Month,
+            userId: userId,
+            ct: ct);
     }
 
     private async Task<Dictionary<int, (string Name, string Role)>> LoadEmployeeLogModifiersAsync(
@@ -531,6 +668,18 @@ public class EmployeeService : IEmployeeService
             _db.Employees.Add(e);
             await _db.SaveChangesAsync(ct);
             var id = e.Id;
+
+            if (dto.AnnualLeave.HasValue)
+            {
+                await UpsertAnnualLeaveOpeningBalanceAsync(
+                    employeeId: id,
+                    companyId: e.CompanyId,
+                    openingDays: dto.AnnualLeave.Value,
+                    userId: createdBy,
+                    ct: ct);
+                await _db.SaveChangesAsync(ct);
+                await RecalculateAnnualLeaveBalancesAsync(id, e.CompanyId, createdBy, ct);
+            }
 
             var hasAddressHints = !string.IsNullOrWhiteSpace(dto.AddressLine1)
                 || !string.IsNullOrWhiteSpace(dto.AddressLine2)
@@ -815,6 +964,16 @@ public class EmployeeService : IEmployeeService
             e.MaritalStatusId = dto.MaritalStatusId;
         }
         if (dto.CategoryId    != null) e.CategoryId    = dto.CategoryId;
+        if (dto.AnnualLeave.HasValue)
+        {
+            await UpsertAnnualLeaveOpeningBalanceAsync(
+                employeeId: e.Id,
+                companyId: e.CompanyId,
+                openingDays: dto.AnnualLeave.Value,
+                userId: updatedBy,
+                ct: ct);
+            await RecalculateAnnualLeaveBalancesAsync(e.Id, e.CompanyId, updatedBy, ct);
+        }
 
         e.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -1193,7 +1352,22 @@ public class EmployeeService : IEmployeeService
 
     public async Task<ServiceResult<IEnumerable<EmployeeCategoryReadDto>>> GetCategoriesAsync(int companyId, CancellationToken ct = default)
     {
-        var list = await _db.EmployeeCategories.Where(c => c.CompanyId == companyId).Select(c => new EmployeeCategoryReadDto { Id = c.Id, Name = c.Name, CompanyId = c.CompanyId }).ToListAsync(ct);
+        var list = await _db.EmployeeCategories
+            .AsNoTracking()
+            .Where(c => c.CompanyId == companyId && c.DeletedAt == null)
+            .OrderBy(c => c.Name)
+            .Select(c => new EmployeeCategoryReadDto
+            {
+                Id = c.Id,
+                CompanyId = c.CompanyId,
+                CompanyName = c.Company != null ? c.Company.CompanyName : string.Empty,
+                Name = c.Name,
+                Mode = c.Mode,
+                PayrollPeriodicity = string.IsNullOrWhiteSpace(c.PayrollPeriodicity) ? "Mensuelle" : c.PayrollPeriodicity,
+                ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Présence" : "Absence",
+                CreatedAt = c.CreatedAt.DateTime
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeCategoryReadDto>>.Ok(list);
     }
 
@@ -1223,15 +1397,57 @@ public class EmployeeService : IEmployeeService
 
     public async Task<ServiceResult<EmployeeCategoryReadDto>> GetCategoryByIdAsync(int id, CancellationToken ct = default)
     {
-        var c = await _db.EmployeeCategories.FindAsync(new object[] { id }, ct);
-        return c == null ? ServiceResult<EmployeeCategoryReadDto>.Fail("Catégorie introuvable.") : ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto { Id = c.Id, Name = c.Name, CompanyId = c.CompanyId });
+        var c = await _db.EmployeeCategories
+            .AsNoTracking()
+            .Include(x => x.Company)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+
+        return c == null
+            ? ServiceResult<EmployeeCategoryReadDto>.Fail("Catégorie introuvable.")
+            : ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto
+            {
+                Id = c.Id,
+                CompanyId = c.CompanyId,
+                CompanyName = c.Company?.CompanyName ?? string.Empty,
+                Name = c.Name,
+                Mode = c.Mode,
+                PayrollPeriodicity = string.IsNullOrWhiteSpace(c.PayrollPeriodicity) ? "Mensuelle" : c.PayrollPeriodicity,
+                ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Présence" : "Absence",
+                CreatedAt = c.CreatedAt.DateTime
+            });
     }
 
     public async Task<ServiceResult<EmployeeCategoryReadDto>> CreateCategoryAsync(EmployeeCategoryCreateDto dto, int createdBy, CancellationToken ct = default)
     {
-        var c = new EmployeeCategory { Name = dto.Name, CompanyId = dto.CompanyId, CreatedBy = createdBy };
-        _db.EmployeeCategories.Add(c); await _db.SaveChangesAsync(ct);
-        return ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto { Id = c.Id, Name = c.Name, CompanyId = c.CompanyId });
+        var c = new EmployeeCategory
+        {
+            Name = dto.Name,
+            CompanyId = dto.CompanyId,
+            Mode = dto.Mode,
+            PayrollPeriodicity = string.IsNullOrWhiteSpace(dto.PayrollPeriodicity) ? "Mensuelle" : dto.PayrollPeriodicity,
+            CreatedBy = createdBy
+        };
+
+        _db.EmployeeCategories.Add(c);
+        await _db.SaveChangesAsync(ct);
+
+        var companyName = await _db.Companies
+            .AsNoTracking()
+            .Where(x => x.Id == c.CompanyId && x.DeletedAt == null)
+            .Select(x => x.CompanyName)
+            .FirstOrDefaultAsync(ct) ?? string.Empty;
+
+        return ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto
+        {
+            Id = c.Id,
+            CompanyId = c.CompanyId,
+            CompanyName = companyName,
+            Name = c.Name,
+            Mode = c.Mode,
+            PayrollPeriodicity = string.IsNullOrWhiteSpace(c.PayrollPeriodicity) ? "Mensuelle" : c.PayrollPeriodicity,
+            ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Présence" : "Absence",
+            CreatedAt = c.CreatedAt.DateTime
+        });
     }
 
     public async Task<ServiceResult<EmployeeCategoryReadDto>> UpdateCategoryAsync(int id, EmployeeCategoryUpdateDto dto, int updatedBy, CancellationToken ct = default)
@@ -1239,8 +1455,28 @@ public class EmployeeService : IEmployeeService
         var c = await _db.EmployeeCategories.FindAsync(new object[] { id }, ct);
         if (c == null) return ServiceResult<EmployeeCategoryReadDto>.Fail("Catégorie introuvable.");
         if (dto.Name != null) c.Name = dto.Name;
-        c.UpdatedBy = updatedBy; await _db.SaveChangesAsync(ct);
-        return ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto { Id = c.Id, Name = c.Name, CompanyId = c.CompanyId });
+        if (dto.Mode.HasValue) c.Mode = dto.Mode.Value;
+        if (dto.PayrollPeriodicity != null) c.PayrollPeriodicity = dto.PayrollPeriodicity;
+        c.UpdatedBy = updatedBy;
+        await _db.SaveChangesAsync(ct);
+
+        var companyName = await _db.Companies
+            .AsNoTracking()
+            .Where(x => x.Id == c.CompanyId && x.DeletedAt == null)
+            .Select(x => x.CompanyName)
+            .FirstOrDefaultAsync(ct) ?? string.Empty;
+
+        return ServiceResult<EmployeeCategoryReadDto>.Ok(new EmployeeCategoryReadDto
+        {
+            Id = c.Id,
+            CompanyId = c.CompanyId,
+            CompanyName = companyName,
+            Name = c.Name,
+            Mode = c.Mode,
+            PayrollPeriodicity = string.IsNullOrWhiteSpace(c.PayrollPeriodicity) ? "Mensuelle" : c.PayrollPeriodicity,
+            ModeDescription = c.Mode == EmployeeCategoryMode.Attendance ? "Présence" : "Absence",
+            CreatedAt = c.CreatedAt.DateTime
+        });
     }
 
     public async Task<ServiceResult> DeleteCategoryAsync(int id, int deletedBy, CancellationToken ct = default)

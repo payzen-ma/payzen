@@ -10,9 +10,12 @@ import {
   authGuard, 
   guestGuard, 
   rhGuard, 
+  ceoGuard,
+  cabinetGuard,
   contextGuard, 
   contextSelectionGuard,
   expertModeGuard,
+  expertClientViewGuard,
   standardModeGuard,
   viewPresenceGuard,
   viewAbsenceGuard,
@@ -33,6 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'signup/company',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/auth/company-signup/company-signup.component')
       .then(m => m.CompanySignupComponent)
   },
@@ -42,19 +46,16 @@ export const routes: Routes = [
       .then(m => m.EntraCallbackComponent)
   },
   {
-    path: 'auth/accept-invite',
-    loadComponent: () => import('./features/auth/accept-invite/accept-invite.component')
-      .then(m => m.AcceptInviteComponent)
-  },
-  {
+    // IMPORTANT:
+    // `/dashboard` doit passer par `MainLayout` (sidebar/header).
+    // On redirige donc vers la route layoutée `/app/dashboard`.
     path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard')
-      .then(m => m.Dashboard),
-    canActivate: [authGuard, denyEmployeeFromHrDashboardsGuard]
+    redirectTo: '/app/dashboard',
+    pathMatch: 'full'
   },
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: '/app/dashboard',
     pathMatch: 'full'
   },
 
@@ -93,6 +94,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/employees/dashboard/employee-dashboard.component').then(m => m.EmployeeDashboardComponent),
         canActivate: [employeeDashboardGuard],
         title: 'Mon Espace - PayZen'
+      },
+      {
+        path: 'ceo/dashboard',
+        loadComponent: () => import('./features/ceo/dashboard/ceo-dashboard.component').then(m => m.CeoDashboardComponent),
+        canActivate: [ceoGuard],
+        title: 'CEO Dashboard - PayZen'
       },
       {
         path: 'company',
@@ -374,7 +381,7 @@ export const routes: Routes = [
   {
     path: 'expert',
     component: MainLayout,
-    canActivate: [authGuard, contextGuard, expertModeGuard],
+    canActivate: [authGuard, contextGuard, expertModeGuard, cabinetGuard],
     children: [
       {
         path: '',
@@ -569,6 +576,8 @@ export const routes: Routes = [
       {
         path: 'overtime-management',
         loadComponent: () => import('./features/overtime/overtime-management/overtime-management').then(m => m.OvertimeManagementComponent),
+        // Nécessite une société client sélectionnée (client view) en expert mode
+        canActivate: [expertClientViewGuard],
         data: { expertMode: true }
       },
       {

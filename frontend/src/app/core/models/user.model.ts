@@ -5,6 +5,7 @@ export enum UserRole {
   ADMIN = 'admin',                    // 👑 Admin Société
   RH = 'rh',                          // 👩‍💼 RH / Payroll
   MANAGER = 'manager',                // 👔 Manager
+  CEO = 'ceo',                        // 🧭 CEO
   EMPLOYEE = 'employee',              // 👤 Salarié
   CABINET = 'cabinet',                // 📊 Cabinet Comptable
   ADMIN_PAYZEN = 'admin_payzen'       // ⚙️ Admin PayZen (Back-office)
@@ -110,6 +111,18 @@ export const ROLE_PERMISSIONS = {
     requestLeave: false,
     editPersonalInfo: false,
     viewKPIs: false,
+    importData: false
+  },
+  [UserRole.CEO]: {
+    createEmployee: false,
+    editEmployee: false,
+    viewAllPayslips: true,
+    viewOwnPayslips: true,
+    runPayroll: false,
+    approveLeave: true,
+    requestLeave: false,
+    editPersonalInfo: false,
+    viewKPIs: true,
     importData: false
   },
   [UserRole.EMPLOYEE]: {

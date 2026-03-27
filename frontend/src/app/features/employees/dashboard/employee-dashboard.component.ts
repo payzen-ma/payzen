@@ -14,6 +14,9 @@ export class EmployeeDashboardComponent implements OnInit {
     private dashboardService = inject(EmployeeDashboardService);
 
     isLoading = true;
+    isRecalculatingLeaves = false;
+    leaveRecalcError = '';
+    employeeId: number | null = null;
 
     employeeName = '';
     initials = '';
@@ -41,8 +44,14 @@ export class EmployeeDashboardComponent implements OnInit {
     documents: EmployeeDocument[] = [];
 
     ngOnInit() {
+        this.loadDashboardData();
+    }
+
+    loadDashboardData() {
+        this.isLoading = true;
         this.dashboardService.getDashboardData().subscribe({
             next: (data: any) => {
+                this.employeeId = data.EmployeeId || data.employeeId || null;
                 this.employeeName = data.EmployeeName || data.employeeName;
                 this.initials = data.Initials || data.initials;
                 this.role = data.Role || data.role;
@@ -97,6 +106,28 @@ export class EmployeeDashboardComponent implements OnInit {
             error: (err) => {
                 console.error('Failed to load dashboard data', err);
                 this.isLoading = false;
+            }
+        });
+    }
+
+    recalculateLeaves(): void {
+        if (!this.employeeId || this.isRecalculatingLeaves) return;
+
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+
+        this.isRecalculatingLeaves = true;
+        this.leaveRecalcError = '';
+        this.dashboardService.recalculateLeaveBalance(this.employeeId, year, month).subscribe({
+            next: () => {
+                this.isRecalculatingLeaves = false;
+                this.loadDashboardData();
+            },
+            error: (err) => {
+                console.error('Failed to recalculate leave balances', err);
+                this.leaveRecalcError = err?.error?.Message || err?.error?.message || 'Recalcul impossible pour le moment.';
+                this.isRecalculatingLeaves = false;
             }
         });
     }

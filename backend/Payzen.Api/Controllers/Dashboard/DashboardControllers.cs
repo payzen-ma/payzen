@@ -380,8 +380,37 @@ public class DashboardEmployeeController : ControllerBase
         if (!int.TryParse(userIdClaim.Value, out var userId))
             return BadRequest(new { Message = "ID utilisateur invalide" });
 
-        var r = await _svc.GetEmployeesDashboardAsync(userId);
+        var r = await _svc.GetEmployeeDashboardAsync(userId);
 
         return r.Success ? Ok(r.Data) : BadRequest(new { r.Error });
+    }
+}
+
+// ── Dashboard CEO ──────────────────────────────────────────────────────────────
+
+[ApiController]
+[Route("api/DashboardCeo")]
+[Authorize]
+public class DashboardCeoController : ControllerBase
+{
+    private readonly IDashboardService _svc;
+    public DashboardCeoController(IDashboardService svc) => _svc = svc;
+
+    [HttpGet("GetCeoDashboardData")]
+    public async Task<ActionResult> GetCeoDashboardData(
+        [FromQuery] string? parity = null,
+        [FromQuery] string? fromMonth = null,
+        [FromQuery] string? toMonth = null,
+        CancellationToken ct = default)
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "uid");
+        if (userIdClaim == null)
+            return Unauthorized(new { Message = "Utilisateur non authentifié" });
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+            return BadRequest(new { Message = "ID utilisateur invalide" });
+
+        var r = await _svc.GetCeoDashboardDataAsync(userId, parity, fromMonth, toMonth, ct);
+        return r.Success ? Ok(r.Data) : BadRequest(new { Message = r.Error });
     }
 }

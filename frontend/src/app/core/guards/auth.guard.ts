@@ -117,6 +117,35 @@ export const expertModeGuard: CanActivateFn = (route, state) => {
 };
 
 /**
+ * Expert Client View Guard
+ * Certains écrans "client" nécessitent une société client sélectionnée
+ * (isExpertMode=true ET isClientView=true). Sans cela, beaucoup de services
+ * jettent "No company selected".
+ */
+export const expertClientViewGuard: CanActivateFn = (route, state) => {
+  const contextService = inject(CompanyContextService);
+  const router = inject(Router);
+
+  if (!contextService.hasContext()) {
+    router.navigate(['/select-context']);
+    return false;
+  }
+
+  // Si pas en expert mode, ce guard ne s'applique pas (laisser les autres guards gérer)
+  if (!contextService.isExpertMode()) {
+    return true;
+  }
+
+  // En expert mode, on doit être en "client view" pour les écrans qui utilisent companyId
+  if (!contextService.isClientView()) {
+    router.navigate(['/expert/dashboard']);
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Standard Mode Guard - Only allows access in standard mode
  */
 export const standardModeGuard: CanActivateFn = (route, state) => {
@@ -159,7 +188,9 @@ export const employeeDashboardGuard: CanActivateFn = (route, state) => {
     UserRole.RH,
     UserRole.ADMIN,
     UserRole.ADMIN_PAYZEN,
-    UserRole.MANAGER // souvent utilisé pour "CEO" si le rôle exact n'existe pas
+    UserRole.MANAGER, // souvent utilisé pour "CEO" si le rôle exact n'existe pas
+    UserRole.CEO,
+    UserRole.CABINET
   ];
 
   if (user?.role && allowedRoles.includes(user.role)) {
@@ -241,7 +272,16 @@ export const createRoleGuard = (allowedRoles: string[]): CanActivateFn => {
     }
 
     const user = authService.getCurrentUser();
-    if (user && allowedRoles.includes(user.role)) {
+    const contextRole = (contextService.role() ?? '').toLowerCase();
+    const userRole = (user?.role ?? '').toLowerCase();
+    const userRoles = Array.isArray(user?.roles)
+      ? user.roles.map(r => String(r).toLowerCase())
+      : [];
+
+    const effectiveRoles = [contextRole, userRole, ...userRoles].filter(Boolean);
+    const hasAllowedRole = effectiveRoles.some(r => allowedRoles.includes(r));
+
+    if (hasAllowedRole) {
       return true;
     }
 
@@ -276,6 +316,7 @@ export const managerGuard: CanActivateFn = createRoleGuard(['admin', 'rh', 'mana
  * Cabinet Guard - Cabinet and Admin PayZen
  */
 export const cabinetGuard: CanActivateFn = createRoleGuard(['cabinet', 'admin_payzen']);
+export const ceoGuard: CanActivateFn = createRoleGuard(['ceo', 'admin_payzen']);
 
 /**
  * Permission Guard Factory - Checks current context or user permissions

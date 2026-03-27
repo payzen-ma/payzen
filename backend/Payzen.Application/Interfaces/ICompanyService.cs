@@ -22,7 +22,12 @@ public interface ICompanyService
     Task<bool> CountryExistsAsync(int countryId, CancellationToken ct = default);
     /// <summary>Vérifie que la ville existe et appartient au pays (pour la validation de création d'entreprise).</summary>
     Task<bool> CityExistsForCountryAsync(int cityId, int countryId, CancellationToken ct = default);
-    Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(CompanyCreateDto dto, int createdBy, CancellationToken ct = default);
+    Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(
+        CompanyCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default,
+        bool sendInvitation = true,
+        int? existingAdminUserId = null);
     Task<ServiceResult<CompanyCreateResponseDto>> CreateByExpertAsync(CompanyCreateByExpertDto dto, int createdBy, CancellationToken ct = default);
     Task<ServiceResult<CompanyReadDto>> PatchAsync(int id, CompanyUpdateDto dto, int updatedBy, CancellationToken ct = default);
     Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default);
@@ -52,7 +57,6 @@ public interface ICompanyService
     Task<ServiceResult> DeleteContractTypeAsync(int id, int deletedBy, CancellationToken ct = default);
 
     // ── WorkingCalendar ──────────────────────────────────────
-    /// <summary>Tous les jours de calendrier (toutes sociétés), parité monolithe GET api/working-calendar.</summary>
     Task<ServiceResult<IEnumerable<WorkingCalendarReadDto>>> GetAllWorkingCalendarsAsync(CancellationToken ct = default);
     Task<ServiceResult<IEnumerable<WorkingCalendarReadDto>>> GetWorkingCalendarAsync(int companyId, CancellationToken ct = default);
     Task<ServiceResult<WorkingCalendarReadDto>> GetWorkingCalendarDayByIdAsync(int id, CancellationToken ct = default);

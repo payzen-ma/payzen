@@ -24,6 +24,10 @@ export class EntraCallbackComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const result = await this.entraService.handleRedirectPromise();
 
+    console.log('MSAL result:', result);
+    console.log('idTokenClaims:', result?.idTokenClaims);
+    console.log('idTokenClaims keys:', Object.keys(result?.idTokenClaims ?? {}));
+
     if (!result) {
       this.router.navigate(['/login']);
       return;

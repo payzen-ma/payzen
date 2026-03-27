@@ -300,8 +300,12 @@ export class CompanyContextService {
     }
     // If the selected membership role is "employee", always go to the
     // employee dashboard (even if in standard mode).
-    if ((this.currentContext()?.role ?? '').toLowerCase() === 'employee') {
+    const currentRole = (this.currentContext()?.role ?? '').toLowerCase();
+    if (currentRole === 'employee') {
       return '/app/employee/dashboard';
+    }
+    if (currentRole === 'ceo') {
+      return '/app/ceo/dashboard';
     }
 
     return this.isExpertMode() ? '/expert/dashboard' : '/app/dashboard';

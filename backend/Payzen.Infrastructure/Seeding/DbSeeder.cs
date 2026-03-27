@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Company;
@@ -168,7 +169,6 @@ public static class DbSeeder
         db.Countries.Add(maroc);
     }
 
-    /// <summary>Règles de majoration HS (parité ancien payzen_backend DbSeeder).</summary>
     private static async Task SeedOvertimeRateRulesAsync(AppDbContext db, CancellationToken ct)
     {
         if (await db.OvertimeRateRules.AnyAsync(ct))
@@ -341,10 +341,6 @@ public static class DbSeeder
         }
     }
 
-    /// <summary>
-    /// Seed des types de congés légaux marocains (scope Global, sans CompanyId).
-    /// Idempotent — ne recrée pas si déjà présents.
-    /// </summary>
     private static async Task SeedGlobalLeaveTypesAsync(AppDbContext db, CancellationToken ct)
     {
         if (await db.LeaveTypes.AnyAsync(lt => lt.CompanyId == null, ct)) return;
@@ -388,7 +384,7 @@ public static class DbSeeder
                     DaysGranted            = 18,
                     LegalArticle           = "Art. 231 CT",
                     CanBeDiscountinuous    = false,
-                    MustBeUsedWithinDays   = 365,
+                    MustBeUsedWithinDays   = 730,
                     CreatedBy              = 1,
                 }
             }
@@ -579,11 +575,6 @@ public static class DbSeeder
 
         db.LeaveTypes.AddRange(annual, mariage, naissance, deces, maladie, maternite);
     }
-
-    /// <summary>
-    /// Match le rôle "Admin Payzen" avec TOUTES les permissions du système (table RolesPermissions).
-    /// Idempotent : n'ajoute que les liaisons manquantes. À appeler après SeedRolesAndPermissionsAsync + SaveChanges.
-    /// </summary>
     private static async Task SeedAdminRolePermissionsAsync(AppDbContext db, CancellationToken ct = default)
     {
         var adminRole = await db.Roles
@@ -603,5 +594,25 @@ public static class DbSeeder
         var toAdd = permissionIds.Except(existingPermissionIds).ToList();
         foreach (var permissionId in toAdd)
             db.RolesPermissions.Add(new RolesPermissions { RoleId = adminRole.Id, PermissionId = permissionId, CreatedBy = 1 });
+    }
+    private static async Task SeedAdminCompanyRolePermissionsAsync(AppDbContext db, CancellationToken ct = default)
+    {
+        var adminCompanyRole = await db.Roles
+            .FirstOrDefaultAsync(r => r.Name == "Admin" && r.DeletedAt == null, ct);
+        if (adminCompanyRole == null) return;
+
+        var permissionIds = await db.Permissions
+            .Where(p => p.DeletedAt == null && (p.Resource == "users" || p.Resource == "roles" || p.Resource == "users-roles"))
+            .Select(p => p.Id)
+            .ToListAsync(ct);
+        if (permissionIds.Count == 0) return;
+
+        var existingPermissionIds = await db.RolesPermissions
+            .Where(rp => rp.RoleId == adminCompanyRole.Id && rp.DeletedAt == null)
+            .Select(rp => rp.PermissionId)
+            .ToListAsync(ct);
+        var toAdd = permissionIds.Except(existingPermissionIds).ToList();
+        foreach (var permissionId in toAdd)
+            db.RolesPermissions.Add(new RolesPermissions { RoleId = adminCompanyRole.Id, PermissionId = permissionId, CreatedBy = 1 });
     }
 }

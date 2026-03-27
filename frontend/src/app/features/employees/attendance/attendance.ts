@@ -173,7 +173,7 @@ export class AttendancePage implements OnInit {
 
   loadTodayAttendance(): void {
     const user = this.currentUser();
-    const employeeId = Number(user?.employee_id ?? user?.id ?? 0);
+    const employeeId = Number(user?.employee_id ?? 0);
     if (!employeeId) {
       this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'attendance.noRecords' });
       this.todayAttendance.set(null);
@@ -215,7 +215,7 @@ export class AttendancePage implements OnInit {
 
   loadAttendanceHistory(): void {
     const user = this.currentUser();
-    const employeeId = Number(user?.employee_id ?? user?.id ?? 0);
+    const employeeId = Number(user?.employee_id ?? 0);
     if (!employeeId) {
       this.attendanceHistory.set([]);
       return;
@@ -259,7 +259,7 @@ export class AttendancePage implements OnInit {
       return;
     }
     const user = this.currentUser();
-    const employeeId = Number(user?.employee_id ?? user?.id ?? 0);
+    const employeeId = Number(user?.employee_id ?? 0);
     if (!employeeId) {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Employee id not found' });
       return;
@@ -321,7 +321,7 @@ export class AttendancePage implements OnInit {
       return;
     }
     const user = this.currentUser();
-    const employeeId = Number(user?.employee_id ?? user?.id ?? 0);
+    const employeeId = Number(user?.employee_id ?? 0);
     if (!employeeId) {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Employee id not found' });
       return;

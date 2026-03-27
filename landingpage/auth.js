@@ -19,9 +19,9 @@ function redirectToSignIn() {
  * avec prompt 'create' pour forcer le flow Sign-Up Entra.
  */
 function redirectToSignUp() {
-  // Landing -> formulaire création company + admin (puis invitation par email)
-  console.log('[landing] redirectToSignUp -> /signup/company');
-  window.location.href = `${APP_BASE_URL}/signup/company`;
+  // Landing -> login en mode signup (prompt=create), puis callback => /signup/company
+  console.log('[landing] redirectToSignUp -> /login?mode=signup');
+  window.location.href = `${APP_BASE_URL}/login?mode=signup`;
 }
 
 /**

@@ -1,0 +1,82 @@
+<section class="employee-dashboard min-h-screen p-6 lg:p-8 font-sans">
+  <div class="flex items-start justify-between mb-8">
+    <div>
+      <div class="flex items-center gap-4 mb-2">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Vue direction</h1>
+        <span class="px-3 py-1 rounded-md bg-orange-50 text-orange-800 text-sm font-semibold tracking-wide">CEO</span>
+      </div>
+      <p class="text-gray-500 font-medium text-sm">Lecture seule</p>
+    </div>
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex flex-col">
+        <label class="text-xs text-gray-500 mb-1">Parité</label>
+        <select class="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" [value]="selectedParity()" (change)="onParityChange($event)">
+          <option value="ALL">Tous</option>
+          <option value="F">Femmes</option>
+          <option value="M">Hommes</option>
+        </select>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-xs text-gray-500 mb-1">Du</label>
+        <input type="month" class="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" [value]="fromMonth()" (change)="onFromMonthChange($event)" />
+      </div>
+      <div class="flex flex-col">
+        <label class="text-xs text-gray-500 mb-1">Au</label>
+        <input type="month" class="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" [value]="toMonth()" (change)="onToMonthChange($event)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    @for (kpi of kpis(); track kpi.title) {
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between h-32">
+        <div class="text-[11px] font-semibold text-gray-400 tracking-widest uppercase">{{ kpi.title }}</div>
+        <div class="text-4xl font-bold text-gray-900 my-1">{{ kpi.value }}</div>
+        <div class="text-sm font-medium" [ngClass]="kpi.subtitleColor">{{ kpi.subtitle }}</div>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mb-6">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
+      <h3 class="text-base font-bold text-gray-900 mb-4">Évolution masse salariale — 6 mois</h3>
+      @if (evolutionChart().length === 0) {
+        <p class="text-sm text-gray-500">Aucune donnée disponible pour le moment.</p>
+      } @else {
+        <div class="relative flex-1 min-h-[200px] flex">
+          <div class="relative flex-1 border-l border-b border-gray-100 flex">
+            <div class="absolute inset-0 flex items-end justify-between px-4 pb-0">
+              @for (data of evolutionChart(); track data.month) {
+                <div class="w-16 md:w-20 group relative h-full flex items-end justify-center z-10">
+                  <div class="w-14 flex flex-col-reverse justify-start relative">
+                    <div class="bg-[#1fa877] w-full" [style.height.%]="data.net"></div>
+                    <div class="bg-[#e2ddd5] w-full" [style.height.%]="data.charges"></div>
+                    <div class="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] text-gray-500 whitespace-nowrap">
+                      {{ (data.netMad ?? 0) | number:'1.0-0' }} / {{ (data.chargesMad ?? 0) | number:'1.0-0' }}
+                    </div>
+                    <div class="absolute -bottom-6 w-full text-center text-xs font-medium text-gray-500">{{ data.month }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-base font-bold text-gray-900 mb-6">Répartition par département</h3>
+      <div class="flex flex-col gap-6 mt-4">
+        @for (dept of departments(); track dept.name) {
+          <div class="flex items-center gap-4">
+            <div class="w-24 text-sm font-medium text-gray-500">{{ dept.name }}</div>
+            <div class="flex-1 bg-gray-100 rounded-full h-2">
+              <div class="h-2 rounded-full" [ngClass]="dept.color" [style.width.%]="dept.percentage"></div>
+            </div>
+            <div class="w-8 text-right text-sm font-semibold text-gray-900">{{ dept.value }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
