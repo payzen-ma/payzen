@@ -87,6 +87,7 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             return LeaveBalanceMonthRecalcResult.Fail("Aucun contrat actif trouvé pour l'employé.");
 
         var contractFirstMonth = new DateOnly(contractStart.Value.Year, contractStart.Value.Month, 1);
+        var chainEnd = new DateOnly(endYear, endMonth, 1);
         var isAnnualLeaveType = await _db.LeaveTypes
             .AsNoTracking()
             .AnyAsync(lt => lt.Id == leaveTypeId && lt.DeletedAt == null && lt.LeaveCode == "ANNUAL", ct);
@@ -101,6 +102,16 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             .Select(e => e.AnnualLeaveOpeningEffectiveFrom)
             .FirstOrDefaultAsync(ct);
 
+        DateOnly? annualOpeningMonth = null;
+        if (isAnnualLeaveType && employeeAnnualOpeningDays > 0m)
+        {
+            // Fallback compatibilité: anciennes données sans mois d'effet persistant.
+            // On prend le mois du recalcul courant pour injecter la base utilisateur.
+            annualOpeningMonth = employeeAnnualOpeningEffectiveFrom.HasValue
+                ? new DateOnly(employeeAnnualOpeningEffectiveFrom.Value.Year, employeeAnnualOpeningEffectiveFrom.Value.Month, 1)
+                : chainEnd;
+        }
+
         // Workflow métier demandé:
         // 1) injecter la valeur d'ouverture au premier mois de contrat,
         // 2) recalculer ensuite chaque mois en chaîne (M dépend de M-1).
@@ -108,9 +119,7 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         DateOnly chainStart;
         if (isAnnualLeaveType)
         {
-            var effectiveMonth = employeeAnnualOpeningEffectiveFrom.HasValue
-                ? new DateOnly(employeeAnnualOpeningEffectiveFrom.Value.Year, employeeAnnualOpeningEffectiveFrom.Value.Month, 1)
-                : contractFirstMonth;
+            var effectiveMonth = annualOpeningMonth ?? contractFirstMonth;
             chainStart = effectiveMonth < contractFirstMonth ? contractFirstMonth : effectiveMonth;
         }
         else
@@ -137,7 +146,6 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         if (chainStart < contractFirstMonth)
             chainStart = contractFirstMonth;
 
-        var chainEnd = new DateOnly(endYear, endMonth, 1);
         if (chainEnd < chainStart)
             return LeaveBalanceMonthRecalcResult.Ok();
 
@@ -154,9 +162,9 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
             var openingDaysForCreate = 0m;
             var isAnnualOpeningMonth = isAnnualLeaveType
-                && employeeAnnualOpeningEffectiveFrom.HasValue
-                && y == employeeAnnualOpeningEffectiveFrom.Value.Year
-                && m == employeeAnnualOpeningEffectiveFrom.Value.Month;
+                && annualOpeningMonth.HasValue
+                && y == annualOpeningMonth.Value.Year
+                && m == annualOpeningMonth.Value.Month;
             if (isAnnualOpeningMonth && employeeAnnualOpeningDays > 0m)
                 openingDaysForCreate = employeeAnnualOpeningDays;
 
