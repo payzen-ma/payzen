@@ -22,7 +22,6 @@ public class EmployeeService : IEmployeeService
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
     private readonly IInvitationService _invitationService;
-    private readonly ILeaveBalanceRecalculationService _leaveBalanceRecalculation;
     private readonly ILogger<EmployeeService> _logger;
     private readonly EmployeeContractService   _contracts;
     private readonly EmployeeSalaryService     _salaries;
@@ -33,18 +32,12 @@ public class EmployeeService : IEmployeeService
     private readonly EmployeeOvertimeService   _overtimes;
     private readonly EmployeeAttendanceService _attendances;
 
-    public EmployeeService(
-        AppDbContext db,
-        IWebHostEnvironment env,
-        IEmployeeEventLogService eventLog,
-        IInvitationService invitationService,
-        ILeaveBalanceRecalculationService leaveBalanceRecalculation,
-        ILogger<EmployeeService> logger)
+    public EmployeeService(AppDbContext db, IWebHostEnvironment env, IEmployeeEventLogService eventLog, IInvitationService invitationService, ILeaveBalanceRecalculationService leaveBalanceRecalculation, ILogger<EmployeeService> logger)
     {
         _db          = db;
         _eventLog    = eventLog;
         _invitationService = invitationService;
-        _leaveBalanceRecalculation = leaveBalanceRecalculation;
+        _ = leaveBalanceRecalculation;
         _logger      = logger;
         _contracts   = new EmployeeContractService(db, eventLog);
         _salaries    = new EmployeeSalaryService(db, eventLog);
@@ -102,7 +95,6 @@ public class EmployeeService : IEmployeeService
                 LastName = e.LastName,
                 Position = activeContract?.JobPosition?.Name ?? string.Empty,
                 Department = e.Departement?.DepartementName ?? string.Empty,
-                // Code métier (ACTIVE, …) pour le filtre / mapEmployeeStatus côté Angular
                 statuses = e.Status?.Code ?? string.Empty,
                 NameFr = e.Status?.NameFr ?? string.Empty,
                 NameEn = e.Status?.NameEn ?? string.Empty,
@@ -269,13 +261,13 @@ public class EmployeeService : IEmployeeService
             privateInsuranceNumber = e.PrivateInsuranceNumber,
             privateInsuranceRate = e.PrivateInsuranceRate,
             disableAmo = e.DisableAmo,
-            annualLeave = await GetAnnualLeaveOpeningBalanceAsync(e.Id, e.CompanyId, ct),
+            annualLeave = await GetAnnualLeaveOpeningBalanceAsync(e.Id, e.CompanyId, e.AnnualLeaveOpeningDays < 0m ? 0m : e.AnnualLeaveOpeningDays, ct),
             Events = formattedEvents,
             CreatedAt = e.CreatedAt.DateTime
         });
     }
 
-    private async Task<decimal> GetAnnualLeaveOpeningBalanceAsync(int employeeId, int companyId, CancellationToken ct)
+    private async Task<decimal> GetAnnualLeaveOpeningBalanceAsync(int employeeId, int companyId, decimal fallbackOpeningDays, CancellationToken ct)
     {
         var annualLeaveTypeId = await _db.LeaveTypes
             .AsNoTracking()
@@ -310,106 +302,15 @@ public class EmployeeService : IEmployeeService
             .Select(lb => (decimal?)lb.OpeningDays)
             .FirstOrDefaultAsync(ct);
 
-        return opening ?? 0m;
+        return opening ?? fallbackOpeningDays;
     }
 
-    private async Task UpsertAnnualLeaveOpeningBalanceAsync(
-        int employeeId,
-        int companyId,
-        decimal openingDays,
-        int userId,
-        CancellationToken ct)
-    {
-        if (openingDays < 0m)
-            openingDays = 0m;
+    // NOTE:
+    // On ne crée pas de LeaveBalance à la création/modification employé.
+    // AnnualLeaveOpeningDays est une base métier persistée sur l'employé, utilisée
+    // lors du premier recalcul effectif des soldes (congé/paie/recalcul explicite).
 
-        var annualLeaveType = await _db.LeaveTypes
-            .FirstOrDefaultAsync(lt =>
-                lt.DeletedAt == null &&
-                lt.LeaveCode == "ANNUAL" &&
-                (lt.CompanyId == companyId || lt.CompanyId == null), ct);
-
-        if (annualLeaveType == null)
-            return;
-
-        var contractStart = await _db.EmployeeContracts
-            .AsNoTracking()
-            .Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
-            .OrderBy(c => c.StartDate)
-            .Select(c => c.StartDate)
-            .FirstOrDefaultAsync(ct);
-
-        if (contractStart == default)
-            return;
-
-        var firstYear = contractStart.Year;
-        var firstMonth = contractStart.Month;
-
-        var balance = await _db.LeaveBalances
-            .FirstOrDefaultAsync(lb =>
-                lb.DeletedAt == null &&
-                lb.EmployeeId == employeeId &&
-                lb.CompanyId == companyId &&
-                lb.LeaveTypeId == annualLeaveType.Id &&
-                lb.Year == firstYear &&
-                lb.Month == firstMonth, ct);
-
-        if (balance == null)
-        {
-            balance = new Domain.Entities.Leave.LeaveBalance
-            {
-                CompanyId = companyId,
-                EmployeeId = employeeId,
-                LeaveTypeId = annualLeaveType.Id,
-                Year = firstYear,
-                Month = firstMonth,
-                OpeningDays = openingDays,
-                AccruedDays = 0m,
-                UsedDays = 0m,
-                CarryInDays = 0m,
-                CarryOutDays = 0m,
-                ClosingDays = openingDays,
-                LastRecalculatedAt = DateTimeOffset.UtcNow,
-                CreatedBy = userId
-            };
-            _db.LeaveBalances.Add(balance);
-        }
-        else
-        {
-            balance.OpeningDays = openingDays;
-            balance.ClosingDays = balance.OpeningDays + balance.AccruedDays + balance.CarryInDays - balance.UsedDays - balance.CarryOutDays;
-            balance.LastRecalculatedAt = DateTimeOffset.UtcNow;
-            balance.UpdatedBy = userId;
-            balance.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-    }
-
-    private async Task RecalculateAnnualLeaveBalancesAsync(int employeeId, int companyId, int userId, CancellationToken ct)
-    {
-        var annualLeaveTypeId = await _db.LeaveTypes
-            .AsNoTracking()
-            .Where(lt => lt.DeletedAt == null && lt.LeaveCode == "ANNUAL")
-            .Where(lt => lt.CompanyId == companyId || lt.CompanyId == null)
-            .OrderByDescending(lt => lt.CompanyId == companyId)
-            .Select(lt => (int?)lt.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (!annualLeaveTypeId.HasValue)
-            return;
-
-        var now = DateTime.UtcNow;
-        await _leaveBalanceRecalculation.RecalculateRangeThroughMonthAsync(
-            companyId: companyId,
-            employeeId: employeeId,
-            leaveTypeId: annualLeaveTypeId.Value,
-            endYear: now.Year,
-            endMonth: now.Month,
-            userId: userId,
-            ct: ct);
-    }
-
-    private async Task<Dictionary<int, (string Name, string Role)>> LoadEmployeeLogModifiersAsync(
-        IReadOnlyCollection<int> userIds, CancellationToken ct)
+    private async Task<Dictionary<int, (string Name, string Role)>> LoadEmployeeLogModifiersAsync(IReadOnlyCollection<int> userIds, CancellationToken ct)
     {
         var dict = new Dictionary<int, (string Name, string Role)>();
         if (userIds.Count == 0) return dict;
@@ -626,19 +527,24 @@ public class EmployeeService : IEmployeeService
     {
         var syncContract = dto.JobPositionId is > 0 && dto.ContractTypeId is > 0 && dto.StartDate.HasValue;
         var partialContract = (dto.JobPositionId is > 0 || dto.ContractTypeId is > 0 || dto.StartDate.HasValue) && !syncContract;
+       
         if (partialContract)
-            return ServiceResult<EmployeeReadDto>.Fail(
-                "Pour enregistrer le contrat, le poste, le type de contrat et la date de début sont requis.");
+            return ServiceResult<EmployeeReadDto>.Fail("Pour enregistrer le contrat, le poste, le type de contrat et la date de début sont requis.");
 
         var wantMonthly = dto.Salary is > 0;
         var wantHourly = dto.SalaryHourly.HasValue && dto.SalaryHourly.Value > 0;
+        
         if ((wantMonthly || wantHourly) && !syncContract)
-            return ServiceResult<EmployeeReadDto>.Fail(
-                "Pour enregistrer le salaire, renseignez le contrat (poste, type de contrat et date de début).");
+            return ServiceResult<EmployeeReadDto>.Fail("Pour enregistrer le salaire, renseignez le contrat (poste, type de contrat et date de début).");
 
         var companyId = dto.CompanyId ?? 0;
         if (syncContract && companyId < 1)
             return ServiceResult<EmployeeReadDto>.Fail("L'ID de la société est requis pour créer un contrat.");
+
+        var annualLeaveOpening = dto.AnnualLeave.HasValue && dto.AnnualLeave.Value > 0m ? dto.AnnualLeave.Value : 0m;
+        var annualLeaveOpeningEffectiveMonth = annualLeaveOpening > 0m
+            ? new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
+            : (DateOnly?)null;
 
         var e = new Domain.Entities.Employee.Employee
         {
@@ -659,6 +565,8 @@ public class EmployeeService : IEmployeeService
             CnssNumber       = dto.CnssNumber,
             CimrNumber       = dto.CimrNumber,
             CategoryId       = dto.CategoryId,
+            AnnualLeaveOpeningDays = annualLeaveOpening,
+            AnnualLeaveOpeningEffectiveFrom = annualLeaveOpeningEffectiveMonth,
             CreatedBy        = createdBy
         };
 
@@ -668,18 +576,6 @@ public class EmployeeService : IEmployeeService
             _db.Employees.Add(e);
             await _db.SaveChangesAsync(ct);
             var id = e.Id;
-
-            if (dto.AnnualLeave.HasValue)
-            {
-                await UpsertAnnualLeaveOpeningBalanceAsync(
-                    employeeId: id,
-                    companyId: e.CompanyId,
-                    openingDays: dto.AnnualLeave.Value,
-                    userId: createdBy,
-                    ct: ct);
-                await _db.SaveChangesAsync(ct);
-                await RecalculateAnnualLeaveBalancesAsync(id, e.CompanyId, createdBy, ct);
-            }
 
             var hasAddressHints = !string.IsNullOrWhiteSpace(dto.AddressLine1)
                 || !string.IsNullOrWhiteSpace(dto.AddressLine2)
@@ -966,13 +862,10 @@ public class EmployeeService : IEmployeeService
         if (dto.CategoryId    != null) e.CategoryId    = dto.CategoryId;
         if (dto.AnnualLeave.HasValue)
         {
-            await UpsertAnnualLeaveOpeningBalanceAsync(
-                employeeId: e.Id,
-                companyId: e.CompanyId,
-                openingDays: dto.AnnualLeave.Value,
-                userId: updatedBy,
-                ct: ct);
-            await RecalculateAnnualLeaveBalancesAsync(e.Id, e.CompanyId, updatedBy, ct);
+            e.AnnualLeaveOpeningDays = dto.AnnualLeave.Value < 0m ? 0m : dto.AnnualLeave.Value;
+            e.AnnualLeaveOpeningEffectiveFrom = e.AnnualLeaveOpeningDays > 0m
+                ? new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
+                : null;
         }
 
         e.UpdatedBy = updatedBy;

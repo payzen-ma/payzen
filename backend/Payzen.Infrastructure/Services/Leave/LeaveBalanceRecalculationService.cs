@@ -87,24 +87,51 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             return LeaveBalanceMonthRecalcResult.Fail("Aucun contrat actif trouvé pour l'employé.");
 
         var contractFirstMonth = new DateOnly(contractStart.Value.Year, contractStart.Value.Month, 1);
-
-        // Mode incrémental: si un solde existe déjà pour ce triplet,
-        // on repart du dernier mois calculé; sinon on démarre depuis le début du contrat.
-        var latestExisting = await _db.LeaveBalances
+        var isAnnualLeaveType = await _db.LeaveTypes
             .AsNoTracking()
-            .Where(b =>
-                b.EmployeeId == employeeId &&
-                b.CompanyId == companyId &&
-                b.LeaveTypeId == leaveTypeId &&
-                b.DeletedAt == null)
-            .OrderByDescending(b => b.Year)
-            .ThenByDescending(b => b.Month)
-            .Select(b => new { b.Year, b.Month })
+            .AnyAsync(lt => lt.Id == leaveTypeId && lt.DeletedAt == null && lt.LeaveCode == "ANNUAL", ct);
+        var employeeAnnualOpeningDays = await _db.Employees
+            .AsNoTracking()
+            .Where(e => e.Id == employeeId && e.DeletedAt == null)
+            .Select(e => (decimal?)e.AnnualLeaveOpeningDays)
+            .FirstOrDefaultAsync(ct) ?? 0m;
+        var employeeAnnualOpeningEffectiveFrom = await _db.Employees
+            .AsNoTracking()
+            .Where(e => e.Id == employeeId && e.DeletedAt == null)
+            .Select(e => e.AnnualLeaveOpeningEffectiveFrom)
             .FirstOrDefaultAsync(ct);
 
-        var chainStart = latestExisting == null
-            ? contractFirstMonth
-            : new DateOnly(latestExisting.Year, latestExisting.Month, 1);
+        // Workflow métier demandé:
+        // 1) injecter la valeur d'ouverture au premier mois de contrat,
+        // 2) recalculer ensuite chaque mois en chaîne (M dépend de M-1).
+        // Pour garantir ce comportement, le congé annuel repart toujours du début contrat.
+        DateOnly chainStart;
+        if (isAnnualLeaveType)
+        {
+            var effectiveMonth = employeeAnnualOpeningEffectiveFrom.HasValue
+                ? new DateOnly(employeeAnnualOpeningEffectiveFrom.Value.Year, employeeAnnualOpeningEffectiveFrom.Value.Month, 1)
+                : contractFirstMonth;
+            chainStart = effectiveMonth < contractFirstMonth ? contractFirstMonth : effectiveMonth;
+        }
+        else
+        {
+            // Mode incrémental conservé pour les autres types de congé.
+            var latestExisting = await _db.LeaveBalances
+                .AsNoTracking()
+                .Where(b =>
+                    b.EmployeeId == employeeId &&
+                    b.CompanyId == companyId &&
+                    b.LeaveTypeId == leaveTypeId &&
+                    b.DeletedAt == null)
+                .OrderByDescending(b => b.Year)
+                .ThenByDescending(b => b.Month)
+                .Select(b => new { b.Year, b.Month })
+                .FirstOrDefaultAsync(ct);
+
+            chainStart = latestExisting == null
+                ? contractFirstMonth
+                : new DateOnly(latestExisting.Year, latestExisting.Month, 1);
+        }
 
         // Ne jamais recalculer avant le mois du début de contrat.
         if (chainStart < contractFirstMonth)
@@ -125,12 +152,28 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             if (policy == null)
                 return LeaveBalanceMonthRecalcResult.Fail("Aucune politique active trouvée pour ce type de congé (company/global).");
 
-            var balance = await GetOrCreateBalanceAsync(companyId, employeeId, leaveTypeId, y, m, userId, ct);
+            var openingDaysForCreate = 0m;
+            var isAnnualOpeningMonth = isAnnualLeaveType
+                && employeeAnnualOpeningEffectiveFrom.HasValue
+                && y == employeeAnnualOpeningEffectiveFrom.Value.Year
+                && m == employeeAnnualOpeningEffectiveFrom.Value.Month;
+            if (isAnnualOpeningMonth && employeeAnnualOpeningDays > 0m)
+                openingDaysForCreate = employeeAnnualOpeningDays;
+
+            var balance = await GetOrCreateBalanceAsync(companyId, employeeId, leaveTypeId, y, m, userId, ct, openingDaysForCreate);
+
+            // Injecte la base "congé annuel initial" même si la ligne du mois existe déjà.
+            // Sans cela, un premier recalcul qui a créé OpeningDays=0 empêcherait
+            // la valeur d'ouverture configurée sur l'employé d'avoir un effet.
+            if (isAnnualOpeningMonth)
+                balance.OpeningDays = employeeAnnualOpeningDays > 0m ? employeeAnnualOpeningDays : 0m;
 
             balance.AccruedDays = ComputeAccruedDaysForMonth(policy, contractStart.Value, y, m);
             balance.UsedDays = await ComputeUsedDaysAsync(companyId, employeeId, leaveTypeId, y, m, ct);
-            balance.CarryInDays = await ComputeCarryInFromPreviousMonthAsync(
-                companyId, employeeId, leaveTypeId, y, m, policy, refDate, ct);
+            balance.CarryInDays = isAnnualOpeningMonth
+                ? 0m
+                : await ComputeCarryInFromPreviousMonthAsync(
+                    companyId, employeeId, leaveTypeId, y, m, policy, refDate, ct);
 
             balance.CarryOutDays = 0m;
             balance.ClosingDays = ComputeClosingDays(balance);
@@ -223,7 +266,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int year,
         int month,
         int userId,
-        CancellationToken ct)
+        CancellationToken ct,
+        decimal openingDaysForCreate = 0m)
     {
         var balance = await _db.LeaveBalances
             .FirstOrDefaultAsync(b =>
@@ -244,12 +288,12 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             LeaveTypeId = leaveTypeId,
             Year = year,
             Month = month,
-            OpeningDays = 0,
+            OpeningDays = openingDaysForCreate < 0m ? 0m : openingDaysForCreate,
             AccruedDays = 0,
             UsedDays = 0,
             CarryInDays = 0,
             CarryOutDays = 0,
-            ClosingDays = 0,
+            ClosingDays = openingDaysForCreate < 0m ? 0m : openingDaysForCreate,
             LastRecalculatedAt = DateTimeOffset.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = userId

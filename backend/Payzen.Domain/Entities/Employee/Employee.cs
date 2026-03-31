@@ -32,6 +32,8 @@ public class Employee : BaseEntity
     public bool DisableAmo { get; set; } = false;
     public string? PaymentMethod { get; set; }
     public int? CategoryId { get; set; }
+    public decimal AnnualLeaveOpeningDays { get; set; } = 0m;
+    public DateOnly? AnnualLeaveOpeningEffectiveFrom { get; set; }
 
     // Navigation properties
     public Company.Company? Company { get; set; }

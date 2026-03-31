@@ -22,6 +22,8 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Payzen.Domain.Enti
         entity.Property(e => e.PrivateInsuranceNumber).HasMaxLength(50);
         entity.Property(e => e.PrivateInsuranceRate).HasColumnType("decimal(5,4)");
         entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+        entity.Property(e => e.AnnualLeaveOpeningDays).HasColumnType("decimal(10,2)");
+        entity.Property(e => e.AnnualLeaveOpeningEffectiveFrom).HasColumnType("date");
 
         entity.HasOne(e => e.Company).WithMany(c => c.Employees).HasForeignKey(e => e.CompanyId).OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(e => e.Manager).WithMany(e => e.Subordinates).HasForeignKey(e => e.ManagerId).OnDelete(DeleteBehavior.Restrict);
