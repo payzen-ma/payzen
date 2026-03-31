@@ -1,72 +1,67 @@
-# Payzen — Plateforme de Gestion RH & Paie
+# Payzen - Plateforme RH & Paie
 
-Payzen est une solution complète de gestion des ressources humaines et de la paie, pensée pour les entreprises marocaines. Elle couvre l'ensemble du cycle RH : onboarding des entreprises, gestion des employés, calcul de la paie (avec moteur de règles DSL), gestion des congés, des absences et des heures supplémentaires.
+Payzen est une plateforme de gestion RH et paie composee de 4 briques principales :
+- une application metier RH/employe (`frontend`)
+- une application d'administration plateforme (`backoffice`)
+- une API backend .NET en architecture en couches (`backend`)
+- une landing page publique statique/PHP (`landingpage`)
 
----
+## Architecture du repository
 
-## Architecture du projet
-
-```
+```text
 payzen/
-├── frontend/          # Application Angular — Interface employé & RH
-├── backoffice/        # Application Angular — Interface administrateur système
-├── payzen_backend/    # API ASP.NET Core 9 — Logique métier & base de données
-└── landingpage/       # Landing page PHP/HTML publique
+├── backend/          # API ASP.NET Core + EF Core + SQL Server
+├── frontend/         # Application Angular RH / employe
+├── backoffice/       # Application Angular admin plateforme
+├── landingpage/      # Site public (HTML/CSS/JS/PHP)
+├── docs/             # Documentation technique transverse
+├── documentation/    # Documentation complementaire
+└── payzen - old/     # Ancien code/archive (hors parcours principal)
 ```
 
----
+## Fonctionnalites couvertes
 
-## Modules fonctionnels
-
-| Domaine | Description |
-|---|---|
-| **Authentification** | JWT, rôles & permissions granulaires |
-| **Gestion des entreprises** | Onboarding, paramétrage, multi-entités |
-| **Gestion des employés** | Profils, contrats, catégories, postes |
-| **Paie** | Moteur de calcul DSL, fiches de paie, exports Excel |
-| **Congés & Absences** | Demandes, soldes, calendrier de travail |
-| **Heures supplémentaires** | Suivi et valorisation |
-| **Tableau de bord RH** | Indicateurs, statistiques en temps réel |
-| **Référentiel** | Éléments de paie, règles de convergence |
-| **IA (LLM)** | Assistance au calcul via Claude / Gemini |
-
----
+- Authentification Entra External ID + JWT interne Payzen
+- Gestion entreprises, employes, roles et permissions
+- Gestion conges, absences, heures supplementaires
+- Paie: calcul, simulation, exports
+- Dashboard RH et suivi d'activite
+- Backoffice super-admin (tenants, referentiels, audit, configuration)
 
 ## Stack technique
 
-| Couche | Technologie |
+| Couche | Technologies |
 |---|---|
-| Frontend & Backoffice | Angular 20, PrimeNG, TailwindCSS |
-| Backend | ASP.NET Core 9, Entity Framework Core 9 |
-| Base de données | SQL Server |
-| Authentification | JWT Bearer |
-| IA / LLM | Anthropic Claude, Google Gemini |
-| Exports | ClosedXML (Excel) |
+| Frontend RH | Angular 20, PrimeNG, Tailwind |
+| Backoffice | Angular 20, Tailwind |
+| Backend API | ASP.NET Core `net10.0`, EF Core, JWT |
+| Base de donnees | SQL Server |
+| Authentification | Microsoft Entra External ID + MSAL |
+| Documents / export | IronPDF, ClosedXML |
 
----
-
-## Prérequis
+## Prerequis
 
 - [Node.js](https://nodejs.org/) >= 20
-- [.NET SDK 9](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [SQL Server](https://www.microsoft.com/fr-fr/sql-server/) (Express ou supérieur)
-- [Angular CLI](https://angular.io/cli) >= 20
+- npm >= 10
+- [.NET SDK 10](https://dotnet.microsoft.com/download)
+- [SQL Server](https://www.microsoft.com/sql-server) (LocalDB, Express ou Standard)
 
----
+## Demarrage local rapide
 
-## Démarrage rapide
-
-### 1. Backend
+### 1) Backend API
 
 ```bash
-cd payzen_backend/payzen_backend
-# Configurer la chaîne de connexion dans appsettings.json
-dotnet run
+cd backend
+dotnet restore
+dotnet build
+dotnet run --project Payzen.Api
 ```
 
-L'API sera disponible sur `https://localhost:7xxx` et `http://localhost:5xxx`.
+API locale: `http://localhost:5119` (selon profil de lancement)
 
-### 2. Frontend (interface RH / employé)
+> Config locale: copier `backend/Payzen.Api/appsettings.Development.example.json` vers `backend/Payzen.Api/appsettings.Development.json`, puis renseigner les valeurs sensibles.
+
+### 2) Frontend RH
 
 ```bash
 cd frontend
@@ -74,9 +69,9 @@ npm install
 npm start
 ```
 
-Application disponible sur `http://localhost:4200`.
+Frontend local: `http://localhost:4200`
 
-### 3. Backoffice (interface administrateur)
+### 3) Backoffice
 
 ```bash
 cd backoffice
@@ -84,18 +79,49 @@ npm install
 npm start
 ```
 
-Application disponible sur `http://localhost:4200` (port configurable dans `angular.json`).
+Backoffice local: `http://localhost:50171`
 
----
+### 4) Landing page (optionnel)
 
-## Sous-projets
+La landing page se trouve dans `landingpage` (`index.html` / `index.php`).
+Tu peux la servir avec un serveur web local (IIS, Apache, Nginx, PHP built-in server, etc.).
 
-- [Frontend — Guide complet](./frontend/README.md)
-- [Backend — Guide complet](./payzen_backend/README.md)
-- [Backoffice — Guide complet](./backoffice/README.md)
+## Scripts utiles
 
----
+### Frontend (`frontend`)
+- `npm start` : serveur dev
+- `npm run build` : build production
+- `npm test` : tests unitaires
+
+### Backoffice (`backoffice`)
+- `npm start` : serveur dev (port 50171)
+- `npm run build` : build production
+- `npm test` : tests unitaires
+
+### Backend (`backend`)
+- `dotnet run --project Payzen.Api` : lance l'API
+- `dotnet test` : execute les tests
+- `dotnet ef database update --project Payzen.Infrastructure --startup-project Payzen.Api` : applique les migrations
+
+## Configuration & securite
+
+- Ne pas commiter de secrets (`appsettings.Development.json`, cles JWT, secrets Entra, chaines SQL sensibles).
+- Utiliser User Secrets .NET, variables d'environnement, ou un coffre de secrets.
+- Verifier les `redirectUri` Entra pour `frontend` et `backoffice`.
+
+## Documentation
+
+- [README Backend](./backend/README.md)
+- [README Frontend](./frontend/README.md)
+- [README Backoffice](./backoffice/README.md)
+- [Auth Entra External ID](./docs/AUTH_SYSTEM.md)
+- [Audit Backend](./backend/AUDIT_BACKEND.md)
+
+## Notes
+
+- Le dossier `payzen - old` contient des elements historiques et n'est pas le chemin principal de developpement.
+- Ce README decrit le socle actif du projet a la date courante.
 
 ## Licence
 
-Projet privé — Tous droits réservés.
+Projet prive - Tous droits reserves.
