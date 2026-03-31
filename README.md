@@ -1,126 +1,137 @@
-# Payzen - Plateforme RH & Paie
+# Payzen - Documentation technique
 
-Payzen est une plateforme de gestion RH et paie composee de 4 briques principales :
-- une application metier RH/employe (`frontend`)
-- une application d'administration plateforme (`backoffice`)
-- une API backend .NET en architecture en couches (`backend`)
-- une landing page publique statique/PHP (`landingpage`)
+Ce document decrit l'architecture technique du socle Payzen (frontend, backoffice, backend, landing page), les choix de conception, les flux applicatifs, et les conventions de maintenance.
 
-## Architecture du repository
+## Vue d'ensemble technique
+
+Payzen est un monorepo organise autour de 4 surfaces applicatives :
+- `frontend` : application metier RH/employe (Angular)
+- `backoffice` : application d'administration plateforme (Angular)
+- `backend` : API REST et logique metier (ASP.NET Core + EF Core)
+- `landingpage` : point d'entree public (site statique/PHP)
+
+Le coeur metier est centralise dans `backend`, tandis que `frontend` et `backoffice` consomment les memes endpoints API avec des contraintes de roles distinctes.
+
+## Structure du repository
 
 ```text
 payzen/
-├── backend/          # API ASP.NET Core + EF Core + SQL Server
-├── frontend/         # Application Angular RH / employe
-├── backoffice/       # Application Angular admin plateforme
-├── landingpage/      # Site public (HTML/CSS/JS/PHP)
-├── docs/             # Documentation technique transverse
-├── documentation/    # Documentation complementaire
-└── payzen - old/     # Ancien code/archive (hors parcours principal)
+├── backend/
+│   ├── Payzen.Api/              # Transport HTTP, DI, middleware, auth
+│   ├── Payzen.Application/      # Contrats applicatifs (DTOs, interfaces, validators)
+│   ├── Payzen.Domain/           # Entites et enums metier
+│   ├── Payzen.Infrastructure/   # Services concrets, EF Core, integrations
+│   └── Payzen.Tests/            # Tests unitaires/integration
+├── frontend/                    # UI RH/employe (Angular 20)
+├── backoffice/                  # UI admin plateforme (Angular 20)
+├── landingpage/                 # Site public
+├── docs/                        # Documentation transverse (auth, etc.)
+├── documentation/               # Documents techniques complementaires
+└── payzen - old/                # Historique/archive hors scope actif
 ```
 
-## Fonctionnalites couvertes
+## Architecture backend (couches)
 
-- Authentification Entra External ID + JWT interne Payzen
-- Gestion entreprises, employes, roles et permissions
-- Gestion conges, absences, heures supplementaires
-- Paie: calcul, simulation, exports
-- Dashboard RH et suivi d'activite
-- Backoffice super-admin (tenants, referentiels, audit, configuration)
+Architecture logique :
+1. `Payzen.Api` : controllers, pipeline HTTP, securite, orchestration
+2. `Payzen.Application` : contrats de services, DTOs, validation
+3. `Payzen.Domain` : modele metier (entites, enums, invariants)
+4. `Payzen.Infrastructure` : persistence, implementations de services, integrations externes
 
-## Stack technique
+Regle de dependance :
+- `Api` -> `Application` + `Infrastructure`
+- `Infrastructure` -> `Application` + `Domain`
+- `Application` -> `Domain`
+- `Domain` ne depend pas des couches superieures
 
-| Couche | Technologies |
-|---|---|
-| Frontend RH | Angular 20, PrimeNG, Tailwind |
-| Backoffice | Angular 20, Tailwind |
-| Backend API | ASP.NET Core `net10.0`, EF Core, JWT |
-| Base de donnees | SQL Server |
-| Authentification | Microsoft Entra External ID + MSAL |
-| Documents / export | IronPDF, ClosedXML |
+Objectif : isoler le modele metier des details de transport HTTP et des details techniques (SQL, PDF, email, etc.).
 
-## Prerequis
+## Domaines metier principaux
 
-- [Node.js](https://nodejs.org/) >= 20
-- npm >= 10
-- [.NET SDK 10](https://dotnet.microsoft.com/download)
-- [SQL Server](https://www.microsoft.com/sql-server) (LocalDB, Express ou Standard)
+- Authentification, roles et permissions
+- Entreprises et contexte multi-tenant
+- Employes (profil, contrat, affectation)
+- Conges, absences, heures supplementaires
+- Paie (calcul, simulation, export)
+- Evenements, audit, tableaux de bord
 
-## Demarrage local rapide
+## Flux applicatif de reference
 
-### 1) Backend API
+Flux type d'une requete :
+1. Le client appelle un endpoint dans `Payzen.Api`.
+2. Le pipeline applique auth, autorisation, validation et gestion d'erreurs.
+3. Le controller mappe vers un DTO applicatif (`Payzen.Application`).
+4. Une interface de service est invoquee.
+5. L'implementation `Payzen.Infrastructure` execute la logique metier et persistence.
+6. Le resultat est renvoye au controller puis au client.
 
-```bash
-cd backend
-dotnet restore
-dotnet build
-dotnet run --project Payzen.Api
-```
+Ce decouplage simplifie les tests, limite l'impact des changements et stabilise les contrats API.
 
-API locale: `http://localhost:5119` (selon profil de lancement)
+## Authentification et autorisation
 
-> Config locale: copier `backend/Payzen.Api/appsettings.Development.example.json` vers `backend/Payzen.Api/appsettings.Development.json`, puis renseigner les valeurs sensibles.
+Le systeme s'appuie sur :
+- Microsoft Entra External ID (login identite)
+- MSAL cote applications Angular
+- JWT interne Payzen pour securiser l'API
 
-### 2) Frontend RH
+Principes :
+- aucune gestion de mot de passe applicative pour les comptes Entra
+- claims de roles/permissions portes par le JWT Payzen
+- controle d'acces fin via policies et attributs d'autorisation
 
-```bash
-cd frontend
-npm install
-npm start
-```
+Documentation detaillee : `docs/AUTH_SYSTEM.md`.
 
-Frontend local: `http://localhost:4200`
+## Persistence et donnees
 
-### 3) Backoffice
+`Payzen.Infrastructure` contient :
+- `AppDbContext`
+- configurations EF Core
+- migrations SQL Server
+- services de persistence et projections
 
-```bash
-cd backoffice
-npm install
-npm start
-```
+Conventions techniques notables :
+- soft delete via champs de suppression logique
+- timestamps d'audit (`CreatedAt`, `UpdatedAt`)
+- mapping centralise via Fluent API
 
-Backoffice local: `http://localhost:50171`
+## Frontend et backoffice (architecture UI)
 
-### 4) Landing page (optionnel)
+Les deux applications Angular suivent une structure feature-first :
+- `core`/`config` : services singleton, config, guards, interceptors
+- `features` : modules fonctionnels par domaine
+- `shared` : composants et utilitaires reutilisables
 
-La landing page se trouve dans `landingpage` (`index.html` / `index.php`).
-Tu peux la servir avec un serveur web local (IIS, Apache, Nginx, PHP built-in server, etc.).
+Responsabilites :
+- `frontend` : operations RH, paie, experience employe
+- `backoffice` : administration plateforme, tenants, referentiels, supervision
 
-## Scripts utiles
+Les deux UIs consomment l'API commune avec une separation stricte par roles et contexte.
 
-### Frontend (`frontend`)
-- `npm start` : serveur dev
-- `npm run build` : build production
-- `npm test` : tests unitaires
+## Integrations techniques
 
-### Backoffice (`backoffice`)
-- `npm start` : serveur dev (port 50171)
-- `npm run build` : build production
-- `npm test` : tests unitaires
+- Auth federée : Microsoft Entra External ID
+- Generation documents : IronPDF
+- Exports tabulaires : ClosedXML
+- SQL Server via EF Core
 
-### Backend (`backend`)
-- `dotnet run --project Payzen.Api` : lance l'API
-- `dotnet test` : execute les tests
-- `dotnet ef database update --project Payzen.Infrastructure --startup-project Payzen.Api` : applique les migrations
+## Qualite et maintenance
 
-## Configuration & securite
+Pratiques recommandees :
+- controllers minces, logique metier dans les services
+- evolution des DTOs/validators synchronisee avec les endpoints
+- interfaces applicatives stables avant implementation infrastructure
+- couverture de tests sur les composants critiques
 
-- Ne pas commiter de secrets (`appsettings.Development.json`, cles JWT, secrets Entra, chaines SQL sensibles).
-- Utiliser User Secrets .NET, variables d'environnement, ou un coffre de secrets.
-- Verifier les `redirectUri` Entra pour `frontend` et `backoffice`.
+Ressources techniques :
+- `backend/README.md`
+- `frontend/README.md`
+- `backoffice/README.md`
+- `backend/AUDIT_BACKEND.md`
+- `docs/AUTH_SYSTEM.md`
 
-## Documentation
+## Perimetre actif
 
-- [README Backend](./backend/README.md)
-- [README Frontend](./frontend/README.md)
-- [README Backoffice](./backoffice/README.md)
-- [Auth Entra External ID](./docs/AUTH_SYSTEM.md)
-- [Audit Backend](./backend/AUDIT_BACKEND.md)
-
-## Notes
-
-- Le dossier `payzen - old` contient des elements historiques et n'est pas le chemin principal de developpement.
-- Ce README decrit le socle actif du projet a la date courante.
+Le dossier `payzen - old` est un historique et ne fait pas partie du parcours de developpement courant.
 
 ## Licence
 
