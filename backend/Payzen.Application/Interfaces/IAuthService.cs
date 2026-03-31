@@ -10,12 +10,8 @@ namespace Payzen.Application.Interfaces;
 public interface IAuthService
 {
     // ── Login ────────────────────────────────────────────────
-    Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequestDto dto, CancellationToken ct = default);
     Task<ServiceResult<LoginResponse>> LoginWithEntraAsync(EntraLoginRequestDto dto, CancellationToken ct = default);
     Task<ServiceResult<UserReadDto>> GetMeAsync(int userId, CancellationToken ct = default);
-
-    // ── Change password ──────────────────────────────────────
-    Task<ServiceResult> ChangePasswordAsync(int userId, ChangePasswordDto dto, CancellationToken ct = default);
 
     // ── Users ────────────────────────────────────────────────
     Task<ServiceResult<IEnumerable<UserReadDto>>> GetAllUsersAsync(CancellationToken ct = default);

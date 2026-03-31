@@ -12,16 +12,9 @@ public class Users : BaseEntity
     public string? ExternalId { get; set; }
     // Source d'authentification (ex: "entra" pour Type C).
     public string? Source { get; set; }
-    // PasswordHash est optionnel : pour les comptes Entra (Type C), on ne stocke pas de mot de passe.
-    public string? PasswordHash { get; set; }
     public bool IsActive { get; set; } = true;
 
     // Navigation properties
     public Employee.Employee? Employee { get; set; }
     public ICollection<UsersRoles>? UsersRoles { get; set; }
-
-    public bool VerifyPassword(string password)
-        => string.IsNullOrWhiteSpace(PasswordHash)
-            ? false
-            : BCrypt.Net.BCrypt.Verify(password, PasswordHash);
 }

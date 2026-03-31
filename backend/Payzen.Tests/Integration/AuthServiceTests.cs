@@ -9,7 +9,7 @@ using Payzen.Infrastructure.Services.Auth;
 namespace Payzen.Tests.Integration;
 
 /// <summary>
-/// Tests d'intégration de AuthService — Login, CreateUser.
+/// Tests d'intégration de AuthService — Entra login, CreateUser.
 /// </summary>
 public class AuthServiceTests : IDisposable
 {
@@ -33,22 +33,27 @@ public class AuthServiceTests : IDisposable
                 ["JwtSettings:Key"]          = "test_secret_key_must_be_at_least_32_chars_long",
                 ["JwtSettings:Issuer"]       = "PayzenTest",
                 ["JwtSettings:Audience"]     = "PayzenClient",
-                ["JwtSettings:ExpiryMinutes"]= "60"
+                ["JwtSettings:ExpiresInMinutes"]= "60"
             })
             .Build();
 
         var jwtService = new JwtService(config, _db);
         _svc = new AuthService(_db, jwtService);
 
-        // Seed un user admin de test avec mot de passe hashé
+        // Seed minimal RBAC requis par LoginWithEntraAsync (rôles de fallback)
+        _db.Roles.AddRange(
+            new Roles { Id = 1, Name = "Employee", Description = "Employee", CreatedBy = 0 },
+            new Roles { Id = 2, Name = "Visitor", Description = "Visitor", CreatedBy = 0 }
+        );
+
+        // Seed un user admin de test (sans mot de passe, auth via Entra)
         _db.Users.Add(new Users
         {
-            Id           = AdminId,
-            Email        = "admin@test.ma",
-            Username     = "admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
-            IsActive     = true,
-            CreatedBy    = 0
+            Id        = AdminId,
+            Email     = "admin@test.ma",
+            Username  = "admin",
+            IsActive  = true,
+            CreatedBy = 0
         });
         _db.SaveChanges();
     }
@@ -56,11 +61,11 @@ public class AuthServiceTests : IDisposable
     public void Dispose() => _db.Dispose();
 
     [Fact]
-    public async Task Login_CredentialsValides_RetourneToken()
+    public async Task EntraLogin_EmailEtOid_RetourneToken()
     {
-        var dto = new LoginRequestDto { Email = "admin@test.ma", Password = "Password123!" };
+        var dto = new EntraLoginRequestDto { Email = "admin@test.ma", ExternalId = "oid-test-123" };
 
-        var result = await _svc.LoginAsync(dto);
+        var result = await _svc.LoginWithEntraAsync(dto);
 
         result.Success.Should().BeTrue();
         result.Data.Should().NotBeNull();
@@ -68,24 +73,14 @@ public class AuthServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_MauvaisMotDePasse_Echoue()
+    public async Task EntraLogin_EmailInvalide_EchoueValidation()
     {
-        var dto = new LoginRequestDto { Email = "admin@test.ma", Password = "WrongPassword!" };
+        var dto = new EntraLoginRequestDto { Email = "not-an-email", ExternalId = "oid-test-123" };
 
-        var result = await _svc.LoginAsync(dto);
+        var result = await _svc.LoginWithEntraAsync(dto);
 
         result.Success.Should().BeFalse();
         result.Data.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task Login_EmailInexistant_Echoue()
-    {
-        var dto = new LoginRequestDto { Email = "inconnu@test.ma", Password = "Password123!" };
-
-        var result = await _svc.LoginAsync(dto);
-
-        result.Success.Should().BeFalse();
     }
 
     [Fact]
@@ -95,7 +90,6 @@ public class AuthServiceTests : IDisposable
         {
             Email    = "nouveau@test.ma",
             Username = "nouveau",
-            Password = "SecurePass123!",
             IsActive = true
         };
 
@@ -112,7 +106,6 @@ public class AuthServiceTests : IDisposable
         {
             Email    = "admin@test.ma", // déjà dans la DB
             Username = "admin2",
-            Password = "SecurePass123!",
             IsActive = true
         };
 

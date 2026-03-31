@@ -24,7 +24,6 @@ export class Login {
   onSubmit() {
     if (this.email && this.password) {
       console.log('Login:', this.email, this.password);
-      // TODO: Appeler le service d'authentification
     }
   }
 }

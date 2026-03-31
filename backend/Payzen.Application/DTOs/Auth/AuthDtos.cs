@@ -4,18 +4,8 @@ using System.Text.Json.Serialization;
 namespace Payzen.Application.DTOs.Auth;
 
 // ════════════════════════════════════════════════════════════
-// LOGIN
+// LOGIN (Entra)
 // ════════════════════════════════════════════════════════════
-
-public class LoginRequestDto
-{
-    [Required(ErrorMessage = "L'email est requis")]
-    [EmailAddress(ErrorMessage = "Format d'email invalide")]
-    public required string Email { get; set; }
-
-    [Required(ErrorMessage = "Le mot de passe est requis")]
-    public required string Password { get; set; }
-}
 
 /// <summary>
 /// Echange d'identité : Frontend (MSAL) envoie les infos Entra, backend renvoie un JWT Payzen.
@@ -83,10 +73,6 @@ public class UserCreateDto
     [StringLength(100, ErrorMessage = "L'email ne peut pas dépasser 100 caractères")]
     public required string Email { get; set; }
 
-    [Required(ErrorMessage = "Le mot de passe est requis")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir au moins 8 caractères")]
-    public required string Password { get; set; }
-
     public required bool IsActive { get; set; }
 }
 
@@ -98,9 +84,6 @@ public class UserUpdateDto
     [EmailAddress(ErrorMessage = "Format d'email invalide")]
     [StringLength(100, ErrorMessage = "L'email ne peut pas dépasser 100 caractères")]
     public string? Email { get; set; }
-
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Le mot de passe doit contenir au moins 8 caractères")]
-    public string? Password { get; set; }
 
     public bool? IsActive { get; set; }
 }
@@ -126,23 +109,6 @@ public class UserReadDto
     public string Email { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
-}
-
-// ════════════════════════════════════════════════════════════
-// CHANGE PASSWORD
-// ════════════════════════════════════════════════════════════
-
-public class ChangePasswordDto
-{
-    [Required(ErrorMessage = "Le mot de passe actuel est requis")]
-    public required string CurrentPassword { get; set; }
-
-    [Required(ErrorMessage = "Le nouveau mot de passe est requis")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Le nouveau mot de passe doit contenir au moins 8 caractères")]
-    public required string NewPassword { get; set; }
-
-    [Compare(nameof(NewPassword), ErrorMessage = "Les mots de passe ne correspondent pas")]
-    public required string ConfirmNewPassword { get; set; }
 }
 
 // ════════════════════════════════════════════════════════════

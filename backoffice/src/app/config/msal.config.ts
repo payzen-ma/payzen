@@ -29,22 +29,28 @@ export const msalConfig = {
       : ['payzenhr.ciamlogin.com'],
     redirectUri: environment.entra.redirectUri,
     postLogoutRedirectUri: environment.entra.postLogoutRedirectUri,
-    navigateToLoginRequestUrl: true,
+    navigateToLoginRequestUrl: false,
   },
   cache: {
     cacheLocation: BrowserCacheLocation.LocalStorage,
-    storeAuthStateInCookie: false,
+    // Important en dev localhost: évite la perte d'état PKCE (code_verifier) entre redirects.
+    temporaryCacheLocation: BrowserCacheLocation.LocalStorage,
+    storeAuthStateInCookie: true,
   },
   system: {
     allowRedirectInIframe: false,
     loggerOptions: {
-      logLevel: LogLevel.Warning,
-      piiLoggingEnabled: false,
+      logLevel: LogLevel.Verbose,
+      piiLoggingEnabled: true,
     },
   },
 };
 
 export const msalInstance: IPublicClientApplication = new PublicClientApplication(msalConfig);
+
+export const loginRequest = {
+  scopes: ['openid', 'profile', 'email', 'offline_access'],
+};
 
 let initPromise: Promise<void> | null = null;
 

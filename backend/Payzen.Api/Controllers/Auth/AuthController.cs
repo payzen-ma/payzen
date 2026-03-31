@@ -12,18 +12,6 @@ public class AuthController : ControllerBase
     private readonly IAuthService _auth;
     public AuthController(IAuthService auth) => _auth = auth;
 
-    [HttpPost("login")]
-    [Produces("application/json")]
-    public async Task<ActionResult> Login([FromBody] LoginRequestDto dto)
-    {
-        if (!ModelState.IsValid) 
-            return BadRequest(ModelState);
-        
-        var result = await _auth.LoginAsync(dto);
-        
-        return result.Success ? Ok(result.Data) : Unauthorized(new { Message = result.Error });
-    }
-
     [HttpPost("entra-login")]
     [AllowAnonymous]
     [Produces("application/json")]
@@ -50,19 +38,6 @@ public class AuthController : ControllerBase
         var result = await _auth.GetMeAsync(int.Parse(userId));
         
         return result.Success ? Ok(result.Data) : NotFound(new { result.Error });
-    }
-
-    [HttpPatch("change-password")]
-    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-    {
-        var userId = User.FindFirst("uid")?.Value;
-       
-        if (userId == null) 
-            return Unauthorized();
-        
-        var result = await _auth.ChangePasswordAsync(int.Parse(userId), dto);
-        
-        return result.Success ? Ok() : BadRequest(new { result.Error });
     }
 
     [HttpPost("logout")]

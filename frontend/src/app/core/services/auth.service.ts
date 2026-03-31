@@ -266,7 +266,13 @@ export class AuthService {
       }
     };
 
-    // If backend did not provide companyName, try to fetch company details
+    const shouldNavigate = !opts?.skipNavigation;
+    // Always initialize memberships/context immediately to avoid first-load requests
+    // being sent without a company context (race condition observed after Entra login).
+    proceedWithMemberships(response.user as User, shouldNavigate);
+
+    // If backend did not provide companyName, enrich it asynchronously afterwards.
+    // Do not block context initialization/navigation on this auxiliary request.
     if (!response.user.companyName && response.user.companyId) {
       this.http.get<any>(`${environment.apiUrl}/companies/${response.user.companyId}`).subscribe({
         next: (companyDto) => {
@@ -274,15 +280,14 @@ export class AuthService {
           response.user.companyName = name;
           this.storeUser(response.user);
           this.currentUser.set(response.user);
-          proceedWithMemberships(response.user as User, !opts?.skipNavigation);
+
+          // Refresh memberships/context labels without triggering another navigation.
+          proceedWithMemberships(response.user as User, false);
         },
         error: () => {
-          // Fallback if company fetch fails
-          proceedWithMemberships(response.user as User, !opts?.skipNavigation);
+          // Ignore company-name enrichment errors: context is already initialized.
         }
       });
-    } else {
-      proceedWithMemberships(response.user as User, !opts?.skipNavigation);
     }
 
     // Check for subordinates after successful login

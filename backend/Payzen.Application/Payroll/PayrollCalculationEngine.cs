@@ -153,9 +153,6 @@ public class PayrollCalculationEngine
         }
 
         // ── CIMR ─────────────────────────────────────────────────────────────
-        // Heuristique Phase 2 : Al Kamil si taux patronal > taux salarial.
-        // TODO Phase 3 : remplacer par champ explicite RegimeCimr sur l'entité salarié.
-        //
         // Les fiches employés / UI saisissent souvent « 4,5 » pour 4,5 % ; le moteur attend une fraction (0,045).
 
         if (data.CimrNumber != null

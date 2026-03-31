@@ -111,42 +111,6 @@
       </div>
     </section>
 
-    <!-- Admin User Section (Create Only) -->
-    @if (mode === 'create') {
-      <section class="form-section form-divider">
-        <div class="form-section-header">
-          <h3 class="form-section-title">{{ 'expert.client.adminUser' | translate }}</h3>
-          <p class="form-section-description">{{ 'expert.client.adminDescription' | translate }}</p>
-        </div>
-        
-        <div class="form-grid">
-          <!-- First Name -->
-          <div class="form-field">
-            <label class="form-label form-label-required">{{ 'common.firstName' | translate }}</label>
-            <input pInputText formControlName="adminFirstName" class="input" />
-          </div>
-
-          <!-- Last Name -->
-          <div class="form-field">
-            <label class="form-label form-label-required">{{ 'common.lastName' | translate }}</label>
-            <input pInputText formControlName="adminLastName" class="input" />
-          </div>
-
-          <!-- Admin Email -->
-          <div class="form-field">
-            <label class="form-label form-label-required">{{ 'company.info.email' | translate }}</label>
-            <input pInputText formControlName="adminEmail" class="input" />
-          </div>
-
-          <!-- Admin Phone -->
-          <div class="form-field">
-            <label class="form-label form-label-required">{{ 'common.phone' | translate }}</label>
-            <input pInputText formControlName="adminPhone" class="input" />
-          </div>
-        </div>
-      </section>
-    }
-
     <!-- Actions -->
     <div class="form-actions">
       <button 

@@ -56,52 +56,70 @@
         
         <!-- Group label (only when not collapsed) -->
         @if (!isSidebarCollapsed() && group.items.length > 0) {
-          <app-sidebar-group-label class="px-2 mb-0.5 mt-1.5">
-            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-              {{ group.label | translate }}
-            </span>
-          </app-sidebar-group-label>
+          <button
+            type="button"
+            class="sidebar-group-toggle"
+            (click)="toggleGroup(group.key)"
+            [attr.aria-expanded]="isGroupExpanded(group.key)"
+          >
+            <app-sidebar-group-label class="px-2 mb-0.5 mt-1.5">
+              <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                {{ group.label | translate }}
+              </span>
+            </app-sidebar-group-label>
+            <i
+              class="pi text-[10px] text-gray-400"
+              [class.pi-chevron-down]="isGroupExpanded(group.key)"
+              [class.pi-chevron-right]="!isGroupExpanded(group.key)">
+            </i>
+          </button>
         }
 
         <!-- Group items -->
-        @for (item of group.items; track item.label) {
-          <a
-            [routerLink]="item.notImplemented || (item.requiresCompanyContext && isExpertMode() && !isClientView()) ? null : item.routerLink"
-            (click)="handleNavigation(item, $event)"
-            routerLinkActive="active"
-            class="sidebar-item group"
-            [class.justify-center]="isSidebarCollapsed()"
-            [class.justify-start]="!isSidebarCollapsed()"
-            [class.opacity-50]="item.notImplemented || (item.requiresCompanyContext && isExpertMode() && !isClientView())"
-            [class.cursor-not-allowed]="item.notImplemented"
-            [class.pointer-events-none]="item.notImplemented"
-            [class.highlight]="item.highlight && !item.notImplemented"
-            [attr.aria-label]="item.label | translate"
-            [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.notImplemented ? 'Bientôt disponible' : (item.requiresCompanyContext && isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : ''))"
-            tooltipPosition="right"
-          >
-            <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-2.5')" class="text-base transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
+        <div
+          class="sidebar-group-content"
+          [class.expanded]="isSidebarCollapsed() || isGroupExpanded(group.key)"
+          [style.maxHeight]="(isSidebarCollapsed() || isGroupExpanded(group.key)) ? ((group.items.length * 56) + 'px') : '0px'"
+        >
+          @for (item of group.items; track item.label) {
+            <a
+              [routerLink]="item.notImplemented || (isExpertMode() && !isClientView()) ? null : item.routerLink"
+              (click)="handleNavigation(item, $event)"
+              routerLinkActive="active"
+              class="sidebar-item group"
+              [class.justify-center]="isSidebarCollapsed()"
+              [class.justify-start]="!isSidebarCollapsed()"
+              [class.opacity-50]="item.notImplemented || (isExpertMode() && !isClientView())"
+              [class.cursor-not-allowed]="item.notImplemented || (isExpertMode() && !isClientView())"
+              [class.pointer-events-none]="item.notImplemented"
+              [class.highlight]="item.highlight && !item.notImplemented"
+              [attr.aria-label]="item.label | translate"
+              [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.notImplemented ? 'Bientôt disponible' : (isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : ''))"
+              tooltipPosition="right"
+            >
+              <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-2.5')" class="text-base transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
 
-            @if (!isSidebarCollapsed()) {
-              <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
-              
-              @if (item.notImplemented) {
-                <span class="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-200 text-gray-500">
-                  Bientôt
-                </span>
-              } @else if (item.itemBadge) {
-                <span 
-                  class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
-                  [style.background-color]="item.itemBadge.color + '20'"
-                  [style.color]="item.itemBadge.color">
-                  {{ item.itemBadge.count }}
-                </span>
-              } @else if (item.requiresCompanyContext && isExpertMode() && !isClientView()) {
-                <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
+              @if (!isSidebarCollapsed()) {
+                <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
+
+                @if (item.notImplemented) {
+                  <span class="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-200 text-gray-500">
+                    Bientôt
+                  </span>
+                } @else if (item.itemBadge) {
+                  <span
+                    class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+                    [style.background-color]="item.itemBadge.color + '20'"
+                    [style.color]="item.itemBadge.color">
+                    {{ item.itemBadge.count }}
+                  </span>
+                } @else if (isExpertMode() && !isClientView()) {
+                  <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
+                }
               }
-            }
-          </a>
-        }
+            </a>
+          }
+        </div>
       }
     </app-sidebar-group>
   </nav>

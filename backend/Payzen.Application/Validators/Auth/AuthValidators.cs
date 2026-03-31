@@ -3,19 +3,6 @@ using Payzen.Application.DTOs.Auth;
 
 namespace Payzen.Application.Validators.Auth;
 
-public class LoginRequestValidator : AbstractValidator<LoginRequestDto>
-{
-    public LoginRequestValidator()
-    {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("L'email est requis")
-            .EmailAddress().WithMessage("Format d'email invalide");
-
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Le mot de passe est requis");
-    }
-}
-
 public class UserCreateValidator : AbstractValidator<UserCreateDto>
 {
     public UserCreateValidator()
@@ -28,10 +15,6 @@ public class UserCreateValidator : AbstractValidator<UserCreateDto>
             .NotEmpty().WithMessage("L'email est requis")
             .EmailAddress().WithMessage("Format d'email invalide")
             .MaximumLength(100);
-
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Le mot de passe est requis")
-            .MinimumLength(8).WithMessage("Le mot de passe doit contenir au moins 8 caractères");
     }
 }
 
@@ -44,21 +27,6 @@ public class UserUpdateValidator : AbstractValidator<UserUpdateDto>
 
         When(x => x.Username != null, () =>
             RuleFor(x => x.Username!).Length(3, 50));
-
-        When(x => x.Password != null, () =>
-            RuleFor(x => x.Password!).MinimumLength(8).WithMessage("Le mot de passe doit contenir au moins 8 caractères"));
-    }
-}
-
-public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
-{
-    public ChangePasswordValidator()
-    {
-        RuleFor(x => x.CurrentPassword).NotEmpty().WithMessage("Le mot de passe actuel est requis");
-
-        RuleFor(x => x.NewPassword)
-            .NotEmpty()
-            .MinimumLength(8).WithMessage("Le nouveau mot de passe doit contenir au moins 8 caractères");
     }
 }
 

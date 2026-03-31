@@ -16,7 +16,7 @@
   padding: 0.5rem 0.75rem; /* Reduced from default */
   margin: 0.125rem 0; /* Reduced margin */
   border-radius: 0.5rem;
-  color: rgb(75 85 99); /* gray-600 */
+  color: rgb(71 85 105); /* slate-600 */
   font-size: 0.8125rem; /* Reduced from 0.875rem (14px to 13px) */
   transition: all 0.15s ease;
   text-decoration: none;
@@ -24,17 +24,17 @@
 }
 
 :host .sidebar-item:hover {
-  background-color: rgba(253, 117, 31, 0.15); /* orange background #fd751f */
-  color: #1800ac; /* blue text */
+  background-color: rgba(37, 99, 235, 0.10); /* soft blue */
+  color: rgb(30 64 175); /* blue-800 */
 }
 
 :host .sidebar-item:hover i {
-  color: #1800ac; /* blue icon */
+  color: rgb(29 78 216); /* blue-700 icon */
 }
 
 :host .sidebar-item.active {
-  background-color: rgb(239 246 255); /* blue-50 */
-  color: var(--primary);
+  background-color: rgb(219 234 254); /* blue-100 */
+  color: rgb(30 64 175); /* blue-800 */
   font-weight: 500;
 }
 
@@ -145,4 +145,26 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  color: rgb(100 116 139); /* slate-500 */
+}
+
+:host .sidebar-group-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+:host .sidebar-group-content {
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 220ms ease, opacity 180ms ease;
+}
+
+:host .sidebar-group-content.expanded {
+  opacity: 1;
 }

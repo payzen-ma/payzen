@@ -128,7 +128,8 @@ public class CompanyService : ICompanyService
         int createdBy,
         CancellationToken ct = default,
         bool sendInvitation = true,
-        int? existingAdminUserId = null)
+        int? existingAdminUserId = null,
+        bool createAdminAccount = true)
     {
         // Ville et pays sont validés par CompanyCreateValidator (pays existant, ville existante ou nom, pas les deux).
 
@@ -143,13 +144,14 @@ public class CompanyService : ICompanyService
         if (await _db.Companies.AnyAsync(c => c.CnssNumber == dto.CnssNumber && c.DeletedAt == null, ct))
             return ServiceResult<CompanyCreateResponseDto>.Fail("Une entreprise avec ce numéro CNSS existe déjà");
 
-        // Vérifications unicité admin email
-        if (await _db.Employees.AnyAsync(e => e.Email == dto.AdminEmail && e.DeletedAt == null, ct))
+        // Vérifications unicité admin email (uniquement si on crée un admin pour la société)
+        if (createAdminAccount && await _db.Employees.AnyAsync(e => e.Email == dto.AdminEmail && e.DeletedAt == null, ct))
             return ServiceResult<CompanyCreateResponseDto>.Fail("Un employé avec cet email existe déjà");
 
-        var existingUserWithAdminEmail = await _db.Users
-            .FirstOrDefaultAsync(u => u.Email == dto.AdminEmail && u.DeletedAt == null, ct);
-        if (existingUserWithAdminEmail != null)
+        var existingUserWithAdminEmail = createAdminAccount
+            ? await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.AdminEmail && u.DeletedAt == null, ct)
+            : null;
+        if (createAdminAccount && existingUserWithAdminEmail != null)
         {
             var isExpectedExistingUser =
                 existingAdminUserId.HasValue && existingUserWithAdminEmail.Id == existingAdminUserId.Value;
@@ -228,45 +230,51 @@ public class CompanyService : ICompanyService
             if (activeStatus == null)
                 return ServiceResult<CompanyCreateResponseDto>.Fail("Le statut 'Active' est introuvable dans la base de données");
 
-            // ---------- créer l'employé admin ----------
-            var adminEmployee = new Domain.Entities.Employee.Employee
-            {
-                FirstName = dto.AdminFirstName.Trim(),
-                LastName  = dto.AdminLastName.Trim(),
-                Email     = dto.AdminEmail.Trim(),
-                Phone     = dto.AdminPhone.Trim(),
-                CompanyId = company.Id,
-                StatusId  = activeStatus.Id,
-                CinNumber = "TEMP-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)), // temporaire
-                CreatedBy = createdBy
-            };
-            _db.Employees.Add(adminEmployee);
-            await _db.SaveChangesAsync(ct);
+            Domain.Entities.Employee.Employee? adminEmployee = null;
+            Domain.Entities.Auth.Roles? adminRole = null;
 
-            var adminRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "admin" && r.DeletedAt == null, ct);
-            if (adminRole == null)
+            if (createAdminAccount)
             {
-                adminRole = new Domain.Entities.Auth.Roles
+                // ---------- créer l'employé admin ----------
+                adminEmployee = new Domain.Entities.Employee.Employee
                 {
-                    Name = "Admin",
-                    Description = "Administrateur de l'entreprise",
+                    FirstName = dto.AdminFirstName.Trim(),
+                    LastName  = dto.AdminLastName.Trim(),
+                    Email     = dto.AdminEmail.Trim(),
+                    Phone     = dto.AdminPhone.Trim(),
+                    CompanyId = company.Id,
+                    StatusId  = activeStatus.Id,
+                    CinNumber = "TEMP-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                    DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)), // temporaire
                     CreatedBy = createdBy
                 };
-                _db.Roles.Add(adminRole);
+                _db.Employees.Add(adminEmployee);
                 await _db.SaveChangesAsync(ct);
-            }
 
-            if (sendInvitation)
-            {
-                await _invitationService.CreateInvitationAsync(
-                    new InviteAdminDto
+                adminRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "admin" && r.DeletedAt == null, ct);
+                if (adminRole == null)
+                {
+                    adminRole = new Domain.Entities.Auth.Roles
                     {
-                        Email = dto.AdminEmail.Trim(),
-                        CompanyId = company.Id,
-                        RoleId = adminRole.Id
-                    },
-                    ct);
+                        Name = "Admin",
+                        Description = "Administrateur de l'entreprise",
+                        CreatedBy = createdBy
+                    };
+                    _db.Roles.Add(adminRole);
+                    await _db.SaveChangesAsync(ct);
+                }
+
+                if (sendInvitation)
+                {
+                    await _invitationService.CreateInvitationAsync(
+                        new InviteAdminDto
+                        {
+                            Email = dto.AdminEmail.Trim(),
+                            CompanyId = company.Id,
+                            RoleId = adminRole.Id
+                        },
+                        ct);
+                }
             }
 
             await tx.CommitAsync(ct);
@@ -296,20 +304,33 @@ public class CompanyService : ICompanyService
                     BusinessSector = company.BusinessSector,
                     CreatedAt = company.CreatedAt.DateTime
                 },
-                Admin = new AdminAccountDto
-                {
-                    EmployeeId = adminEmployee.Id,
-                    UserId = null,
-                    Username = null,
-                    Email = adminEmployee.Email,
-                    FirstName = adminEmployee.FirstName,
-                    LastName = adminEmployee.LastName,
-                    Phone = adminEmployee.Phone,
-                    Password = null,
-                    Message = sendInvitation
-                        ? "Une invitation a été envoyée à l'adresse indiquée. L'administrateur activera son compte via Microsoft Entra (lien dans l'e-mail ou logs si mode mock)."
-                        : "Inscription finalisée. Le compte administrateur est activé via la session Microsoft Entra en cours."
-                }
+                Admin = createAdminAccount && adminEmployee != null
+                    ? new AdminAccountDto
+                    {
+                        EmployeeId = adminEmployee.Id,
+                        UserId = null,
+                        Username = null,
+                        Email = adminEmployee.Email,
+                        FirstName = adminEmployee.FirstName,
+                        LastName = adminEmployee.LastName,
+                        Phone = adminEmployee.Phone,
+                        Password = null,
+                        Message = sendInvitation
+                            ? "Une invitation a été envoyée à l'adresse indiquée. L'administrateur activera son compte via Microsoft Entra (lien dans l'e-mail ou logs si mode mock)."
+                            : "Inscription finalisée. Le compte administrateur est activé via la session Microsoft Entra en cours."
+                    }
+                    : new AdminAccountDto
+                    {
+                        EmployeeId = 0,
+                        UserId = null,
+                        Username = null,
+                        Email = string.Empty,
+                        FirstName = string.Empty,
+                        LastName = string.Empty,
+                        Phone = string.Empty,
+                        Password = null,
+                        Message = "Société créée sans compte administrateur (création par cabinet expert)."
+                    }
             };
 
             return ServiceResult<CompanyCreateResponseDto>.Ok(response);
@@ -334,7 +355,13 @@ public class CompanyService : ICompanyService
         if (currentUser == null || currentEmployee == null || currentEmployee.CompanyId != dto.ManagedByCompanyId)
             return ServiceResult<CompanyCreateResponseDto>.Fail("L'utilisateur courant n'appartient pas au cabinet gestionnaire ou est invalide");
 
-        var result = await CreateAsync(dto, createdBy, ct);
+        var result = await CreateAsync(
+            dto,
+            createdBy,
+            ct,
+            sendInvitation: false,
+            existingAdminUserId: null,
+            createAdminAccount: false);
         if (!result.Success) return result;
         var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == result.Data!.Company.Id, ct);
         if (company != null)
@@ -1099,7 +1126,32 @@ public class CompanyService : ICompanyService
         var query = _db.Holidays.Where(h => h.DeletedAt == null).AsQueryable();
         if (companyId.HasValue) query = query.Where(h => h.CompanyId == companyId || h.CompanyId == null);
         if (year.HasValue)      query = query.Where(h => h.HolidayDate.Year == year.Value);
-        var list = await query.OrderBy(h => h.HolidayDate).Select(h => new HolidayReadDto { Id = h.Id, NameFr = h.NameFr, NameAr = h.NameAr, NameEn = h.NameEn, HolidayDate = h.HolidayDate, CompanyId = h.CompanyId, IsPaid = h.IsPaid, IsMandatory = h.IsMandatory }).ToListAsync(ct);
+        var list = await query
+            .OrderBy(h => h.HolidayDate)
+            .Select(h => new HolidayReadDto
+            {
+                Id = h.Id,
+                NameFr = h.NameFr,
+                NameAr = h.NameAr,
+                NameEn = h.NameEn,
+                HolidayDate = h.HolidayDate,
+                Description = h.Description,
+                CompanyId = h.CompanyId,
+                CountryId = h.CountryId,
+                Scope = h.Scope,
+                ScopeDescription = h.Scope.ToString(),
+                HolidayType = h.HolidayType,
+                IsMandatory = h.IsMandatory,
+                IsPaid = h.IsPaid,
+                IsRecurring = h.IsRecurring,
+                RecurrenceRule = h.RecurrenceRule,
+                Year = h.Year,
+                AffectPayroll = h.AffectPayroll,
+                AffectAttendance = h.AffectAttendance,
+                IsActive = h.IsActive,
+                CreatedAt = h.CreatedAt.UtcDateTime
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<HolidayReadDto>>.Ok(list);
     }
 
@@ -1107,7 +1159,29 @@ public class CompanyService : ICompanyService
     {
         var h = await _db.Holidays.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (h == null) return ServiceResult<HolidayReadDto>.Fail("Férié introuvable.");
-        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto { Id = h.Id, NameFr = h.NameFr, NameAr = h.NameAr, NameEn = h.NameEn, HolidayDate = h.HolidayDate, CompanyId = h.CompanyId, IsPaid = h.IsPaid, IsMandatory = h.IsMandatory });
+        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto
+        {
+            Id = h.Id,
+            NameFr = h.NameFr,
+            NameAr = h.NameAr,
+            NameEn = h.NameEn,
+            HolidayDate = h.HolidayDate,
+            Description = h.Description,
+            CompanyId = h.CompanyId,
+            CountryId = h.CountryId,
+            Scope = h.Scope,
+            ScopeDescription = h.Scope.ToString(),
+            HolidayType = h.HolidayType,
+            IsMandatory = h.IsMandatory,
+            IsPaid = h.IsPaid,
+            IsRecurring = h.IsRecurring,
+            RecurrenceRule = h.RecurrenceRule,
+            Year = h.Year,
+            AffectPayroll = h.AffectPayroll,
+            AffectAttendance = h.AffectAttendance,
+            IsActive = h.IsActive,
+            CreatedAt = h.CreatedAt.UtcDateTime
+        });
     }
 
     public async Task<ServiceResult<bool>> CheckHolidayAsync(int? companyId, DateOnly date, CancellationToken ct = default)
@@ -1126,10 +1200,52 @@ public class CompanyService : ICompanyService
 
     public async Task<ServiceResult<HolidayReadDto>> CreateHolidayAsync(HolidayCreateDto dto, int createdBy, CancellationToken ct = default)
     {
-        var h = new Holiday { NameFr = dto.NameFr, NameAr = dto.NameAr, NameEn = dto.NameEn, HolidayDate = dto.HolidayDate, CompanyId = dto.CompanyId, CountryId = dto.CountryId, IsPaid = dto.IsPaid, IsMandatory = dto.IsMandatory, HolidayType = dto.HolidayType ?? string.Empty, CreatedBy = createdBy };
+        var h = new Holiday
+        {
+            NameFr = dto.NameFr,
+            NameAr = dto.NameAr,
+            NameEn = dto.NameEn,
+            HolidayDate = dto.HolidayDate,
+            Description = dto.Description,
+            CompanyId = dto.CompanyId,
+            CountryId = dto.CountryId,
+            Scope = dto.Scope,
+            HolidayType = dto.HolidayType ?? string.Empty,
+            IsMandatory = dto.IsMandatory,
+            IsPaid = dto.IsPaid,
+            IsRecurring = dto.IsRecurring,
+            RecurrenceRule = dto.RecurrenceRule,
+            Year = dto.Year,
+            AffectPayroll = dto.AffectPayroll,
+            AffectAttendance = dto.AffectAttendance,
+            IsActive = dto.IsActive,
+            CreatedBy = createdBy
+        };
         _db.Holidays.Add(h);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto { Id = h.Id, NameFr = h.NameFr, NameAr = h.NameAr, NameEn = h.NameEn, HolidayDate = h.HolidayDate, CompanyId = h.CompanyId, IsPaid = h.IsPaid, IsMandatory = h.IsMandatory });
+        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto
+        {
+            Id = h.Id,
+            NameFr = h.NameFr,
+            NameAr = h.NameAr,
+            NameEn = h.NameEn,
+            HolidayDate = h.HolidayDate,
+            Description = h.Description,
+            CompanyId = h.CompanyId,
+            CountryId = h.CountryId,
+            Scope = h.Scope,
+            ScopeDescription = h.Scope.ToString(),
+            HolidayType = h.HolidayType,
+            IsMandatory = h.IsMandatory,
+            IsPaid = h.IsPaid,
+            IsRecurring = h.IsRecurring,
+            RecurrenceRule = h.RecurrenceRule,
+            Year = h.Year,
+            AffectPayroll = h.AffectPayroll,
+            AffectAttendance = h.AffectAttendance,
+            IsActive = h.IsActive,
+            CreatedAt = h.CreatedAt.UtcDateTime
+        });
     }
 
     public async Task<ServiceResult<HolidayReadDto>> UpdateHolidayAsync(int id, HolidayUpdateDto dto, int updatedBy, CancellationToken ct = default)
@@ -1139,9 +1255,44 @@ public class CompanyService : ICompanyService
         if (dto.NameFr != null) h.NameFr = dto.NameFr;
         if (dto.NameAr != null) h.NameAr = dto.NameAr;
         if (dto.NameEn != null) h.NameEn = dto.NameEn;
+        if (dto.HolidayDate.HasValue) h.HolidayDate = dto.HolidayDate.Value;
+        if (dto.Description != null) h.Description = dto.Description;
+        if (dto.CountryId.HasValue) h.CountryId = dto.CountryId.Value;
+        if (dto.Scope.HasValue) h.Scope = dto.Scope.Value;
+        if (dto.HolidayType != null) h.HolidayType = dto.HolidayType;
+        if (dto.IsMandatory.HasValue) h.IsMandatory = dto.IsMandatory.Value;
+        if (dto.IsPaid.HasValue) h.IsPaid = dto.IsPaid.Value;
+        if (dto.IsRecurring.HasValue) h.IsRecurring = dto.IsRecurring.Value;
+        if (dto.RecurrenceRule != null) h.RecurrenceRule = dto.RecurrenceRule;
+        if (dto.Year.HasValue) h.Year = dto.Year.Value;
+        if (dto.AffectPayroll.HasValue) h.AffectPayroll = dto.AffectPayroll.Value;
+        if (dto.AffectAttendance.HasValue) h.AffectAttendance = dto.AffectAttendance.Value;
+        if (dto.IsActive.HasValue) h.IsActive = dto.IsActive.Value;
         h.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto { Id = h.Id, NameFr = h.NameFr, NameAr = h.NameAr, NameEn = h.NameEn, HolidayDate = h.HolidayDate, CompanyId = h.CompanyId, IsPaid = h.IsPaid, IsMandatory = h.IsMandatory });
+        return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto
+        {
+            Id = h.Id,
+            NameFr = h.NameFr,
+            NameAr = h.NameAr,
+            NameEn = h.NameEn,
+            HolidayDate = h.HolidayDate,
+            Description = h.Description,
+            CompanyId = h.CompanyId,
+            CountryId = h.CountryId,
+            Scope = h.Scope,
+            ScopeDescription = h.Scope.ToString(),
+            HolidayType = h.HolidayType,
+            IsMandatory = h.IsMandatory,
+            IsPaid = h.IsPaid,
+            IsRecurring = h.IsRecurring,
+            RecurrenceRule = h.RecurrenceRule,
+            Year = h.Year,
+            AffectPayroll = h.AffectPayroll,
+            AffectAttendance = h.AffectAttendance,
+            IsActive = h.IsActive,
+            CreatedAt = h.CreatedAt.UtcDateTime
+        });
     }
 
     public async Task<ServiceResult> DeleteHolidayAsync(int id, int deletedBy, CancellationToken ct = default)

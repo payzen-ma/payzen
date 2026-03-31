@@ -71,6 +71,7 @@ export class Sidebar {
   // === Company Selection Dialog State ===
   readonly showCompanyRequiredDialog = signal(false);
   readonly pendingNavigationRoute = signal<string | null>(null);
+  readonly activeGroupKey = signal<string | null>(null);
 
   constructor() {
     // Sync internal state when input changes externally
@@ -78,6 +79,21 @@ export class Sidebar {
       const val = this.Collapsed();
       this.isCollapsedSignal.set(val);
       this.isContentCollapsedSignal.set(val);
+    });
+
+    // Accordion behavior: keep one active group by default.
+    effect(() => {
+      const groups = this.groupedMenuItems();
+      const current = this.activeGroupKey();
+      if (groups.length === 0) {
+        this.activeGroupKey.set(null);
+        return;
+      }
+
+      const exists = current && groups.some(g => g.key === current);
+      if (!exists) {
+        this.activeGroupKey.set(groups[0].key);
+      }
     });
   }
 
@@ -167,12 +183,23 @@ export class Sidebar {
     // ─────────────────────────────────────────────────────────────
     // VUE D'ENSEMBLE
     // ─────────────────────────────────────────────────────────────
+    {
+      id: 'expert-dashboard',
+      label: 'expert.dashboard.title',
+      icon: 'pi pi-briefcase',
+      routerLink: '/expert/dashboard',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN],
+      modes: ['expert-all'],
+      requiresCompanyContext: false,
+      groupe: 'expert-overview',
+      itemBadge: null
+    },
     { 
       label: 'nav.dashboard', 
       icon: 'pi pi-home', 
       routerLink: '/dashboard',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE, UserRole.CEO],
-      modes: ['expert-all', 'standard'],
+      modes: ['expert-client', 'standard'],
       requiresCompanyContext: false,
       groupe: 'overview',
       itemBadge: null
@@ -517,6 +544,7 @@ export class Sidebar {
 
   // === Group configuration ===
   private readonly groupConfig: Record<string, { label: string; order: number }> = {
+    'expert-overview': { label: 'expert.dashboard.title', order: 0 },
     'overview': { label: 'nav.groups.overview', order: 1 },
     'my-space': { label: 'nav.groups.mySpace', order: 2 },
     'payroll': { label: 'nav.groups.payroll', order: 3 },
@@ -617,6 +645,11 @@ export class Sidebar {
       .map(item => {
         let resolvedRouterLink = item.routerLink ?? '';
 
+        // Keep expert dashboard as an absolute expert route, including in client view.
+        if (item.id === 'expert-dashboard') {
+          resolvedRouterLink = '/expert/dashboard';
+        }
+
         // Personal absence entry: for employee in presence mode route to attendance.
         if (item.id === 'my-absence-entry') {
           const userMode = (user?.mode ?? '').toLowerCase();
@@ -629,7 +662,9 @@ export class Sidebar {
 
         return {
           ...item,
-          routerLink: `${prefix}${resolvedRouterLink}`,
+          routerLink: item.id === 'expert-dashboard'
+            ? resolvedRouterLink
+            : `${prefix}${resolvedRouterLink}`,
           // Keep track if this item requires company context
           requiresCompanyContext: item.requiresCompanyContext ?? false
         };
@@ -655,13 +690,21 @@ export class Sidebar {
       .map(([key, items]) => ({
         key,
         label: this.groupConfig[key]?.label || key,
-        order: this.groupConfig[key]?.order || 999,
+        order: this.groupConfig[key]?.order ?? 999,
         items
       }))
       .sort((a, b) => a.order - b.order);
 
     return result;
   });
+
+  isGroupExpanded(groupKey: string): boolean {
+    return this.activeGroupKey() === groupKey;
+  }
+
+  toggleGroup(groupKey: string): void {
+    this.activeGroupKey.set(this.activeGroupKey() === groupKey ? null : groupKey);
+  }
 
   // === Check if navigation requires company selection ===
   readonly hasSelectedClient = computed(() => this.isClientView());
@@ -678,8 +721,8 @@ export class Sidebar {
     const isExpert = this.isExpertMode();
     const hasClient = this.isClientView();
     
-    // If in expert mode and item requires company context but no client is selected
-    if (isExpert && item.requiresCompanyContext && !hasClient) {
+    // In expert mode, lock all sidebar navigation while no client context is selected.
+    if (isExpert && !hasClient) {
       event.preventDefault();
       event.stopPropagation();
       

@@ -1973,6 +1973,7 @@
     "endDate": "Date de fin",
     "from": "Du",
     "to": "Au",
+    "justNow": "Juste maintenant",
     "noLogs": "Aucun historique trouvé",
     "noLogsDescription": "Aucun événement n'a encore été enregistré.",
     "noFilteredLogs": "Aucun événement correspondant",

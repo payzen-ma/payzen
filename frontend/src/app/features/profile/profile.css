@@ -1,3 +1,26 @@
 :host {
     display: block;
 }
+
+.profile-page :is(label) {
+    display: block;
+}
+
+.profile-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(229 231 235);
+    color: rgb(55 65 81);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.profile-link-btn:hover {
+    background: rgb(249 250 251);
+    border-color: rgb(209 213 219);
+}

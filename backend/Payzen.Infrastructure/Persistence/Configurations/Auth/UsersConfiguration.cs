@@ -14,7 +14,6 @@ public class UsersConfiguration : IEntityTypeConfiguration<Users>
         entity.Property(u => u.EmailPersonal).HasMaxLength(100);
         entity.Property(u => u.ExternalId).HasMaxLength(200);
         entity.Property(u => u.Source).HasMaxLength(50);
-        entity.Property(u => u.PasswordHash).HasMaxLength(500);
         entity.Property(u => u.IsActive).HasDefaultValue(true);
         entity.HasIndex(u => u.Email).IsUnique().HasFilter("[DeletedAt] IS NULL");
         entity.HasIndex(u => u.Username).IsUnique().HasFilter("[DeletedAt] IS NULL");

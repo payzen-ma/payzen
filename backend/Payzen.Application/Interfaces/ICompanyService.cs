@@ -18,16 +18,9 @@ public interface ICompanyService
     Task<ServiceResult<IEnumerable<CompanyListDto>>> SearchAsync(string searchTerm, CancellationToken ct = default);
     Task<ServiceResult<IEnumerable<CompanyListDto>>> GetManagedByAsync(int expertCompanyId, CancellationToken ct = default);
     Task<ServiceResult<CompanyFormDataDto>> GetFormDataAsync(CancellationToken ct = default);
-    /// <summary>Vérifie que le pays existe (pour la validation de création d'entreprise).</summary>
     Task<bool> CountryExistsAsync(int countryId, CancellationToken ct = default);
-    /// <summary>Vérifie que la ville existe et appartient au pays (pour la validation de création d'entreprise).</summary>
     Task<bool> CityExistsForCountryAsync(int cityId, int countryId, CancellationToken ct = default);
-    Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(
-        CompanyCreateDto dto,
-        int createdBy,
-        CancellationToken ct = default,
-        bool sendInvitation = true,
-        int? existingAdminUserId = null);
+    Task<ServiceResult<CompanyCreateResponseDto>> CreateAsync(CompanyCreateDto dto, int createdBy, CancellationToken ct = default, bool sendInvitation = true, int? existingAdminUserId = null, bool createAdminAccount = true);
     Task<ServiceResult<CompanyCreateResponseDto>> CreateByExpertAsync(CompanyCreateByExpertDto dto, int createdBy, CancellationToken ct = default);
     Task<ServiceResult<CompanyReadDto>> PatchAsync(int id, CompanyUpdateDto dto, int updatedBy, CancellationToken ct = default);
     Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default);

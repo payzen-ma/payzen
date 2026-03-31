@@ -112,28 +112,8 @@ export class ClientFormComponent implements OnInit {
       cnss: ['', [Validators.required]],
       rc: [''],
       if: [''],
-      rib: [''],
-      
-      // Admin Details (Only for Create)
-      adminFirstName: [''],
-      adminLastName: [''],
-      adminEmail: [''],
-      adminPhone: ['']
+      rib: ['']
     });
-
-    if (this.mode === 'create') {
-      this.addAdminValidators();
-    }
-  }
-
-  private addAdminValidators(): void {
-    const adminFields = ['adminFirstName', 'adminLastName', 'adminEmail', 'adminPhone'];
-    adminFields.forEach(field => {
-      this.form.get(field)?.setValidators([Validators.required]);
-      this.form.get(field)?.updateValueAndValidity();
-    });
-    
-    this.form.get('adminEmail')?.addValidators([Validators.email]);
   }
 
   private patchForm(): void {
@@ -179,6 +159,9 @@ export class ClientFormComponent implements OnInit {
     }
 
     const formValue = this.form.value;
+    // Le backend expert n'utilise plus ces champs pour créer un admin,
+    // mais le DTO actuel les exige encore : on envoie des valeurs techniques.
+    const generatedAdminEmail = `no-admin+${Date.now()}@payzen.local`;
     
     const dto: CompanyCreateByExpertDto = {
       CompanyName: formValue.companyName,
@@ -189,10 +172,10 @@ export class ClientFormComponent implements OnInit {
       CountryId: 1, // Default to Morocco
       CnssNumber: formValue.cnss,
       ManagedByCompanyId: Number(expertCompanyId),
-      AdminFirstName: formValue.adminFirstName,
-      AdminLastName: formValue.adminLastName,
-      AdminEmail: formValue.adminEmail,
-      AdminPhone: formValue.adminPhone,
+      AdminFirstName: 'N/A',
+      AdminLastName: 'N/A',
+      AdminEmail: generatedAdminEmail,
+      AdminPhone: '',
       IceNumber: formValue.ice,
       IfNumber: formValue.if,
       RcNumber: formValue.rc,

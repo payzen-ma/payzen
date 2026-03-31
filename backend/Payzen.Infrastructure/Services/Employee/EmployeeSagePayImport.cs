@@ -304,13 +304,11 @@ internal static class EmployeeSagePayImport
                                 suffix++;
                             }
 
-                            var tempPassword = Guid.NewGuid().ToString("N")[..12] + "Aa1!";
                             var createdUser = new Users
                             {
                                 EmployeeId = employee.Id,
                                 Username = username,
                                 Email = employee.Email,
-                                PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword),
                                 IsActive = true,
                                 CreatedBy = userId
                             };

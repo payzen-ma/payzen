@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.Interfaces;
@@ -13,93 +15,31 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly IJwtService  _jwt;
+    private readonly ILogger<AuthService> _logger;
+    private readonly HashSet<string> _adminAllowedDomains;
+    private readonly HashSet<string> _adminAllowedEmails;
 
-    public AuthService(AppDbContext db, IJwtService jwt)
+    public AuthService(AppDbContext db, IJwtService jwt, ILogger<AuthService> logger, IConfiguration configuration)
     {
-        _db  = db;
+        _db = db;
         _jwt = jwt;
+        _logger = logger;
+        _adminAllowedDomains = configuration
+            .GetSection("Auth:AdminPayzen:AllowedDomains")
+            .Get<string[]>()?
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v.Trim().ToLowerInvariant())
+            .ToHashSet() ?? new HashSet<string>();
+        _adminAllowedEmails = configuration
+            .GetSection("Auth:AdminPayzen:AllowedEmails")
+            .Get<string[]>()?
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v.Trim().ToLowerInvariant())
+            .ToHashSet() ?? new HashSet<string>();
     }
 
     // ── Login ────────────────────────────────────────────────────────────────
-
-    public async Task<ServiceResult<LoginResponse>> LoginAsync(LoginRequestDto dto, CancellationToken ct = default)
-    {
-        var user = await _db.Users
-            .Include(u => u.Employee) // Inclure l'employee si lié à une company pour vérifier le statut de la company
-            .FirstOrDefaultAsync(u => u.Email == dto.Email && u.DeletedAt == null, ct);
-
-        if (user == null)
-            return ServiceResult<LoginResponse>.Fail("Email ou mot de passe invalide.");
-
-        if (!user.VerifyPassword(dto.Password))
-            return ServiceResult<LoginResponse>.Fail("Email ou mot de passe invalide.");
-
-        if (!user.IsActive)
-            return ServiceResult<LoginResponse>.Fail("Votre compte est désactivé. Contactez l'administrateur.");
-
-        // Vérifier si la company est active si l'utilisateur est lié à une company
-        if (user.Employee != null && user.Employee.Company != null && !user.Employee.Company.isActive)
-            return ServiceResult<LoginResponse>.Fail("Votre entreprise est désactivée. Contactez l'administrateur.");
-
-        var token = await _jwt.GenerateTokenAsync(user, ct);
-
-        var roles = await _db.UsersRoles
-            .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
-            .Include(ur => ur.Role)
-            .Select(ur => ur.Role.Name)
-            .ToListAsync(ct);
-
-        var permissions = await _db.RolesPermissions
-            .Where(rp => _db.UsersRoles
-                .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
-                .Select(ur => ur.RoleId)
-                .Contains(rp.RoleId) && rp.DeletedAt == null)
-            .Include(rp => rp.Permission)
-            .Select(rp => rp.Permission.Name)
-            .Distinct()
-            .ToListAsync(ct);
-
-        var employee = user.Employee;
-
-        var company = employee != null
-            ? await _db.Companies
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == employee.CompanyId && c.DeletedAt == null)
-            : null;
-        var isCabinetExpert = company != null ? company.IsCabinetExpert : (bool?)null;
-
-        var category = employee != null
-            ? await _db.EmployeeCategories
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ec => ec.Id == employee.CategoryId && ec.DeletedAt == null)
-            : null;
-
-        var mode = category != null ? category.Mode.ToString() : null;
-
-        var response = new LoginResponse
-        {
-            Message    = "Connexion réussie.",
-            Token      = token,
-            ExpiresAt  = DateTime.UtcNow.AddHours(2),
-            User = new Payzen.Domain.Entities.Auth.UserInfo
-            {
-                Id          = user.Id,
-                Email       = user.Email,
-                Username    = user.Username,
-                FirstName   = employee?.FirstName ?? "",
-                LastName    = employee?.LastName  ?? "",
-                Roles       = roles,
-                Permissions = permissions,
-                EmployeeId = employee?.Id,
-                EmployeeCategoryId = employee?.CategoryId,
-                Mode = mode,
-                IsCabinetExpert = isCabinetExpert ?? false,
-                companyId = employee?.CompanyId ?? 0
-            }
-        };
-
-        return ServiceResult<LoginResponse>.Ok(response);
-    }
+    // PayZen ne gère aucun mot de passe : authentification déléguée à Entra (Workforce/External ID).
 
     // ── Entra-login (Type C hybride) ─────────────────────────────────────────────
     //
@@ -110,6 +50,11 @@ public class AuthService : IAuthService
     {
         var email = dto.Email.Trim();
         var externalId = dto.ExternalId.Trim();
+        var maskedEmail = MaskEmail(email);
+        _logger.LogInformation(
+            "Entra login started for {EmailMasked}. ExternalIdLength={ExternalIdLength}",
+            maskedEmail,
+            externalId.Length);
 
         // 1) Vérifier si un employé correspond à cet email Entra
         var employee = await _db.Employees
@@ -122,13 +67,30 @@ public class AuthService : IAuthService
             employee != null &&
             employee.Company != null &&
             string.Equals(employee.Company.AuthType, "C", System.StringComparison.OrdinalIgnoreCase);
+        _logger.LogDebug(
+            "Employee lookup completed for {EmailMasked}. Eligible={Eligible}, EmployeeId={EmployeeId}",
+            maskedEmail,
+            isEmployeeEligible,
+            employee?.Id);
 
         if (isEmployeeEligible && !employee!.Company!.isActive)
             return ServiceResult<LoginResponse>.Fail("Votre entreprise est désactivée. Contactez l'administrateur.");
 
         // 2) Récupérer ou créer l'utilisateur lié à cet employé
+        // Dev: on autorise aussi certains comptes Entra invités (#EXT#) pour auto-provisioning Admin Payzen.
+        // Prod: conserver uniquement les domaines/identités internes approuvés.
+        var isPayZenStaffEmail = IsPayZenStaffEmail(email);
+        _logger.LogDebug(
+            "Admin allowlist check completed for {EmailMasked}. IsStaff={IsStaff}",
+            maskedEmail,
+            isPayZenStaffEmail);
+
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null, ct);
+        _logger.LogDebug(
+            "User lookup completed for {EmailMasked}. Found={Found}",
+            maskedEmail,
+            user != null);
 
         if (user == null)
         {
@@ -143,20 +105,28 @@ public class AuthService : IAuthService
                 suffix++;
             }
 
+            var source = isPayZenStaffEmail ? "payzenhr_entra"
+                       : isEmployeeEligible ? "entra"
+                       : "visitor_entra";
+
             user = new Users
             {
-                Username = usernameCandidate,
-                Email = email,
-                PasswordHash = null, // Type C : pas de mot de passe stocké
-                IsActive = true,
+                Username   = usernameCandidate,
+                Email      = email,
+                IsActive   = true,
                 EmployeeId = isEmployeeEligible ? employee!.Id : null,
                 ExternalId = externalId,
-                Source = isEmployeeEligible ? "entra" : "visitor_entra",
-                CreatedBy = 1
+                Source     = source,
+                CreatedBy  = 1
             };
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync(ct);
+            _logger.LogInformation(
+                "User created from Entra login. UserId={UserId}, Source={Source}, EmailMasked={EmailMasked}",
+                user.Id,
+                user.Source,
+                maskedEmail);
         }
         else
         {
@@ -165,42 +135,61 @@ public class AuthService : IAuthService
             // Important: lors du flux invitation, le front appelle `loginWithEntra` avant puis après `acceptViaIdp`.
             // `acceptViaIdp` peut lier `User.EmployeeId` même si la company n'est pas "C" (cas admin invitation).
             // On ne doit donc pas écraser un lien existant ici.
-            user.Source = isEmployeeEligible
-                ? "entra"
-                : (user.EmployeeId.HasValue ? "entra" : "visitor_entra");
+            user.Source = isPayZenStaffEmail ? "payzenhr_entra"
+                        : isEmployeeEligible ? "entra"
+                        : (user.EmployeeId.HasValue ? "entra" : "visitor_entra");
 
             if (isEmployeeEligible)
                 user.EmployeeId = employee!.Id;
-            else if (user.EmployeeId == null)
-                user.EmployeeId = null;
-            user.PasswordHash = null; // purge éventuelle valeur existante
             user.IsActive = true;
             await _db.SaveChangesAsync(ct);
+            _logger.LogInformation(
+                "User updated from Entra login. UserId={UserId}, Source={Source}, EmailMasked={EmailMasked}",
+                user.Id,
+                user.Source,
+                maskedEmail);
         }
 
-        // 3) RBAC : ne pas forcer Employee/Visitor si l'utilisateur a déjà un rôle métier (ex. Admin Payzen / backoffice).
+        // 3) RBAC : attribution automatique du rôle selon l'email.
+        //    - Domaine autorisé (payzenhr.com + onmicrosoft.com en dev) → Admin Payzen
+        //    - Employé éligible (Type C) → Employee
+        //    - Sinon → Visitor
         const string adminPayZenRoleName = "Admin Payzen";
+
         var hasAdminPayZen = await _db.UsersRoles
             .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
             .Join(_db.Roles.Where(r => r.DeletedAt == null),
                 ur => ur.RoleId, r => r.Id, (_, r) => r.Name)
             .AnyAsync(name => name == adminPayZenRoleName, ct);
+        _logger.LogDebug(
+            "Existing Admin Payzen role check for UserId={UserId}. HasRole={HasRole}",
+            user.Id,
+            hasAdminPayZen);
 
         if (!hasAdminPayZen)
         {
-            // compte employé éligible => Employee ; sinon Visitor (fallback Employee)
-            var targetRoleName = isEmployeeEligible ? "Employee" : "Visitor";
+            string targetRoleName;
+            if (isPayZenStaffEmail)
+                targetRoleName = adminPayZenRoleName;
+            else if (isEmployeeEligible)
+                targetRoleName = "Employee";
+            else
+                targetRoleName = "Visitor";
+
             var targetRole = await _db.Roles
                 .FirstOrDefaultAsync(r => r.Name == targetRoleName && r.DeletedAt == null, ct);
 
-            if (targetRole == null && !isEmployeeEligible)
-            {
+            if (targetRole == null && targetRoleName == "Visitor")
                 targetRole = await _db.Roles
                     .FirstOrDefaultAsync(r => r.Name == "Employee" && r.DeletedAt == null, ct);
-            }
 
             if (targetRole == null)
                 return ServiceResult<LoginResponse>.Fail($"Rôle '{targetRoleName}' introuvable dans la base.");
+            _logger.LogDebug(
+                "Target role resolved for UserId={UserId}. Role={RoleName}, RoleId={RoleId}",
+                user.Id,
+                targetRoleName,
+                targetRole.Id);
 
             var hasRole = await _db.UsersRoles
                 .AnyAsync(ur => ur.UserId == user.Id && ur.RoleId == targetRole.Id && ur.DeletedAt == null, ct);
@@ -214,11 +203,16 @@ public class AuthService : IAuthService
                     CreatedBy = 1
                 });
                 await _db.SaveChangesAsync(ct);
+                _logger.LogInformation(
+                    "Role assigned during Entra login. UserId={UserId}, RoleId={RoleId}",
+                    user.Id,
+                    targetRole.Id);
             }
         }
 
         // 4) Générer JWT + payload utilisateur (même format que /api/auth/login)
         var token = await _jwt.GenerateTokenAsync(user, ct);
+        _logger.LogDebug("JWT generated for UserId={UserId}", user.Id);
 
         var roles = await _db.UsersRoles
             .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
@@ -272,6 +266,11 @@ public class AuthService : IAuthService
             }
         };
 
+        _logger.LogInformation(
+            "Entra login succeeded. UserId={UserId}, RolesCount={RolesCount}, EmailMasked={EmailMasked}",
+            user.Id,
+            roles.Count,
+            maskedEmail);
         return ServiceResult<LoginResponse>.Ok(response);
     }
 
@@ -315,19 +314,6 @@ public class AuthService : IAuthService
             : ServiceResult<UserReadDto>.Ok(MapUser(user));
     }
 
-    public async Task<ServiceResult> ChangePasswordAsync(int userId, ChangePasswordDto dto, CancellationToken ct = default)
-    {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null, ct);
-        if (user == null) return ServiceResult.Fail("Utilisateur introuvable.");
-
-        if (!user.VerifyPassword(dto.CurrentPassword))
-            return ServiceResult.Fail("Mot de passe actuel incorrect.");
-
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        await _db.SaveChangesAsync(ct);
-        return ServiceResult.Ok();
-    }
-
     // ── Users ────────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<IEnumerable<UserReadDto>>> GetAllUsersAsync(CancellationToken ct = default)
@@ -361,7 +347,6 @@ public class AuthService : IAuthService
         {
             Username     = dto.Username,
             Email        = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             IsActive     = dto.IsActive,
             CreatedBy    = createdBy
         };
@@ -877,4 +862,27 @@ public class AuthService : IAuthService
         Action      = p.Action,
         CreatedAt   = p.CreatedAt.DateTime
     };
+
+    private bool IsPayZenStaffEmail(string email)
+    {
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        if (_adminAllowedEmails.Contains(normalizedEmail))
+            return true;
+
+        return _adminAllowedDomains.Any(domain =>
+            normalizedEmail.EndsWith(domain, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string MaskEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        if (at <= 1)
+            return "***";
+
+        var local = email[..at];
+        var domain = at + 1 < email.Length ? email[(at + 1)..] : "";
+        var first = local[0];
+        var last = local[^1];
+        return $"{first}***{last}@{domain}";
+    }
 }

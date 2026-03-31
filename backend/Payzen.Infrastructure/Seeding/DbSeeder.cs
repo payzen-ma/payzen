@@ -57,26 +57,6 @@ public static class DbSeeder
                 db.Companies.Add(company);
             }
         }
-
-        // 2) Créer le compte admin avec toutes les autorisations (rôle Admin Payzen) si absent
-        if (await db.Users.AnyAsync(u => u.Username == "admin" && u.DeletedAt == null, ct)) return;
-
-        var adminRole = await db.Roles.FirstOrDefaultAsync(r => r.Name == "Admin Payzen" && r.DeletedAt == null, ct);
-        if (adminRole == null) return;
-
-        var adminUser = new Users
-        {
-            Username    = "admin",
-            Email       = "admin@payzen.ma",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-            IsActive    = true,
-            CreatedBy   = 1,
-            UsersRoles  = new List<UsersRoles>
-            {
-                new UsersRoles { RoleId = adminRole.Id, CreatedBy = 1 },
-            },
-        };
-        db.Users.Add(adminUser);
     }
 
     private static async Task SeedGendersAsync(AppDbContext db, CancellationToken ct)

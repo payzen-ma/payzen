@@ -100,7 +100,6 @@ public class UsersController : ControllerBase
             {
                 Username = usernameCandidate,
                 Email = dto.Email,
-                PasswordHash = company.AuthType == "C" ? null : BCrypt.Net.BCrypt.HashPassword(System.Guid.NewGuid().ToString("N")),
                 IsActive = true,
                 EmployeeId = employee.Id,
                 CreatedBy = createdBy,
@@ -116,7 +115,6 @@ public class UsersController : ControllerBase
             user.IsActive = true;
             if (company.AuthType == "C")
             {
-                user.PasswordHash = null;
                 user.Source = "entra";
             }
             await _db.SaveChangesAsync(ct);
