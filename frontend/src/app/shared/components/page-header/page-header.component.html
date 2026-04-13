@@ -1,0 +1,39 @@
+<header class="page-header">
+    <div class="page-header-content">
+        <!-- Greeting Section -->
+        <div class="greeting-section">
+            <h1 class="greeting-title">{{ userGreeting() }}</h1>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <!-- Departments Filter -->
+            @if (config()?.showDepartments) {
+            <div class="filter-group">
+                <p-select [options]="departmentOptions()" [ngModel]="selectedDepartments()"
+                    placeholder="Tous les départements" optionLabel="label" optionValue="value"
+                    (onChange)="onDepartmentsChange($event.value)" class="w-full md:w-56"
+                    [styleClass]="'filter-dropdown dept-filter'" />
+            </div>
+            }
+
+            <!-- Parity Filter -->
+            @if (config()?.showParity) {
+            <div class="filter-group">
+                <p-select [options]="parityOptions()" [ngModel]="selectedParity()" placeholder="Tous les parités"
+                    optionLabel="label" optionValue="value" (onChange)="onParityChange($event.value)"
+                    class="w-full parity-select" [styleClass]="'filter-dropdown parity-filter'" />
+            </div>
+            }
+
+            <!-- Month Filter -->
+            @if (config()?.showMonth) {
+            <div class="filter-group">
+                <p-select [options]="monthOptions()" [ngModel]="selectedMonth()" placeholder="Sélectionner un mois"
+                    optionLabel="label" optionValue="value" (onChange)="onMonthChange($event.value)"
+                    class="w-full month-select" [styleClass]="'filter-dropdown month-filter'" />
+            </div>
+            }
+        </div>
+    </div>
+</header>

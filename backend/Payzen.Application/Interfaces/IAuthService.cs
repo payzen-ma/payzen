@@ -50,3 +50,8 @@ public interface IAuthService
     Task<ServiceResult> AssignRolesToEmployeeAsync(int employeeId, IEnumerable<int> roleIds, int createdBy, CancellationToken ct = default);
     Task<ServiceResult> RevokeRoleFromEmployeeAsync(int employeeId, int roleId, CancellationToken ct = default);
 }
+
+public interface IUserInviteService
+{
+    Task<ServiceResult> InviteUserAsync(UserInviteDto dto, int createdBy, CancellationToken ct = default);
+}

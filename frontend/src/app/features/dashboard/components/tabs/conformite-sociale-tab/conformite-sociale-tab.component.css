@@ -1,0 +1,116 @@
+/* Conformité sociale — design system PayZen HR (Figma) */
+
+:host {
+    display: block;
+}
+
+.conformite-sociale-surface {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6, 24px);
+    width: 100%;
+    background: var(--bg-element, #fff);
+    border: 1px solid var(--border-subtle, #e5e7eb);
+    border-radius: var(--radius-xl, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+    padding: var(--space-5, 20px) var(--space-6, 24px) var(--space-6, 24px);
+}
+
+@media (min-width: 768px) {
+    .conformite-sociale-surface {
+        padding: var(--space-6, 24px);
+    }
+}
+
+.conformite-sociale-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+    padding-bottom: var(--space-4, 16px);
+    border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+}
+
+.conformite-sociale-hero-eyebrow {
+    margin-bottom: 2px;
+}
+
+.conformite-sociale-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+    min-width: 0;
+}
+
+.conformite-sociale-heading-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3, 12px);
+}
+
+.conformite-sociale-title {
+    margin: 0;
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    line-height: 1.15;
+    color: var(--text-primary, #1f2937);
+}
+
+.conformite-sociale-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--primary-50, #ebf5ff);
+    border: 1px solid var(--primary-200, #aed6ff);
+    color: var(--primary-700, #0f4187);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.conformite-sociale-subtitle {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--text-secondary, #6b7280);
+    max-width: 52rem;
+}
+
+.conformite-sociale-kpi {
+    width: 100%;
+    box-sizing: border-box;
+    gap: var(--space-4, 16px);
+}
+
+.conformite-sociale-table-card {
+    margin: 0;
+    min-width: 0;
+}
+
+.conformite-sociale-table-card__title {
+    margin: 0 0 var(--space-4, 16px);
+    font-size: var(--font-size-lg, 18px);
+    font-weight: var(--font-weight-lg, 600);
+    line-height: 1.25;
+    color: var(--text-primary, #1f2937);
+}
+
+.conformite-sociale-table-scroll {
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--space-1, 4px));
+    padding: 0 var(--space-1, 4px);
+}
+
+.conformite-sociale-note {
+    margin: 0;
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    border-radius: var(--radius-lg, 8px);
+    background: var(--neutral-50, #f8fafc);
+    border: 1px solid var(--border-subtle, #e5e7eb);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-secondary, #6b7280);
+}

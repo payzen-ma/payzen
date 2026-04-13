@@ -1,19 +1,19 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { User, UserCreateRequest, UserUpdateRequest, AssignRoleRequest } from '../models/user.model';
+import { Injectable } from '@angular/core';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { AssignRoleRequest, User, UserCreateRequest, UserUpdateRequest } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/employee`;
   // Users-Roles controller base
   private usersRolesUrl = `${this.baseUrl}/api/users-roles`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Transform API response from PascalCase to camelCase
@@ -99,7 +99,6 @@ export class UserService {
       catchError(err => {
         // If conflict (already assigned), treat as success (idempotent)
         if (err && err.status === 409) {
-          console.debug('[UserService] assignRole: already assigned (409), treating as success', payload);
           return of(void 0);
         }
         // fallback to legacy employee endpoints if controller not available
@@ -107,7 +106,6 @@ export class UserService {
           return this.http.post<void>(`${this.apiUrl}/${request.userId}/assign-role`, { roleId: request.roleId }).pipe(
             catchError(err2 => {
               if (err2 && err2.status === 409) {
-                console.debug('[UserService] assignRole fallback: already assigned (409), treating as success', { userId: request.userId, roleId: request.roleId });
                 return of(void 0);
               }
               if (err2 && err2.status === 404) {
@@ -136,11 +134,9 @@ export class UserService {
   assignRoles(userId: number, roleIds: number[]): Observable<any> {
     const url = `${this.usersRolesUrl}/bulk-assign`;
     const payload = { UserId: userId, RoleIds: roleIds };
-    console.debug('[UserService] assignRoles url:', url, 'payload:', payload);
 
     return this.http.post<any>(url, payload).pipe(
       catchError(err => {
-        console.debug('[UserService] assignRoles primary failed', err);
         // Try alternative route spellings
         const altUrls = [
           `${this.usersRolesUrl}/bulkassign`,
@@ -151,7 +147,7 @@ export class UserService {
         let attempt$: Observable<any> | null = null;
         for (const u of altUrls) {
           if (!attempt$) {
-            attempt$ = this.http.post<any>(u, payload).pipe(catchError(e => { console.debug('[UserService] alt failed', u, e); return throwError(() => e); }));
+            attempt$ = this.http.post<any>(u, payload).pipe(catchError(e => { return throwError(() => e); }));
           }
         }
         return attempt$ ?? throwError(() => err);

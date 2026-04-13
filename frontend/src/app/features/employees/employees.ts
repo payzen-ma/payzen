@@ -1,27 +1,27 @@
-import { Component, signal, computed, OnInit, inject, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 // Dialog/MultiSelect/Toast removed for quick-action
-import { TagComponent } from '../../shared/components/tag/tag.component';
-import { TagVariant } from '../../shared/components/tag/tag.types';
-import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { ContractTypeService } from '@app/core/services/contract-type.service';
+import { DepartmentService } from '@app/core/services/department.service';
+import { Employee, EmployeeFilters, EmployeeService, EmployeeStats, EmployeesResponse, SageImportResult } from '@app/core/services/employee.service';
+import { MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { EmployeeService, Employee, EmployeeFilters, EmployeeStats, EmployeesResponse, SageImportResult } from '@app/core/services/employee.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { DepartmentService } from '@app/core/services/department.service';
-import { ContractTypeService } from '@app/core/services/contract-type.service';
-import { MessageService } from 'primeng/api';
+import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { TagComponent } from '../../shared/components/tag/tag.component';
+import { TagVariant } from '../../shared/components/tag/tag.types';
 import { SageImportDialogComponent } from './sage-import/sage-import-dialog';
 
 @Component({
@@ -102,20 +102,23 @@ export class EmployeesPage implements OnInit {
     return (!this.searchQuery() && !this.selectedDepartment() && !this.selectedStatus()) || this.isLoading();
   }
 
-  readonly statCards = [
+  readonly statCards: Array<{
+    label: string;
+    accessor: (stats: EmployeeStats) => number;
+    icon: string;
+    iconWrapClass: string;
+  }> = [
     {
       label: 'employees.stats.total',
       accessor: (stats: EmployeeStats) => stats.total,
       icon: 'pi pi-users',
-      iconColor: 'text-blue-500',
-      valueClass: ''
+      iconWrapClass: 'employees-kpi-icon employees-kpi-icon--total'
     },
     {
       label: 'employees.stats.active',
       accessor: (stats: EmployeeStats) => stats.active,
       icon: 'pi pi-check-circle',
-      iconColor: 'text-green-500',
-      valueClass: 'text-success'
+      iconWrapClass: 'employees-kpi-icon employees-kpi-icon--active'
     }
   ];
 
@@ -150,6 +153,16 @@ export class EmployeesPage implements OnInit {
     return result;
   });
 
+  readonly displayedStats = computed<EmployeeStats>(() => {
+    const list = this.filteredEmployees();
+    const active = list.filter(emp => this.isEmployeeActive(emp)).length;
+
+    return {
+      total: list.length,
+      active
+    };
+  });
+
   // Route prefix based on current context mode
   private readonly contextService = inject(CompanyContextService);
   private readonly departmentService = inject(DepartmentService);
@@ -162,7 +175,7 @@ export class EmployeesPage implements OnInit {
     private router: Router,
     private employeeService: EmployeeService,
     private translate: TranslateService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initializeFilterDefaults();
@@ -194,7 +207,7 @@ export class EmployeesPage implements OnInit {
         // debug current employees and how they'll map
         // If employees are already loaded, populate their statusName from the referential labels
         const current = this.employees();
-          if (current && current.length) {
+        if (current && current.length) {
           const updated = current.map(emp => {
             const candidates = new Set<string>();
             candidates.add(this.normalizeStatusCode((emp as any).statusRaw ?? ''));
@@ -202,7 +215,7 @@ export class EmployeesPage implements OnInit {
             candidates.add(this.normalizeStatusCode(emp.statusName ?? ''));
             const norm = this.normalizeStatusCode(emp.status ?? '');
             if (norm === 'active') candidates.add(this.normalizeStatusCode('actif'));
-            if (norm === 'onleave' || norm === 'onleave' ) candidates.add(this.normalizeStatusCode('conge'));
+            if (norm === 'onleave' || norm === 'onleave') candidates.add(this.normalizeStatusCode('conge'));
             if (norm === 'inactive') candidates.add('inact');
 
             let match: any = null;
@@ -225,7 +238,6 @@ export class EmployeesPage implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load statuses from API', err);
       }
     });
 
@@ -242,13 +254,13 @@ export class EmployeesPage implements OnInit {
               ...opts
             ]);
           },
-          error: () => {}
+          error: () => { }
         });
       }
     }
   }
 
-  
+
 
   /**
    * Load employees from backend
@@ -310,7 +322,6 @@ export class EmployeesPage implements OnInit {
       error: (err) => {
         this.error.set(err.error?.message || this.t('employees.errors.loadFailed'));
         this.isLoading.set(false);
-        console.error('Error loading employees:', err);
       }
     });
   }
@@ -334,6 +345,50 @@ export class EmployeesPage implements OnInit {
   private normalizeStatusCode(val: any): string {
     if (val === undefined || val === null) return '';
     return String(val).toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  private isEmployeeActive(employee: Employee): boolean {
+    const rawValues = [
+      (employee as any).statusRaw,
+      employee.status,
+      employee.statusName
+    ]
+      .filter(v => v !== undefined && v !== null)
+      .map(v => String(v).toLowerCase().trim());
+
+    for (const raw of rawValues) {
+      const normalized = this.normalizeStatusCode(raw);
+
+      if (!normalized) {
+        continue;
+      }
+
+      // Guard against false positives like "inactive" / "inactif".
+      if (
+        normalized === 'inactive' ||
+        normalized === 'inactif' ||
+        normalized === 'onleave' ||
+        normalized === 'conge' ||
+        normalized === 'suspended' ||
+        normalized === 'retired'
+      ) {
+        continue;
+      }
+
+      if (
+        normalized === 'active' ||
+        normalized === 'actif' ||
+        normalized === 'enabled'
+      ) {
+        return true;
+      }
+
+      if (/(^|\W)active($|\W)|(^|\W)actif($|\W)/.test(raw)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   getEmployeeStatusLabel(employee: Employee): string {
@@ -418,7 +473,7 @@ export class EmployeesPage implements OnInit {
   manageRolesForEmployee(employee: Employee, event?: Event): void {
     // quick-action removed
   }
-  
+
 
   getContractTypeLabel(employee: Employee): string {
     try {
@@ -437,7 +492,7 @@ export class EmployeesPage implements OnInit {
           if (val === code || lbl === code || (code && (val.includes(code) || lbl.includes(code)))) return o.label || employee.contractType;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return employee.contractType || '';
   }
 

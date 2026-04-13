@@ -25,10 +25,10 @@ export class SpouseChildrenComponent {
   @Input() set children(value: Child[]) {
     this.childrenSignal.set(value || []);
   }
-  
+
   @Output() spousesChange = new EventEmitter<Spouse[]>();
   @Output() childrenChange = new EventEmitter<Child[]>();
-  
+
   private familyService = inject(FamilyService);
   private referenceDataService = inject(ReferenceDataService);
   private translate = inject(TranslateService);
@@ -69,7 +69,6 @@ export class SpouseChildrenComponent {
         this.genders.set(data);
       },
       error: (err) => {
-        console.error('[SpouseChildren] Failed to load genders:', err);
         this.genders.set([]);
       }
     });
@@ -122,9 +121,9 @@ export class SpouseChildrenComponent {
   saveSpouse() {
     const payload = this.editingSpouse();
     if (!payload) return;
-    
+
     const currentSpouses = [...this.spousesSignal()];
-    
+
     if (payload.id) {
       // Update existing
       const index = currentSpouses.findIndex(s => s.id === payload.id);
@@ -135,7 +134,7 @@ export class SpouseChildrenComponent {
       // Add new (assign temporary ID)
       currentSpouses.push({ ...payload, id: Date.now() } as Spouse);
     }
-    
+
     this.spousesSignal.set(currentSpouses);
     this.spousesChange.emit(currentSpouses);
     this.showSpouseDialog.set(false);
@@ -168,9 +167,9 @@ export class SpouseChildrenComponent {
   saveChild() {
     const payload = this.editingChild();
     if (!payload) return;
-    
+
     const currentChildren = [...this.childrenSignal()];
-    
+
     if (payload.id) {
       // Update existing
       const index = currentChildren.findIndex(c => c.id === payload.id);
@@ -181,7 +180,7 @@ export class SpouseChildrenComponent {
       // Add new (assign temporary ID)
       currentChildren.push({ ...payload, id: Date.now() } as Child);
     }
-    
+
     this.childrenSignal.set(currentChildren);
     this.childrenChange.emit(currentChildren);
     this.showChildDialog.set(false);

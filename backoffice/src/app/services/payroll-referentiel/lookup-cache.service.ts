@@ -4,10 +4,10 @@
  * Singleton service for Authorities, Categories, and Eligibility Criteria
  */
 
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { AuthorityDto, ElementCategoryDto, EligibilityCriteriaDto } from '../../models/payroll-referentiel/lookup.models';
 
 interface CacheEntry<T> {
@@ -19,7 +19,7 @@ interface CacheEntry<T> {
   providedIn: 'root'
 })
 export class LookupCacheService {
-  private baseUrl = 'http://localhost:5119/api/payroll';
+  private baseUrl = 'https://api-test.payzenhr.com/api/payroll';
   private cacheTTL = 3600000; // 1 hour in milliseconds
 
   // BehaviorSubject caches
@@ -27,7 +27,7 @@ export class LookupCacheService {
   private categoriesCache$ = new BehaviorSubject<CacheEntry<ElementCategoryDto> | null>(null);
   private eligibilityCache$ = new BehaviorSubject<CacheEntry<EligibilityCriteriaDto> | null>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Get all authorities (CNSS, IR, AMO, CIMR)
@@ -57,7 +57,6 @@ export class LookupCacheService {
         });
       }),
       catchError(err => {
-        console.error('[LookupCacheService] Failed to fetch authorities:', err);
         // Return cached data if available, even if expired
         return of(cached?.data || []);
       })
@@ -90,7 +89,6 @@ export class LookupCacheService {
         });
       }),
       catchError(err => {
-        console.error('[LookupCacheService] Failed to fetch categories:', err);
         return of(cached?.data || []);
       })
     );
@@ -122,7 +120,6 @@ export class LookupCacheService {
         });
       }),
       catchError(err => {
-        console.error('[LookupCacheService] Failed to fetch eligibility criteria:', err);
         return of(cached?.data || []);
       })
     );

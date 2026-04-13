@@ -1,23 +1,26 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PayrollService } from '@app/core/services/payroll.service';
-import { EmployeeService } from '@app/core/services/employee.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { 
-  PayrollResult, 
-  PayrollResultStatus, 
+import {
+  PayrollDetail,
   PayrollFilters,
-  PayrollDetail 
+  PayrollResult,
+  PayrollResultStatus
 } from '@app/core/models/payroll.model';
-import { Employee } from '@app/core/services/employee.service';
-import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
-import { ButtonComponent } from '@app/shared/ui/button/button.component';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { Employee, EmployeeService } from '@app/core/services/employee.service';
+import { PayrollService } from '@app/core/services/payroll.service';
+import { ToastService } from '@app/core/services/toast.service';
 import { BadgeComponent } from '@app/shared/ui/badge/badge.component';
-import { TableModule } from 'primeng/table';
+import { ButtonComponent } from '@app/shared/ui/button/button.component';
+import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-bulletin',
@@ -31,16 +34,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     BadgeComponent,
     TableModule,
     ButtonModule,
-    DialogModule
+    DialogModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule
   ],
   templateUrl: './bulletin.component.html',
-  styleUrls: ['./bulletin.component.css']
 })
 export class BulletinComponent implements OnInit {
   private readonly payrollService = inject(PayrollService);
   private readonly employeeService = inject(EmployeeService);
   private readonly contextService = inject(CompanyContextService);
   private readonly translate = inject(TranslateService);
+  private readonly toastService = inject(ToastService);
 
   // État
   readonly loading = signal(false);
@@ -63,7 +69,7 @@ export class BulletinComponent implements OnInit {
   readonly confirmTitle = signal('');
   readonly confirmMessage = signal('');
   private confirmResolve: ((value: boolean) => void) | null = null;
-  
+
   // Filtres
   readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
   readonly selectedYear = signal<number>(new Date().getFullYear());
@@ -88,21 +94,21 @@ export class BulletinComponent implements OnInit {
   // Données filtrées
   readonly filteredResults = computed(() => {
     let results = this.payrollResults();
-    
+
     // Filtre par statut (en normalisant les valeurs renvoyées par l'API)
     const currentStatusFilter = this.statusFilter();
     if (currentStatusFilter) {
       results = results.filter(r => this.normalizeStatus(r.status) === currentStatusFilter);
     }
-    
+
     // Filtre par recherche (nom employé)
     const query = this.searchQuery().toLowerCase().trim();
     if (query) {
-      results = results.filter(r => 
+      results = results.filter(r =>
         r.employeeName.toLowerCase().includes(query)
       );
     }
-    
+
     return results;
   });
 
@@ -115,7 +121,8 @@ export class BulletinComponent implements OnInit {
       error: results.filter(r => this.normalizeStatus(r.status) === PayrollResultStatus.ERROR).length,
       pending: results.filter(r => this.normalizeStatus(r.status) === PayrollResultStatus.PENDING).length,
       totalBrut: results.reduce((sum, r) => sum + (r.totalBrut || 0), 0),
-      totalNet: results.reduce((sum, r) => sum + (r.totalNet || 0), 0)
+      // Keep KPI aligned with row display logic (totalNet2 has priority when provided)
+      totalNet: results.reduce((sum, r) => sum + ((r.totalNet2 ?? r.totalNet) || 0), 0)
     };
   });
 
@@ -160,15 +167,15 @@ export class BulletinComponent implements OnInit {
     if (!companyId) {
       // Initialiser avec l'option par défaut même sans employés
       this.employeeOptions.set([
-          { label: this.translate.instant('payrollBulletin.allEmployees'), value: null }
-        ]);
+        { label: this.translate.instant('payrollBulletin.allEmployees'), value: null }
+      ]);
       return;
     }
 
     this.employeeService.getEmployees({ companyId: companyId }).subscribe({
       next: (response) => {
         this.employees.set(response.employees || []);
-        
+
         const options = [
           { label: this.translate.instant('payrollBulletin.allEmployees'), value: null },
           ...(response.employees || []).map(emp => ({
@@ -176,7 +183,7 @@ export class BulletinComponent implements OnInit {
             value: parseInt(emp.id)
           }))
         ];
-        
+
         this.employeeOptions.set(options);
       },
       error: (error) => {
@@ -185,6 +192,11 @@ export class BulletinComponent implements OnInit {
         this.employeeOptions.set([
           { label: this.translate.instant('payrollBulletin.allEmployees'), value: null }
         ]);
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.loadEmployeesError') || 'Impossible de charger les employés.'
+        );
+        this.toastService.error(errorMessage);
       }
     });
   }
@@ -208,6 +220,11 @@ export class BulletinComponent implements OnInit {
       error: (error) => {
         console.error('Erreur lors du chargement des résultats:', error);
         this.loading.set(false);
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.loadError') || 'Impossible de charger les résultats de paie.'
+        );
+        this.toastService.error(errorMessage);
       }
     });
   }
@@ -227,29 +244,37 @@ export class BulletinComponent implements OnInit {
         this.selectedHalf() ?? undefined
       ).subscribe({
         next: (response) => {
-          console.log('Calcul terminé:', response);
           this.calculating.set(false);
-          this.openAlert(this.translate.instant('payrollBulletin.calculationSuccessFor', { month: response.month, year: response.year }), 'success');
+          this.toastService.success(
+            this.translate.instant('payrollBulletin.calculationSuccessFor', { month: response.month, year: response.year })
+          );
           this.loadPayrollResults();
         },
         error: (error) => {
           console.error('Erreur lors du calcul:', error);
           this.calculating.set(false);
-          const errorMessage = error.error?.error || error.message || this.translate.instant('payrollBulletin.calculationError');
-          this.openAlert(errorMessage, 'error');
+          const errorMessage = this.extractErrorMessage(
+            error,
+            this.translate.instant('payrollBulletin.calculationError')
+          );
+          this.toastService.error(errorMessage);
         }
       });
     } catch (error: any) {
       console.error('Erreur:', error);
       this.calculating.set(false);
-      this.openAlert(error?.message || this.translate.instant('payrollBulletin.calculationError'), 'error');
+      const errorMessage = this.extractErrorMessage(
+        error,
+        this.translate.instant('payrollBulletin.calculationError')
+      );
+      this.toastService.error(errorMessage);
     }
   }
 
   calculateForEmployee(): void {
     const employeeId = this.selectedEmployee();
     if (!employeeId) {
-      this.openAlert(this.translate.instant('payrollBulletin.selectEmployeeRequired'), 'warning');
+      this.toastService.warning(this.translate.instant('payrollBulletin.selectEmployeeRequired'));
       return;
     }
 
@@ -261,15 +286,18 @@ export class BulletinComponent implements OnInit {
       this.selectedHalf() ?? undefined
     ).subscribe({
       next: (response) => {
-        console.log('Calcul terminé:', response);
         this.calculating.set(false);
-        this.openAlert(this.translate.instant('payrollBulletin.calculationSuccess'), 'success');
+        this.toastService.success(this.translate.instant('payrollBulletin.calculationSuccess'));
         this.loadPayrollResults();
       },
       error: (error) => {
         console.error('Erreur lors du calcul:', error);
         this.calculating.set(false);
-        this.openAlert(this.translate.instant('payrollBulletin.calculationError'), 'error');
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.calculationError')
+        );
+        this.toastService.error(errorMessage);
       }
     });
   }
@@ -381,7 +409,11 @@ export class BulletinComponent implements OnInit {
         console.error('Erreur lors du chargement du détail:', err);
         this.detailLoading.set(false);
         this.showDetailModal.set(false);
-        this.openAlert(this.translate.instant('payrollBulletin.detailLoadError'), 'error');
+        const errorMessage = this.extractErrorMessage(
+          err,
+          this.translate.instant('payrollBulletin.detailLoadError')
+        );
+        this.toastService.error(errorMessage);
       }
     });
   }
@@ -389,6 +421,55 @@ export class BulletinComponent implements OnInit {
   closeDetailModal(): void {
     this.showDetailModal.set(false);
     this.selectedDetail.set(null);
+  }
+
+  /**
+   * Extract a human-readable error message from various API error shapes
+   * Supports: error.error.error, error.error.message, error.message, etc.
+   */
+  private extractErrorMessage(error: any, defaultMessage?: string): string {
+    try {
+      const candidates = [
+        // Priorité 1: error.error.error ou error.error.message (format backend courant)
+        error?.error?.error,
+        error?.error?.message,
+        error?.error?.Message,
+        // Priorité 2: error.error.details ou error.error.Details
+        error?.error?.details,
+        error?.error?.Details,
+        // Priorité 3: error.message, error.Message, error à la racine
+        error?.message,
+        error?.Message,
+        // Priorité 4: statusText HTTP
+        error?.statusText,
+        // Fallback
+        typeof error === 'string' ? error : null
+      ];
+
+      for (const candidate of candidates) {
+        if (candidate !== null && candidate !== undefined && String(candidate).trim() !== '') {
+          return String(candidate).trim();
+        }
+      }
+
+      // Fallback basé sur le code HTTP
+      if (error?.status) {
+        const status = error.status;
+        if (status === 400) return 'Requête invalide. Vérifiez vos données.';
+        if (status === 401) return 'Authentification requise.';
+        if (status === 403) return 'Accès refusé. Vérifiez vos permissions.';
+        if (status === 404) return 'Ressource non trouvée.';
+        if (status === 409) return 'Conflit. Veuillez réessayer.';
+        if (status === 422) return 'Données invalides. Vérifiez votre saisie.';
+        if (status === 429) return 'Trop de tentatives. Veuillez réessayer plus tard.';
+        if (status === 500) return 'Erreur serveur. Veuillez réessayer.';
+        if (status === 503) return 'Service temporairement indisponible.';
+      }
+
+      return defaultMessage || 'Une erreur est survenue. Veuillez réessayer.';
+    } catch {
+      return defaultMessage || 'Une erreur est survenue. Veuillez réessayer.';
+    }
   }
 
   /** Affiche une alerte dans une box (CSS globaux .alert, .alert-success, etc.) */
@@ -437,12 +518,16 @@ export class BulletinComponent implements OnInit {
 
     this.payrollService.deletePayrollResult(result.id).subscribe({
       next: () => {
-        this.openAlert(this.translate.instant('payrollBulletin.deleteSuccess'), 'success');
+        this.toastService.success(this.translate.instant('payrollBulletin.deleteSuccess'));
         this.loadPayrollResults();
       },
       error: (error) => {
         console.error('Erreur lors de la suppression:', error);
-        this.openAlert(this.translate.instant('payrollBulletin.deleteError'), 'error');
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.deleteError')
+        );
+        this.toastService.error(errorMessage);
       }
     });
   }

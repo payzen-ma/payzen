@@ -1,9 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { EntraRedirectService } from '../../../services/entra-redirect.service';
-import { msalInstance } from '../../../config/msal.config';
 
 @Component({
   selector: 'app-entra-callback',
@@ -23,34 +22,10 @@ export class EntraCallbackComponent implements OnInit {
   private entraService = inject(EntraRedirectService);
 
   async ngOnInit(): Promise<void> {
-    console.log('[AUTH-FLOW][CALLBACK] ngOnInit');
-    // Debug : vérifier que MSAL reçoit bien la réponse OAuth (code/state) dans l'URL.
-    // Si `hash` est vide ici, `handleRedirectPromise()` renverra souvent `null`.
-    console.log('[AUTH-FLOW][CALLBACK] href=', window.location.href);
-    console.log('[AUTH-FLOW][CALLBACK] hash=', window.location.hash);
-    console.log('[AUTH-FLOW][CALLBACK] search=', window.location.search);
-    const accountsBefore = msalInstance.getAllAccounts();
-    console.log('[AUTH-FLOW][MSAL] callback accounts before handleRedirectPromise', {
-      count: accountsBefore.length,
-      usernames: accountsBefore.map((a) => a.username),
-      homeAccountIds: accountsBefore.map((a) => a.homeAccountId),
-    });
-
     const result = await this.entraService.handleRedirectPromise();
     const account = result?.account ?? this.entraService.getCachedAccount();
-    const accountsAfter = msalInstance.getAllAccounts();
-    console.log('[AUTH-FLOW][MSAL] callback accounts after handleRedirectPromise', {
-      count: accountsAfter.length,
-      usernames: accountsAfter.map((a) => a.username),
-      homeAccountIds: accountsAfter.map((a) => a.homeAccountId),
-      activeAccount: msalInstance.getActiveAccount()?.username ?? null,
-    });
-
-    console.log('[AUTH-FLOW][CALLBACK] handleRedirectPromise result=', result);
-    console.log('[AUTH-FLOW][CALLBACK] resolved account=', account);
 
     if (!account) {
-      console.warn('[AUTH-FLOW][CALLBACK] no account from result/cache -> redirect login(no_result)');
       this.router.navigate(['/login'], { queryParams: { error: 'no_result' } });
       return;
     }
@@ -73,28 +48,15 @@ export class EntraCallbackComponent implements OnInit {
       account.homeAccountId;
 
     if (!email || !externalId) {
-      console.warn('[AUTH-FLOW][CALLBACK] missing claims for backend login', {
-        email,
-        externalId,
-        username: account.username,
-        localAccountId: account.localAccountId,
-        homeAccountId: account.homeAccountId,
-      });
       this.router.navigate(['/login'], { queryParams: { error: 'missing_claims' } });
       return;
     }
 
-    console.log('[AUTH-FLOW][CALLBACK] call backend /auth/entra-login', {
-      email,
-      externalIdPreview: `${externalId}`.slice(0, 12),
-    });
     this.authService.loginWithEntra(email, externalId).subscribe({
       next: () => {
-        console.log('[AUTH-FLOW][CALLBACK] backend login success -> /dashboard');
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        console.error('[AUTH-FLOW][CALLBACK] backend login failed -> /login(auth_failed)', error);
         this.router.navigate(['/login'], { queryParams: { error: 'auth_failed' } });
       },
     });

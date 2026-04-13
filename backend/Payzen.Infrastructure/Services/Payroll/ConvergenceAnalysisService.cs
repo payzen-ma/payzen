@@ -50,7 +50,8 @@ public class ConvergenceAnalysisService : IConvergenceService
     private static bool CheckConvergence(IEnumerable<Domain.Entities.Payroll.Referentiel.ElementRule> rules)
     {
         var activeRules = rules.Where(r => r.DeletedAt == null).ToList();
-        if (!activeRules.Any()) return true;
+        if (!activeRules.Any())
+            return true;
 
         // Convergence = toutes les règles actives ont le même type d'exonération
         var firstType = activeRules.First().ExemptionType;

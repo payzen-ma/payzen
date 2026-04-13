@@ -10,19 +10,41 @@ namespace Payzen.Domain.Entities.Leave;
 public class LeaveCarryOverAgreement : BaseEntity
 {
 
-    public int EmployeeId { get; set; }
+    public int EmployeeId
+    {
+        get; set;
+    }
     public Employee.Employee Employee { get; set; } = null!;
 
-    public int CompanyId { get; set; }
+    public int CompanyId
+    {
+        get; set;
+    }
     public Company.Company Company { get; set; } = null!;
 
-    public int LeaveTypeId { get; set; }
+    public int LeaveTypeId
+    {
+        get; set;
+    }
     public LeaveType LeaveType { get; set; } = null!;
 
-    public int FromYear { get; set; }
-    public int ToYear { get; set; }
+    public int FromYear
+    {
+        get; set;
+    }
+    public int ToYear
+    {
+        get; set;
+    }
 
-    public DateOnly AgreementDate { get; set; }
+    public DateOnly AgreementDate
+    {
+        get; set;
+    }
 
-    [MaxLength(500)] public string? AgreementDocRef { get; set; }
+    [MaxLength(500)]
+    public string? AgreementDocRef
+    {
+        get; set;
+    }
 }

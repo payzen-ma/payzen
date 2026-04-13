@@ -1,33 +1,33 @@
-import { Component, OnInit, OnDestroy, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 // PrimeNG imports
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
-import { SelectModule } from 'primeng/select';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService, ConfirmationService } from 'primeng/api';
 
 // Translation
 import { TranslateModule } from '@ngx-translate/core';
 import { Subject, takeUntil } from 'rxjs';
 
 // Services and models
+import { LeaveRequest, LeaveRequestCreateDto, LeaveRequestStatus, LeaveType } from '../../../core/models/leave.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { CompanyContextService } from '../../../core/services/companyContext.service';
 import { LeaveRequestService } from '../../../core/services/leave-request.service';
 import { LeaveService } from '../../../core/services/leave.service';
-import { CompanyContextService } from '../../../core/services/companyContext.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { LeaveRequest, LeaveRequestCreateDto, LeaveRequestStatus, LeaveType } from '../../../core/models/leave.model';
 
 @Component({
   selector: 'app-leave-requests',
@@ -60,22 +60,22 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
   leaveRequests = signal<LeaveRequest[]>([]);
   availableLeaveTypes = signal<LeaveType[]>([]);
   loading = signal<boolean>(false);
-  
+
   // Dialog states
   showCreateDialog = signal<boolean>(false);
   showEditDialog = signal<boolean>(false);
   selectedRequest = signal<LeaveRequest | null>(null);
-  
+
   // Forms
   createForm!: FormGroup;
   editForm!: FormGroup;
-  
+
   // Current employee from auth service
   currentEmployeeId = signal<number | null>(null);
-  
+
   // Subject for subscription management
   private destroy$ = new Subject<void>();
-  
+
   // Status options for filtering
   statusOptions = [
     { label: 'Tous', value: null },
@@ -86,7 +86,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
     { label: 'Annulée', value: LeaveRequestStatus.Cancelled },
     { label: 'Renoncée', value: LeaveRequestStatus.Renounced }
   ];
-  
+
   constructor(
     private leaveRequestService: LeaveRequestService,
     private leaveService: LeaveService,
@@ -97,7 +97,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder
   ) {
     this.initializeForms();
-    
+
     // Load current user info using effect
     effect(() => {
       const user = this.authService.currentUser();
@@ -111,7 +111,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   ngOnInit(): void {
     this.loadAvailableLeaveTypes();
     // loadLeaveRequests will be called from effect when currentEmployeeId is set
@@ -121,7 +121,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
+
   private initializeForms(): void {
     this.createForm = this.fb.group({
       leaveTypeId: [null, Validators.required],
@@ -129,7 +129,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       endDate: [null, Validators.required],
       reason: ['', [Validators.required, Validators.maxLength(500)]]
     });
-    
+
     this.editForm = this.fb.group({
       leaveTypeId: [null, Validators.required],
       startDate: [null, Validators.required],
@@ -137,38 +137,36 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       reason: ['', [Validators.required, Validators.maxLength(500)]]
     });
   }
-  
+
   async loadLeaveRequests(): Promise<void> {
     const employeeId = this.currentEmployeeId();
     if (!employeeId) {
       return;
     }
-    
+
     try {
       this.loading.set(true);
       this.leaveRequestService.getByEmployee(employeeId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-        next: (requests) => {
-          this.leaveRequests.set(requests);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error loading leave requests:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: 'Impossible de charger les demandes de congé'
-          });
-          this.loading.set(false);
-        }
-      });
+          next: (requests) => {
+            this.leaveRequests.set(requests);
+            this.loading.set(false);
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Impossible de charger les demandes de congé'
+            });
+            this.loading.set(false);
+          }
+        });
     } catch (error) {
-      console.error('Error in loadLeaveRequests:', error);
       this.loading.set(false);
     }
   }
-  
+
   async loadAvailableLeaveTypes(): Promise<void> {
     try {
       const companyId = this.companyContextService.companyId();
@@ -176,21 +174,20 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
         this.leaveService.getAll(parseInt(companyId))
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: (leaveTypes) => {
-            this.availableLeaveTypes.set(leaveTypes);
-          },
-          error: (error) => {
-            console.error('Error loading leave types:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible de charger les types de congé'
-            });
-          }
-        });
+            next: (leaveTypes) => {
+              this.availableLeaveTypes.set(leaveTypes);
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible de charger les types de congé'
+              });
+            }
+          });
       }
     } catch (error) {
-      console.error('Error loading leave types:', error);
+      alert('Error loading leave types:');
       this.messageService.add({
         severity: 'error',
         summary: 'Erreur',
@@ -198,16 +195,16 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   showCreateForm(): void {
     this.createForm.reset();
     this.showCreateDialog.set(true);
   }
-  
+
   hideCreateForm(): void {
     this.showCreateDialog.set(false);
   }
-  
+
   async createLeaveRequest(): Promise<void> {
     const employeeId = this.currentEmployeeId();
     if (this.createForm.valid && employeeId) {
@@ -220,31 +217,30 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
           endDate: this.formatDateForAPI(formValue.endDate),
           employeeNote: formValue.reason
         };
-        
+
         this.leaveRequestService.create(createDto)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé créée avec succès'
-            });
-            
-            this.hideCreateForm();
-            this.loadLeaveRequests();
-          },
-          error: (error) => {
-            console.error('Error creating leave request:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible de créer la demande de congé'
-            });
-          }
-        });
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Demande de congé créée avec succès'
+              });
+
+              this.hideCreateForm();
+              this.loadLeaveRequests();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible de créer la demande de congé'
+              });
+            }
+          });
       } catch (error) {
-        console.error('Error in createLeaveRequest:', error);
+        alert('Error in createLeaveRequest: ' + error);
       }
     } else if (!employeeId) {
       this.messageService.add({
@@ -254,7 +250,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   editRequest(request: LeaveRequest): void {
     if (request.status !== LeaveRequestStatus.Draft) {
       this.messageService.add({
@@ -264,7 +260,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    
+
     this.selectedRequest.set(request);
     this.editForm.patchValue({
       leaveTypeId: request.leaveTypeId,
@@ -274,12 +270,12 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
     });
     this.showEditDialog.set(true);
   }
-  
+
   hideEditForm(): void {
     this.showEditDialog.set(false);
     this.selectedRequest.set(null);
   }
-  
+
   async updateLeaveRequest(): Promise<void> {
     const request = this.selectedRequest();
     if (this.editForm.valid && request) {
@@ -291,36 +287,36 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
           endDate: this.formatDateForAPI(formValue.endDate),
           employeeNote: formValue.reason
         };
-        
+
         this.leaveRequestService.update(request.id, patchDto)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé mise à jour avec succès'
-            });
-            
-            this.hideEditForm();
-            this.loadLeaveRequests();
-          },
-          error: (error) => {
-            console.error('Error updating leave request:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible de mettre à jour la demande de congé'
-            });
-          }
-        });
-        
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Demande de congé mise à jour avec succès'
+              });
+
+              this.hideEditForm();
+              this.loadLeaveRequests();
+            },
+            error: (error) => {
+              alert('Error updating leave request: ' + error.message);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible de mettre à jour la demande de congé'
+              });
+            }
+          });
+
       } catch (error) {
-        console.error('Error in updateLeaveRequest:', error);
+        alert('Error in updateLeaveRequest: ' + error);
       }
     }
   }
-  
+
   async submitRequest(request: LeaveRequest): Promise<void> {
     if (request.status !== LeaveRequestStatus.Draft) {
       this.messageService.add({
@@ -330,7 +326,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    
+
     this.confirmationService.confirm({
       message: 'Êtes-vous sûr de vouloir soumettre cette demande de congé ?',
       header: 'Confirmation',
@@ -339,27 +335,26 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
         this.leaveRequestService.submit(request.id)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé soumise avec succès'
-            });
-            this.loadLeaveRequests();
-          },
-          error: (error) => {
-            console.error('Error submitting leave request:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible de soumettre la demande de congé'
-            });
-          }
-        });
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Demande de congé soumise avec succès'
+              });
+              this.loadLeaveRequests();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible de soumettre la demande de congé'
+              });
+            }
+          });
       }
     });
   }
-  
+
   async deleteRequest(request: LeaveRequest): Promise<void> {
     if (request.status !== LeaveRequestStatus.Draft) {
       this.messageService.add({
@@ -369,7 +364,7 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    
+
     this.confirmationService.confirm({
       message: 'Êtes-vous sûr de vouloir supprimer cette demande de congé ?',
       header: 'Confirmation',
@@ -378,23 +373,22 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
         this.leaveRequestService.delete(request.id)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé supprimée avec succès'
-            });
-            this.loadLeaveRequests();
-          },
-          error: (error) => {
-            console.error('Error deleting leave request:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible de supprimer la demande de congé'
-            });
-          }
-        });
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Demande de congé supprimée avec succès'
+              });
+              this.loadLeaveRequests();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible de supprimer la demande de congé'
+              });
+            }
+          });
       }
     });
   }
@@ -417,27 +411,26 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
         const approvalDto = {
           comment: 'Demande annulée par l\'employé'
         };
-        
+
         this.leaveRequestService.cancel(request.id, approvalDto)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Demande de congé annulée avec succès'
-            });
-            this.loadLeaveRequests();
-          },
-          error: (error) => {
-            console.error('Error canceling leave request:', error);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: 'Impossible d\'annuler la demande de congé'
-            });
-          }
-        });
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Demande de congé annulée avec succès'
+              });
+              this.loadLeaveRequests();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: 'Impossible d\'annuler la demande de congé'
+              });
+            }
+          });
       }
     });
   }
@@ -478,23 +471,23 @@ export class LeaveRequestsComponent implements OnInit, OnDestroy {
         return 'Inconnu';
     }
   }
-  
+
   canEdit(request: LeaveRequest): boolean {
     return request.status === LeaveRequestStatus.Draft;
   }
-  
+
   canSubmit(request: LeaveRequest): boolean {
     return request.status === LeaveRequestStatus.Draft;
   }
-  
+
   canDelete(request: LeaveRequest): boolean {
     return request.status === LeaveRequestStatus.Draft;
   }
 
   canCancel(request: LeaveRequest): boolean {
     // Un employé peut annuler sa demande si elle est soumise ou même approuvée (avant la prise d'effet)
-    return request.status === LeaveRequestStatus.Submitted || 
-           (request.status === LeaveRequestStatus.Approved && new Date(request.startDate) > new Date());
+    return request.status === LeaveRequestStatus.Submitted ||
+      (request.status === LeaveRequestStatus.Approved && new Date(request.startDate) > new Date());
   }
 
   getLeaveTypeName(leaveTypeId: number): string {

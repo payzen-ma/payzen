@@ -1,117 +1,589 @@
-/* Styles Employee Dashboard
-   Objectif : harmoniser la palette avec les variables globales (design tokens)
-   afin que l'UI "Mon espace" suive le thème partout. */
+:host {
+  display: block;
+  min-height: 100%;
+}
 
-.employee-dashboard {
+/* Fond page aligné maquette Figma (Mon espace) — sans dégradé radial */
+section.employee-dashboard-page--workspace.payslip-page {
   background: var(--bg-page);
   color: var(--text-primary);
 }
 
-/* Typography mappings */
-.employee-dashboard .text-gray-900,
-.employee-dashboard .text-gray-950 {
-  color: var(--text-primary) !important;
+.employee-dashboard-page {
+  min-height: 100%;
+  color: var(--text-primary);
 }
 
-.employee-dashboard .text-gray-600 {
-  color: var(--text-secondary) !important;
+.employee-dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  box-sizing: border-box;
 }
 
-.employee-dashboard .text-gray-500,
-.employee-dashboard .text-gray-400 {
-  color: var(--text-muted) !important;
+.employee-dashboard-topbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 56px;
 }
 
-.employee-dashboard .text-success {
-  color: var(--success) !important;
+.employee-dashboard-heading-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
-/* Surfaces / cards */
-.employee-dashboard .bg-white {
-  background-color: var(--bg-element) !important;
+.employee-dashboard-title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
 }
 
-.employee-dashboard .bg-gray-100,
-.employee-dashboard .bg-gray-50 {
-  background-color: var(--bg-hover) !important;
+.employee-dashboard-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  color: var(--neutral-500);
 }
 
-.employee-dashboard .border-gray-100,
-.employee-dashboard .border-gray-50 {
-  border-color: var(--border-color-subtle) !important;
-}
-
-.employee-dashboard .bg-emerald-50 {
-  background-color: var(--success-light) !important;
-}
-
-.employee-dashboard .text-emerald-600 {
-  color: var(--success) !important;
-}
-
-.employee-dashboard .text-blue-600 {
-  color: var(--primary) !important;
-}
-
-.employee-dashboard .bg-blue-50 {
-  background-color: var(--primary-light) !important;
-}
-
-/* Spinner */
-.employee-dashboard .border-t-blue-600 {
-  border-top-color: var(--primary) !important;
-}
-
-/* Status pill */
-.status-pill {
-  background: var(--success-light);
-  color: var(--success);
-  border-radius: 9999px;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.status-active {
-  background: var(--success-light);
-  color: var(--success);
-}
-
-/* Document status */
-.doc-status {
+.employee-dashboard-chip,
+.employee-dashboard-status,
+.employee-dashboard-tag,
+.employee-dashboard-doc-chip,
+.employee-dashboard-inline-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 12px;
   font-weight: 600;
-  border: 1px solid transparent;
+  white-space: nowrap;
 }
 
-/* Leave progress color mapping used by DashboardService */
-.employee-dashboard .bg-success {
-  background-color: var(--success) !important;
+.employee-dashboard-chip {
+  background: var(--primary-100);
+  color: var(--primary-500);
+  padding: 6px 16px;
+  height: 32px;
+  box-sizing: border-box;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
-.employee-dashboard .bg-success-light {
-  background-color: var(--success-light) !important;
+.employee-dashboard-status {
+  background: #d1f9de;
+  color: var(--success);
+  padding: 4px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
-.doc-status-coming {
-  background: color-mix(in srgb, var(--warning-light) 35%, #ffffff);
-  color: var(--warning-dark);
+.employee-dashboard-state-card,
+.employee-dashboard-profile-card,
+.employee-dashboard-metric-card,
+.employee-dashboard-panel {
+  background: var(--bg-element);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.03);
 }
 
-.doc-status-action {
-  background: color-mix(in srgb, var(--info-light) 40%, #ffffff);
-  color: var(--primary);
+.employee-dashboard-state-card {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  color: var(--text-secondary);
+}
+
+.employee-dashboard-loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  border: 4px solid var(--border-subtle);
+  border-top-color: var(--primary);
+  animation: employeeDashboardSpin 1s linear infinite;
+}
+
+.employee-dashboard-profile-card {
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.employee-dashboard-profile-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.employee-dashboard-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: var(--primary-100);
+  color: var(--primary-500);
+  display: grid;
+  place-items: center;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.employee-dashboard-profile-copy {
+  min-width: 0;
+}
+
+.employee-dashboard-name {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.employee-dashboard-role {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.employee-dashboard-meta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.employee-dashboard-seniority {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 16px;
+  font-weight: 400;
+  text-align: right;
+}
+
+.employee-dashboard-profile-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.employee-dashboard-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.employee-dashboard-metric-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.employee-dashboard-metric-card--interactive {
+  text-align: left;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-.doc-status-action:hover {
-  background: color-mix(in srgb, var(--primary-light) 55%, #ffffff);
+.employee-dashboard-metric-card--interactive:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary-200);
+  box-shadow: var(--shadow-md);
 }
 
+.employee-dashboard-metric-label {
+  margin: 0;
+  color: #6a7282;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.employee-dashboard-metric-value {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.employee-dashboard-metric-caption {
+  margin: 0;
+  color: #4a5565;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  font-weight: 400;
+}
+
+.employee-dashboard-inline-status {
+  width: fit-content;
+  padding: 4px 10px;
+  margin-top: 2px;
+}
+
+.employee-dashboard-inline-status--info {
+  background: var(--info-light);
+  color: var(--info-text);
+}
+
+.employee-dashboard-inline-status--danger {
+  background: var(--danger-light);
+  color: var(--danger-text);
+}
+
+.employee-dashboard-content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.employee-dashboard-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.employee-dashboard-panel {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.employee-dashboard-panel-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.employee-dashboard-leave-list,
+.employee-dashboard-info-list,
+.employee-dashboard-payroll-list,
+.employee-dashboard-doc-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-dashboard-leave-list {
+  gap: 20px;
+}
+
+.employee-dashboard-info-list {
+  gap: var(--space-4);
+}
+
+.employee-dashboard-payroll-list {
+  gap: 12px;
+}
+
+.employee-dashboard-doc-list {
+  gap: var(--space-4);
+}
+
+.employee-dashboard-leave-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-dashboard-info-row {
+  padding: 8px 0 9px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.employee-dashboard-leave-head,
+.employee-dashboard-info-row,
+.employee-dashboard-payroll-row,
+.employee-dashboard-doc-row,
+.employee-dashboard-net-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.employee-dashboard-leave-label {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.employee-dashboard-leave-value {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.employee-dashboard-info-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.employee-dashboard-payroll-row > .employee-dashboard-info-label {
+  color: var(--text-secondary);
+}
+
+.employee-dashboard-payroll-value {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.employee-dashboard-info-value {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.employee-dashboard-net-label {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 21px;
+}
+
+.employee-dashboard-progress {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+.employee-dashboard-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.employee-dashboard-progress__fill--success {
+  background: var(--success);
+}
+
+.employee-dashboard-progress__fill--warning {
+  background: var(--warning);
+}
+
+.employee-dashboard-progress__fill--danger {
+  background: var(--danger);
+}
+
+.employee-dashboard-progress__fill--info {
+  background: var(--primary-500);
+}
+
+.employee-dashboard-progress__fill--muted {
+  background: var(--neutral-300);
+}
+
+.employee-dashboard-tag {
+  padding: 4px 10px;
+}
+
+.employee-dashboard-tag--success {
+  background: #d1f9de;
+  color: var(--success);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 3px 12px;
+}
+
+.employee-dashboard-tag--warning {
+  background: var(--warning-light);
+  color: var(--warning-text);
+}
+
+.employee-dashboard-tag--danger {
+  background: var(--danger-light);
+  color: var(--danger-text);
+}
+
+.employee-dashboard-tag--info {
+  background: var(--info-light);
+  color: var(--info-text);
+}
+
+.employee-dashboard-tag--muted {
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.employee-dashboard-payroll-value--positive {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.employee-dashboard-payroll-value--muted {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.employee-dashboard-payroll-row {
+  padding: 8px 0 9px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.employee-dashboard-net-row {
+  padding: 8px 0 0;
+  border-top: none;
+}
+
+.employee-dashboard-net-value {
+  color: var(--success);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.employee-dashboard-doc-row {
+  padding: var(--space-3) var(--space-3);
+  border: none;
+  border-radius: var(--radius-xl);
+  background: var(--bg-page);
+  transition: background var(--transition-base);
+}
+
+.employee-dashboard-doc-row:hover {
+  background: color-mix(in srgb, var(--neutral-200) 35%, var(--bg-page));
+}
+
+.employee-dashboard-doc-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.employee-dashboard-doc-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-items: center;
+  background: var(--bg-element);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.employee-dashboard-doc-copy {
+  min-width: 0;
+}
+
+.employee-dashboard-doc-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.employee-dashboard-doc-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.employee-dashboard-doc-chip {
+  border: 0;
+  padding: 8px 12px;
+}
+
+.employee-dashboard-doc-chip--coming {
+  background: color-mix(in srgb, var(--warning-light) 30%, white);
+  color: var(--warning-text);
+}
+
+.employee-dashboard-doc-chip--action {
+  background: var(--primary-100);
+  color: var(--primary-500);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 8px var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.employee-dashboard-doc-chip--action:hover {
+  background: var(--primary-200);
+}
+
+@keyframes employeeDashboardSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1120px) {
+
+  .employee-dashboard-metrics-grid,
+  .employee-dashboard-content-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .employee-dashboard-shell {
+    padding: 16px;
+  }
+
+  .employee-dashboard-header,
+  .employee-dashboard-profile-card,
+  .employee-dashboard-profile-main,
+  .employee-dashboard-profile-side,
+  .employee-dashboard-leave-head,
+  .employee-dashboard-info-row,
+  .employee-dashboard-payroll-row,
+  .employee-dashboard-doc-row,
+  .employee-dashboard-net-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .employee-dashboard-metrics-grid,
+  .employee-dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-dashboard-metric-value {
+    font-size: 34px;
+  }
+}

@@ -117,10 +117,10 @@ export class CompanyService {
     // Prioritize context company ID (for Expert Client View or Standard Context)
     // Fallback to Auth User's company ID (Legacy/Direct access)
     const companyId = this.contextService.companyId() || this.authService.currentUser()?.companyId;
-    
+
     if (!companyId) {
       // Fallback or error if no company ID is available
-      return of({} as Company); 
+      return of({} as Company);
     }
 
     return this.http.get<CompanyDto>(`${this.apiUrl}/companies/${companyId}`).pipe(
@@ -147,7 +147,7 @@ export class CompanyService {
 
   updateCompany(company: Partial<Company>): Observable<Company> {
     const companyId = company.id || this.contextService.companyId() || this.authService.currentUser()?.companyId;
-    
+
     if (!companyId) {
       return throwError(() => new Error('Company ID is required for update'));
     }
@@ -168,7 +168,6 @@ export class CompanyService {
     }
 
     // Debug: log the final payload to help trace why HR params may not be persisted
-    console.debug('[CompanyService] updateCompany payload:', { companyId, updateDto, rawCompany: company });
     const url = `${this.apiUrl}/companies/${companyId}`;
 
     return this.http.patch<CompanyDto>(url, updateDto).pipe(
@@ -296,7 +295,6 @@ export class CompanyService {
   }
 
   private mapDtoToCompany(dto: CompanyDto): Company {
-    console.debug('[CompanyService] mapping CompanyDto:', dto);
     // Resolve tax regime and legal form from possible backend fields
     const rawTax = (dto as any).taxRegime || (dto as any).TaxRegime || (dto as any).tax_regime || '';
     let resolvedTax: TaxRegime = TaxRegime.IS;

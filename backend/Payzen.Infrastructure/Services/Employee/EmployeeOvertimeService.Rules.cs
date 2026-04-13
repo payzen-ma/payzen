@@ -132,7 +132,12 @@ public partial class EmployeeOvertimeService
 
                 var totalScore = exactMatchBonus + specificityScore + standardPenalty + timeRangeScore - r.Priority;
 
-                return new { Rule = r, TotalScore = totalScore, FlagsCovered = flagsCovered };
+                return new
+                {
+                    Rule = r,
+                    TotalScore = totalScore,
+                    FlagsCovered = flagsCovered
+                };
             })
             .OrderByDescending(x => x.TotalScore)
             .ThenBy(x => x.Rule.Priority)

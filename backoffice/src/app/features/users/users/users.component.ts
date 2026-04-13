@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { UserService } from '../../../services/user.service';
-import { RoleService } from '../../../services/role.service';
-import { User } from '../../../models/user.model';
 import { Role } from '../../../models/role.model';
+import { User } from '../../../models/user.model';
+import { RoleService } from '../../../services/role.service';
+import { UserService } from '../../../services/user.service';
 
 @Component({
   selector: 'app-users',
@@ -23,7 +23,7 @@ export class UsersComponent implements OnInit {
   // Notifications
   notifications: { id: number; type: 'error' | 'success' | 'info'; message: string }[] = [];
   private nextNotificationId = 1;
-  
+
   // Modal state
   selectedUser: User | null = null;
   // Roles management (multi-role)
@@ -34,7 +34,7 @@ export class UsersComponent implements OnInit {
   constructor(
     private userService: UserService,
     private roleService: RoleService
-  ) {}
+  ) { }
 
   private extractApiError(err: any): string {
     try {
@@ -78,7 +78,6 @@ export class UsersComponent implements OnInit {
       error: (err) => {
         this.error = 'Erreur lors du chargement des utilisateurs';
         this.isLoading = false;
-        console.error('Error loading users:', err);
       }
     });
   }
@@ -90,7 +89,7 @@ export class UsersComponent implements OnInit {
         this.enrichUsersWithRoles();
       },
       error: (err) => {
-        console.error('Error loading roles:', err);
+        this.showNotification('Erreur lors du chargement des rôles', 'error');
       }
     });
   }
@@ -130,14 +129,12 @@ export class UsersComponent implements OnInit {
   // Open multi-role management modal
   openRolesModal(user: User) {
     if (!user) {
-      console.error('openRolesModal called with no user');
       this.showNotification('Utilisateur invalide', 'error');
       return;
     }
 
     const userId = (user as any).id ?? (user as any).Id ?? (user as any).userId ?? undefined;
     if (userId == null) {
-      console.error('openRolesModal: user has no id', user);
       this.showNotification('Impossible de charger les rôles : identifiant utilisateur manquant', 'error');
       return;
     }
@@ -153,13 +150,11 @@ export class UsersComponent implements OnInit {
         try {
           this.rolesSelection = (data || []).map((r: any) => r.Id ?? r.id ?? r.RoleId ?? r.roleId).filter((v: any) => v != null);
         } catch (e) {
-          console.error('Error mapping user roles', e);
           this.rolesSelection = [];
         }
         this.rolesLoading = false;
       },
       error: (err) => {
-        console.error('Error loading user roles:', err);
         this.showNotification(this.extractApiError(err) || 'Erreur lors du chargement des rôles utilisateur', 'error');
         this.rolesLoading = false;
       }
@@ -200,7 +195,6 @@ export class UsersComponent implements OnInit {
         this.closeRolesModal();
       },
       error: (err) => {
-        console.error('Error replacing roles for user:', err);
         // Fallback: try assignRoles (some backends may only support additive assign)
         this.userService.assignRoles(userId, this.rolesSelection).subscribe({
           next: () => {
@@ -213,7 +207,6 @@ export class UsersComponent implements OnInit {
             this.closeRolesModal();
           },
           error: (err2) => {
-            console.error('Fallback assignRoles also failed:', err2);
             this.showNotification(this.extractApiError(err2) || 'Erreur lors de la mise à jour des rôles', 'error');
           }
         });
@@ -228,7 +221,6 @@ export class UsersComponent implements OnInit {
         user.status = newStatus;
       },
       error: (err) => {
-        console.error('Error changing status:', err);
         const msg = this.extractApiError(err) || 'Erreur lors du changement de statut';
         this.showNotification(msg, 'error');
       }
@@ -236,8 +228,8 @@ export class UsersComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
+    return status === 'active'
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800';
   }
 

@@ -17,14 +17,14 @@ public class CompanyEventLogService : ICompanyEventLogService
     {
         _db.CompanyEventLogs.Add(new CompanyEventLog
         {
-            companyId   = companyId,
-            eventName   = eventName,
-            oldValue    = oldValue,
-            oldValueId  = oldValueId,
-            newValue    = newValue,
-            newValueId  = newValueId,
-            CreatedAt   = DateTimeOffset.UtcNow,
-            CreatedBy   = createdBy
+            companyId = companyId,
+            eventName = eventName,
+            oldValue = oldValue,
+            oldValueId = oldValueId,
+            newValue = newValue,
+            newValueId = newValueId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = createdBy
         });
         await _db.SaveChangesAsync(ct);
     }
@@ -45,14 +45,14 @@ public class EmployeeEventLogService : IEmployeeEventLogService
     {
         _db.EmployeeEventLogs.Add(new EmployeeEventLog
         {
-            employeeId  = employeeId,
-            eventName   = eventName,
-            oldValue    = oldValue,
-            oldValueId  = oldValueId,
-            newValue    = newValue,
-            newValueId  = newValueId,
-            CreatedAt   = DateTimeOffset.UtcNow,
-            CreatedBy   = createdBy
+            employeeId = employeeId,
+            eventName = eventName,
+            oldValue = oldValue,
+            oldValueId = oldValueId,
+            newValue = newValue,
+            newValueId = newValueId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = createdBy
         });
         await _db.SaveChangesAsync(ct);
     }
@@ -73,14 +73,14 @@ public class LeaveEventLogService : ILeaveEventLogService
     {
         _db.LeaveAuditLogs.Add(new LeaveAuditLog
         {
-            CompanyId      = companyId,
-            EmployeeId     = employeeId,
+            CompanyId = companyId,
+            EmployeeId = employeeId,
             LeaveRequestId = leaveRequestId,
-            EventName      = eventName,
-            OldValue       = oldValue,
-            NewValue       = newValue,
-            CreatedAt      = DateTimeOffset.UtcNow,
-            CreatedBy      = createdBy
+            EventName = eventName,
+            OldValue = oldValue,
+            NewValue = newValue,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = createdBy
         });
         await _db.SaveChangesAsync(ct);
     }

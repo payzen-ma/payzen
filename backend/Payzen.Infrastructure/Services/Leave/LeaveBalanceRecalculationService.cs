@@ -18,8 +18,16 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
     private static void GetPreviousMonth(int year, int month, out int prevYear, out int prevMonth)
     {
-        if (month == 1) { prevYear = year - 1; prevMonth = 12; }
-        else { prevYear = year; prevMonth = month - 1; }
+        if (month == 1)
+        {
+            prevYear = year - 1;
+            prevMonth = 12;
+        }
+        else
+        {
+            prevYear = year;
+            prevMonth = month - 1;
+        }
     }
 
     /// <summary>
@@ -38,7 +46,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         GetPreviousMonth(year, month, out int prevYear, out int prevMonth);
 
         var contractStart = await GetEmployeeContractStartAsync(employeeId, ct);
-        if (contractStart == null) return 0m;
+        if (contractStart == null)
+            return 0m;
 
         var contractYear = contractStart.Value.Year;
         var contractMonth = contractStart.Value.Month;

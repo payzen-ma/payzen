@@ -1,26 +1,26 @@
-import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { SelectModule } from 'primeng/select';
-import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ContractTypeService } from '../../../../core/services/contract-type.service';
-import { LegalContractTypeService, LegalContractTypeOption } from '../../../../core/services/legal-contract-type.service';
-import { StateEmploymentProgramService, StateEmploymentProgramOption } from '../../../../core/services/state-employment-program.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CompanyContextService } from '../../../../core/services/companyContext.service';
-import { ContractType } from '../../../../core/models/contract-type.model';
-import { HttpErrorResponse } from '@angular/common/http';
+import { ToastModule } from 'primeng/toast';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ContractType } from '../../../../core/models/contract-type.model';
+import { CompanyContextService } from '../../../../core/services/companyContext.service';
+import { ContractTypeService } from '../../../../core/services/contract-type.service';
+import { LegalContractTypeOption, LegalContractTypeService } from '../../../../core/services/legal-contract-type.service';
+import { StateEmploymentProgramOption, StateEmploymentProgramService } from '../../../../core/services/state-employment-program.service';
 
 @Component({
   selector: 'app-contract-type-tab',
@@ -62,7 +62,7 @@ export class ContractTypeTabComponent implements OnInit {
   loading = signal(false);
   dialogVisible = signal(false);
   submitLoading = signal(false);
-  
+
   // Form
   contractTypeForm!: FormGroup;
   isEditMode = false;
@@ -89,11 +89,9 @@ export class ContractTypeTabComponent implements OnInit {
   private loadReferentialData() {
     forkJoin({
       legalTypes: this.legalContractTypeService.getOptions().pipe(catchError((err) => {
-        console.error('[ContractTypeTab] Error loading legal types:', err);
         return of([]);
       })),
       programs: this.stateEmploymentProgramService.getOptions().pipe(catchError((err) => {
-        console.error('[ContractTypeTab] Error loading programs:', err);
         return of([]);
       }))
     }).subscribe({
@@ -102,7 +100,7 @@ export class ContractTypeTabComponent implements OnInit {
         this.stateEmploymentProgramOptions.set(programs);
       },
       error: (err) => {
-        console.error('[ContractTypeTab] Error loading referential data', err);
+        alert('Failed to load referential data');
       }
     });
   }
@@ -119,7 +117,6 @@ export class ContractTypeTabComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading contract types', err);
         this.loading.set(false);
         this.messageService.add({
           severity: 'error',
@@ -139,7 +136,7 @@ export class ContractTypeTabComponent implements OnInit {
 
   searchContractTypes(event: any) {
     const query = event.query.toLowerCase();
-    const filtered = this.predefinedContractTypes().filter(c => 
+    const filtered = this.predefinedContractTypes().filter(c =>
       c.contractTypeName.toLowerCase().includes(query)
     );
     this.filteredContractTypes.set(filtered);
@@ -190,8 +187,8 @@ export class ContractTypeTabComponent implements OnInit {
           this.submitLoading.set(false);
           this.dialogVisible.set(false);
           this.loadContractTypes();
-          this.messageService.add({ 
-            severity: 'success', 
+          this.messageService.add({
+            severity: 'success',
             summary: this.translate.instant('common.success'),
             detail: this.translate.instant('company.contractTypes.messages.updateSuccess')
           });
@@ -215,8 +212,8 @@ export class ContractTypeTabComponent implements OnInit {
           this.submitLoading.set(false);
           this.dialogVisible.set(false);
           this.loadContractTypes();
-          this.messageService.add({ 
-            severity: 'success', 
+          this.messageService.add({
+            severity: 'success',
             summary: this.translate.instant('common.success'),
             detail: this.translate.instant('company.contractTypes.messages.createSuccess')
           });
@@ -258,7 +255,7 @@ export class ContractTypeTabComponent implements OnInit {
 
   private handleError(err: HttpErrorResponse) {
     let detail = this.translate.instant('common.error');
-    
+
     if (err.status === 409) {
       detail = this.translate.instant('company.contractTypes.messages.alreadyExists');
     } else if (err.status === 400) {

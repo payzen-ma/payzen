@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { DashboardService } from '../../services/dashboard.service';
 import { DashboardSummary, RecentCompany } from '../../models/dashboard.model';
+import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -69,7 +69,7 @@ export class DashboardComponent implements OnInit {
         this.recentCompanies = s.recentCompanies || [];
         this.isLoading = false;
       },
-      error: (err) => { this.error = 'Erreur lors du chargement des métriques'; console.error(err); this.isLoading = false; }
+      error: (err) => { this.error = 'Erreur lors du chargement des métriques'; this.isLoading = false; }
     });
   }
 

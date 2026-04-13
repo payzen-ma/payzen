@@ -12,14 +12,32 @@ public class ReferentielElement : BaseEntity
 {
 
     [MaxLength(100)]
-    public string? Code { get; set; }
+    public string? Code
+    {
+        get; set;
+    }
 
-    public required string Name { get; set; }
-    public int CategoryId { get; set; }
-    public string? Description { get; set; }
-    public PaymentFrequency DefaultFrequency { get; set; }
+    public required string Name
+    {
+        get; set;
+    }
+    public int CategoryId
+    {
+        get; set;
+    }
+    public string? Description
+    {
+        get; set;
+    }
+    public PaymentFrequency DefaultFrequency
+    {
+        get; set;
+    }
     public ElementStatus Status { get; set; } = ElementStatus.DRAFT;
-    public bool HasConvergence { get; set; }
+    public bool HasConvergence
+    {
+        get; set;
+    }
     public bool IsActive { get; set; } = true;
 
     // Navigation
@@ -40,8 +58,9 @@ public class ReferentielElement : BaseEntity
     public bool IsConvergence(DateOnly? asOfDate = null)
     {
         var cnssRule = GetRuleForAuthority("CNSS", asOfDate);
-        var irRule   = GetRuleForAuthority("IR",   asOfDate);
-        if (cnssRule == null || irRule == null) return false;
+        var irRule = GetRuleForAuthority("IR", asOfDate);
+        if (cnssRule == null || irRule == null)
+            return false;
         return cnssRule.ExemptionType == irRule.ExemptionType;
     }
 }

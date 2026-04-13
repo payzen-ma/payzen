@@ -72,6 +72,7 @@ export interface Employee {
   professionalEmail: string;
   personalEmail: string;
   phone: string;
+  countryPhoneCode?: string;
   address: string;
   countryId?: number;
   countryName?: string;

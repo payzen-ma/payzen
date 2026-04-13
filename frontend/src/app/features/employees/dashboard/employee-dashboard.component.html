@@ -1,203 +1,186 @@
-<section class="employee-dashboard min-h-screen p-6 lg:p-8 font-sans">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Mon espace</h1>
-      <p class="text-gray-500 text-sm mt-1">{{ paidDate || '—' }}</p>
-    </div>
-    <div class="bg-blue-50 text-blue-600 rounded-full px-4 py-1.5 text-sm font-medium">Employé</div>
-  </div>
+<section class="payslip-page bulletin-page employee-dashboard-page employee-dashboard-page--workspace">
+  <div class="payslip-shell bulletin-shell employee-dashboard-shell">
+    <header class="employee-dashboard-topbar">
+      <div class="employee-dashboard-heading-block">
+        <h1 class="employee-dashboard-title">Mon espace</h1>
+        <p class="employee-dashboard-subtitle">{{ paidDate || 'Dernière paie non disponible' }}</p>
+      </div>
+      <span class="employee-dashboard-chip">Employé</span>
+    </header>
 
-  @if (!isLoading) {
-  <!-- Profile Card -->
-  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="flex items-center gap-6">
-        <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold shrink-0">
-          {{ initials }}
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-gray-900">{{ employeeName }}</h2>
-          <p class="text-gray-500 text-sm mt-1">{{ role }} · {{ department }}</p>
-          <p class="text-gray-400 text-xs mt-1">{{ contractType }} · Matricule {{ matricule }} · Manager : {{ manager }}</p>
-        </div>
-      </div>
-      <div class="md:text-right flex flex-col items-start md:items-end">
-        <div class="status-pill status-active rounded-full px-4 py-1 text-sm font-medium mb-2">Actif</div>
-        <p class="text-gray-400 text-xs">Ancienneté : {{ seniority }}</p>
-      </div>
-    </div>
-  </div>
+    @if (isLoading) {
+    <article class="payslip-card bulletin-card employee-dashboard-state-card">
+      <div class="employee-dashboard-loader"></div>
+      <p>Chargement des données...</p>
+    </article>
+    } @else {
+    <article class="payslip-card bulletin-card employee-dashboard-profile-card">
+      <div class="employee-dashboard-profile-main">
+        <div class="employee-dashboard-avatar">{{ initials }}</div>
 
-  <!-- KPI Cards Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <!-- Salaire Net -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
-      <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">SALAIRE NET</p>
-      <div>
-        <div class="text-3xl font-bold text-gray-900 mb-1">
-          {{ salaryNet > 0 ? (salaryNet | number:'1.0-0') : '—' }}
+        <div class="employee-dashboard-profile-copy">
+          <h2 class="employee-dashboard-name">{{ employeeName }}</h2>
+          <p class="employee-dashboard-role">{{ role }} · {{ department }}</p>
+          <p class="employee-dashboard-meta">{{ contractType }} · Matricule {{ matricule }} · Manager : {{ manager }}
+          </p>
         </div>
-        <p class="text-gray-400 text-xs">MAD · versé le {{ paidDate || '—' }}</p>
       </div>
-    </div>
-    <!-- Congés Restants -->
-    <div
-      class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between cursor-pointer transition hover:border-blue-200 hover:shadow-md"
-      (click)="recalculateLeaves()"
-      title="Cliquer pour recalculer les soldes de congé"
-    >
-      <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">CONGÉS RESTANTS</p>
-      <div>
-        <div class="text-3xl font-bold text-gray-900 mb-1">
-          {{ leavesRemaining > 0 ? ((leavesRemaining | number:'1.0-2') + ' j') : '—' }}
-        </div>
-        <p class="text-gray-400 text-xs">
-          {{ leavesTotal > 0 ? ('sur ' + (leavesTotal | number:'1.0-2') + ' annuels') : '—' }}
-        </p>
+
+      <div class="employee-dashboard-profile-side">
+        <span class="employee-dashboard-status">Actif</span>
+        <p class="employee-dashboard-seniority">Ancienneté : {{ seniority }}</p>
+      </div>
+    </article>
+
+    <section class="employee-dashboard-metrics-grid" aria-label="Indicateurs instantanés">
+      <article class="payslip-card bulletin-card employee-dashboard-metric-card">
+        <p class="employee-dashboard-metric-label">SALAIRE NET</p>
+        <p class="employee-dashboard-metric-value">{{ salaryNet > 0 ? (salaryNet | number:'1.0-0') : '—' }}</p>
+        <p class="employee-dashboard-metric-caption">MAD · versé le {{ paidDate || '—' }}</p>
+      </article>
+
+      <button type="button"
+        class="payslip-card bulletin-card employee-dashboard-metric-card employee-dashboard-metric-card--interactive"
+        (click)="recalculateLeaves()">
+        <p class="employee-dashboard-metric-label">CONGÉS RESTANTS</p>
+        <p class="employee-dashboard-metric-value">{{ leavesRemaining > 0 ? ((leavesRemaining | number:'1.0-2') + ' j')
+          : '—' }}</p>
+        <p class="employee-dashboard-metric-caption">{{ leavesTotal > 0 ? ('sur ' + (leavesTotal | number:'1.0-2') + '
+          annuels') : '—' }}</p>
         @if (isRecalculatingLeaves) {
-          <p class="text-blue-600 text-xs mt-2">Recalcul en cours...</p>
+        <span class="employee-dashboard-inline-status employee-dashboard-inline-status--info">Recalcul en
+          cours...</span>
         }
         @if (leaveRecalcError) {
-          <p class="text-red-600 text-xs mt-2">{{ leaveRecalcError }}</p>
+        <span class="employee-dashboard-inline-status employee-dashboard-inline-status--danger">{{ leaveRecalcError
+          }}</span>
         }
-      </div>
-    </div>
-    <!-- Présences -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
-      <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">PRÉSENCES</p>
-      <div>
-        <div class="text-3xl font-bold text-gray-900 mb-1">
-          {{ presenceDays > 0 || presenceTotal > 0 ? (presenceDays + ' / ' + presenceTotal) : '—' }}
-        </div>
-        <p class="text-gray-400 text-xs">jours ouvrés</p>
-      </div>
-    </div>
-    <!-- Heures Sup -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
-      <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">HEURES SUPPLÉMENTAIRES</p>
-      <div>
-        <div class="text-3xl font-bold text-gray-900 mb-1">
-          {{ extraHours > 0 ? ((extraHours | number:'1.0-0') + ' h') : '—' }}
-        </div>
-        <p class="text-gray-400 text-xs">En attente validation</p>
-      </div>
-    </div>
-  </div>
+      </button>
 
-  <!-- 2 Columns Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    
-    <!-- Left Column -->
-    <div class="space-y-6">
-      <!-- Soldes de congé -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-base font-bold text-gray-900 mb-6">Soldes de congé</h3>
-        <div class="space-y-5">
-          @for (leave of leavesDetails; track leave.label) {
-            <div>
-              <div class="flex justify-between items-center text-sm mb-2">
-                <span class="text-gray-600">{{ leave.label }}</span>
-                <span class="text-gray-500 text-xs font-medium">
+      <article class="payslip-card bulletin-card employee-dashboard-metric-card">
+        <p class="employee-dashboard-metric-label">PRÉSENCES</p>
+        <p class="employee-dashboard-metric-value">{{ presenceDays > 0 || presenceTotal > 0 ? (presenceDays + ' / ' +
+          presenceTotal) : '—' }}</p>
+        <p class="employee-dashboard-metric-caption">jours ouvrés</p>
+      </article>
+
+      <article class="payslip-card bulletin-card employee-dashboard-metric-card">
+        <p class="employee-dashboard-metric-label">HEURES SUPPLÉMENTAIRES</p>
+        <p class="employee-dashboard-metric-value">{{ extraHours > 0 ? ((extraHours | number:'1.0-0') + ' h') : '—' }}
+        </p>
+        <p class="employee-dashboard-metric-caption">En attente validation</p>
+      </article>
+    </section>
+
+    <section class="employee-dashboard-content-grid">
+      <div class="employee-dashboard-column">
+        <article class="payslip-card bulletin-card employee-dashboard-panel">
+          <h3 class="employee-dashboard-panel-title">Soldes de congé</h3>
+
+          <div class="employee-dashboard-leave-list">
+            @for (leave of leavesDetails; track leave.label) {
+            <div class="employee-dashboard-leave-item">
+              <div class="employee-dashboard-leave-head">
+                <span class="employee-dashboard-leave-label">{{ leave.label }}</span>
+                <span class="employee-dashboard-leave-value">
                   @if (leave.isText) {
-                    {{ leave.text }}
+                  {{ leave.text }}
                   } @else {
-                    {{ (leave.remaining || 0) | number:'1.0-2' }} j restants / {{ (leave.total || 0) | number:'1.0-2' }}
+                  {{ (leave.remaining || 0) | number:'1.0-2' }} j restants / {{ (leave.total || 0) | number:'1.0-2' }}
                   }
                 </span>
               </div>
-              <div class="w-full bg-gray-100 rounded-full h-2.5">
-                @if (!leave.isText) {
-                  <div class="{{ leave.colorClass }} h-2.5 rounded-full" [style.width.%]="((leave.remaining || 0) / (leave.total || 1)) * 100"></div>
-                } @else {
-                  <div class="{{ leave.colorClass }} h-2.5 rounded-full w-full"></div>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
 
-      <!-- Mes informations contrat -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-base font-bold text-gray-900 mb-6">Mes informations contrat</h3>
-        <div class="space-y-4">
-          @for (info of contractInfo; track info.label) {
-            <div class="flex justify-between items-center border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-              <span class="text-gray-500 text-sm">{{ info.label }}</span>
-              @if (info.isTag) {
-                <span class="bg-emerald-50 text-emerald-600 rounded-full px-3 py-0.5 text-xs font-medium">{{ info.value }}</span>
+              @if (!leave.isText) {
+              <div class="employee-dashboard-progress">
+                <div [class]="getLeaveToneClass(leave.colorClass)"
+                  [style.width.%]="((leave.remaining || 0) / (leave.total || 1)) * 100"></div>
+              </div>
               } @else {
-                <span class="text-gray-900 text-sm font-medium">{{ info.value }}</span>
+              <div class="employee-dashboard-progress">
+                <div [class]="getLeaveToneClass(leave.colorClass)" style="width: 100%"></div>
+              </div>
               }
             </div>
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column -->
-    <div class="space-y-6">
-      <!-- Bulletin de paie -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-base font-bold text-gray-900 mb-6">Bulletin de paie — {{ paidDate || '—' }}</h3>
-        <div class="space-y-3">
-          @for (item of payslipDetails; track item.label) {
-            @if (item.type !== 'net') {
-              <div class="flex justify-between items-center text-sm line-item pb-3" [class.border-b]="true" [class.border-gray-100]="true">
-                <span class="text-gray-600">{{ item.label }}</span>
-                <span [class.text-gray-900]="item.type === 'normal'" [class.text-gray-500]="item.type === 'deduction'" [class.font-medium]="item.type === 'normal'">
-                  {{ item.value }}
-                </span>
-              </div>
             }
-          }
-          <!-- Net à payer -->
-            <div class="flex justify-between items-center pt-3 pb-1">
-            <span class="text-gray-900 font-bold">Net à payer</span>
-            <span class="text-success font-bold text-lg">
-              {{ salaryNet > 0 ? ((salaryNet | number:'1.0-0') + ' MAD') : '—' }}
-            </span>
           </div>
-        </div>
-      </div>
+        </article>
 
-      <!-- Mes documents -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-base font-bold text-gray-900 mb-6">Mes documents</h3>
-        <div class="space-y-4">
-          @for (doc of documents; track doc.title) {
-            <div class="flex justify-between items-center bg-gray-50/50 rounded-xl p-3 border border-transparent hover:border-gray-100 transition-colors">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white shadow-sm border border-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                  <i class="pi pi-file" style="font-size: 1.1rem"></i>
-                </div>
-                <div>
-                  <h4 class="text-gray-900 font-medium text-sm">{{ doc.title }}</h4>
-                  <p class="text-gray-400 text-xs">{{ doc.subtitle }}</p>
-                </div>
-              </div>
-              <div>
-                @if (doc.status === 'À venir') {
-                  <span class="doc-status doc-status-coming">{{ doc.status }}</span>
-                } @else {
-                  <button class="doc-status doc-status-action" type="button">
-                    {{ doc.status }}
-                  </button>
-                }
-              </div>
+        <article class="payslip-card bulletin-card employee-dashboard-panel">
+          <h3 class="employee-dashboard-panel-title">Mes informations contrat</h3>
+
+          <div class="employee-dashboard-info-list">
+            @for (info of contractInfo; track info.label) {
+            <div class="employee-dashboard-info-row">
+              <span class="employee-dashboard-info-label">{{ info.label }}</span>
+
+              @if (info.isTag) {
+              <span [class]="getTagToneClass(info.tagColor)">{{ info.value }}</span>
+              } @else {
+              <span class="employee-dashboard-info-value">{{ info.value }}</span>
+              }
             </div>
-          }
-        </div>
+            }
+          </div>
+        </article>
       </div>
-    </div>
 
+      <div class="employee-dashboard-column">
+        <article class="payslip-card bulletin-card employee-dashboard-panel">
+          <h3 class="employee-dashboard-panel-title">Bulletin de paie — {{ paidDate || '—' }}</h3>
+
+          <div class="employee-dashboard-payroll-list">
+            @for (item of payslipDetails; track item.label) {
+            @if (item.type !== 'net') {
+            <div class="employee-dashboard-payroll-row">
+              <span class="employee-dashboard-info-label">{{ item.label }}</span>
+              <span class="employee-dashboard-payroll-value"
+                [class.employee-dashboard-payroll-value--positive]="item.type === 'normal'"
+                [class.employee-dashboard-payroll-value--muted]="item.type === 'deduction'">
+                {{ item.value }}
+              </span>
+            </div>
+            }
+            }
+
+            <div class="employee-dashboard-net-row">
+              <span class="employee-dashboard-net-label">Net à payer</span>
+              <span class="employee-dashboard-net-value">{{ salaryNet > 0 ? ((salaryNet | number:'1.0-0') + ' MAD') :
+                '—' }}</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="payslip-card bulletin-card employee-dashboard-panel">
+          <h3 class="employee-dashboard-panel-title">Mes documents</h3>
+
+          <div class="employee-dashboard-doc-list">
+            @for (doc of documents; track doc.title) {
+            <div class="employee-dashboard-doc-row">
+              <div class="employee-dashboard-doc-main">
+                <div class="employee-dashboard-doc-icon">
+                  <i class="pi pi-file" aria-hidden="true"></i>
+                </div>
+
+                <div class="employee-dashboard-doc-copy">
+                  <h4 class="employee-dashboard-doc-title">{{ doc.title }}</h4>
+                  <p class="employee-dashboard-doc-subtitle">{{ doc.subtitle }}</p>
+                </div>
+              </div>
+
+              @if (doc.status === 'À venir') {
+              <span class="employee-dashboard-doc-chip employee-dashboard-doc-chip--coming">{{ doc.status }}</span>
+              } @else {
+              <button class="employee-dashboard-doc-chip employee-dashboard-doc-chip--action" type="button">
+                {{ doc.status }}
+              </button>
+              }
+            </div>
+            }
+          </div>
+        </article>
+      </div>
+    </section>
+    }
   </div>
-  } @else {
-  <!-- Loading Spinner -->
-  <div class="flex flex-col items-center justify-center py-32 space-y-4">
-    <div class="w-12 h-12 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
-    <p class="text-gray-500 font-medium">Chargement des données...</p>
-  </div>
-  }
 </section>

@@ -262,13 +262,13 @@ public partial class EmployeeOvertimeService : IEmployeeOvertimeService
         {
             var companyId = user.Employee.CompanyId;
             isRhSameCompany = await (from ur in _db.UsersRoles.AsNoTracking()
-                join r in _db.Roles.AsNoTracking() on ur.RoleId equals r.Id
-                join u in _db.Users.AsNoTracking() on ur.UserId equals u.Id
-                join e in _db.Employees.AsNoTracking() on u.EmployeeId equals e.Id
-                where ur.UserId == userId
-                      && r.Name.Equals("RH", StringComparison.OrdinalIgnoreCase)
-                      && e.CompanyId == companyId
-                select 1).AnyAsync(ct);
+                                     join r in _db.Roles.AsNoTracking() on ur.RoleId equals r.Id
+                                     join u in _db.Users.AsNoTracking() on ur.UserId equals u.Id
+                                     join e in _db.Employees.AsNoTracking() on u.EmployeeId equals e.Id
+                                     where ur.UserId == userId
+                                           && r.Name.Equals("RH", StringComparison.OrdinalIgnoreCase)
+                                           && e.CompanyId == companyId
+                                     select 1).AnyAsync(ct);
         }
 
         if (user?.EmployeeId != overtime.EmployeeId && !isRhSameCompany)
@@ -305,7 +305,8 @@ public partial class EmployeeOvertimeService : IEmployeeOvertimeService
             .Include(x => x.Employee)
             .Include(x => x.Holiday)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (o == null) return null;
+        if (o == null)
+            return null;
 
         var approverName = await GetApproverNameAsync(o.ApprovedBy, ct);
         return MapToReadDto(o, approverName);
@@ -313,7 +314,8 @@ public partial class EmployeeOvertimeService : IEmployeeOvertimeService
 
     private async Task<string?> GetApproverNameAsync(int? approvedBy, CancellationToken ct)
     {
-        if (!approvedBy.HasValue) return null;
+        if (!approvedBy.HasValue)
+            return null;
         var u = await _db.Users.AsNoTracking()
             .Include(x => x.Employee)
             .FirstOrDefaultAsync(x => x.Id == approvedBy.Value && x.DeletedAt == null, ct);

@@ -80,7 +80,7 @@ export class LeaveTypesPage implements OnInit {
     { label: 'Entreprise', value: LeaveScope.Company }
   ]);
 
-  readonly dialogTitle = computed(() => 
+  readonly dialogTitle = computed(() =>
     this.isEditMode() ? 'leave.types.edit' : 'leave.types.add'
   );
 
@@ -202,13 +202,12 @@ export class LeaveTypesPage implements OnInit {
       error: (err: any) => {
         this.error.set(err.error?.message || 'Échec du chargement des types de congés');
         this.isLoading.set(false);
-        console.error('Error loading leave types:', err);
       }
     });
   }
 
   getScopeLabel(scope: number): string {
-    return scope === LeaveScope.Global 
+    return scope === LeaveScope.Global
       ? this.translate.instant('leave.types.global')
       : this.translate.instant('leave.types.company');
   }
@@ -241,7 +240,7 @@ export class LeaveTypesPage implements OnInit {
 
   editLeaveType(leaveType: LeaveType, event: Event): void {
     event.stopPropagation();
-    
+
     if (leaveType.Scope === LeaveScope.Global) {
       this.messageService.add({
         severity: 'warn',
@@ -250,7 +249,7 @@ export class LeaveTypesPage implements OnInit {
       });
       return;
     }
-    
+
     this.selectedLeaveType.set(leaveType);
     this.isEditMode.set(true);
     this.patchForm(leaveType);

@@ -72,7 +72,6 @@ export class HrEmployeesComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading employees', err);
         this.isLoading.set(false);
       }
     });
@@ -125,7 +124,6 @@ export class HrEmployeesComponent implements OnInit {
         this.closeDialog();
       },
       error: (err) => {
-        console.error('Error declaring overtime', err);
         this.message.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: this.translate.instant('overtime.errors.createFailed') });
       }
     });

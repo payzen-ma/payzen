@@ -1,25 +1,23 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { DialogModule } from 'primeng/dialog';
-import { DatePickerModule } from 'primeng/datepicker';
-import { TextareaModule } from 'primeng/textarea';
-import { CardModule } from 'primeng/card';
-import { TooltipModule } from 'primeng/tooltip';
+import { Router } from '@angular/router';
+import { AbsenceDurationType, AbsenceType, CreateAbsenceRequest } from '@app/core/models/absence.model';
 import { AbsenceService } from '@app/core/services/absence.service';
-import { EmployeeService } from '@app/core/services/employee.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { Absence } from '@app/core/models/absence.model';
-import { AbsenceType, AbsenceDurationType, CreateAbsenceRequest } from '@app/core/models/absence.model';
-import { TranslateService } from '@ngx-translate/core';
+import { EmployeeService } from '@app/core/services/employee.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface EmployeeAbsenceSummary {
   employeeId: number;
@@ -165,7 +163,7 @@ export class TeamAbsencesComponent implements OnInit {
         this.loadTeamAbsences();
       },
       error: (err) => {
-        console.error('Failed to grant absence', err);
+        alert('Failed to grant absence');
       }
     });
   }
@@ -193,7 +191,7 @@ export class TeamAbsencesComponent implements OnInit {
   loadTeamAbsences() {
     this.isLoading.set(true);
     const user = this.authService.currentUser();
-    
+
     if (!user || !user.employee_id) {
       this.isLoading.set(false);
       return;
@@ -232,14 +230,15 @@ export class TeamAbsencesComponent implements OnInit {
                 totalDays: current.totalDays + (response.stats?.totalDays ?? 0)
               }));
             },
-            error: (err) => console.error(`Failed to load stats for subordinate ${emp.id}`, err)
+            error: (err) => {
+              alert('Failed to load stats for subordinate');
+            }
           });
         });
 
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load subordinates', err);
         this.isLoading.set(false);
       }
     });
@@ -263,7 +262,7 @@ export class TeamAbsencesComponent implements OnInit {
     if (!query) {
       return this.employees();
     }
-    return this.employees().filter(emp => 
+    return this.employees().filter(emp =>
       emp.employeeName.toLowerCase().includes(query)
     );
   }

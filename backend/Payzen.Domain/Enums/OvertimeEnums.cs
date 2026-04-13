@@ -1,4 +1,4 @@
-﻿namespace Payzen.Domain.Enums;
+namespace Payzen.Domain.Enums;
 
 /// <summary>
 /// Type d'heures supplémentaires.

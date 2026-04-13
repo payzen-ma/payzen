@@ -1,47 +1,47 @@
-import { Component, signal, OnInit, inject, computed, HostListener, DestroyRef, effect } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TabsModule } from 'primeng/tabs';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { TextareaModule } from 'primeng/textarea';
-import { TagModule } from 'primeng/tag';
-import { AvatarModule } from 'primeng/avatar';
-import { FileUploadModule } from 'primeng/fileupload';
-import { TimelineModule } from 'primeng/timeline';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TooltipModule } from 'primeng/tooltip';
-import { ChipModule } from 'primeng/chip';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { CheckboxModule } from 'primeng/checkbox';
+import { Component, computed, DestroyRef, effect, HostListener, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CanComponentDeactivate } from '@app/core/guards/unsaved-changes.guard';
+import { ContractType } from '@app/core/models/contract-type.model';
+import { Child, Employee as EmployeeProfileModel, Spouse } from '@app/core/models/employee.model';
+import { JobPosition } from '@app/core/models/job-position.model';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { ContractTypeService } from '@app/core/services/contract-type.service';
+import { DraftService } from '@app/core/services/draft.service';
+import { EmployeeCategoryService } from '@app/core/services/employee-category.service';
 import {
-  EmployeeService,
   EmployeeFormData,
+  EmployeeService,
   LookupOption,
   NonImposableOption
 } from '@app/core/services/employee.service';
-import { JobPositionService } from '@app/core/services/job-position.service';
-import { ContractTypeService } from '@app/core/services/contract-type.service';
-import { EmployeeCategoryService } from '@app/core/services/employee-category.service';
 import { FamilyService } from '@app/core/services/family.service';
-import { JobPosition } from '@app/core/models/job-position.model';
-import { ContractType } from '@app/core/models/contract-type.model';
-import { Employee as EmployeeProfileModel, EmployeeEvent, Spouse, Child } from '@app/core/models/employee.model';
-import { DraftService } from '@app/core/services/draft.service';
-import { ChangeTracker, ChangeSet } from '@app/core/utils/change-tracker.util';
+import { JobPositionService } from '@app/core/services/job-position.service';
+import { ToastService } from '@app/core/services/toast.service';
+import { ChangeSet, ChangeTracker } from '@app/core/utils/change-tracker.util';
 import { ChangeConfirmationDialog } from '@app/shared/components/change-confirmation-dialog/change-confirmation-dialog';
 import { UnsavedChangesDialog } from '@app/shared/components/unsaved-changes-dialog/unsaved-changes-dialog';
-import { CanComponentDeactivate } from '@app/core/guards/unsaved-changes.guard';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, of, firstValueFrom, forkJoin } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AvatarModule } from 'primeng/avatar';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ChipModule } from 'primeng/chip';
+import { FileUploadModule } from 'primeng/fileupload';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TabsModule } from 'primeng/tabs';
+import { TextareaModule } from 'primeng/textarea';
+import { TimelineModule } from 'primeng/timeline';
+import { TooltipModule } from 'primeng/tooltip';
+import { firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { TagComponent } from '../../../shared/components/tag/tag.component';
@@ -102,13 +102,14 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   private familyService = inject(FamilyService);
   private destroyRef = inject(DestroyRef);
   private contextService = inject(CompanyContextService);
+  private toastService = inject(ToastService);
 
   // Route prefix based on current context mode
   readonly routePrefix = computed(() => this.contextService.isExpertMode() ? '/expert' : '/app');
 
   private readonly AUTO_SAVE_DEBOUNCE = 800; // 800ms debounce for better UX
   private readonly ENTITY_TYPE = 'employee_profile';
-  
+
   private isRestoringDraft = false;
   private lastSerializedEmployee = '';
   private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -153,7 +154,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   readonly isSaving = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
-  
+
   // Draft & Change Tracking State
   readonly lastAutoSave = signal<Date | null>(null);
   readonly draftRestored = signal(false);
@@ -164,7 +165,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       .filter(([_, set]) => set.hasChanges)
       .map(([tab]) => tab)
   );
-  
+
   // Dialog State
   readonly showConfirmDialog = signal(false);
   readonly showUnsavedDialog = signal(false);
@@ -257,7 +258,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   readonly historySearchQuery = signal('');
   readonly historyFiltersExpanded = signal(false);
   readonly selectedHistoryTypes = signal<string[]>([]);
-  
+
   // Computed filtered history
   readonly filteredHistory = computed(() => {
     let events = this.history();
@@ -291,8 +292,8 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     const types = Array.from(new Set(this.history().map(e => e.type).filter(Boolean)));
     const humanize = (t: string) => {
       return t.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-              .replace(/_/g, ' ')
-              .replace(/\b\w/g, ch => ch.toUpperCase());
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, ch => ch.toUpperCase());
     };
 
     return types.map(t => {
@@ -335,12 +336,46 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       );
     };
 
+    // Map IDs to canonical lowercase codes
+    const idToCodeMap: { [key: number]: EmployeeProfileModel['maritalStatus'] } = {
+      1: 'single',
+      2: 'married',
+      3: 'divorced',
+      4: 'widowed'
+    };
+
     if (formItems && formItems.length > 0) {
-      return formItems.map((o: any, idx: number) => ({
-        id: o.id ?? idx,
-        label: getLabel(o),
-        value: (o.code ?? o.value ?? String(o.id ?? idx)) as EmployeeProfileModel['maritalStatus']
-      }));
+      const normalizeMaritalCode = (raw: unknown, idFallback: unknown): EmployeeProfileModel['maritalStatus'] => {
+        const rawNorm = String(raw ?? '').trim().toLowerCase();
+        const idFromRaw = Number(rawNorm);
+        if (rawNorm && !Number.isNaN(idFromRaw) && idToCodeMap[idFromRaw]) {
+          return idToCodeMap[idFromRaw];
+        }
+
+        const idNum = Number(idFallback);
+        if (!Number.isNaN(idNum) && idToCodeMap[idNum]) {
+          return idToCodeMap[idNum];
+        }
+
+        switch (rawNorm) {
+          case 'single':
+          case 'married':
+          case 'divorced':
+          case 'widowed':
+            return rawNorm;
+          default:
+            return 'single';
+        }
+      };
+
+      return formItems.map((o: any, idx: number) => {
+        const id = o.id ?? idx;
+        return {
+          id,
+          label: getLabel(o),
+          value: normalizeMaritalCode(o.code ?? o.value, id)
+        };
+      });
     }
 
     return [
@@ -427,13 +462,13 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     effect(() => {
       const currentEmployee = this.employee();
       const isEdit = this.isEditMode();
-      
+
       if (!isEdit || this.isRestoringDraft) {
         return;
       }
-      
+
       const serialized = JSON.stringify(currentEmployee);
-      
+
       // Track changes for confirmation dialog and per-tab state
       if (this.originalEmployee) {
         const changes = ChangeTracker.trackChanges(
@@ -456,12 +491,12 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       }
 
       this.lastSerializedEmployee = serialized;
-      
+
       // Debounced auto-save
       if (this.autoSaveTimer) {
         clearTimeout(this.autoSaveTimer);
       }
-      
+
       this.autoSaveTimer = setTimeout(() => {
         if (this.isEditMode() && !this.isRestoringDraft && this.employeeId()) {
           this.saveDraftForTab(this.activeTab());
@@ -525,7 +560,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   private loadEmployeeDetails(id: string): void {
     this.isLoadingProfile.set(true);
     this.loadError.set(null);
-    
+
     forkJoin({
       details: this.employeeService.getEmployeeDetails(id),
       salary: this.employeeService.getEmployeeSalaryDetails(id),
@@ -539,13 +574,13 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       next: ({ details, salary, documents, statuses, form, spouse, children, assignment }) => {
         // L'historique formaté (y compris filtrage RH / non-RH) vient de GET .../details → Events
         this.isRestoringDraft = true;
-        
+
         // API Payzen : GET .../spouse renvoie un tableau JSON ; ne pas envelopper une 2e fois.
         // JSON PascalCase (Id, FirstName…) : normaliser pour que les filtres new/update utilisent `id`.
         const spouses = this.normalizeSpousesFromApi(spouse);
 
         // Map backend PascalCase `details` to frontend camelCase employee shape
-        const mappedDetails = this.mapBackendDetails(details);
+        const mappedDetails = this.mapBackendDetails(details, form);
         this.documents.set(this.buildDocumentCards(documents));
 
         // If lookup form data returned, populate formData so labels (eg. genders) are localized
@@ -616,32 +651,31 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               next: (items: ContractType[]) => {
                 this.formData.update(f => ({ ...f, contractTypes: items.map((i: ContractType) => ({ id: i.id, label: i.contractTypeName, value: i.contractTypeName })) }));
               },
-              error: () => {}
+              error: () => { }
             });
             // Load employee categories
             this.employeeCategoryService.getLookupOptions(cidNum).subscribe({
               next: (categories) => {
                 this.formData.update(f => ({ ...f, employeeCategories: categories }));
               },
-              error: () => {}
+              error: () => { }
             });
           }
         } catch (e) {
           // ignore
         }
         this.resetChangeTracking();
-        
+
         // Check for existing draft
         this.restoreDraftIfAvailable();
-        
+
         this.isLoadingProfile.set(false);
-        
+
         setTimeout(() => {
           this.isRestoringDraft = false;
         }, 100);
       },
       error: (err) => {
-        console.error('Failed to load employee details', err);
         this.loadError.set(this.translate.instant('employees.profile.loadError'));
         this.isLoadingProfile.set(false);
       }
@@ -677,7 +711,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           return 'danger';
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const status = this.employee().status;
     if (status === 'active') return 'success';
@@ -703,7 +737,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           return o.label;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const status = this.employee().status;
     if (status === 'active') return 'Actif';
@@ -713,18 +747,42 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   getMaritalStatusLabel(): string {
     const ms = this.employee().maritalStatus;
-    if (!ms) return '';
+
+    if (!ms) {
+      return '-';
+    }
     try {
       const opts = this.maritalStatusOptions;
-      const found = (opts || []).find((o: any) => o.value === ms || String(o.id) === String(ms) || String(o.value) === String(ms));
-      return found?.label || '';
-    } catch (e) {
-      return '';
+      const found = (opts || []).find((o: any) => {
+        return o.value === ms || String(o.id) === String(ms) || String(o.value) === String(ms);
+      });
+      return found?.label || '-';
+    } catch {
+      return '-';
     }
   }
 
   getPaymentMethodLabel(): string {
     return this.paymentMethodMap[this.employee().paymentMethod] || '';
+  }
+
+  getCurrentCountryPhoneCode(): string {
+    const emp = this.employee();
+    if (emp.countryPhoneCode && emp.countryPhoneCode.trim()) return emp.countryPhoneCode;
+    const country = (this.formData().countries || []).find(c => Number(c.id) === Number(emp.countryId));
+    return country?.phoneCode ?? '';
+  }
+
+  onCountryPhoneCodeChange(value: string): void {
+    const raw = String(value ?? '').trim();
+    const digits = raw.replace(/\D/g, '').slice(0, 4);
+    const normalized = digits ? `+${digits}` : '';
+    this.updateField('countryPhoneCode', normalized as any);
+  }
+
+  onPhoneLocalChange(value: string): void {
+    const sanitized = String(value ?? '').replace(/\D/g, '').slice(0, 9);
+    this.updateField('phone', sanitized as any);
   }
 
   getCountryLabel(): string {
@@ -776,19 +834,108 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
 
   // Map backend PascalCase response to frontend Employee fields
-  private mapBackendDetails(d: any): Partial<EmployeeProfileModel> {
+  private mapBackendDetails(d: any, form?: any): Partial<EmployeeProfileModel> {
     if (!d) return {};
     const out: any = {};
     out.id = d.Id != null ? String(d.Id) : (d.id ?? undefined);
     out.firstName = d.FirstName ?? d.firstName;
     out.lastName = d.LastName ?? d.lastName;
     out.cin = d.CinNumber ?? d.Cin ?? d.cin;
-    out.maritalStatus = (d.MaritalStatus ?? d.MaritalStatusName ?? d.maritalStatus) as any;
+
+    // Handle maritalStatus: convert MaritalStatusName to code (minuscules pour le frontend)
+    let maritalStatusCode = 'single'; // Valeur par défaut
+
+    // Si on a directement le code du backend (MAJUSCULES)
+    if (d.MaritalStatus || d.maritalStatus) {
+      const code = (d.MaritalStatus ?? d.maritalStatus);
+      maritalStatusCode = code.toLowerCase();
+    }
+    // Si on a le nom, chercher le code correspondant
+    else if (d.MaritalStatusName) {
+      const statusName = d.MaritalStatusName.toLowerCase().trim();
+      const normalizedName = statusName.replace(/[éè()]/g, '');
+
+      // Mapping français (normalisé) -> code (minuscules)
+      const frenchToCodeMap: { [key: string]: string } = {
+        'celibataire': 'single',
+        'marie': 'married',
+        'divorce': 'divorced',
+        'veufveuve': 'widowed'
+      };
+
+      maritalStatusCode = frenchToCodeMap[normalizedName] ?? 'single';
+
+      // Sinon, chercher dans les options du formulaire
+      if (maritalStatusCode === 'single' && form?.maritalStatuses) {
+        const matchedStatus = form.maritalStatuses.find((ms: any) => {
+          const label = (ms.nameFr ?? ms.name ?? ms.label ?? '').toLowerCase().trim();
+          return label === statusName;
+        });
+        if (matchedStatus?.code) {
+          maritalStatusCode = (matchedStatus.code).toLowerCase();
+        }
+      }
+    }
+
+    out.maritalStatus = maritalStatusCode as any;
     out.dateOfBirth = d.DateOfBirth ?? d.dateOfBirth;
     //out.birthPlace = d.BirthPlace ?? d.birthPlace;
     out.professionalEmail = d.Email ?? d.ProfessionalEmail ?? d.professionalEmail;
     out.personalEmail = d.PersonalEmail ?? d.personalEmail;
-    out.phone = d.Phone ?? d.phone;
+    out.countryName = d.CountryName ?? d.countryName;
+    out.countryId = d.CountryId ?? d.countryId;
+    const countryFromForm = (form?.countries ?? []).find((c: any) => Number(c.id) === Number(out.countryId));
+    const rawPhone = String(d.Phone ?? d.phone ?? '').trim();
+    let resolvedCountryPhoneCode =
+      d.CountryPhoneCode ??
+      d.countryPhoneCode ??
+      countryFromForm?.phoneCode ??
+      countryFromForm?.CountryPhoneCode ??
+      '';
+
+    // Fallback: infer country code from stored full phone (ex: +212671642688)
+    if (!resolvedCountryPhoneCode && rawPhone.startsWith('+')) {
+      const countryCodes = (form?.countries ?? [])
+        .map((c: any) => String(c.phoneCode ?? c.CountryPhoneCode ?? '').trim())
+        .filter((code: string) => !!code && code.startsWith('+'))
+        .sort((a: string, b: string) => b.length - a.length);
+
+      const matched = countryCodes.find((code: string) => rawPhone.startsWith(code));
+      if (matched) {
+        resolvedCountryPhoneCode = matched;
+      } else {
+        // Last fallback when referential is unavailable:
+        // infer country code from full number and fixed local length (9 digits).
+        const digits = rawPhone.replace(/\D/g, '');
+        if (digits.length > 9) {
+          resolvedCountryPhoneCode = `+${digits.slice(0, digits.length - 9)}`;
+        } else {
+          resolvedCountryPhoneCode = '';
+        }
+      }
+    }
+
+    if (resolvedCountryPhoneCode && !out.countryId) {
+      const matchedCountry = (form?.countries ?? []).find((c: any) => {
+        const code = String(c.phoneCode ?? c.CountryPhoneCode ?? '').trim();
+        return code === resolvedCountryPhoneCode;
+      });
+      if (matchedCountry?.id) {
+        out.countryId = Number(matchedCountry.id);
+        out.countryName = out.countryName || matchedCountry.label || matchedCountry.countryName || matchedCountry.CountryName;
+      }
+    }
+
+    let localPhone = rawPhone;
+    if (resolvedCountryPhoneCode && rawPhone.startsWith(resolvedCountryPhoneCode)) {
+      localPhone = rawPhone.slice(String(resolvedCountryPhoneCode).length);
+    }
+    localPhone = localPhone.replace(/\D/g, '');
+    if (localPhone.length > 9) {
+      localPhone = localPhone.slice(-9);
+    }
+    out.countryPhoneCode = resolvedCountryPhoneCode;
+    out.phone = localPhone;
     out.address = d.Address ?? d.address;
     // Address individual fields
     out.addressLine1 = d.AddressLine1 ?? d.addressLine1;
@@ -796,9 +943,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.zipCode = d.ZipCode ?? d.zipCode;
     out.city = d.City ?? d.city;
     out.cityId = d.CityId ?? d.cityId;
-    out.countryName = d.CountryName ?? d.countryName;
-    out.countryId = d.CountryId ?? d.countryId;
-    out.position = d.JobPositionName ?? d.Position ?? d.position;
+    out.position = this.normalizeUnassignedText(d.JobPositionName ?? d.Position ?? d.position);
     out.jobPositionId = d.JobPositionId ?? d.jobPositionId ?? undefined;
     out.department = d.DepartmentName ?? d.department ?? (d.departments ?? '');
     out.departementId = d.DepartementId ?? d.departementId ?? undefined;
@@ -874,43 +1019,42 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       form: this.employeeService.getEmployeeFormData(),
       statuses: this.employeeService.getStatuses(false)
     }).subscribe({
-        next: ({ form, statuses }) => {
-          // Merge statuses into formData (convert to LookupOption[] expected shape)
-          const merged = { ...form, statuses } as EmployeeFormData;
-          this.formData.set(merged);
-          this.isLoadingFormData.set(false);
+      next: ({ form, statuses }) => {
+        // Merge statuses into formData (convert to LookupOption[] expected shape)
+        const merged = { ...form, statuses } as EmployeeFormData;
+        this.formData.set(merged);
+        this.isLoadingFormData.set(false);
 
-          // Fallbacks: if jobPositions or contractTypes are missing, load them by companyId
-          const companyIdRaw = this.contextService.companyId();
-          if (companyIdRaw !== null && companyIdRaw !== undefined) {
-            const companyIdNum = Number(companyIdRaw as any);
-            if (!Number.isNaN(companyIdNum)) {
-              if (!merged.jobPositions || merged.jobPositions.length === 0) {
-                this.jobPositionService.getByCompany(companyIdNum).subscribe({
-                  next: (items: JobPosition[]) => this.formData.update(f => ({ ...f, jobPositions: items.map((i: JobPosition) => ({ id: i.id, label: i.name })) })),
-                  error: () => {}
-                });
-              }
-              if (!merged.contractTypes || merged.contractTypes.length === 0) {
-                this.contractTypeService.getByCompany(companyIdNum).subscribe({
-                  next: (items: ContractType[]) => this.formData.update(f => ({ ...f, contractTypes: items.map((i: ContractType) => ({ id: i.id, label: i.contractTypeName, value: i.contractTypeName })) })),
-                  error: () => {}
-                });
-              }
-              // Load company-scoped employee categories so edit forms have the lookup available
-              this.employeeCategoryService.getLookupOptions(companyIdNum).subscribe({
-                next: (categories) => this.formData.update(f => ({ ...f, employeeCategories: categories })),
-                error: () => {}
+        // Fallbacks: if jobPositions or contractTypes are missing, load them by companyId
+        const companyIdRaw = this.contextService.companyId();
+        if (companyIdRaw !== null && companyIdRaw !== undefined) {
+          const companyIdNum = Number(companyIdRaw as any);
+          if (!Number.isNaN(companyIdNum)) {
+            if (!merged.jobPositions || merged.jobPositions.length === 0) {
+              this.jobPositionService.getByCompany(companyIdNum).subscribe({
+                next: (items: JobPosition[]) => this.formData.update(f => ({ ...f, jobPositions: items.map((i: JobPosition) => ({ id: i.id, label: i.name })) })),
+                error: () => { }
               });
             }
+            if (!merged.contractTypes || merged.contractTypes.length === 0) {
+              this.contractTypeService.getByCompany(companyIdNum).subscribe({
+                next: (items: ContractType[]) => this.formData.update(f => ({ ...f, contractTypes: items.map((i: ContractType) => ({ id: i.id, label: i.contractTypeName, value: i.contractTypeName })) })),
+                error: () => { }
+              });
+            }
+            // Load company-scoped employee categories so edit forms have the lookup available
+            this.employeeCategoryService.getLookupOptions(companyIdNum).subscribe({
+              next: (categories) => this.formData.update(f => ({ ...f, employeeCategories: categories })),
+              error: () => { }
+            });
           }
-        },
+        }
+      },
       error: (err) => {
-        console.error('Error loading form data or statuses', err);
         // fallback: try to at least set form data
         this.employeeService.getEmployeeFormData().subscribe({
           next: (data) => this.formData.set(data),
-          error: () => {}
+          error: () => { }
         });
         this.isLoadingFormData.set(false);
       }
@@ -944,7 +1088,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       this.lastAutoSave.set(this.pendingDraftTimestamp);
     }
     this.pendingDraftTimestamp = null;
-    
+
     setTimeout(() => {
       this.isRestoringDraft = false;
       this.recomputeChangeTracking();
@@ -998,12 +1142,16 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     if (typeof value === 'string') {
       this.updateField('countryName', value);
       this.updateField('countryId', undefined);
+      this.updateField('countryPhoneCode', '');
     } else if (value && typeof value === 'object') {
       this.updateField('countryName', value.label);
       this.updateField('countryId', value.id);
+      const selected = (this.formData().countries || []).find(c => Number(c.id) === Number(value.id));
+      this.updateField('countryPhoneCode', selected?.phoneCode ?? '');
     } else {
       this.updateField('countryName', undefined);
       this.updateField('countryId', undefined);
+      this.updateField('countryPhoneCode', '');
     }
   }
 
@@ -1061,9 +1209,23 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     });
   }
 
+  private normalizeUnassignedText(value: unknown): string {
+    const text = String(value ?? '').trim();
+    if (!text) return '';
+
+    const normalized = text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return normalized === 'non assigne' || normalized === 'non assignee' ? '' : text;
+  }
+
   selectedJobPosition = computed(() => {
     const emp = this.employee();
-    return emp.position || '';
+    return this.normalizeUnassignedText(emp.position);
   });
 
   onJobPositionChange(value: any) {
@@ -1137,7 +1299,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   onCimrEmployeeRateChange(value: number | null): void {
     this.updateField('cimrEmployeeRate', value);
-    
+
     // Calculate company rate automatically: employee rate + 30% of employee rate
     // Example: if employee rate is 10%, company rate = 10% + (10% * 0.30) = 13%
     if (value !== null && value !== undefined && !isNaN(value)) {
@@ -1155,7 +1317,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       setTimeout(() => this.saveSuccess.set(null), 2000);
       return;
     }
-    
+
     this.showConfirmDialog.set(true);
   }
 
@@ -1202,7 +1364,17 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       const exact = pool.find(c => norm(c.label) === n);
       if (exact) return exact.id;
       const loose = pool.find(c => norm(c.label).includes(n) || n.includes(norm(c.label)));
-      return loose?.id;
+      if (loose) return loose.id;
+
+      // Ville absente du référentiel: créer automatiquement à la sauvegarde.
+      const created = await firstValueFrom(this.employeeService.createCity(trimmed, countryId));
+
+      this.formData.update(f => ({
+        ...f,
+        cities: [...(f.cities || []).filter(c => c.id !== created.id), created]
+      }));
+
+      return created.id;
     } catch {
       return undefined;
     }
@@ -1290,6 +1462,44 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       delete out['contractType'];
     }
 
+    if ('phone' in out) {
+      const localPhone = String(out['phone'] ?? '').replace(/\D/g, '');
+      if (localPhone.length === 9) {
+        out['phone'] = localPhone;
+        let countryCode = String(out['countryPhoneCode'] ?? '').trim();
+        if (!countryCode) {
+          countryCode = String(this.employee().countryPhoneCode ?? '').trim();
+        }
+        if (!countryCode) {
+          const countryId = Number(out['countryId'] ?? this.employee().countryId ?? 0);
+          const country = (fd.countries || []).find(c => Number(c.id) === countryId);
+          countryCode = country?.phoneCode ?? '';
+        }
+        if (countryCode) {
+          out['countryPhoneCode'] = countryCode;
+        }
+      }
+    }
+
+    // Handle maritalStatus: convert string code to maritalStatusId (integer)
+    if ('maritalStatus' in out) {
+      const msCode = String(out['maritalStatus'] ?? '').toLowerCase().trim();
+      if (msCode) {
+        let msId: number | undefined;
+        const maritalStatusOptions = this.maritalStatusOptions;
+        for (const option of maritalStatusOptions) {
+          if (String(option.value ?? '').toLowerCase().trim() === msCode) {
+            msId = Number(option.id);
+            break;
+          }
+        }
+        if (msId != null && msId > 0) {
+          out['maritalStatusId'] = msId;
+        }
+      }
+      delete out['maritalStatus'];
+    }
+
     return out;
   }
 
@@ -1333,7 +1543,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           this.pendingNewDepartment.set(null);
         } catch (e: any) {
           // If already exists (409), ignore; otherwise log
-          if (e?.status !== 409) console.error('Failed to create department', e);
+          if (e?.status !== 409) alert('Failed to create department');
           this.pendingNewDepartment.set(null);
         }
       }
@@ -1354,7 +1564,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           }
           this.pendingNewJobPosition.set(null);
         } catch (e: any) {
-          if (e?.status !== 409) console.error('Failed to create job position', e);
+          if (e?.status !== 409) alert('Failed to create job position');
           this.pendingNewJobPosition.set(null);
         }
       }
@@ -1390,29 +1600,29 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         const componentPromises = [];
 
         if (newActiveSalaryId !== oldActiveSalaryId) {
-           // New salary created. Add all components to it.
-           for (const c of currentComponents) {
-             componentPromises.push(firstValueFrom(this.employeeService.addSalaryComponent({
-               employeeSalaryId: newActiveSalaryId,
-               componentType: c.type,
-               amount: c.amount,
-               isTaxable: c.isTaxable ?? true,
-               effectiveDate: new Date().toISOString(),
-             })));
-           }
+          // New salary created. Add all components to it.
+          for (const c of currentComponents) {
+            componentPromises.push(firstValueFrom(this.employeeService.addSalaryComponent({
+              employeeSalaryId: newActiveSalaryId,
+              componentType: c.type,
+              amount: c.amount,
+              isTaxable: c.isTaxable ?? true,
+              effectiveDate: new Date().toISOString(),
+            })));
+          }
         } else {
           // Same salary. Diff changes.
           const originalComponents = this.originalEmployee?.salaryComponents || [];
-          
+
           const newComponents = currentComponents.filter(c => !c.id);
-          
+
           const modifiedComponents = currentComponents.filter(c => {
             if (!c.id) return false;
             const original = originalComponents.find(o => o.id === c.id);
             return original && (original.type !== c.type || original.amount !== c.amount || (original.isTaxable ?? true) !== (c.isTaxable ?? true));
           });
 
-          const deletedComponents = originalComponents.filter(o => 
+          const deletedComponents = originalComponents.filter(o =>
             o.id && !currentComponents.find(c => c.id === o.id)
           );
 
@@ -1450,7 +1660,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       // Handle Spouses changes
       const currentSpouses = this.employee().spouses || [];
       const originalSpouses = this.originalEmployee?.spouses || [];
-      
+
       // Id : le backend peut renvoyer PascalCase (Id) et GET conjoint un tableau — utiliser relationId().
       const newSpouses = currentSpouses.filter(s => {
         const rid = this.relationId(s);
@@ -1470,19 +1680,19 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       });
 
       const spousePromises = [];
-      
+
       for (const spouse of newSpouses) {
         spousePromises.push(firstValueFrom(this.employeeService.createSpouse(this.employeeId()!, spouse)));
       }
-      
+
       for (const spouse of updatedSpouses) {
         spousePromises.push(firstValueFrom(this.employeeService.updateSpouse(this.employeeId()!, spouse)));
       }
-      
+
       for (const spouse of deletedSpouses) {
         spousePromises.push(firstValueFrom(this.employeeService.deleteSpouse(this.employeeId()!)));
       }
-      
+
       if (spousePromises.length > 0) {
         await Promise.all(spousePromises);
       }
@@ -1490,7 +1700,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       // Handle Children changes
       const currentChildren = this.employee().children || [];
       const originalChildren = this.originalEmployee?.children || [];
-      
+
       const newChildren = currentChildren.filter(c => {
         const rid = this.relationId(c);
         return !rid || rid > 1000000000000;
@@ -1509,19 +1719,19 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       });
 
       const childPromises = [];
-      
+
       for (const child of newChildren) {
         childPromises.push(firstValueFrom(this.employeeService.createChild(this.employeeId()!, child)));
       }
-      
+
       for (const child of updatedChildren) {
         childPromises.push(firstValueFrom(this.employeeService.updateChild(this.employeeId()!, this.relationId(child)!, child)));
       }
-      
+
       for (const child of deletedChildren) {
         childPromises.push(firstValueFrom(this.employeeService.deleteChild(this.employeeId()!, this.relationId(child)!)));
       }
-      
+
       if (childPromises.length > 0) {
         await Promise.all(childPromises);
       }
@@ -1529,18 +1739,63 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       this.saveSuccess.set(this.translate.instant('employees.profile.saveSuccess'));
       this.clearDraftsForAllTabs();
       this.isEditMode.set(false);
-      
+
       // Reload to refresh state
       this.loadEmployeeDetails(this.employeeId()!);
-      
+
       this.resolveAfterSave(true);
-      
+
     } catch (err) {
-      console.error('Save failed', err);
-      this.saveError.set(this.translate.instant('employees.profile.saveError'));
+      const errorMessage = this.extractErrorMessage(err, this.translate.instant('employees.profile.saveError'));
+      this.saveError.set(errorMessage);
+      this.toastService.error(errorMessage);
       this.resolveAfterSave(false);
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  /**
+   * Extract a human-readable error message from various API error shapes
+   */
+  private extractErrorMessage(error: any, defaultMessage?: string): string {
+    try {
+      const candidates = [
+        error?.error?.Message,
+        error?.error?.message,
+        error?.error?.Error,
+        error?.error?.error,
+        error?.error?.details,
+        error?.error?.Details,
+        error?.Message,
+        error?.message,
+        typeof error === 'string' ? error : null,
+        error?.statusText
+      ];
+
+      for (const candidate of candidates) {
+        if (candidate !== null && candidate !== undefined && String(candidate).trim() !== '') {
+          return String(candidate).trim();
+        }
+      }
+
+      // Fallback based on HTTP status
+      if (error?.status) {
+        const status = error.status;
+        if (status === 400) return 'Requête invalide. Vérifiez vos données.';
+        if (status === 401) return 'Authentification requise.';
+        if (status === 403) return 'Accès refusé. Vérifiez vos permissions.';
+        if (status === 404) return 'Ressource non trouvée.';
+        if (status === 409) return 'Conflit. Veuillez réessayer.';
+        if (status === 422) return 'Données invalides. Vérifiez votre saisie.';
+        if (status === 429) return 'Trop de tentatives. Veuillez réessayer plus tard.';
+        if (status === 500) return 'Erreur serveur. Veuillez réessayer.';
+        if (status === 503) return 'Service temporairement indisponible.';
+      }
+
+      return defaultMessage || 'Une erreur est survenue. Veuillez réessayer.';
+    } catch {
+      return defaultMessage || 'Une erreur est survenue. Veuillez réessayer.';
     }
   }
 
@@ -1549,7 +1804,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     if (!this.changeSet().hasChanges) {
       return of(true);
     }
-    
+
     return new Observable(observer => {
       this.pendingNavigationResolver = (result: boolean) => {
         observer.next(result);
@@ -1665,7 +1920,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     if (!id) return;
     this.employeeService.getDocuments(id).subscribe({
       next: docs => this.documents.set(this.buildDocumentCards(docs)),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -1680,8 +1935,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         setTimeout(() => this.saveSuccess.set(null), 1500);
         this.refreshDocuments();
       },
-      error: () => {
-        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+      error: (err) => {
+        const errorMessage = this.extractErrorMessage(err, this.translate.instant('employees.profile.saveError'));
+        this.saveError.set(errorMessage);
+        this.toastService.error(errorMessage);
         setTimeout(() => this.saveError.set(null), 2500);
       }
     });
@@ -1700,8 +1957,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => {
-        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+      error: (err) => {
+        const errorMessage = this.extractErrorMessage(err, this.translate.instant('employees.profile.saveError'));
+        this.saveError.set(errorMessage);
+        this.toastService.error(errorMessage);
         setTimeout(() => this.saveError.set(null), 2500);
       }
     });
@@ -1712,8 +1971,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     if (!id || !doc.id) return;
     this.employeeService.deleteDocument(id, doc.id).subscribe({
       next: () => this.refreshDocuments(),
-      error: () => {
-        this.saveError.set(this.translate.instant('employees.profile.saveError'));
+      error: (err) => {
+        const errorMessage = this.extractErrorMessage(err, this.translate.instant('employees.profile.saveError'));
+        this.saveError.set(errorMessage);
+        this.toastService.error(errorMessage);
         setTimeout(() => this.saveError.set(null), 2500);
       }
     });
@@ -1871,10 +2132,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       general_update: 'Modification',
       firstname_changed: 'Prénom modifié',
       status_changed: 'Statut modifié',
-      role_assigned : 'Rôle attribué',
-      role_revoked : 'Rôle révoqué',
+      role_assigned: 'Rôle attribué',
+      role_revoked: 'Rôle révoqué',
       role_removed: 'Rôle retiré'
-    };  
+    };
     if (isFr && fallbacksFr[normalizedKey]) return fallbacksFr[normalizedKey];
     return normalizedKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
@@ -2132,6 +2393,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       professionalEmail: '',
       personalEmail: '',
       phone: '',
+      countryPhoneCode: '',
       address: '',
       countryId: undefined,
       countryName: '',

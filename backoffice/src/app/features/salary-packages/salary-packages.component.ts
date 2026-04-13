@@ -63,7 +63,7 @@ type ViewMode = 'list' | 'view' | 'editor';
       <div class="relative">
         <!-- List View with Modern Cards -->
         @if (viewMode === 'list') {
-          
+
           <div class="max-w-[1600px] mx-auto px-6 py-8">
             <app-template-list
               [templates]="templates"
@@ -175,7 +175,6 @@ export class SalaryPackagesComponent implements OnInit {
         if (callback) callback();
       },
       error: (err) => {
-        console.error('Failed to load templates:', err);
         this.toast.error(this.extractError(err) || 'Erreur lors du chargement');
         this.templates = [];
         this.isLoading = false;

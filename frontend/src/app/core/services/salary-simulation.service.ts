@@ -94,39 +94,31 @@ export class SalarySimulationService {
     onComplete: () => void,
     onError: (error: string) => void
   ): void {
-    console.log('🚀 [simulateStream] Début de la requête avec instruction:', instruction);
-    
+
     const request: QuickSimulationRequest = { instruction };
-    
+
     this.http.post<SimulationResponse>(
       `${this.API_URL}/simulate-stream`,
       request
     ).subscribe({
       next: (response) => {
-        console.log('📥 [simulateStream] Réponse brute reçue:', response);
-        console.log('📊 [simulateStream] Type de response.result:', typeof response.result);
-        console.log('📊 [simulateStream] Contenu de response.result:', response.result);
-        
+
         if (!response.success) {
-          console.error('❌ [simulateStream] Erreur dans la réponse:', response.errorMessage);
           onError(response.errorMessage || 'Erreur inconnue');
           return;
         }
-        
+
         // Le result est déjà un objet désérialisé (pas une string)
         const jsonResult = response.result;
-        console.log('📋 [simulateStream] JSON résultat:', jsonResult);
-        
+
         // Convertir en string pour le callback onChunk (compatibilité)
         const jsonString = JSON.stringify(jsonResult, null, 2);
-        console.log('📝 [simulateStream] JSON string à envoyer:', jsonString);
-        
+
         // Simuler le streaming en envoyant le texte complet d'un coup
         onChunk(jsonString);
         onComplete();
       },
       error: (error) => {
-        console.error('❌ [simulateStream] Erreur HTTP:', error);
         onError(error.error?.errorMessage || error.message || 'Erreur lors de la simulation');
       }
     });

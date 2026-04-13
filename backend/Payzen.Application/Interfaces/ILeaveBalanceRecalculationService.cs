@@ -27,11 +27,21 @@ public interface ILeaveBalanceRecalculationService
 
 public sealed class LeaveBalanceMonthRecalcResult
 {
-    public bool Success { get; private init; }
-    public string? ErrorMessage { get; private init; }
+    public bool Success
+    {
+        get; private init;
+    }
+    public string? ErrorMessage
+    {
+        get; private init;
+    }
 
     public static LeaveBalanceMonthRecalcResult Ok() => new() { Success = true };
 
     public static LeaveBalanceMonthRecalcResult Fail(string message) =>
-        new() { Success = false, ErrorMessage = message };
+        new()
+        {
+            Success = false,
+            ErrorMessage = message
+        };
 }

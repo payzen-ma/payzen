@@ -1,9 +1,9 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CompanyService } from '../../../services/company.service';
 import { Company } from '../../../models/company.model';
+import { CompanyService } from '../../../services/company.service';
 
 @Component({
   selector: 'app-companies',
@@ -22,11 +22,11 @@ export class CompaniesComponent implements OnInit {
   error: string | null = null;
   Math = Math; // Expose Math to template
   updatingCompanyIds: number[] = [];
-  
+
   // Sorting
   sortColumn: string = 'companyName';
   sortDirection: 'asc' | 'desc' = 'asc';
-  
+
   // Pagination
   currentPage = 1;
   itemsPerPage = 5;
@@ -35,13 +35,13 @@ export class CompaniesComponent implements OnInit {
   constructor(
     private companyService: CompanyService,
     private elementRef: ElementRef
-  ) {}
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     const clickedInside = this.elementRef.nativeElement.contains(target);
-    
+
     if (!clickedInside && this.showFilters) {
       this.showFilters = false;
     }
@@ -52,7 +52,6 @@ export class CompaniesComponent implements OnInit {
   }
 
   toggleActive(company: Company) {
-    console.log('toggleActive called for', company.id);
     const current = (company as any).isActive;
     // If isActive is undefined, fall back to status
     const newIsActive = typeof current === 'boolean' ? !current : (company.status !== 'active');
@@ -76,7 +75,6 @@ export class CompaniesComponent implements OnInit {
         this.updatingCompanyIds = this.updatingCompanyIds.filter(id => id !== updated.id);
       },
       error: (err) => {
-        console.error('Failed to toggle active state', err);
         this.updatingCompanyIds = this.updatingCompanyIds.filter(id => id !== company.id);
       }
     });
@@ -92,7 +90,6 @@ export class CompaniesComponent implements OnInit {
     this.companyService.getAllCompanies().subscribe({
       next: (data) => {
         this.companies = data;
-        console.log('Loaded companies:', data);
         this.filteredCompanies = data;
         this.totalPages = Math.ceil(data.length / this.itemsPerPage);
         this.updatePaginatedData();
@@ -101,7 +98,6 @@ export class CompaniesComponent implements OnInit {
       error: (err) => {
         this.error = 'Erreur lors du chargement des entreprises';
         this.isLoading = false;
-        console.error('Error loading companies:', err);
       }
     });
   }
@@ -132,13 +128,13 @@ export class CompaniesComponent implements OnInit {
 
     // Apply sorting
     filtered = this.sortData(filtered);
-    
+
     this.filteredCompanies = filtered;
     this.totalPages = Math.ceil(filtered.length / this.itemsPerPage);
     this.currentPage = 1; // Reset to first page when filters change
     this.updatePaginatedData();
   }
-  
+
   sortBy(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -148,13 +144,13 @@ export class CompaniesComponent implements OnInit {
     }
     this.applyFilters();
   }
-  
+
   sortData(data: Company[]): Company[] {
     return [...data].sort((a, b) => {
       let aValue: any;
       let bValue: any;
-      
-      switch(this.sortColumn) {
+
+      switch (this.sortColumn) {
         case 'companyName':
           aValue = a.companyName?.toLowerCase() || '';
           bValue = b.companyName?.toLowerCase() || '';
@@ -182,7 +178,7 @@ export class CompaniesComponent implements OnInit {
         default:
           return 0;
       }
-      
+
       if (aValue < bValue) {
         return this.sortDirection === 'asc' ? -1 : 1;
       }
@@ -207,38 +203,38 @@ export class CompaniesComponent implements OnInit {
     if (this.sortColumn !== column) return '';
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
-  
+
   updatePaginatedData() {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.paginatedCompanies = this.filteredCompanies.slice(startIndex, endIndex);
   }
-  
+
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
       this.updatePaginatedData();
     }
   }
-  
+
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
       this.updatePaginatedData();
     }
   }
-  
+
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.updatePaginatedData();
     }
   }
-  
+
   getPageNumbers(): number[] {
     const pages: number[] = [];
     const maxPages = 5; // Maximum number of page buttons to show
-    
+
     if (this.totalPages <= maxPages) {
       for (let i = 1; i <= this.totalPages; i++) {
         pages.push(i);
@@ -246,33 +242,33 @@ export class CompaniesComponent implements OnInit {
     } else {
       // Always show first page
       pages.push(1);
-      
+
       // Show pages around current page
       const start = Math.max(2, this.currentPage - 1);
       const end = Math.min(this.totalPages - 1, this.currentPage + 1);
-      
+
       if (start > 2) {
         pages.push(-1); // Represents ellipsis
       }
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
-      
+
       if (end < this.totalPages - 1) {
         pages.push(-1); // Represents ellipsis
       }
-      
+
       // Always show last page
       pages.push(this.totalPages);
     }
-    
+
     return pages;
   }
-  
+
   getStatusClass(status: string): string {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
+    return status === 'active'
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800';
   }
 

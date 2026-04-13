@@ -1,332 +1,236 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Page Header -->
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-  <p-toast />
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
-              <i class="pi pi-users text-2xl"></i>
-            </div>
-            <div>
-              <h1 class="heading">
-                {{ 'employees.title' | translate }}
-              </h1>
-              <p class="subheading mt-1">
-                {{ 'employees.subtitle' | translate }}
-              </p>
-            </div>
-          </div>
+<section class="employees-page employees-page--figma">
+  <div class="employees-shell employees-shell--app">
+    <p-toast />
+
+    <header class="payslip-app-header employees-app-header" role="banner">
+      <div class="payslip-app-header__start">
+        <div class="payslip-app-header__icon" aria-hidden="true">
+          <i class="pi pi-users"></i>
         </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Import depuis Sage -->
-          <button
-            pButton
-            type="button"
-            label="Import Sage"
-            class="btn btn-secondary"
-            icon="pi pi-upload"
-            (click)="openImportDialog()"
-            title="Importer des employés depuis un fichier CSV Sage Païe"
-          ></button>
-
-          <!-- Ajouter un employé -->
-          <button
-            pButton
-            type="button"
-            [label]="'employees.addEmployee' | translate"
-            class="btn btn-primary"
-            icon="pi pi-user-plus"
-            (click)="addEmployee()"
-          ></button>
+        <div class="payslip-app-header__copy">
+          <h1 class="payslip-app-title">{{ 'employees.title' | translate }}</h1>
+          <p class="payslip-app-subtitle">{{ 'employees.subtitle' | translate }}</p>
         </div>
       </div>
-    </div>
-  </div>
+      <div class="employees-app-header__actions">
+        <button pButton type="button" [label]="'employees.importSage' | translate" class="btn btn-secondary employees-btn-import"
+          icon="pi pi-upload" (click)="openImportDialog()"
+          title="{{ 'employees.importSage' | translate }}"></button>
+        <button pButton type="button" [label]="'employees.addEmployee' | translate" class="btn btn-primary"
+          icon="pi pi-user-plus" (click)="addEmployee()"></button>
+      </div>
+    </header>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-6 py-6">
-    <!-- Error Message -->
-    @if (error()) {
-      <div class="flex flex-row items-center justify-center card alert-error alert gap-3 mb-4">
+    <div class="employees-main">
+      @if (error()) {
+      <div class="payslip-alert payslip-alert--error">
         <div>
           <i class="pi pi-exclamation-circle text-xl self-center"></i>
         </div>
         <div class="flex-1">
-          <h3 class="font-semibold  mb-1">{{ 'common.error' | translate }}</h3>
-          <p class=" text-sm">{{ error() }}</p>
+          <h3 class="font-semibold mb-1">{{ 'common.error' | translate }}</h3>
+          <p class="text-sm">{{ error() }}</p>
         </div>
         <div>
-          <button
-          pButton
-          type="button"
-          icon="pi pi-refresh"
-          class="btn btn-danger"
-          [label]="'common.retry' | translate"
-          (click)="loadEmployees()"
-          title="{{ 'common.retry' | translate }}"
-          ></button>
+          <button pButton type="button" icon="pi pi-refresh" class="btn btn-danger" [label]="'common.retry' | translate"
+            (click)="loadEmployees()" title="{{ 'common.retry' | translate }}"></button>
         </div>
       </div>
-    }
+      }
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      @for (card of statCards; track card.label) {
-        <div class="stat-card flex items-center justify-between">
-          <div>
-            <p class="stat-label">{{ card.label | translate }}</p>
-            <p class="stat-value" [ngClass]="card.valueClass">{{ card.accessor(stats()) }}</p>
+      <div class="employees-kpi-grid">
+        @for (card of statCards; track card.label) {
+        <div class="employees-kpi-card">
+          <div class="employees-kpi-card__text">
+            <p class="employees-kpi-card__label">{{ card.label | translate }}</p>
+            <p class="employees-kpi-card__value">{{ card.accessor(displayedStats()) }}</p>
           </div>
-          <div class="stat-card-icon" [ngClass]="card.iconColor">
+          <div [class]="card.iconWrapClass" aria-hidden="true">
             <i [class]="card.icon"></i>
           </div>
         </div>
-      }
-    </div>
-
-    <!-- Filters & Search -->
-    <div class="card card-compact mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="w-full flex-1 min-w-0">
-          <p-iconfield iconPosition="left" class="w-full search-field">
-            <p-inputicon class="pi pi-search text-gray-400"></p-inputicon>
-            <input
-              pInputText
-              type="text"
-              class="w-full input"
-              [(ngModel)]="searchQueryModel"
-              [placeholder]="'employees.searchPlaceholder' | translate"
-              [attr.aria-label]="'common.search' | translate"
-            />
-          </p-iconfield>
-        </div>
-
-        <!-- Department Filter -->
-        <div class="w-full md:w-56 shrink-0">
-          <p-select
-            [options]="departments()"
-            [(ngModel)]="selectedDepartmentModel"
-            optionLabel="label"
-            optionValue="value"
-            [placeholder]="'employees.filter.department' | translate"
-            class="w-full input"
-          />
-        </div>
-
-        <!-- Status Filter -->
-        <div class="w-full md:w-48 shrink-0">
-          <p-select
-            [options]="statuses()"
-            [(ngModel)]="selectedStatusModel"
-            optionLabel="label"
-            optionValue="value"
-            [placeholder]="'employees.filter.status' | translate"
-            class="input"
-          ></p-select>
-        </div>
-
-        <!-- Clear Filters -->
-        <button
-          pButton
-          type="button"
-          icon="pi pi-times"
-          [label]="'common.clear' | translate"
-          (click)="clearFilters()"
-          [disabled]="disableClearButton"
-          [ngClass]="disableClearButton ? 'btn btn-disabled' : 'shrink-0 btn btn-danger'"
-          title="{{ 'common.clear' | translate }}"
-        ></button>
+        }
       </div>
-    </div>
 
-    <!-- Employees Table -->
-    <div class="card-compact relative">
-      <!-- Loading Overlay -->
-      @if (isLoading()) {
-        <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
+      <div class="app-filters app-filters--surface">
+        <div class="app-filters__row">
+          <div class="app-filters__item app-filters__item--search">
+            <label class="app-filters__label" for="employees-search-input">{{ 'employees.searchFieldLabel' | translate }}</label>
+            <p-iconfield iconPosition="left" class="w-full app-filter-search">
+              <p-inputicon class="pi pi-search app-filter-search__icon"></p-inputicon>
+              <input id="employees-search-input" pInputText type="text" class="w-full app-filter-search__input"
+                [(ngModel)]="searchQueryModel"
+                [placeholder]="'employees.searchPlaceholder' | translate"
+                [attr.aria-label]="'employees.searchFieldLabel' | translate" />
+            </p-iconfield>
+          </div>
+
+          <div class="app-filters__item app-filters__item--md">
+            <label class="app-filters__label" for="employees-dept-select">{{ 'employees.filter.department' | translate }}</label>
+            <p-select inputId="employees-dept-select" [options]="departments()" [(ngModel)]="selectedDepartmentModel" optionLabel="label"
+              optionValue="value" [placeholder]="'employees.filter.allDepartments' | translate" class="w-full input" />
+          </div>
+
+          <div class="app-filters__item app-filters__item--sm">
+            <label class="app-filters__label" for="employees-status-select">{{ 'employees.filter.status' | translate }}</label>
+            <p-select inputId="employees-status-select" [options]="statuses()" [(ngModel)]="selectedStatusModel" optionLabel="label" optionValue="value"
+              [placeholder]="'employees.filter.allStatuses' | translate" class="input w-full" />
+          </div>
+
+          <div class="app-filters__actions">
+            <button pButton type="button" [label]="'common.clear' | translate" (click)="clearFilters()"
+              [disabled]="disableClearButton"
+              class="app-filter-clear"
+              [class.app-filter-clear--disabled]="disableClearButton"
+              title="{{ 'common.clear' | translate }}"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="employees-table-panel">
+        @if (isLoading()) {
+        <div class="employees-table-loading">
           <div class="flex flex-col items-center gap-3">
             <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
             <p class="text-gray-500 font-medium">{{ 'employees.loading' | translate }}</p>
           </div>
         </div>
-      }
+        }
 
-      <p-table
-        [value]="filteredEmployees()"
-        styleClass="p-datatable-sm"
-        [tableStyle]="{'min-width': '50rem'}"
-        [paginator]="true"
-        [rows]="5"
-        [rowsPerPageOptions]="[5,10,25,50,100]"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="firstName" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.employee' | translate }}
-                <p-sortIcon field="firstName"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="position" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.position' | translate }}
-                <p-sortIcon field="position"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="department" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.department' | translate }}
-                <p-sortIcon field="department"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="contractType" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.contract' | translate }}
-                <p-sortIcon field="contractType"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="startDate" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.startDate' | translate }}
-                <p-sortIcon field="startDate"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="status" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.status' | translate }}
-                <p-sortIcon field="status"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="missingDocuments" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'employees.table.documents' | translate }}
-                <p-sortIcon field="missingDocuments"></p-sortIcon>
-              </div>
-            </th>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="body" let-employee>
-          <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(employee)">
-            <!-- Employee -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                @if (employee.photo) {
-                  <p-avatar
-                    [image]="employee.photo"
-                    shape="circle"
-                    size="normal"
-                    class="shrink-0"
-                  ></p-avatar>
-                } @else {
-                  <p-avatar
-                    [label]="getInitials(employee)"
-                    shape="circle"
-                    size="normal"
-                    styleClass="bg-(--primary)/10 text-(--text-primary) font-semibold"
-                    class="shrink-0"
-                  ></p-avatar>
-                }
-                <div class="min-w-0 flex-1 max-w-[10rem] md:max-w-[14rem]">
-                  <p class="font-medium text-(--text-primary) truncate" title="{{ getFullName(employee) }}">{{ getFullName(employee) }}</p>
-                  @if (employee.manager) {
-                    <a [routerLink]="[]" class="text-xs text-(--text-secondary) hover:text-(--primary) hover:underline truncate block" (click)="$event.stopPropagation()">{{ 'employees.manager' | translate }}: {{ employee.manager }}</a>
-                  }
+        <p-table [value]="filteredEmployees()" styleClass="employees-datatable p-datatable-sm"
+          [tableStyle]="{'min-width': '50rem'}" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50,100]"
+          [scrollable]="true" scrollHeight="flex">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="firstName" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.employee' | translate }}
+                  <p-sortIcon field="firstName"></p-sortIcon>
                 </div>
-              </div>
-            </td>
+              </th>
+              <th pSortableColumn="position" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.position' | translate }}
+                  <p-sortIcon field="position"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="department" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.department' | translate }}
+                  <p-sortIcon field="department"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="contractType" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.contract' | translate }}
+                  <p-sortIcon field="contractType"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="startDate" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.startDate' | translate }}
+                  <p-sortIcon field="startDate"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="status" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.status' | translate }}
+                  <p-sortIcon field="status"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="missingDocuments" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'employees.table.documents' | translate }}
+                  <p-sortIcon field="missingDocuments"></p-sortIcon>
+                </div>
+              </th>
+            </tr>
+          </ng-template>
 
-            <!-- Position -->
-            <td class="px-6 py-4">
-              <span class="text-(--text-primary)">{{ employee.position }}</span>
-            </td>
+          <ng-template pTemplate="body" let-employee>
+            <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(employee)">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  @if (employee.photo) {
+                  <p-avatar [image]="employee.photo" shape="circle" size="normal" class="shrink-0"></p-avatar>
+                  } @else {
+                  <p-avatar [label]="getInitials(employee)" shape="circle" size="normal"
+                    styleClass="bg-(--primary)/10 text-(--text-primary) font-semibold" class="shrink-0"></p-avatar>
+                  }
+                  <div class="min-w-0 flex-1 max-w-[10rem] md:max-w-[14rem]">
+                    <p class="font-medium text-(--text-primary) truncate" title="{{ getFullName(employee) }}">{{
+                      getFullName(employee) }}</p>
+                    @if (employee.manager) {
+                    <a [routerLink]="[]"
+                      class="text-xs text-(--text-secondary) hover:text-(--primary) hover:underline truncate block"
+                      (click)="$event.stopPropagation()">{{ 'employees.manager' | translate }}: {{ employee.manager }}</a>
+                    }
+                  </div>
+                </div>
+              </td>
 
-            <!-- Department -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2 text-gray-600">
-                <i class="pi pi-building text-xs"></i>
-                <span>{{ employee.department }}</span>
-              </div>
-            </td>
+              <td class="px-6 py-4">
+                <span class="text-(--text-primary)">{{ employee.position }}</span>
+              </td>
 
-            <!-- Contract Type -->
-            <td class="px-6 py-4">
-              <app-tag
-                [label]="getContractTypeLabel(employee)"
-                [variant]="getContractTypeVariant(employee.contractType)"
-                size="sm"
-              ></app-tag>
-            </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2 text-gray-600">
+                  <i class="pi pi-building text-xs"></i>
+                  <span>{{ employee.department }}</span>
+                </div>
+              </td>
 
-            <!-- Start Date -->
-            <td class="px-6 py-4">
-              <span class="text-sm text-(--secondary)">
-                {{ employee.startDate | date: 'dd/MM/yyyy' }}
-              </span>
-            </td>
+              <td class="px-6 py-4">
+                <app-tag [label]="getContractTypeLabel(employee)"
+                  [variant]="getContractTypeVariant(employee.contractType)" size="sm"></app-tag>
+              </td>
 
-            <!-- Status -->
-            <td class="px-6 py-4">
-              <app-tag
-                [label]="getEmployeeStatusLabel(employee)"
-                [variant]="getStatusSeverity(employee.status)"
-                size="sm"
-              ></app-tag>
-            </td>
+              <td class="px-6 py-4">
+                <span class="text-sm text-(--secondary)">
+                  {{ employee.startDate | date: 'dd/MM/yyyy' }}
+                </span>
+              </td>
 
-            <!-- Missing Documents Badge -->
-            <td class="px-6 py-4">
-              @if (employee.missingDocuments > 0) {
+              <td class="px-6 py-4">
+                <app-tag [label]="getEmployeeStatusLabel(employee)" [variant]="getStatusSeverity(employee.status)"
+                  size="sm"></app-tag>
+              </td>
+
+              <td class="px-6 py-4">
+                @if (employee.missingDocuments > 0) {
                 <span class="inline-flex items-center gap-2 text-(--danger)">
                   <i class="pi pi-exclamation-triangle text-xs"></i>
                   <span class="text-sm font-medium">
                     {{ 'employees.documentsMissingCount' | translate: { count: employee.missingDocuments } }}
                   </span>
                 </span>
-              } @else {
+                } @else {
                 <span class="inline-flex items-center gap-2 text-(--success)">
                   <i class="pi pi-check-circle text-xs"></i>
                   <span class="text-sm font-medium">{{ 'employees.documentsComplete' | translate }}</span>
                 </span>
-              }
-            </td>
+                }
+              </td>
 
-          </tr>
-        </ng-template>
+            </tr>
+          </ng-template>
 
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="7" class="p-0 border-none">
-              <app-empty-state
-                [title]="'employees.noEmployees' | translate"
-                [description]="'employees.noEmployeesDesc' | translate"
-                icon="pi pi-users"
-              >
-                <button
-                  pButton
-                  type="button"
-                  [label]="'employees.addEmployee' | translate"
-                  class="btn btn-primary mt-4"
-                  icon="pi pi-user-plus"
-                  (click)="addEmployee()"
-                ></button>
-              </app-empty-state>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="p-0 border-none">
+                <app-empty-state [title]="'employees.noEmployees' | translate"
+                  [description]="'employees.noEmployeesDesc' | translate" icon="pi pi-users">
+                  <button pButton type="button" [label]="'employees.addEmployee' | translate" class="btn btn-primary mt-4"
+                    icon="pi pi-user-plus" (click)="addEmployee()"></button>
+                </app-empty-state>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Sage Import Dialog -->
-<app-sage-import-dialog
-  [visible]="showImportDialog()"
-  (visibleChange)="showImportDialog.set($event)"
-  [companyId]="currentImportCompanyId"
-  (importComplete)="onImportComplete($event)"
-/>
+<app-sage-import-dialog [visible]="showImportDialog()" (visibleChange)="showImportDialog.set($event)"
+  [companyId]="currentImportCompanyId" (importComplete)="onImportComplete($event)" />

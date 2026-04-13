@@ -62,7 +62,7 @@ export class EmployeeAbsencesComponent implements OnInit {
   // General error dialog
   showErrorDialog = signal(false);
   errorMessage = signal<string | null>(null);
-  
+
   stats = signal({
     totalAbsences: 0,
     totalDays: 0
@@ -97,7 +97,7 @@ export class EmployeeAbsencesComponent implements OnInit {
   // Computed: Available absence types based on duration type
   availableAbsenceTypes = computed(() => {
     const durationType = this.newAbsence().durationType;
-    
+
     // For HalfDay or Hourly: only justified/unjustified
     if (durationType === 'HalfDay' || durationType === 'Hourly') {
       return [
@@ -105,13 +105,13 @@ export class EmployeeAbsencesComponent implements OnInit {
         { label: this.translate.instant('absences.types.unjustified'), value: 'UNJUSTIFIED' as AbsenceType }
       ];
     }
-    
+
     // For FullDay: legal leave rules + justified/unjustified
     const legalRules = this.legalLeaveRules().map(rule => ({
       label: rule.description,
       value: rule.eventCaseCode as AbsenceType
     }));
-    
+
     return [
       ...legalRules,
       { label: this.translate.instant('absences.types.justified'), value: 'JUSTIFIED' as AbsenceType },
@@ -142,7 +142,6 @@ export class EmployeeAbsencesComponent implements OnInit {
         this.legalLeaveRules.set(rules);
       },
       error: (err) => {
-        console.error('[EmployeeAbsences] Failed to load legal leave rules:', err);
         // Si le chargement échoue, on continue sans les règles légales
         this.legalLeaveRules.set([]);
       }
@@ -151,12 +150,12 @@ export class EmployeeAbsencesComponent implements OnInit {
 
   loadAbsences() {
     this.isLoading.set(true);
-    
+
     // Use getCurrentEmployee to get the real employeeId from Employees table
     this.employeeService.getCurrentEmployee().subscribe({
       next: (employee) => {
         const employeeId = employee.id;
-        
+
         this.absenceService.getEmployeeAbsences(String(employeeId)).subscribe({
           next: (response) => {
             this.absences.set(response?.absences ?? []);
@@ -164,13 +163,11 @@ export class EmployeeAbsencesComponent implements OnInit {
             this.isLoading.set(false);
           },
           error: (err) => {
-            console.error('Failed to load absences', err);
             this.isLoading.set(false);
           }
         });
       },
       error: (err) => {
-        console.error('Failed to get current employee', err);
         this.isLoading.set(false);
       }
     });
@@ -179,14 +176,13 @@ export class EmployeeAbsencesComponent implements OnInit {
   openCreateDialog() {
     const user = this.authService.currentUser();
     const userId = user?.id;
-    
+
     if (!userId) {
-      console.error('[EmployeeAbsences] No userId found');
       this.showError('Erreur: Impossible de déterminer votre identité.');
       return;
     }
-    
-    
+
+
     // Use the new getCurrentEmployee endpoint - much more efficient!
     this.employeeService.getCurrentEmployee().subscribe({
       next: (employee) => {
@@ -196,7 +192,6 @@ export class EmployeeAbsencesComponent implements OnInit {
         this.showCreateDialog.set(true);
       },
       error: (err) => {
-        console.error('[EmployeeAbsences] Failed to get current employee:', err);
         if (err.status === 404) {
           this.showError(`Erreur: Aucun employé trouvé pour votre compte.\n\nVeuillez contacter l'administrateur pour créer votre fiche employé (lier UserId=${userId} à un employé).`);
         } else {
@@ -205,7 +200,7 @@ export class EmployeeAbsencesComponent implements OnInit {
       }
     });
   }
-  
+
   private initializeNewAbsence(employeeId: number) {
     this.newAbsence.set({
       employeeId: employeeId,
@@ -227,7 +222,6 @@ export class EmployeeAbsencesComponent implements OnInit {
         this.showDetailDialog.set(true);
       },
       error: (err) => {
-        console.error('Failed to load absence details', err);
         // Fallback to list data if detail fetch fails
         this.selectedAbsence.set(absence);
         this.showDetailDialog.set(true);
@@ -252,7 +246,6 @@ export class EmployeeAbsencesComponent implements OnInit {
         this.loadAbsences();
       },
       error: (err) => {
-        console.error('[EmployeeAbsences] Failed to cancel absence:', err);
         const errorMessage = err?.error?.Message || err?.error?.message || 'Erreur lors de l\'annulation de l\'absence';
         this.cancelErrorMessage.set(errorMessage);
         this.showCancelDialog.set(false);
@@ -290,7 +283,6 @@ export class EmployeeAbsencesComponent implements OnInit {
         this.loadAbsences();
       },
       error: (err) => {
-        console.error('[EmployeeAbsences] Failed to submit absence:', err);
         const errorMessage = err?.error?.Message || err?.error?.message || 'Erreur lors de la soumission de l\'absence';
         this.cancelErrorMessage.set(errorMessage);
         this.showCancelErrorDialog.set(true);
@@ -331,14 +323,13 @@ export class EmployeeAbsencesComponent implements OnInit {
 
   submitAbsenceRequest() {
     const request = this.newAbsence();
-    
+
     // Validate employee ID
     if (!request.employeeId || request.employeeId === 0) {
-      console.error('[EmployeeAbsences] Invalid employeeId:', request.employeeId);
       this.showError('Erreur: Identifiant d\'employé invalide.');
       return;
     }
-    
+
     if (!request.absenceDate) {
       this.showError('Veuillez sélectionner une date d\'absence.');
       return;
@@ -356,37 +347,29 @@ export class EmployeeAbsencesComponent implements OnInit {
 
     // Ensure we explicitly request creation as Draft (status = 0)
     const createRequest = { ...request, status: 0 } as any;
-    console.log('[EmployeeAbsences] Creating absence with status=0 (Draft):', createRequest);
 
     this.absenceService.createAbsence(createRequest).subscribe({
       next: (response) => {
-        console.log('[EmployeeAbsences] Backend response:', response);
-        console.log('[EmployeeAbsences] Absence Status:', response.status, '- StatusDescription:', response.statusDescription);
         // Created as draft by backend; close dialog and refresh list
         this.showCreateDialog.set(false);
         this.loadAbsences();
       },
       error: (err) => {
-        console.error('Failed to create absence request', err);
-        console.error('Error response:', err?.error);
-        console.error('Request that was sent:', request);
-        
+
         if (err?.error?.errors) {
-          console.error('Validation errors:', JSON.stringify(err.error.errors, null, 2));
           // Log each validation error for clarity
           Object.keys(err.error.errors).forEach(key => {
-            console.error(`Field '${key}':`, err.error.errors[key]);
           });
         }
-        
+
         // Show user-friendly error message
         let errorMessage = err?.error?.Message || err?.error?.message || 'Une erreur est survenue lors de la création de l\'absence';
-        
+
         // Special handling for employee not found error
         if (err?.status === 404 && errorMessage.includes('Employé non trouvé')) {
           errorMessage = `Employé non trouvé (ID: ${request.employeeId}). Votre compte utilisateur n'est pas lié à un employé valide dans le système. Veuillez contacter l'administrateur pour créer votre fiche employé.`;
         }
-        
+
         this.showError(errorMessage);
       }
     });
@@ -399,18 +382,18 @@ export class EmployeeAbsencesComponent implements OnInit {
       'SICK': 'absences.types.sick',
       'MISSION': 'absences.types.mission'
     };
-    
+
     // If type is in predefined map, return translation key
     if (typeMap[type]) {
       return typeMap[type]!;
     }
-    
+
     // Otherwise, check if it's a legal leave rule
     const legalRule = this.legalLeaveRules().find(rule => rule.eventCaseCode === type);
     if (legalRule) {
       return legalRule.description;
     }
-    
+
     // Fallback to the type itself
     return type;
   }
@@ -429,7 +412,7 @@ export class EmployeeAbsencesComponent implements OnInit {
       const durationMinutes = endMinutes - startMinutes;
       const hours = Math.floor(durationMinutes / 60);
       const minutes = durationMinutes % 60;
-      
+
       if (minutes > 0) {
         return `${hours}h ${minutes}min`;
       }
@@ -504,14 +487,12 @@ export class EmployeeAbsencesComponent implements OnInit {
   }
 
   approveAbsence(absenceId: number) {
-    console.debug('[EmployeeAbsences] approveAbsence', absenceId);
     // TODO: integrate backend approval API; currently simulate by closing dialog and reloading list
     this.showDetailDialog.set(false);
     this.loadAbsences();
   }
 
   rejectAbsence(absenceId: number) {
-    console.debug('[EmployeeAbsences] rejectAbsence', absenceId);
     // TODO: integrate backend rejection API; currently simulate by closing dialog and reloading list
     this.showDetailDialog.set(false);
     this.loadAbsences();

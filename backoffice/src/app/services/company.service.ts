@@ -1,17 +1,17 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Company, CompanyCreateRequest, CompanyUpdateRequest, CompanyFormData, CompanyCreateResponse, PartialUpdateRequest } from '../models/company.model';
+import { Company, CompanyCreateRequest, CompanyCreateResponse, CompanyFormData, CompanyUpdateRequest, PartialUpdateRequest } from '../models/company.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CompanyService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/companies`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Transform API response from PascalCase to camelCase
@@ -37,7 +37,7 @@ export class CompanyService {
       countryCode: data.CountryCode || '+212',
       cityName: data.CityName,
       countryName: data.CountryName,
-      companyAddress : data.CompanyAddress,
+      companyAddress: data.CompanyAddress,
       cnssNumber: data.CnssNumber,
       createdAt: data.CreatedAt,
       // Use normalized status
@@ -48,7 +48,7 @@ export class CompanyService {
       // Legal & Fiscal (optional)
       iceNumber: data.IceNumber || data.Ice || data.IceNum || data.ICE || data.ICE_Number || data.Ice_Number,
       ifNumber: data.IfNumber || data.IdentifiantFiscalNumber || data.TaxIdentifier || data.IdentifiantFiscal,
-      rcNumber:  data.RcNumber,
+      rcNumber: data.RcNumber,
       legalForm: data.LegalForm,
       foundingDate: data.FoundingDate,
       patentNumber: data.PatentNumber || data.PatenteNumber || data.Patent || data.patentNumber,

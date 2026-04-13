@@ -7,13 +7,8 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   const isAuth = auth.isAuthenticated();
-  console.log('[AUTH-FLOW][GUARD][guestGuard]', {
-    currentUrl: router.url,
-    isAuthenticated: isAuth,
-  });
 
   if (isAuth) {
-    console.warn('[AUTH-FLOW][GUARD][guestGuard] redirect auth user -> /dashboard');
     router.navigate(['/dashboard']);
     return false;
   }

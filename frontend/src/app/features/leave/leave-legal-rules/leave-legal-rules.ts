@@ -128,7 +128,6 @@ export class LeaveLegalRulesPage implements OnInit {
       error: (err: any) => {
         this.error.set(err.error?.message || 'Échec du chargement des règles légales');
         this.isLoading.set(false);
-        console.error('Error loading legal rules:', err);
       }
     });
   }
@@ -140,7 +139,7 @@ export class LeaveLegalRulesPage implements OnInit {
         this.leaveTypes.set(types);
       },
       error: (err: any) => {
-        console.error('Error loading leave types:', err);
+        alert('Error loading leave types:');
       }
     });
   }
@@ -155,7 +154,7 @@ export class LeaveLegalRulesPage implements OnInit {
 
   formatTimeLimit(days?: number | null): string {
     if (!days) return '-';
-    
+
     if (days === 1) {
       return `${days} ${this.translate.instant('common.day')}`;
     } else if (days < 30) {

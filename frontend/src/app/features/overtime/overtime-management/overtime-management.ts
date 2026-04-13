@@ -1,35 +1,35 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 // CalendarModule and SelectButtonModule not required (using native inputs in dialog)
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TooltipModule } from 'primeng/tooltip';
+import { Holiday } from '@app/core/models/holiday.model';
+import {
+  Overtime,
+  OvertimeEntryMode,
+  OvertimeFilters,
+  OvertimeStatus,
+  OvertimeType
+} from '@app/core/models/overtime.model';
+import { EmployeeService } from '@app/core/services/employee.service';
+import { HolidayService } from '@app/core/services/holiday.service';
+import { OvertimeService } from '@app/core/services/overtime.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
-import { BadgeModule } from 'primeng/badge';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { OvertimeService } from '@app/core/services/overtime.service';
-import { EmployeeService } from '@app/core/services/employee.service';
-import { HolidayService } from '@app/core/services/holiday.service';
-import { 
-  Overtime, 
-  OvertimeStatus,
-  OvertimeType,
-  OvertimeEntryMode,
-  OvertimeFilters 
-} from '@app/core/models/overtime.model';
-import { Holiday } from '@app/core/models/holiday.model';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-overtime-management',
@@ -55,15 +55,14 @@ import { Holiday } from '@app/core/models/holiday.model';
     TranslateModule
   ],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './overtime-management.html',
-  styleUrls: ['./overtime-management.css']
+  templateUrl: './overtime-management.html'
 })
 export class OvertimeManagementComponent implements OnInit {
   private readonly overtimeService = inject(OvertimeService);
   private readonly employeeService = inject(EmployeeService);
   private readonly holidayService = inject(HolidayService);
   private readonly messageService = inject(MessageService);
-    private readonly fb = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
@@ -75,7 +74,7 @@ export class OvertimeManagementComponent implements OnInit {
   readonly isLoading = signal<boolean>(false);
   readonly showApprovalDialog = signal<boolean>(false);
   readonly selectedOvertime = signal<Overtime | null>(null);
-  
+
   // Filters
   selectedStatus = signal<OvertimeStatus | null>(null);
   selectedStartDate = signal<Date | null>(null);
@@ -87,7 +86,7 @@ export class OvertimeManagementComponent implements OnInit {
 
   // Approval
   approvalComment = '';
-  
+
   // Status enum for template
   readonly OvertimeStatus = OvertimeStatus;
   readonly OvertimeType = OvertimeType;
@@ -103,7 +102,7 @@ export class OvertimeManagementComponent implements OnInit {
   readonly filteredHolidays = computed(() => {
     const year = this.selectedYear();
     const currentLang = this.translate.currentLang || 'en';
-    
+
     return this.holidays()
       .filter(h => new Date(h.holidayDate).getFullYear() === year)
       .map(h => ({
@@ -152,19 +151,19 @@ export class OvertimeManagementComponent implements OnInit {
   ]);
 
   // Use the unfiltered allOvertimesForStats to compute counters so they don't change when table is filtered
-  readonly pendingCount = computed(() => 
+  readonly pendingCount = computed(() =>
     this.allOvertimesForStats().filter(o => o.status === OvertimeStatus.Submitted).length
   );
 
-  readonly approvedCount = computed(() => 
+  readonly approvedCount = computed(() =>
     this.allOvertimesForStats().filter(o => o.status === OvertimeStatus.Approved).length
   );
 
-  readonly rejectedCount = computed(() => 
+  readonly rejectedCount = computed(() =>
     this.allOvertimesForStats().filter(o => o.status === OvertimeStatus.Rejected).length
   );
 
-  readonly draftCount = computed(() => 
+  readonly draftCount = computed(() =>
     this.allOvertimesForStats().filter(o => o.status === OvertimeStatus.Draft).length
   );
 
@@ -225,8 +224,8 @@ export class OvertimeManagementComponent implements OnInit {
       list = list.filter(o => {
         const d = o.overtimeDate ? new Date(o.overtimeDate) : (o as any).OvertimeDate ? new Date((o as any).OvertimeDate) : null;
         if (!d) return false;
-        if (start && d < new Date(start.setHours(0,0,0,0))) return false;
-        if (end && d > new Date(end.setHours(23,59,59,999))) return false;
+        if (start && d < new Date(start.setHours(0, 0, 0, 0))) return false;
+        if (end && d > new Date(end.setHours(23, 59, 59, 999))) return false;
         return true;
       });
     }
@@ -250,14 +249,14 @@ export class OvertimeManagementComponent implements OnInit {
       return full.includes(q) || firstName.includes(q) || lastName.includes(q);
     });
   });
-    readonly showDeclareDialog = signal<boolean>(false);
-    readonly selectedEmployeeForDeclare = signal<any | null>(null);
-    declareForm!: FormGroup;
+  readonly showDeclareDialog = signal<boolean>(false);
+  readonly selectedEmployeeForDeclare = signal<any | null>(null);
+  declareForm!: FormGroup;
 
   // Holidays management
   readonly holidays = signal<Holiday[]>([]);
   readonly selectedYear = signal<number>(new Date().getFullYear());
-  readonly years = signal<{label: string, value: number}[]>([]);
+  readonly years = signal<{ label: string, value: number }[]>([]);
 
   ngOnInit(): void {
     this.loadOvertimes();
@@ -267,160 +266,159 @@ export class OvertimeManagementComponent implements OnInit {
     this.initDeclareForm();
   }
 
-    initDeclareForm(): void {
-      this.declareForm = this.fb.group({
-        overtimeType: [OvertimeType.Standard, Validators.required],
-        overtimeDate: [null],
-        year: [new Date().getFullYear()],
-        holidayId: [null],
-        startTime: [''],
-        endTime: [''],
-        reason: [''] // Optional field - no validators
-      });
+  initDeclareForm(): void {
+    this.declareForm = this.fb.group({
+      overtimeType: [OvertimeType.Standard, Validators.required],
+      overtimeDate: [null],
+      year: [new Date().getFullYear()],
+      holidayId: [null],
+      startTime: [''],
+      endTime: [''],
+      reason: [''] // Optional field - no validators
+    });
 
-      // Subscribe to type changes to update validators
-      this.declareForm.get('overtimeType')?.valueChanges.subscribe(type => {
-        this.updateValidators(type);
-      });
+    // Subscribe to type changes to update validators
+    this.declareForm.get('overtimeType')?.valueChanges.subscribe(type => {
+      this.updateValidators(type);
+    });
 
-      // Initialize validators for default type
-      this.updateValidators(OvertimeType.Standard);
+    // Initialize validators for default type
+    this.updateValidators(OvertimeType.Standard);
+  }
+
+  updateValidators(type: OvertimeType): void {
+    const overtimeDateControl = this.declareForm.get('overtimeDate');
+    const yearControl = this.declareForm.get('year');
+    const holidayIdControl = this.declareForm.get('holidayId');
+    const startTimeControl = this.declareForm.get('startTime');
+    const endTimeControl = this.declareForm.get('endTime');
+
+    // Clear all validators first
+    overtimeDateControl?.clearValidators();
+    yearControl?.clearValidators();
+    holidayIdControl?.clearValidators();
+    startTimeControl?.clearValidators();
+    endTimeControl?.clearValidators();
+
+    if (type === OvertimeType.PublicHoliday) {
+      // Holiday type validation
+      yearControl?.setValidators([Validators.required]);
+      holidayIdControl?.setValidators([Validators.required]);
+    } else {
+      // Standard type validation
+      overtimeDateControl?.setValidators([Validators.required]);
+      startTimeControl?.setValidators([Validators.required]);
+      endTimeControl?.setValidators([Validators.required]);
     }
 
-    updateValidators(type: OvertimeType): void {
-      const overtimeDateControl = this.declareForm.get('overtimeDate');
-      const yearControl = this.declareForm.get('year');
-      const holidayIdControl = this.declareForm.get('holidayId');
-      const startTimeControl = this.declareForm.get('startTime');
-      const endTimeControl = this.declareForm.get('endTime');
+    // Update validity
+    overtimeDateControl?.updateValueAndValidity();
+    yearControl?.updateValueAndValidity();
+    holidayIdControl?.updateValueAndValidity();
+    startTimeControl?.updateValueAndValidity();
+    endTimeControl?.updateValueAndValidity();
 
-      // Clear all validators first
-      overtimeDateControl?.clearValidators();
-      yearControl?.clearValidators();
-      holidayIdControl?.clearValidators();
-      startTimeControl?.clearValidators();
-      endTimeControl?.clearValidators();
-
-      if (type === OvertimeType.PublicHoliday) {
-        // Holiday type validation
-        yearControl?.setValidators([Validators.required]);
-        holidayIdControl?.setValidators([Validators.required]);
-      } else {
-        // Standard type validation
-        overtimeDateControl?.setValidators([Validators.required]);
-        startTimeControl?.setValidators([Validators.required]);
-        endTimeControl?.setValidators([Validators.required]);
-      }
-
-      // Update validity
-      overtimeDateControl?.updateValueAndValidity();
-      yearControl?.updateValueAndValidity();
-      holidayIdControl?.updateValueAndValidity();
-      startTimeControl?.updateValueAndValidity();
-      endTimeControl?.updateValueAndValidity();
-
-      // Update selected year signal
-      if (type === OvertimeType.PublicHoliday && yearControl?.value) {
-        this.selectedYear.set(yearControl.value);
-      }
+    // Update selected year signal
+    if (type === OvertimeType.PublicHoliday && yearControl?.value) {
+      this.selectedYear.set(yearControl.value);
     }
+  }
 
-    openDeclareDialog(employee: any): void {
-      this.selectedEmployeeForDeclare.set(employee);
-      this.declareForm.reset({ 
-        overtimeType: OvertimeType.Standard, 
-        year: new Date().getFullYear(),
-        overtimeDate: null,
-        holidayId: null,
-        startTime: '', 
-        endTime: '', 
-        reason: '' 
-      });
-      this.updateValidators(OvertimeType.Standard);
-      this.showDeclareDialog.set(true);
+  openDeclareDialog(employee: any): void {
+    this.selectedEmployeeForDeclare.set(employee);
+    this.declareForm.reset({
+      overtimeType: OvertimeType.Standard,
+      year: new Date().getFullYear(),
+      overtimeDate: null,
+      holidayId: null,
+      startTime: '',
+      endTime: '',
+      reason: ''
+    });
+    this.updateValidators(OvertimeType.Standard);
+    this.showDeclareDialog.set(true);
+  }
+
+  closeDeclareDialog(): void {
+    this.showDeclareDialog.set(false);
+    this.selectedEmployeeForDeclare.set(null);
+  }
+
+  private formatDateLocal(value: any): string {
+    if (!value) return '';
+    const d = value instanceof Date ? value : new Date(value);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  submitDeclare(): void {
+    if (this.declareForm.invalid) {
+      this.declareForm.markAllAsTouched();
+      return;
     }
+    const emp = this.selectedEmployeeForDeclare();
+    if (!emp) return;
+    const v = this.declareForm.value;
 
-    closeDeclareDialog(): void {
-      this.showDeclareDialog.set(false);
-      this.selectedEmployeeForDeclare.set(null);
-    }
+    const payload: any = {
+      employeeId: Number(emp.id ?? emp.Id),
+      employeeComment: v.reason || undefined
+    };
 
-    private formatDateLocal(value: any): string {
-      if (!value) return '';
-      const d = value instanceof Date ? value : new Date(value);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    submitDeclare(): void {
-      if (this.declareForm.invalid) {
-        this.declareForm.markAllAsTouched();
+    if (v.overtimeType === OvertimeType.PublicHoliday) {
+      // Holiday type: find the selected holiday and use its date
+      const selectedHoliday = this.holidays().find(h => h.id === v.holidayId);
+      if (!selectedHoliday) {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('common.error'),
+          detail: this.translate.instant('overtime.errors.noHolidaySelected')
+        });
         return;
       }
-      const emp = this.selectedEmployeeForDeclare();
-      if (!emp) return;
-      const v = this.declareForm.value;
-      
-      const payload: any = {
-        employeeId: Number(emp.id ?? emp.Id),
-        employeeComment: v.reason || undefined
-      };
+      // Use the holiday's date and full day mode
+      payload.overtimeDate = selectedHoliday.holidayDate;
+      payload.entryMode = OvertimeEntryMode.FullDay;
+      payload.standardDayHours = 8; // Default 8 hours for public holiday work
+    } else {
+      // Standard hourly type: use date and times (formatted as HH:00)
+      payload.overtimeDate = this.formatDateLocal(v.overtimeDate);
+      payload.entryMode = OvertimeEntryMode.HoursRange;
+      payload.startTime = v.startTime ? this.formatTime(v.startTime) : undefined;
+      payload.endTime = v.endTime ? this.formatTime(v.endTime) : undefined;
 
-      if (v.overtimeType === OvertimeType.PublicHoliday) {
-        // Holiday type: find the selected holiday and use its date
-        const selectedHoliday = this.holidays().find(h => h.id === v.holidayId);
-        if (!selectedHoliday) {
-          this.messageService.add({ 
-            severity: 'error', 
-            summary: this.translate.instant('common.error'), 
-            detail: this.translate.instant('overtime.errors.noHolidaySelected') 
-          });
-          return;
-        }
-        // Use the holiday's date and full day mode
-        payload.overtimeDate = selectedHoliday.holidayDate;
-        payload.entryMode = OvertimeEntryMode.FullDay;
-        payload.standardDayHours = 8; // Default 8 hours for public holiday work
-      } else {
-        // Standard hourly type: use date and times (formatted as HH:00)
-        payload.overtimeDate = this.formatDateLocal(v.overtimeDate);
-        payload.entryMode = OvertimeEntryMode.HoursRange;
-        payload.startTime = v.startTime ? this.formatTime(v.startTime) : undefined;
-        payload.endTime = v.endTime ? this.formatTime(v.endTime) : undefined;
-        
-        // Calculate duration in hours
-        if (v.startTime && v.endTime) {
-          const [startHour] = v.startTime.split(':').map(Number);
-          const [endHour] = v.endTime.split(':').map(Number);
-          const durationHours = Math.abs(endHour - startHour);
-          payload.durationInHours = durationHours > 0 ? durationHours : 1;
-        }
+      // Calculate duration in hours
+      if (v.startTime && v.endTime) {
+        const [startHour] = v.startTime.split(':').map(Number);
+        const [endHour] = v.endTime.split(':').map(Number);
+        const durationHours = Math.abs(endHour - startHour);
+        payload.durationInHours = durationHours > 0 ? durationHours : 1;
       }
-
-      this.overtimeService.createOvertime(payload).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: this.translate.instant('common.success'), detail: this.translate.instant('overtime.messages.createSuccess') });
-          this.closeDeclareDialog();
-          this.loadOvertimes();
-        },
-        error: (err) => {
-          console.error('Error declaring overtime (management):', err);
-          this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: this.translate.instant('overtime.errors.createFailed') });
-        }
-      });
     }
 
-    /**
-     * Format time to HH:00 format
-     */
-    formatTime(timeValue: string): string {
-      if (!timeValue) return '';
-      const parts = timeValue.split(':');
-      const hours = parts[0] || '00';
-      return `${hours.padStart(2, '0')}:00`;
-    }
+    this.overtimeService.createOvertime(payload).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: this.translate.instant('common.success'), detail: this.translate.instant('overtime.messages.createSuccess') });
+        this.closeDeclareDialog();
+        this.loadOvertimes();
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: this.translate.instant('overtime.errors.createFailed') });
+      }
+    });
+  }
+
+  /**
+   * Format time to HH:00 format
+   */
+  formatTime(timeValue: string): string {
+    if (!timeValue) return '';
+    const parts = timeValue.split(':');
+    const hours = parts[0] || '00';
+    return `${hours.padStart(2, '0')}:00`;
+  }
 
   navigateToHrDeclare(employee: any): void {
     const id = employee?.id ?? employee?.Id;
@@ -443,7 +441,6 @@ export class OvertimeManagementComponent implements OnInit {
         this.employeesLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading employees:', err);
         this.employeesLoading.set(false);
       }
     });
@@ -458,7 +455,6 @@ export class OvertimeManagementComponent implements OnInit {
         this.holidays.set(holidays || []);
       },
       error: (err) => {
-        console.error('Error loading holidays:', err);
       }
     });
   }
@@ -806,7 +802,7 @@ export class OvertimeManagementComponent implements OnInit {
   getTypeLabel(type: OvertimeType | number | undefined): string {
     if (type == null) return this.translate.instant('common.unknown');
     const typeNum = Number(type);
-    
+
     if (typeNum === OvertimeType.Standard) {
       return this.translate.instant('overtime.type.standard');
     } else if (typeNum === OvertimeType.PublicHoliday || (typeNum & OvertimeType.PublicHoliday) !== 0) {
@@ -814,7 +810,7 @@ export class OvertimeManagementComponent implements OnInit {
     } else if ((typeNum & OvertimeType.WeeklyRest) !== 0) {
       return this.translate.instant('overtime.type.weeklyRest');
     }
-    
+
     return this.translate.instant('overtime.type.standard');
   }
 

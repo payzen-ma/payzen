@@ -1,17 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ModalComponent } from '../../../../shared/modal/modal.component';
-import { LookupCacheService } from '../../../../services/payroll-referentiel/lookup-cache.service';
 import {
-  ReferentielElementListDto,
-  ReferentielElementDto,
   CreateReferentielElementDto,
-  UpdateReferentielElementDto,
   ElementCategoryDto,
   PaymentFrequency,
-  ElementStatus
+  ReferentielElementDto,
+  ReferentielElementListDto,
+  UpdateReferentielElementDto
 } from '../../../../models/payroll-referentiel';
+import { LookupCacheService } from '../../../../services/payroll-referentiel/lookup-cache.service';
+import { ModalComponent } from '../../../../shared/modal/modal.component';
 
 /**
  * Referential Element Modal Component
@@ -119,8 +118,8 @@ import {
           <!-- Status (edit mode only) -->
           <div *ngIf="mode === 'edit'" class="flex items-center gap-3">
             <label class="flex items-center gap-2">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 [(ngModel)]="form.isActive"
                 class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500">
               <span class="text-sm text-gray-700">Élément actif</span>
@@ -131,13 +130,13 @@ import {
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 pt-4 border-t">
-          <button 
+          <button
             type="button"
             (click)="onCancel()"
             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Annuler
           </button>
-          <button 
+          <button
             type="button"
             (click)="onSubmit()"
             [disabled]="!isValid()"
@@ -153,7 +152,7 @@ export class ReferentielElementModalComponent implements OnInit, OnChanges {
   @Input() visible = false;
   @Input() mode: 'create' | 'edit' = 'create';
   @Input() element: ReferentielElementListDto | ReferentielElementDto | null = null;
-  
+
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() save = new EventEmitter<CreateReferentielElementDto | { id: number; dto: UpdateReferentielElementDto }>();
 
@@ -186,7 +185,7 @@ export class ReferentielElementModalComponent implements OnInit, OnChanges {
     return this.mode === 'create' ? 'Nouvel élément de référentiel' : 'Modifier l\'élément';
   }
 
-  constructor(private lookupCache: LookupCacheService) {}
+  constructor(private lookupCache: LookupCacheService) { }
 
   ngOnInit(): void {
     this.loadCategories();
@@ -201,7 +200,7 @@ export class ReferentielElementModalComponent implements OnInit, OnChanges {
   private loadCategories(): void {
     this.lookupCache.getCategories().subscribe({
       next: (cats) => this.categories = cats,
-      error: (err) => console.error('Failed to load categories:', err)
+      error: (err) => { alert('Erreur lors du chargement des catégories.'); }
     });
   }
 
@@ -237,7 +236,7 @@ export class ReferentielElementModalComponent implements OnInit, OnChanges {
 
   isValid(): boolean {
     return !!(
-      this.form.name.trim() && 
+      this.form.name.trim() &&
       this.form.categoryId !== null
     );
   }

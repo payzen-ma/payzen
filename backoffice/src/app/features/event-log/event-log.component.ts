@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EventLogService } from '../../services/event-log.service';
 
@@ -92,7 +92,7 @@ export class EventLogComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  constructor(private eventLogService: EventLogService) {}
+  constructor(private eventLogService: EventLogService) { }
 
   ngOnInit(): void {
     this.loadEvents();
@@ -117,75 +117,69 @@ export class EventLogComponent implements OnInit {
         } catch (e) {
           this.totalCount = null;
         }
-        console.log('events HTTP response status:', resp.status);
-        console.log('events HTTP response body:', resp.body);
       },
       error: (err: any) => {
-        console.error('events raw request failed', err);
       }
     });
 
     this.eventLogService.getEvents(serverFilters).subscribe({
       next: (rows: any[]) => {
-        console.log('raw events response', rows);
-          this.events = (rows || []).map((r: any) => {
-            const src = r.Source || r.source || null;
-            const companyId = r.CompanyId ?? r.companyId ?? null;
-            const employeeId = r.EmployeeId ?? r.employeeId ?? null;
-            const targetType = src && typeof src.toLowerCase === 'function'
-              ? (src.toLowerCase() === 'company' ? 'company' : 'employee')
-              : (companyId != null ? 'company' : (employeeId != null ? 'employee' : 'company'));
+        this.events = (rows || []).map((r: any) => {
+          const src = r.Source || r.source || null;
+          const companyId = r.CompanyId ?? r.companyId ?? null;
+          const employeeId = r.EmployeeId ?? r.employeeId ?? null;
+          const targetType = src && typeof src.toLowerCase === 'function'
+            ? (src.toLowerCase() === 'company' ? 'company' : 'employee')
+            : (companyId != null ? 'company' : (employeeId != null ? 'employee' : 'company'));
 
-            return {
-              id: r.Id || r.id,
-              source: r.Source ?? r.source ?? null,
-              eventName: r.EventName || r.eventName || r.Type || 'OTHER',
-              oldValue: r.OldValue ?? r.oldValue ?? null,
-              oldValueId: r.OldValueId ?? r.oldValueId ?? null,
-              newValue: r.NewValue ?? r.newValue ?? null,
-              newValueId: r.NewValueId ?? r.newValueId ?? null,
-              createdAt: r.CreatedAt || r.createdAt || r.Date || new Date().toISOString(),
-              createdBy: r.CreatedBy ?? r.createdBy ?? null,
-              creatorFullName: r.CreatorFullName ?? r.creatorFullName ?? null,
-              companyId,
-              employeeId,
-              companyName: r.CompanyName ?? r.companyName ?? null,
-              employeeFullName: r.EmployeeFullName ?? r.employeeFullName ?? null,
-              // convenience aliases
-              date: r.CreatedAt || r.createdAt || r.Date || new Date().toISOString(),
-              actorId: r.CreatedBy ?? r.createdBy ?? null,
-              type: r.EventName || r.eventName || r.Type || 'OTHER',
-              targetType
-            } as EventItem;
-          });
-            console.log('mapped events', this.events);
-            // Populate eventTypes from API distinct eventName values
-            const names = new Set<string>();
-            for (const row of (rows || [])) {
-              const n = row.EventName || row.eventName || row.Type;
-              if (n) names.add(n);
-            }
-            this.eventTypes = Array.from(names).sort();
-          this.isLoading = false;
+          return {
+            id: r.Id || r.id,
+            source: r.Source ?? r.source ?? null,
+            eventName: r.EventName || r.eventName || r.Type || 'OTHER',
+            oldValue: r.OldValue ?? r.oldValue ?? null,
+            oldValueId: r.OldValueId ?? r.oldValueId ?? null,
+            newValue: r.NewValue ?? r.newValue ?? null,
+            newValueId: r.NewValueId ?? r.newValueId ?? null,
+            createdAt: r.CreatedAt || r.createdAt || r.Date || new Date().toISOString(),
+            createdBy: r.CreatedBy ?? r.createdBy ?? null,
+            creatorFullName: r.CreatorFullName ?? r.creatorFullName ?? null,
+            companyId,
+            employeeId,
+            companyName: r.CompanyName ?? r.companyName ?? null,
+            employeeFullName: r.EmployeeFullName ?? r.employeeFullName ?? null,
+            // convenience aliases
+            date: r.CreatedAt || r.createdAt || r.Date || new Date().toISOString(),
+            actorId: r.CreatedBy ?? r.createdBy ?? null,
+            type: r.EventName || r.eventName || r.Type || 'OTHER',
+            targetType
+          } as EventItem;
+        });
+        // Populate eventTypes from API distinct eventName values
+        const names = new Set<string>();
+        for (const row of (rows || [])) {
+          const n = row.EventName || row.eventName || row.Type;
+          if (n) names.add(n);
+        }
+        this.eventTypes = Array.from(names).sort();
+        this.isLoading = false;
       },
       error: (err: any) => {
-        console.error('Failed to load events', err);
         this.error = 'Impossible de charger les logs.';
         this.isLoading = false;
       }
     });
   }
 
-    applyServerFilters() {
-      this.loadEvents();
-    }
+  applyServerFilters() {
+    this.loadEvents();
+  }
 
-    resetFilters() {
-      this.search = '';
-      this.fromDate = null;
-      this.toDate = null;
-      this.eventType = null;
-      this.totalCount = null;
-      this.loadEvents();
-    }
+  resetFilters() {
+    this.search = '';
+    this.fromDate = null;
+    this.toDate = null;
+    this.eventType = null;
+    this.totalCount = null;
+    this.loadEvents();
+  }
 }

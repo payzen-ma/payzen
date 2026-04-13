@@ -127,7 +127,6 @@ export class OvertimeService {
     return this.http.post<OvertimeReadDto | null>(this.OVERTIME_URL, payload).pipe(
       map(dto => {
         if (!dto) {
-          console.warn('[OvertimeService] POST returned null DTO');
           return null;
         }
         return this.mapDtoToOvertime(dto);
@@ -263,10 +262,10 @@ export class OvertimeService {
    */
   private mapOvertimeType(value: any): OvertimeType | undefined {
     if (value == null) return undefined;
-    
+
     // If it's already a number, return it
     if (typeof value === 'number') return value as OvertimeType;
-    
+
     // If it's a string, map it to the enum value
     if (typeof value === 'string') {
       const typeMap: { [key: string]: OvertimeType } = {
@@ -278,7 +277,7 @@ export class OvertimeService {
       };
       return typeMap[value] ?? OvertimeType.Standard;
     }
-    
+
     // Try to convert to number as fallback
     const num = Number(value);
     return isNaN(num) ? OvertimeType.Standard : num as OvertimeType;
@@ -289,10 +288,10 @@ export class OvertimeService {
    */
   private mapOvertimeStatus(value: any): OvertimeStatus {
     if (value == null) return OvertimeStatus.Draft;
-    
+
     // If it's already a number, return it
     if (typeof value === 'number') return value as OvertimeStatus;
-    
+
     // If it's a string, map it to the enum value
     if (typeof value === 'string') {
       const statusMap: { [key: string]: OvertimeStatus } = {
@@ -304,7 +303,7 @@ export class OvertimeService {
       };
       return statusMap[value] ?? OvertimeStatus.Draft;
     }
-    
+
     // Try to convert to number as fallback
     const num = Number(value);
     return isNaN(num) ? OvertimeStatus.Draft : num as OvertimeStatus;

@@ -1,15 +1,15 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DashboardSummary, RecentCompany } from '../models/dashboard.model';
-import { UsageMetrics, RevenueMetrics } from '../models/metrics.model';
+import { RevenueMetrics, UsageMetrics } from '../models/metrics.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
   // Base API - adapt if you have environment variable
-  private baseUrl = 'http://localhost:5119/api';
+  private baseUrl = 'https://api-test.payzenhr.com/api';
 
   getSummary(): Observable<DashboardSummary> {
     return this.http.get<any>(`${this.baseUrl}/dashboard/summary`).pipe(

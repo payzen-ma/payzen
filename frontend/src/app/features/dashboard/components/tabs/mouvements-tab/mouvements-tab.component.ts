@@ -2,16 +2,17 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
+import { SelectModule } from 'primeng/select';
 import { MouvementsRhData } from '../../../state/dashboard-hr.models';
-import { SectionHeaderComponent } from '../../shared/section-header/section-header.component';
 import { KpiCardComponent } from '../../shared/kpi-card/kpi-card.component';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 @Component({
   selector: 'app-mouvements-tab',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, SectionHeaderComponent, KpiCardComponent, StatusBadgeComponent],
+  imports: [CommonModule, FormsModule, SelectModule, TableModule, KpiCardComponent, StatusBadgeComponent],
   templateUrl: './mouvements-tab.component.html',
+  styleUrl: './mouvements-tab.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MouvementsTabComponent {

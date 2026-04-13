@@ -79,16 +79,16 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   employees = signal<Employee[]>([]);
   availableLeaveTypes = signal<LeaveType[]>([]);
   loading = signal<boolean>(false);
-  
+
   // Dialog states
   showApprovalDialog = signal<boolean>(false);
   showGrantLeaveDialog = signal<boolean>(false);
   selectedRequest = signal<LeaveRequest | null>(null);
-  
+
   // Forms
   approvalForm!: FormGroup;
   grantLeaveForm!: FormGroup;
-  
+
   // Filters
   selectedEmployee = signal<number | null>(null);
   selectedStatus = signal<LeaveRequestStatus | null>(null);
@@ -112,7 +112,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
     if (!employeeId) return null;
     return this.employees().find(emp => emp.id === employeeId || (emp as any).Id === employeeId) || null;
   });
-  
+
   // Statistics
   stats = signal({
     pending: 0,
@@ -121,7 +121,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
     cancelled: 0,
     total: 0
   });
-  
+
   // Status options for filtering
   statusOptions = [
     { label: 'Tous', value: null },
@@ -135,10 +135,10 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   // Tab management
   activeTab = signal<string>('pending');
   activeTabValue: string = 'pending';
-  
+
   // Subject for subscription management
   private destroy$ = new Subject<void>();
-  
+
   constructor(
     private leaveRequestService: LeaveRequestService,
     private leaveService: LeaveService,
@@ -151,10 +151,10 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.initializeForms();
-    
+
     // Reactive filtering - trigger when filters change
     effect(() => {
-      
+
       // Only trigger filtering when relevant data changes
       if (this.allLeaveRequests().length > 0) {
         this.applyFilters();
@@ -162,7 +162,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   ngOnInit(): void {
     this.loadData();
   }
@@ -176,7 +176,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
     this.approvalForm = this.fb.group({
       approverNotes: ['', [Validators.maxLength(500)]]
     });
-    
+
     this.grantLeaveForm = this.fb.group({
       employeeId: [null, Validators.required],
       leaveTypeId: [null, Validators.required],
@@ -203,14 +203,13 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
         next: (requests) => {
           if (requests && requests.length > 0) {
           }
-          
+
           this.allLeaveRequests.set(requests);
           this.updateStatistics(requests);
           this.applyFilters();
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Error loading leave requests:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Erreur',
@@ -232,7 +231,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           this.employees.set(response.employees || []);
         },
         error: (error: any) => {
-          console.error('Error loading employees:', error);
+          alert('Error loading employees:');
         }
       });
   }
@@ -248,7 +247,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           this.availableLeaveTypes.set(leaveTypes);
         },
         error: (error) => {
-          console.error('Error loading leave types:', error);
+          alert('Error loading leave types:');
         }
       });
   }
@@ -262,7 +261,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   private updateStatistics(requests: LeaveRequest[]): void {
-    
+
     const stats = {
       pending: requests.filter(r => r.status === LeaveRequestStatus.Submitted).length,
       approved: requests.filter(r => r.status === LeaveRequestStatus.Approved).length,
@@ -270,14 +269,14 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       cancelled: requests.filter(r => r.status === LeaveRequestStatus.Cancelled).length,
       total: requests.length
     };
-    
+
     this.stats.set(stats);
   }
 
   private applyFilters(): void {
     let filtered = [...this.allLeaveRequests()];
     const activeTab = this.activeTab();
-    
+
     // Filter by active tab (primary filter)
     if (activeTab === 'pending') {
       filtered = filtered.filter(r => r.status === LeaveRequestStatus.Submitted);
@@ -295,25 +294,25 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
         filtered = filtered.filter(r => r.status === selectedStatus);
       }
     }
-    
+
     // Apply additional filters (only non-status filters when not on 'all' tab)
     const selectedEmployee = this.selectedEmployee();
     if (selectedEmployee) {
       filtered = filtered.filter(r => r.employeeId.toString() === selectedEmployee.toString());
     }
-    
+
     const selectedLeaveType = this.selectedLeaveType();
     if (selectedLeaveType) {
       filtered = filtered.filter(r => r.leaveTypeId === selectedLeaveType);
     }
-    
+
     this.filteredRequests.set(filtered);
   }
 
   onTabChange(event: any): void {
-    
+
     this.setActiveTab(event.value);
-    
+
   }
 
   onActiveItemChange(event: any): void {
@@ -325,21 +324,21 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   setActiveTab(tabValue: string): void {
-    
+
     this.activeTab.set(tabValue);
     this.activeTabValue = tabValue;
-    
-    
+
+
     // Clear filters but preserve status filter for 'all' tab
     this.selectedEmployee.set(null);
     this.selectedLeaveType.set(null);
-    
+
     // Only clear status filter when not switching to 'all' tab
     if (tabValue !== 'all') {
       this.selectedStatus.set(null);
     } else {
     }
-    
+
     // Manually trigger filtering
     this.applyFilters();
   }
@@ -397,7 +396,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           this.hideApprovalDialog();
         },
         error: (error) => {
-          console.error('Error approving leave request:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Erreur',
@@ -428,7 +426,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           this.hideApprovalDialog();
         },
         error: (error) => {
-          console.error('Error rejecting leave request:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Erreur',
@@ -494,7 +491,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           this.autoApproveLastCreatedRequest(employeeId, formValue);
         },
         error: (error) => {
-          console.error('Error granting leave:', error);
           const errorMessage = error.error?.Message || error.message || 'Impossible de créer la demande de congé';
           this.messageService.add({
             severity: 'error',
@@ -517,10 +513,10 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           // Find the most recently created request for this employee that matches our criteria
           const targetStartDate = this.formatDateForAPI(formValue.startDate);
           const targetEndDate = this.formatDateForAPI(formValue.endDate);
-          
+
           const newRequest = requests
-            .filter(r => 
-              r.employeeId === employeeId && 
+            .filter(r =>
+              r.employeeId === employeeId &&
               r.status === LeaveRequestStatus.Submitted &&
               r.leaveTypeId === formValue.leaveTypeId &&
               this.formatDateForAPI(new Date(r.startDate)) === targetStartDate &&
@@ -547,7 +543,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
                   this.hideGrantLeaveForm();
                 },
                 error: (error) => {
-                  console.error('Error auto-approving leave request:', error);
                   this.messageService.add({
                     severity: 'warn',
                     summary: 'Attention',
@@ -569,10 +564,10 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error loading requests for auto-approval:', error);
+          alert('Error loading requests for auto-approval:');
           this.messageService.add({
             severity: 'warn',
-            summary: 'Attention', 
+            summary: 'Attention',
             detail: 'Demande créée mais l\'approbation automatique a échoué'
           });
           this.loadAllLeaveRequests();
@@ -585,19 +580,19 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   // Utility methods
   getEmployeeName(employeeIdOrEmployee: number | string | any | null): string {
     if (!employeeIdOrEmployee) return 'Employé inconnu';
-    
+
     // Si on reçoit un objet employé (PrimeNG selectedItem passe l'objet entier)
     if (typeof employeeIdOrEmployee === 'object' && employeeIdOrEmployee.firstName && employeeIdOrEmployee.lastName) {
       return `${employeeIdOrEmployee.firstName} ${employeeIdOrEmployee.lastName}`;
     }
-    
+
     // Si on reçoit juste un ID, chercher l'employé dans la liste
-    const employee = this.employees().find(e => 
-      e.id === employeeIdOrEmployee || 
-      e.id === employeeIdOrEmployee.toString() || 
+    const employee = this.employees().find(e =>
+      e.id === employeeIdOrEmployee ||
+      e.id === employeeIdOrEmployee.toString() ||
       e.id.toString() === employeeIdOrEmployee.toString()
     );
-    
+
     return employee ? `${employee.firstName} ${employee.lastName}` : 'Employé inconnu';
   }
 
@@ -697,7 +692,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
         const approvalDto: ApprovalDto = {
           comment: 'Demande annulée par RH'
         };
-        
+
         this.leaveRequestService.cancel(request.id, approvalDto)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
@@ -710,7 +705,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
               this.loadAllLeaveRequests(); // Reload data
             },
             error: (error: any) => {
-              console.error('Error cancelling request:', error);
               this.messageService.add({
                 severity: 'error',
                 summary: 'Erreur',
@@ -751,7 +745,6 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
                 this.loadAllLeaveRequests();
               },
               error: (error: any) => {
-                console.error('Error submitting request:', error);
                 this.messageService.add({
                   severity: 'error',
                   summary: this.translate.instant('common.error') || 'Erreur',
@@ -775,11 +768,11 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   getEmptySubMessage(): string {
     const activeTab = this.activeTab();
     const allRequests = this.allLeaveRequests();
-    
+
     if (!activeTab || !allRequests) {
       return this.translate.instant('leave.hr.emptyMessages.default');
     }
-    
+
     const totalRequests = allRequests.length;
     if (totalRequests === 0) {
       return this.translate.instant('leave.hr.emptyMessages.noRequestsYet');

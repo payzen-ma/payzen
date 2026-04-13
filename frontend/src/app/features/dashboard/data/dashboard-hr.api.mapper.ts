@@ -350,7 +350,9 @@ export function mapDashboardHrApiToPayload(dto: DashboardHrApiDto): DashboardHrP
         values: vueEffectif.map(item => Number(pick<number>(item, 'Value', 'value') ?? 0)),
         datasetLabel: 'Effectif',
         color: '#2563eb',
-        highlightLast: true
+        highlightLast: false,
+        ySuggestedMax: 90,
+        yTickStep: 10
       },
       repartitionDepartement: {
         centerLabel: String(pick<number>(vueKpis, 'EffectifTotal', 'effectifTotal') ?? 0),
@@ -366,52 +368,58 @@ export function mapDashboardHrApiToPayload(dto: DashboardHrApiDto): DashboardHrP
         eyebrow: '',
         title: 'Mouvements RH',
         badge: 'Live',
-        subtitle: `Historique entrees / sorties - ${monthLongLabel}`,
+        subtitle: `Historique des entrées et sorties — ${monthLongLabel}`,
         icon: 'pi pi-refresh'
       },
       summary: [
-        { label: 'Entrees ce mois', value: `+${Number(pick<number>(mouvementsSummary, 'Entrees', 'entrees') ?? 0)}`, subLabel: 'Nouveaux contrats', accent: 'success' },
-        { label: 'Sorties ce mois', value: `-${Number(pick<number>(mouvementsSummary, 'Sorties', 'sorties') ?? 0)}`, subLabel: 'Fins de contrats', accent: 'danger' },
-        { label: 'Solde net', value: `${Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0) >= 0 ? '+' : ''}${Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0)}`, subLabel: `Taux de retention: ${formatPct(Number(pick<number>(mouvementsSummary, 'RetentionPct', 'retentionPct') ?? 0))}`, accent: Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0) >= 0 ? 'success' : 'danger' }
+        { label: 'Entrées ce mois', value: `+${Number(pick<number>(mouvementsSummary, 'Entrees', 'entrees') ?? 0)}`, subLabel: 'Nouveaux contrats', accent: 'success' },
+        { label: 'Sorties ce mois', value: `-${Number(pick<number>(mouvementsSummary, 'Sorties', 'sorties') ?? 0)}`, subLabel: 'Fins de contrat', accent: 'danger' },
+        { label: 'Solde net', value: `${Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0) >= 0 ? '+' : ''}${Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0)}`, subLabel: `Taux de rétention : ${formatPct(Number(pick<number>(mouvementsSummary, 'RetentionPct', 'retentionPct') ?? 0))}`, accent: Number(pick<number>(mouvementsSummary, 'SoldeNet', 'soldeNet') ?? 0) >= 0 ? 'success' : 'danger' }
       ],
       history: mouvementsRows
     },
     masseSalariale: {
       meta: {
         eyebrow: '',
-        title: 'Masse Salariale',
+        title: 'Masse salariale',
         badge: 'Live',
-        subtitle: `Analyse des couts salariaux - ${monthLongLabel}`,
+        subtitle: `Analyse des coûts salariaux — ${monthLongLabel}`,
         icon: 'pi pi-wallet'
       },
       kpis: [
         { label: 'Brut total', value: formatKMad(Number(pick<number>(masseKpis, 'BrutTotalMad', 'brutTotalMad') ?? 0)), subLabel: 'MAD' },
-        { label: 'Net total verse', value: formatKMad(Number(pick<number>(masseKpis, 'NetTotalMad', 'netTotalMad') ?? 0)), subLabel: 'MAD apres retenues' },
+        { label: 'Net total versé', value: formatKMad(Number(pick<number>(masseKpis, 'NetTotalMad', 'netTotalMad') ?? 0)), subLabel: 'MAD après retenues' },
         { label: 'Charges patronales', value: formatKMad(Number(pick<number>(masseKpis, 'ChargesPatronalesMad', 'chargesPatronalesMad') ?? 0)), subLabel: 'CNSS + AMO employeur' },
-        { label: 'Cout total employeur', value: formatKMad(Number(pick<number>(masseKpis, 'CoutTotalEmployeurMad', 'coutTotalEmployeurMad') ?? 0)), subLabel: 'MAD / mois' }
+        { label: 'Coût total employeur', value: formatKMad(Number(pick<number>(masseKpis, 'CoutTotalEmployeurMad', 'coutTotalEmployeurMad') ?? 0)), subLabel: 'MAD / mois' }
       ],
-      masseBrute12Mois: {
-        labels: masse12m.map(item => monthShort(String(pick<string>(item, 'Month', 'month') ?? ''))),
-        values: masse12m.map(item => round1(Number(pick<number>(item, 'ValueMad', 'valueMad') ?? 0) / 1000)),
-        datasetLabel: 'Masse salariale brute',
-        color: '#14b8a6',
-        highlightLast: true,
-        suffix: 'K MAD'
-      },
+      masseBrute12Mois: (() => {
+        const values = masse12m.map(item => round1(Number(pick<number>(item, 'ValueMad', 'valueMad') ?? 0) / 1000));
+        const maxK = values.length ? Math.max(...values) : 1;
+        return {
+          labels: masse12m.map(item => monthShort(String(pick<string>(item, 'Month', 'month') ?? ''))),
+          values,
+          datasetLabel: 'Masse salariale brute',
+          color: '#14b8a6',
+          highlightLast: false,
+          suffix: 'K MAD',
+          ySuggestedMax: Math.max(100, Math.ceil(maxK / 20) * 20),
+          yTickStep: 20
+        };
+      })(),
       repartitionDepartement: masseRows
     },
     pariteDiversite: {
       meta: {
         eyebrow: '',
-        title: 'Parite & Diversite',
+        title: 'Parité & diversité',
         badge: 'Live',
-        subtitle: `Indicateurs d'equilibre - ${monthLongLabel}`,
+        subtitle: `Indicateurs d’équilibre — ${monthLongLabel}`,
         icon: 'pi pi-balance-scale'
       },
       kpis: [
-        { label: 'Effectif femmes', value: String(femaleCount), subLabel: `${formatPct((femaleCount * 100) / knownCount)} de l'effectif`, accent: 'purple' },
-        { label: 'Effectif hommes', value: String(maleCount), subLabel: `${formatPct((maleCount * 100) / knownCount)} de l'effectif`, accent: 'blue' },
-        { label: 'Ecart salarial moyen', value: formatPct(Number(pick<number>(pariteKpis, 'EcartSalarialPct', 'ecartSalarialPct') ?? 0)), subLabel: 'Femmes vs Hommes', accent: Number(pick<number>(pariteKpis, 'EcartSalarialPct', 'ecartSalarialPct') ?? 0) < 0 ? 'danger' : 'success' }
+        { label: 'Effectif femmes', value: String(femaleCount), subLabel: `${formatPct((femaleCount * 100) / knownCount)} de l’effectif`, accent: 'purple' },
+        { label: 'Effectif hommes', value: String(maleCount), subLabel: `${formatPct((maleCount * 100) / knownCount)} de l’effectif`, accent: 'blue' },
+        { label: 'Écart salarial moyen', value: formatPct(Number(pick<number>(pariteKpis, 'EcartSalarialPct', 'ecartSalarialPct') ?? 0)), subLabel: 'Femmes vs hommes', accent: Number(pick<number>(pariteKpis, 'EcartSalarialPct', 'ecartSalarialPct') ?? 0) < 0 ? 'danger' : 'success' }
       ],
       pariteDepartement: pariteDeptRows,
       pariteNiveauHierarchique: pariteHierarchyRows
@@ -419,16 +427,16 @@ export function mapDashboardHrApiToPayload(dto: DashboardHrApiDto): DashboardHrP
     conformiteSociale: {
       meta: {
         eyebrow: '',
-        title: 'Conformite Sociale',
-        badge: 'CNSS - AMO - IR',
-        subtitle: `Etat des declarations - ${monthLongLabel}`,
+        title: 'Conformité sociale',
+        badge: 'CNSS — AMO — IR',
+        subtitle: `État des déclarations — ${monthLongLabel}`,
         icon: 'pi pi-check-circle'
       },
       kpis: [
-        { label: 'CNSS salariale', value: formatKMad(Number(pick<number>(conformiteKpis, 'CnssSalarialeMad', 'cnssSalarialeMad') ?? 0)), subLabel: 'MAD - Taux 4.29%' },
-        { label: 'CNSS patronale', value: formatKMad(Number(pick<number>(conformiteKpis, 'CnssPatronaleMad', 'cnssPatronaleMad') ?? 0)), subLabel: 'MAD - Taux 21.09%' },
-        { label: 'AMO (salariale)', value: formatKMad(Number(pick<number>(conformiteKpis, 'AmoSalarialeMad', 'amoSalarialeMad') ?? 0)), subLabel: 'MAD - Taux 2.26%' },
-        { label: 'IR retenu a la source', value: formatKMad(Number(pick<number>(conformiteKpis, 'IrRetenuSourceMad', 'irRetenuSourceMad') ?? 0)), subLabel: 'MAD - Estimation' }
+        { label: 'CNSS salariale', value: formatKMad(Number(pick<number>(conformiteKpis, 'CnssSalarialeMad', 'cnssSalarialeMad') ?? 0)), subLabel: 'MAD — taux 4,29 %' },
+        { label: 'CNSS patronale', value: formatKMad(Number(pick<number>(conformiteKpis, 'CnssPatronaleMad', 'cnssPatronaleMad') ?? 0)), subLabel: 'MAD — taux 21,09 %' },
+        { label: 'AMO (salariale)', value: formatKMad(Number(pick<number>(conformiteKpis, 'AmoSalarialeMad', 'amoSalarialeMad') ?? 0)), subLabel: 'MAD — taux 2,26 %' },
+        { label: 'IR retenu à la source', value: formatKMad(Number(pick<number>(conformiteKpis, 'IrRetenuSourceMad', 'irRetenuSourceMad') ?? 0)), subLabel: 'MAD — estimation' }
       ],
       declarations
     }

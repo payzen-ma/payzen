@@ -1,18 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HolidayReadDto, HolidayCreateDto, HolidayUpdateDto, HolidayScope } from '../models/holiday.model';
+import { HolidayCreateDto, HolidayReadDto, HolidayScope, HolidayUpdateDto } from '../models/holiday.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HolidayService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/holidays`;
   // (No client-side translation provider used; backend should handle translations)
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Transform API response from PascalCase to camelCase
@@ -55,7 +55,7 @@ export class HolidayService {
    */
   private transformToApiFormat(data: HolidayCreateDto | HolidayUpdateDto): any {
     const result: any = {};
-    
+
     if ('nameFr' in data && data.nameFr !== undefined) result.NameFr = data.nameFr;
     if ('nameAr' in data && data.nameAr !== undefined) result.NameAr = data.nameAr;
     if ('nameEn' in data && data.nameEn !== undefined) result.NameEn = data.nameEn;
@@ -85,7 +85,7 @@ export class HolidayService {
     if (!includeInactive) {
       params = params.set('isActive', 'true');
     }
-    
+
     return this.http.get<any[]>(this.apiUrl, { params }).pipe(
       map(holidays => holidays.map(h => this.transformHoliday(h)))
     );
@@ -121,7 +121,7 @@ export class HolidayService {
     if (!includeInactive) {
       params = params.set('isActive', 'true');
     }
-    
+
     return this.http.get<any[]>(this.apiUrl, { params }).pipe(
       map(holidays => holidays.map(h => this.transformHoliday(h)))
     );
@@ -143,7 +143,6 @@ export class HolidayService {
     const apiData = this.transformToApiFormat(holiday);
     return this.http.post<any>(this.apiUrl, apiData).pipe(
       map(h => {
-        console.log('createHoliday: raw response=', h, 'request=', apiData);
         if (!h) {
           // Some backends return 201 with empty body. Return a best-effort DTO based on the request.
           return {
@@ -200,7 +199,7 @@ export class HolidayService {
     if (countryId) {
       params = params.set('countryId', countryId.toString());
     }
-    
+
     return this.http.get<any[]>(this.apiUrl, { params }).pipe(
       map(holidays => holidays.map(h => this.transformHoliday(h)))
     );
@@ -216,7 +215,7 @@ export class HolidayService {
     if (companyId) {
       params = params.set('companyId', companyId.toString());
     }
-    
+
     return this.http.get<any>(`${this.apiUrl}/check`, { params });
   }
 
@@ -228,7 +227,7 @@ export class HolidayService {
     if (countryId) {
       params = params.set('countryId', countryId.toString());
     }
-    
+
     return this.http.get<string[]>(`${this.apiUrl}/types`, { params });
   }
 
@@ -244,12 +243,9 @@ export class HolidayService {
       .set('country', countryCode)
       .set('year', year.toString());
 
-    // Debugging logs: external URL, params and full response
-    console.log('fetchExternalHolidays: url=', url, 'params=', params.toString());
 
     return this.http.get<any>(url, { params }).pipe(
       map(r => {
-        console.log('fetchExternalHolidays: raw response=', r);
         return r && r.response && r.response.holidays ? r.response.holidays : [];
       })
     );

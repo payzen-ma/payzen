@@ -173,7 +173,9 @@ function buildEffectifSeries(employees: NormalizedEmployee[], totalEmployees: nu
     values,
     datasetLabel: 'Effectif',
     color: '#2563eb',
-    highlightLast: true
+    highlightLast: false,
+    ySuggestedMax: 90,
+    yTickStep: 10
   };
 }
 
@@ -412,6 +414,7 @@ function buildSalarySeries(
   }
 
   const valuesInK = monthlyGross.map(value => Math.round(value / 1000));
+  const maxK = valuesInK.length ? Math.max(...valuesInK) : 1;
 
   return {
     config: {
@@ -419,8 +422,10 @@ function buildSalarySeries(
       values: valuesInK,
       datasetLabel: 'Masse salariale brute',
       color: '#14b8a6',
-      highlightLast: true,
-      suffix: 'K MAD'
+      highlightLast: false,
+      suffix: 'K MAD',
+      ySuggestedMax: Math.max(100, Math.ceil(maxK / 20) * 20),
+      yTickStep: 20
     },
     currentGross,
     monthlyGross,
@@ -572,7 +577,10 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
     };
   });
 
-  const hierarchyOrder = ['Direction', 'Managers', 'Cadres', 'Employes'];
+  const hierarchyOrder = ['Direction', 'Managers', 'Cadres', 'Employes'] as const;
+  const hierarchyDisplayLabel = (key: string): string =>
+    key === 'Employes' ? 'Employés' : key;
+
   const hierarchyRows: ProgressRowModel[] = hierarchyOrder
     .map((label, index) => {
       const total = genderStats.totalByHierarchy.get(label) ?? 0;
@@ -585,7 +593,7 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
       const colors = ['#ef4444', '#f97316', '#22c55e', '#14b8a6'];
 
       return {
-        label: `${label} (${total})`,
+        label: `${hierarchyDisplayLabel(label)} (${total})`,
         rightLabel: `${percent}% F`,
         percent,
         color: colors[index]
@@ -635,7 +643,7 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
       meta: {
         title: 'Vue Globale RH',
         badge: 'Live',
-        subtitle: `KPIs instantanes - ${monthLabel}`,
+        subtitle: `KPIs instantanés - ${monthLabel}`,
         icon: 'pi pi-home'
       },
       kpis: [
@@ -683,7 +691,7 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
           }
         },
         {
-          label: 'Parite F/H',
+          label: 'Parité F/H',
           value: `${Math.round(femalePct)} / ${Math.round(malePct)}`,
           subLabel: '% Femmes / Hommes',
           trend: {
@@ -702,7 +710,7 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
       meta: {
         title: 'Mouvements RH',
         badge: 'Live',
-        subtitle: `Historique entrees/sorties - ${monthLabel}`,
+        subtitle: `Historique des entrées et sorties — ${monthLabel}`,
         icon: 'pi pi-refresh'
       },
       summary: movement.summary,
@@ -710,44 +718,44 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
     },
     masseSalariale: {
       meta: {
-        title: 'Masse Salariale',
+        title: 'Masse salariale',
         badge: 'Live',
-        subtitle: `Analyse salaires - ${monthLabel}`,
+        subtitle: `Analyse des coûts salariaux — ${monthLabel}`,
         icon: 'pi pi-wallet'
       },
       kpis: [
         { label: 'Brut total', value: formatK(gross), subLabel: 'MAD' },
-        { label: 'Net total verse', value: formatK(net), subLabel: 'MAD apres retenues' },
+        { label: 'Net total versé', value: formatK(net), subLabel: 'MAD après retenues' },
         { label: 'Charges patronales', value: formatK(employerCharges), subLabel: 'CNSS + AMO employeur' },
-        { label: 'Cout total employeur', value: formatK(totalCost), subLabel: 'MAD / mois' }
+        { label: 'Coût total employeur', value: formatK(totalCost), subLabel: 'MAD / mois' }
       ],
       masseBrute12Mois: salarySeries.config,
       repartitionDepartement: salaryDepartmentRows
     },
     pariteDiversite: {
       meta: {
-        title: 'Parite & Diversite',
+        title: 'Parité & diversité',
         badge: 'Live',
-        subtitle: `Indicateurs d'equilibre - ${monthLabel}`,
+        subtitle: `Indicateurs d’équilibre — ${monthLabel}`,
         icon: 'pi pi-balance-scale'
       },
       kpis: [
         {
           label: 'Effectif femmes',
           value: String(femaleCount),
-          subLabel: `${formatPct(femalePct)} de l'effectif connu`,
+          subLabel: `${formatPct(femalePct)} de l’effectif connu`,
           accent: 'purple'
         },
         {
           label: 'Effectif hommes',
           value: String(maleCount),
-          subLabel: `${formatPct(malePct)} de l'effectif connu`,
+          subLabel: `${formatPct(malePct)} de l’effectif connu`,
           accent: 'blue'
         },
         {
-          label: 'Ecart salarial moyen',
+          label: 'Écart salarial moyen',
           value: 'N/A',
-          subLabel: 'Necessite endpoint remuneration comparee',
+          subLabel: 'Nécessite un endpoint rémunération comparée',
           accent: 'danger'
         }
       ],
@@ -756,16 +764,16 @@ export function buildDashboardFromLiveData(input: DashboardLiveAdapterInput): { 
     },
     conformiteSociale: {
       meta: {
-        title: 'Conformite Sociale',
+        title: 'Conformité sociale',
         badge: 'Live',
-        subtitle: `Estimations CNSS / AMO / IR - ${monthLabel}`,
+        subtitle: `Estimations CNSS / AMO / IR — ${monthLabel}`,
         icon: 'pi pi-check-circle'
       },
       kpis: [
-        { label: 'CNSS salariale', value: formatK(cnssSalariale), subLabel: 'MAD - Taux 4.29%' },
-        { label: 'CNSS patronale', value: formatK(cnssPatronale), subLabel: 'MAD - Taux 21.09%' },
-        { label: 'AMO (salariale)', value: formatK(amoSalariale), subLabel: 'MAD - Taux 2.26%' },
-        { label: 'IR retenu a la source', value: formatK(irSource), subLabel: 'MAD - Estimation' }
+        { label: 'CNSS salariale', value: formatK(cnssSalariale), subLabel: 'MAD — taux 4,29 %' },
+        { label: 'CNSS patronale', value: formatK(cnssPatronale), subLabel: 'MAD — taux 21,09 %' },
+        { label: 'AMO (salariale)', value: formatK(amoSalariale), subLabel: 'MAD — taux 2,26 %' },
+        { label: 'IR retenu à la source', value: formatK(irSource), subLabel: 'MAD — estimation' }
       ],
       declarations: conformityRows
     }

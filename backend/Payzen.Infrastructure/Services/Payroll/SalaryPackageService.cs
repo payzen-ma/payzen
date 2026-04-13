@@ -32,8 +32,10 @@ public class SalaryPackageService : ISalaryPackageService
 
         if (!string.IsNullOrEmpty(scope))
         {
-            if (scope == "global")   q = q.Where(sp => sp.CompanyId == null);
-            if (scope == "company")  q = q.Where(sp => sp.CompanyId != null);
+            if (scope == "global")
+                q = q.Where(sp => sp.CompanyId == null);
+            if (scope == "company")
+                q = q.Where(sp => sp.CompanyId != null);
         }
 
         var list = await q.OrderBy(sp => sp.Name).ToListAsync(ct);
@@ -72,36 +74,36 @@ public class SalaryPackageService : ISalaryPackageService
     {
         var sp = new SalaryPackage
         {
-            Name               = dto.Name,
-            Category           = dto.Category,
-            Description        = dto.Description,
-            BaseSalary         = dto.BaseSalary,
-            Status             = "draft",
-            CompanyId          = dto.CompanyId,
-            BusinessSectorId   = dto.BusinessSectorId,
-            TemplateType       = dto.TemplateType ?? "OFFICIAL",
-            RegulationVersion  = dto.RegulationVersion ?? "MA_2025",
-            AutoRulesJson      = dto.AutoRules    != null ? System.Text.Json.JsonSerializer.Serialize(dto.AutoRules)    : null,
-            CimrConfigJson     = dto.CimrConfig   != null ? System.Text.Json.JsonSerializer.Serialize(dto.CimrConfig)   : null,
-            CreatedBy          = createdBy
+            Name = dto.Name,
+            Category = dto.Category,
+            Description = dto.Description,
+            BaseSalary = dto.BaseSalary,
+            Status = "draft",
+            CompanyId = dto.CompanyId,
+            BusinessSectorId = dto.BusinessSectorId,
+            TemplateType = dto.TemplateType ?? "OFFICIAL",
+            RegulationVersion = dto.RegulationVersion ?? "MA_2025",
+            AutoRulesJson = dto.AutoRules != null ? System.Text.Json.JsonSerializer.Serialize(dto.AutoRules) : null,
+            CimrConfigJson = dto.CimrConfig != null ? System.Text.Json.JsonSerializer.Serialize(dto.CimrConfig) : null,
+            CreatedBy = createdBy
         };
 
         if (dto.Items?.Any() == true)
         {
             sp.Items = dto.Items.Select((i, idx) => new SalaryPackageItem
             {
-                Label          = i.Label,
-                DefaultValue   = i.DefaultValue,
-                SortOrder      = (i.SortOrder ?? 0) > 0 ? i.SortOrder!.Value : idx + 1,
-                Type           = i.Type ?? "allowance",
-                IsTaxable      = i.IsTaxable,
-                IsSocial       = i.IsSocial,
-                IsCIMR         = i.IsCIMR,
-                IsVariable     = i.IsVariable,
+                Label = i.Label,
+                DefaultValue = i.DefaultValue,
+                SortOrder = (i.SortOrder ?? 0) > 0 ? i.SortOrder!.Value : idx + 1,
+                Type = i.Type ?? "allowance",
+                IsTaxable = i.IsTaxable,
+                IsSocial = i.IsSocial,
+                IsCIMR = i.IsCIMR,
+                IsVariable = i.IsVariable,
                 ExemptionLimit = i.ExemptionLimit,
                 PayComponentId = i.PayComponentId,
                 ReferentielElementId = i.ReferentielElementId,
-                CreatedBy      = createdBy
+                CreatedBy = createdBy
             }).ToList();
         }
 
@@ -114,15 +116,23 @@ public class SalaryPackageService : ISalaryPackageService
         int id, SalaryPackageUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var sp = await _db.SalaryPackages.Include(sp => sp.Items).FirstOrDefaultAsync(sp => sp.Id == id, ct);
-        if (sp == null) return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
-        if (sp.IsLocked) return ServiceResult<SalaryPackageReadDto>.Fail("Package verrouillé — impossible de modifier.");
+        if (sp == null)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
+        if (sp.IsLocked)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package verrouillé — impossible de modifier.");
 
-        if (dto.Name        != null) sp.Name        = dto.Name;
-        if (dto.Description != null) sp.Description = dto.Description;
-        if (dto.BaseSalary  != null) sp.BaseSalary  = dto.BaseSalary.Value;
-        if (dto.Status      != null) sp.Status      = dto.Status;
-        if (dto.AutoRules   != null) sp.AutoRulesJson   = System.Text.Json.JsonSerializer.Serialize(dto.AutoRules);
-        if (dto.CimrConfig  != null) sp.CimrConfigJson  = System.Text.Json.JsonSerializer.Serialize(dto.CimrConfig);
+        if (dto.Name != null)
+            sp.Name = dto.Name;
+        if (dto.Description != null)
+            sp.Description = dto.Description;
+        if (dto.BaseSalary != null)
+            sp.BaseSalary = dto.BaseSalary.Value;
+        if (dto.Status != null)
+            sp.Status = dto.Status;
+        if (dto.AutoRules != null)
+            sp.AutoRulesJson = System.Text.Json.JsonSerializer.Serialize(dto.AutoRules);
+        if (dto.CimrConfig != null)
+            sp.CimrConfigJson = System.Text.Json.JsonSerializer.Serialize(dto.CimrConfig);
         sp.UpdatedBy = updatedBy;
 
         // Remplacement complet des items si fournis
@@ -137,19 +147,19 @@ public class SalaryPackageService : ISalaryPackageService
             // Nouveaux items
             var newItems = dto.Items.Select((i, idx) => new SalaryPackageItem
             {
-                SalaryPackageId= id,
-                Label          = i.Label,
-                DefaultValue   = i.DefaultValue,
-                SortOrder      = (i.SortOrder ?? 0) > 0 ? i.SortOrder!.Value : idx + 1,
-                Type           = i.Type ?? "allowance",
-                IsTaxable      = i.IsTaxable,
-                IsSocial       = i.IsSocial,
-                IsCIMR         = i.IsCIMR,
-                IsVariable     = i.IsVariable,
+                SalaryPackageId = id,
+                Label = i.Label,
+                DefaultValue = i.DefaultValue,
+                SortOrder = (i.SortOrder ?? 0) > 0 ? i.SortOrder!.Value : idx + 1,
+                Type = i.Type ?? "allowance",
+                IsTaxable = i.IsTaxable,
+                IsSocial = i.IsSocial,
+                IsCIMR = i.IsCIMR,
+                IsVariable = i.IsVariable,
                 ExemptionLimit = i.ExemptionLimit,
                 PayComponentId = i.PayComponentId,
                 ReferentielElementId = i.ReferentielElementId,
-                CreatedBy      = updatedBy
+                CreatedBy = updatedBy
             });
             _db.SalaryPackageItems.AddRange(newItems);
         }
@@ -161,8 +171,10 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var sp = await _db.SalaryPackages.FindAsync(new object[] { id }, ct);
-        if (sp == null) return ServiceResult.Fail("Package introuvable.");
-        if (sp.IsLocked)  return ServiceResult.Fail("Package verrouillé — impossible de supprimer.");
+        if (sp == null)
+            return ServiceResult.Fail("Package introuvable.");
+        if (sp.IsLocked)
+            return ServiceResult.Fail("Package verrouillé — impossible de supprimer.");
         sp.DeletedAt = DateTimeOffset.UtcNow;
         sp.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -176,41 +188,42 @@ public class SalaryPackageService : ISalaryPackageService
     {
         var source = await _db.SalaryPackages.Include(sp => sp.Items)
             .FirstOrDefaultAsync(sp => sp.Id == id, ct);
-        if (source == null) return ServiceResult<SalaryPackageReadDto>.Fail("Package source introuvable.");
+        if (source == null)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package source introuvable.");
 
         var clone = new SalaryPackage
         {
-            Name                      = dto.Name ?? $"{source.Name} (Copie)",
-            Category                  = source.Category,
-            Description               = source.Description,
-            BaseSalary                = source.BaseSalary,
-            Status                    = "draft",
-            CompanyId                 = dto.CompanyId > 0 ? dto.CompanyId : source.CompanyId,
-            BusinessSectorId          = source.BusinessSectorId,
-            TemplateType              = source.TemplateType,
-            RegulationVersion         = source.RegulationVersion,
-            AutoRulesJson             = source.AutoRulesJson,
-            CimrConfigJson            = source.CimrConfigJson,
-            OriginType                = "CLONE",
-            SourceTemplateId          = source.Id,
-            SourceTemplateVersion     = source.Version,
-            SourceTemplateNameSnapshot= source.Name,
-            CopiedAt                  = DateTime.UtcNow,
-            CreatedBy                 = userId,
+            Name = dto.Name ?? $"{source.Name} (Copie)",
+            Category = source.Category,
+            Description = source.Description,
+            BaseSalary = source.BaseSalary,
+            Status = "draft",
+            CompanyId = dto.CompanyId > 0 ? dto.CompanyId : source.CompanyId,
+            BusinessSectorId = source.BusinessSectorId,
+            TemplateType = source.TemplateType,
+            RegulationVersion = source.RegulationVersion,
+            AutoRulesJson = source.AutoRulesJson,
+            CimrConfigJson = source.CimrConfigJson,
+            OriginType = "CLONE",
+            SourceTemplateId = source.Id,
+            SourceTemplateVersion = source.Version,
+            SourceTemplateNameSnapshot = source.Name,
+            CopiedAt = DateTime.UtcNow,
+            CreatedBy = userId,
             Items = source.Items.Select(i => new SalaryPackageItem
             {
-                Label          = i.Label,
-                DefaultValue   = i.DefaultValue,
-                SortOrder      = i.SortOrder,
-                Type           = i.Type,
-                IsTaxable      = i.IsTaxable,
-                IsSocial       = i.IsSocial,
-                IsCIMR         = i.IsCIMR,
-                IsVariable     = i.IsVariable,
+                Label = i.Label,
+                DefaultValue = i.DefaultValue,
+                SortOrder = i.SortOrder,
+                Type = i.Type,
+                IsTaxable = i.IsTaxable,
+                IsSocial = i.IsSocial,
+                IsCIMR = i.IsCIMR,
+                IsVariable = i.IsVariable,
                 ExemptionLimit = i.ExemptionLimit,
                 PayComponentId = i.PayComponentId,
                 ReferentielElementId = i.ReferentielElementId,
-                CreatedBy      = userId
+                CreatedBy = userId
             }).ToList()
         };
         _db.SalaryPackages.Add(clone);
@@ -228,37 +241,61 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult<SalaryPackageReadDto>> NewVersionAsync(int id, int userId, CancellationToken ct = default)
     {
         var sp = await _db.SalaryPackages.Include(sp => sp.Items).FirstOrDefaultAsync(sp => sp.Id == id && sp.DeletedAt == null, ct);
-        if (sp == null) return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
+        if (sp == null)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
         var next = new SalaryPackage
         {
-            Name = sp.Name, Category = sp.Category, Description = sp.Description, BaseSalary = sp.BaseSalary, Status = "draft",
-            CompanyId = sp.CompanyId, BusinessSectorId = sp.BusinessSectorId, TemplateType = sp.TemplateType, RegulationVersion = sp.RegulationVersion,
-            AutoRulesJson = sp.AutoRulesJson, CimrConfigJson = sp.CimrConfigJson, Version = sp.Version + 1, SourceTemplateId = sp.SourceTemplateId ?? sp.Id, SourceTemplateVersion = sp.Version,
+            Name = sp.Name,
+            Category = sp.Category,
+            Description = sp.Description,
+            BaseSalary = sp.BaseSalary,
+            Status = "draft",
+            CompanyId = sp.CompanyId,
+            BusinessSectorId = sp.BusinessSectorId,
+            TemplateType = sp.TemplateType,
+            RegulationVersion = sp.RegulationVersion,
+            AutoRulesJson = sp.AutoRulesJson,
+            CimrConfigJson = sp.CimrConfigJson,
+            Version = sp.Version + 1,
+            SourceTemplateId = sp.SourceTemplateId ?? sp.Id,
+            SourceTemplateVersion = sp.Version,
             CreatedBy = userId,
             Items = sp.Items.Where(i => i.DeletedAt == null).Select(i => new SalaryPackageItem { Label = i.Label, DefaultValue = i.DefaultValue, SortOrder = i.SortOrder, Type = i.Type, IsTaxable = i.IsTaxable, IsSocial = i.IsSocial, IsCIMR = i.IsCIMR, IsVariable = i.IsVariable, ExemptionLimit = i.ExemptionLimit, PayComponentId = i.PayComponentId, ReferentielElementId = i.ReferentielElementId, CreatedBy = userId }).ToList()
         };
-        _db.SalaryPackages.Add(next); await _db.SaveChangesAsync(ct);
+        _db.SalaryPackages.Add(next);
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<SalaryPackageReadDto>.Ok(Map(next));
     }
 
     public async Task<ServiceResult<SalaryPackageReadDto>> PublishAsync(int id, int userId, CancellationToken ct = default)
     {
         var sp = await _db.SalaryPackages.FirstOrDefaultAsync(sp => sp.Id == id && sp.DeletedAt == null, ct);
-        if (sp == null) return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
-        if (sp.Status != "draft") return ServiceResult<SalaryPackageReadDto>.Fail("Seul un brouillon peut être publié.");
-        sp.Status = "published"; sp.UpdatedBy = userId; sp.UpdatedAt = DateTimeOffset.UtcNow;
+        if (sp == null)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
+        if (sp.Status != "draft")
+            return ServiceResult<SalaryPackageReadDto>.Fail("Seul un brouillon peut être publié.");
+        sp.Status = "published";
+        sp.UpdatedBy = userId;
+        sp.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        await _db.Entry(sp).Reference(s => s.Company).LoadAsync(ct); await _db.Entry(sp).Reference(s => s.BusinessSector).LoadAsync(ct); await _db.Entry(sp).Collection(s => s.Items).LoadAsync(ct);
+        await _db.Entry(sp).Reference(s => s.Company).LoadAsync(ct);
+        await _db.Entry(sp).Reference(s => s.BusinessSector).LoadAsync(ct);
+        await _db.Entry(sp).Collection(s => s.Items).LoadAsync(ct);
         return ServiceResult<SalaryPackageReadDto>.Ok(Map(sp));
     }
 
     public async Task<ServiceResult<SalaryPackageReadDto>> DeprecateAsync(int id, int userId, CancellationToken ct = default)
     {
         var sp = await _db.SalaryPackages.FirstOrDefaultAsync(sp => sp.Id == id && sp.DeletedAt == null, ct);
-        if (sp == null) return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
-        sp.Status = "deprecated"; sp.UpdatedBy = userId; sp.UpdatedAt = DateTimeOffset.UtcNow;
+        if (sp == null)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Package introuvable.");
+        sp.Status = "deprecated";
+        sp.UpdatedBy = userId;
+        sp.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        await _db.Entry(sp).Reference(s => s.Company).LoadAsync(ct); await _db.Entry(sp).Reference(s => s.BusinessSector).LoadAsync(ct); await _db.Entry(sp).Collection(s => s.Items).LoadAsync(ct);
+        await _db.Entry(sp).Reference(s => s.Company).LoadAsync(ct);
+        await _db.Entry(sp).Reference(s => s.BusinessSector).LoadAsync(ct);
+        await _db.Entry(sp).Collection(s => s.Items).LoadAsync(ct);
         return ServiceResult<SalaryPackageReadDto>.Ok(Map(sp));
     }
 
@@ -271,21 +308,37 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult<SalaryPackageItemReadDto>> AddItemAsync(int packageId, SalaryPackageItemWriteDto dto, int createdBy, CancellationToken ct = default)
     {
         var pkg = await _db.SalaryPackages.FindAsync(new object[] { packageId }, ct);
-        if (pkg == null) return ServiceResult<SalaryPackageItemReadDto>.Fail("Package introuvable.");
+        if (pkg == null)
+            return ServiceResult<SalaryPackageItemReadDto>.Fail("Package introuvable.");
         var maxOrder = await _db.SalaryPackageItems.Where(i => i.SalaryPackageId == packageId && i.DeletedAt == null).MaxAsync(i => (int?)i.SortOrder, ct) ?? 0;
         var item = new SalaryPackageItem { SalaryPackageId = packageId, Label = dto.Label, DefaultValue = dto.DefaultValue, SortOrder = dto.SortOrder ?? maxOrder + 1, Type = dto.Type ?? "allowance", IsTaxable = dto.IsTaxable, IsSocial = dto.IsSocial, IsCIMR = dto.IsCIMR, IsVariable = dto.IsVariable, ExemptionLimit = dto.ExemptionLimit, PayComponentId = dto.PayComponentId, ReferentielElementId = dto.ReferentielElementId, CreatedBy = createdBy };
-        _db.SalaryPackageItems.Add(item); await _db.SaveChangesAsync(ct);
-        await _db.Entry(item).Reference(i => i.PayComponent).LoadAsync(ct); await _db.Entry(item).Reference(i => i.ReferentielElement).LoadAsync(ct);
+        _db.SalaryPackageItems.Add(item);
+        await _db.SaveChangesAsync(ct);
+        await _db.Entry(item).Reference(i => i.PayComponent).LoadAsync(ct);
+        await _db.Entry(item).Reference(i => i.ReferentielElement).LoadAsync(ct);
         return ServiceResult<SalaryPackageItemReadDto>.Ok(new SalaryPackageItemReadDto { Id = item.Id, PayComponentId = item.PayComponentId, PayComponentCode = item.PayComponent?.Code, ReferentielElementId = item.ReferentielElementId, ReferentielElementName = item.ReferentielElement?.Name, Label = item.Label, DefaultValue = item.DefaultValue, SortOrder = item.SortOrder, Type = item.Type, IsTaxable = item.IsTaxable, IsSocial = item.IsSocial, IsCIMR = item.IsCIMR, IsVariable = item.IsVariable, ExemptionLimit = item.ExemptionLimit });
     }
 
     public async Task<ServiceResult<SalaryPackageItemReadDto>> UpdateItemAsync(int itemId, SalaryPackageItemWriteDto dto, int updatedBy, CancellationToken ct = default)
     {
         var item = await _db.SalaryPackageItems.Include(i => i.PayComponent).Include(i => i.ReferentielElement).FirstOrDefaultAsync(i => i.Id == itemId && i.DeletedAt == null, ct);
-        if (item == null) return ServiceResult<SalaryPackageItemReadDto>.Fail("Ligne introuvable.");
-        item.Label = dto.Label; item.DefaultValue = dto.DefaultValue; if (dto.SortOrder.HasValue) item.SortOrder = dto.SortOrder.Value; if (dto.Type != null) item.Type = dto.Type;
-        item.IsTaxable = dto.IsTaxable; item.IsSocial = dto.IsSocial; item.IsCIMR = dto.IsCIMR; item.IsVariable = dto.IsVariable; item.ExemptionLimit = dto.ExemptionLimit; item.PayComponentId = dto.PayComponentId; item.ReferentielElementId = dto.ReferentielElementId;
-        item.UpdatedBy = updatedBy; item.UpdatedAt = DateTimeOffset.UtcNow;
+        if (item == null)
+            return ServiceResult<SalaryPackageItemReadDto>.Fail("Ligne introuvable.");
+        item.Label = dto.Label;
+        item.DefaultValue = dto.DefaultValue;
+        if (dto.SortOrder.HasValue)
+            item.SortOrder = dto.SortOrder.Value;
+        if (dto.Type != null)
+            item.Type = dto.Type;
+        item.IsTaxable = dto.IsTaxable;
+        item.IsSocial = dto.IsSocial;
+        item.IsCIMR = dto.IsCIMR;
+        item.IsVariable = dto.IsVariable;
+        item.ExemptionLimit = dto.ExemptionLimit;
+        item.PayComponentId = dto.PayComponentId;
+        item.ReferentielElementId = dto.ReferentielElementId;
+        item.UpdatedBy = updatedBy;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<SalaryPackageItemReadDto>.Ok(new SalaryPackageItemReadDto { Id = item.Id, PayComponentId = item.PayComponentId, PayComponentCode = item.PayComponent?.Code, ReferentielElementId = item.ReferentielElementId, ReferentielElementName = item.ReferentielElement?.Name, Label = item.Label, DefaultValue = item.DefaultValue, SortOrder = item.SortOrder, Type = item.Type, IsTaxable = item.IsTaxable, IsSocial = item.IsSocial, IsCIMR = item.IsCIMR, IsVariable = item.IsVariable, ExemptionLimit = item.ExemptionLimit });
     }
@@ -293,9 +346,12 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult> DeleteItemAsync(int itemId, int deletedBy, CancellationToken ct = default)
     {
         var item = await _db.SalaryPackageItems.FirstOrDefaultAsync(i => i.Id == itemId && i.DeletedAt == null, ct);
-        if (item == null) return ServiceResult.Fail("Ligne introuvable.");
-        item.DeletedAt = DateTimeOffset.UtcNow; item.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (item == null)
+            return ServiceResult.Fail("Ligne introuvable.");
+        item.DeletedAt = DateTimeOffset.UtcNow;
+        item.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     // ── Assignments ──────────────────────────────────────────────────────────
@@ -315,8 +371,10 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>> GetAllAssignmentsAsync(int? companyId, int? employeeId, CancellationToken ct = default)
     {
         var q = _db.SalaryPackageAssignments.Where(a => a.DeletedAt == null).Include(a => a.SalaryPackage).Include(a => a.Employee).AsQueryable();
-        if (employeeId.HasValue) q = q.Where(a => a.EmployeeId == employeeId.Value);
-        if (companyId.HasValue) q = q.Where(a => a.SalaryPackage != null && a.SalaryPackage.CompanyId == companyId.Value);
+        if (employeeId.HasValue)
+            q = q.Where(a => a.EmployeeId == employeeId.Value);
+        if (companyId.HasValue)
+            q = q.Where(a => a.SalaryPackage != null && a.SalaryPackage.CompanyId == companyId.Value);
         var list = await q.OrderByDescending(a => a.EffectiveDate).ToListAsync(ct);
         return ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>.Ok(list.Select(MapAssignment));
     }
@@ -335,20 +393,20 @@ public class SalaryPackageService : ISalaryPackageService
             .FirstOrDefaultAsync(a => a.EmployeeId == dto.EmployeeId && a.EndDate == null, ct);
         if (active != null)
         {
-            active.EndDate   = dto.EffectiveDate.AddDays(-1);
+            active.EndDate = dto.EffectiveDate.AddDays(-1);
             active.UpdatedBy = createdBy;
         }
 
         var sp = await _db.SalaryPackages.FindAsync(new object[] { dto.SalaryPackageId }, ct);
         var assignment = new SalaryPackageAssignment
         {
-            SalaryPackageId  = dto.SalaryPackageId,
-            EmployeeId       = dto.EmployeeId,
-            ContractId       = dto.ContractId,
+            SalaryPackageId = dto.SalaryPackageId,
+            EmployeeId = dto.EmployeeId,
+            ContractId = dto.ContractId,
             EmployeeSalaryId = 0,
-            EffectiveDate    = dto.EffectiveDate,
-            PackageVersion   = sp?.Version ?? 1,
-            CreatedBy        = createdBy
+            EffectiveDate = dto.EffectiveDate,
+            PackageVersion = sp?.Version ?? 1,
+            CreatedBy = createdBy
         };
         _db.SalaryPackageAssignments.Add(assignment);
         await _db.SaveChangesAsync(ct);
@@ -364,8 +422,10 @@ public class SalaryPackageService : ISalaryPackageService
         var a = await _db.SalaryPackageAssignments
             .Include(a => a.SalaryPackage).Include(a => a.Employee)
             .FirstOrDefaultAsync(a => a.Id == id, ct);
-        if (a == null) return ServiceResult<SalaryPackageAssignmentReadDto>.Fail("Assignation introuvable.");
-        if (dto.EndDate != null) a.EndDate = dto.EndDate;
+        if (a == null)
+            return ServiceResult<SalaryPackageAssignmentReadDto>.Fail("Assignation introuvable.");
+        if (dto.EndDate != null)
+            a.EndDate = dto.EndDate;
         a.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<SalaryPackageAssignmentReadDto>.Ok(MapAssignment(a));
@@ -374,7 +434,8 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult> RevokeAssignmentAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.SalaryPackageAssignments.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult.Fail("Assignation introuvable.");
+        if (a == null)
+            return ServiceResult.Fail("Assignation introuvable.");
         a.DeletedAt = DateTimeOffset.UtcNow;
         a.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -396,9 +457,9 @@ public class SalaryPackageService : ISalaryPackageService
 
         return ServiceResult<PayrollSummaryDto>.Ok(new PayrollSummaryDto
         {
-            BaseSalary  = baseSalary,
-            Allowances  = allowances,
-            Bonuses     = bonuses,
+            BaseSalary = baseSalary,
+            Allowances = allowances,
+            Bonuses = bonuses,
             GrossSalary = baseSalary + allowances + bonuses
         });
     }
@@ -407,53 +468,53 @@ public class SalaryPackageService : ISalaryPackageService
 
     private static SalaryPackageReadDto Map(SalaryPackage sp) => new()
     {
-        Id                       = sp.Id,
-        Name                     = sp.Name,
-        Category                 = sp.Category,
-        Description              = sp.Description,
-        BaseSalary               = sp.BaseSalary,
-        Status                   = sp.Status,
-        CompanyId                = sp.CompanyId,
-        CompanyName              = sp.Company?.CompanyName,
-        BusinessSectorId         = sp.BusinessSectorId,
-        BusinessSectorName       = sp.BusinessSector?.Name,
-        TemplateType             = sp.TemplateType,
-        RegulationVersion        = sp.RegulationVersion,
-        OriginType               = sp.OriginType,
+        Id = sp.Id,
+        Name = sp.Name,
+        Category = sp.Category,
+        Description = sp.Description,
+        BaseSalary = sp.BaseSalary,
+        Status = sp.Status,
+        CompanyId = sp.CompanyId,
+        CompanyName = sp.Company?.CompanyName,
+        BusinessSectorId = sp.BusinessSectorId,
+        BusinessSectorName = sp.BusinessSector?.Name,
+        TemplateType = sp.TemplateType,
+        RegulationVersion = sp.RegulationVersion,
+        OriginType = sp.OriginType,
         SourceTemplateNameSnapshot = sp.SourceTemplateNameSnapshot,
-        CopiedAt                 = sp.CopiedAt,
-        Version                  = sp.Version,
-        IsLocked                 = sp.IsLocked,
-        Items                    = sp.Items?.Select(i => new SalaryPackageItemReadDto
+        CopiedAt = sp.CopiedAt,
+        Version = sp.Version,
+        IsLocked = sp.IsLocked,
+        Items = sp.Items?.Select(i => new SalaryPackageItemReadDto
         {
-            Id                  = i.Id,
-            PayComponentId      = i.PayComponentId,
-            PayComponentCode    = i.PayComponent?.Code,
-            ReferentielElementId= i.ReferentielElementId,
+            Id = i.Id,
+            PayComponentId = i.PayComponentId,
+            PayComponentCode = i.PayComponent?.Code,
+            ReferentielElementId = i.ReferentielElementId,
             ReferentielElementName = i.ReferentielElement?.Name,
-            Label               = i.Label,
-            DefaultValue        = i.DefaultValue,
-            SortOrder           = i.SortOrder,
-            Type                = i.Type,
-            IsTaxable           = i.IsTaxable,
-            IsSocial            = i.IsSocial,
-            IsCIMR              = i.IsCIMR,
-            IsVariable          = i.IsVariable,
-            ExemptionLimit      = i.ExemptionLimit
+            Label = i.Label,
+            DefaultValue = i.DefaultValue,
+            SortOrder = i.SortOrder,
+            Type = i.Type,
+            IsTaxable = i.IsTaxable,
+            IsSocial = i.IsSocial,
+            IsCIMR = i.IsCIMR,
+            IsVariable = i.IsVariable,
+            ExemptionLimit = i.ExemptionLimit
         }).OrderBy(i => i.SortOrder).ToList()
     };
 
     private static SalaryPackageAssignmentReadDto MapAssignment(SalaryPackageAssignment a) => new()
     {
-        Id                = a.Id,
-        SalaryPackageId   = a.SalaryPackageId,
+        Id = a.Id,
+        SalaryPackageId = a.SalaryPackageId,
         SalaryPackageName = a.SalaryPackage?.Name ?? string.Empty,
-        EmployeeId        = a.EmployeeId,
-        EmployeeFullName  = a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}" : string.Empty,
-        ContractId        = a.ContractId,
-        EmployeeSalaryId  = a.EmployeeSalaryId,
-        EffectiveDate     = a.EffectiveDate,
-        EndDate           = a.EndDate,
-        PackageVersion    = a.PackageVersion
+        EmployeeId = a.EmployeeId,
+        EmployeeFullName = a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}" : string.Empty,
+        ContractId = a.ContractId,
+        EmployeeSalaryId = a.EmployeeSalaryId,
+        EffectiveDate = a.EffectiveDate,
+        EndDate = a.EndDate,
+        PackageVersion = a.PackageVersion
     };
 }

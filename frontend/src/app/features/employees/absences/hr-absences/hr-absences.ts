@@ -88,15 +88,15 @@ export class HrAbsencesComponent implements OnInit {
   activeTabValue = 'submitted';
 
   // Computed statistics
-  readonly submittedCount = computed(() => 
+  readonly submittedCount = computed(() =>
     this.allAbsences().filter((a: any) => a.status === 'Submitted').length
   );
 
-  readonly approvedCount = computed(() => 
+  readonly approvedCount = computed(() =>
     this.allAbsences().filter((a: any) => a.status === 'Approved').length
   );
 
-  readonly rejectedCount = computed(() => 
+  readonly rejectedCount = computed(() =>
     this.allAbsences().filter((a: any) => a.status === 'Rejected').length
   );
 
@@ -175,7 +175,7 @@ export class HrAbsencesComponent implements OnInit {
     // Filter by employee name
     const nameFilter = this.submittedEmployeeFilter().toLowerCase().trim();
     if (nameFilter) {
-      filtered = filtered.filter(a => 
+      filtered = filtered.filter(a =>
         a.employeeName?.toLowerCase().includes(nameFilter)
       );
     }
@@ -233,14 +233,14 @@ export class HrAbsencesComponent implements OnInit {
    */
   private loadAbsencesForTab(): void {
     this.isLoading.set(true);
-    
+
     // Load all absences using the existing getAbsences method
     // The service automatically adds companyId from contextService
     this.absenceService.getAbsences().subscribe({
       next: (response: any) => {
         const absences = response.absences || [];
         this.allAbsences.set(absences);
-        
+
         // Filter based on active tab
         switch (this.activeTabValue) {
           case 'submitted':
@@ -260,11 +260,10 @@ export class HrAbsencesComponent implements OnInit {
             this.pendingAbsences.set(absences);
             break;
         }
-        
+
         this.isLoading.set(false);
       },
       error: (err: any) => {
-        console.error('Error loading absences:', err);
         this.isLoading.set(false);
       }
     });
@@ -282,7 +281,6 @@ export class HrAbsencesComponent implements OnInit {
       endTime: '08:00'
     });
     this.showGrantDialog.set(true);
-    console.debug('[HR] openGrantDialog', { employeeId, employeeName, grantRequest: this.grantRequest() });
   }
 
   submitGrant() {
@@ -308,13 +306,10 @@ export class HrAbsencesComponent implements OnInit {
         this.loadAbsencesForTab();
       },
       error: (err) => {
-        console.error('Failed to grant absence', err);
-        console.error('Error response:', err?.error);
         if (err?.error?.errors) {
-          console.error('Validation errors:', JSON.stringify(err.error.errors, null, 2));
           // Log each validation error for clarity
           Object.keys(err.error.errors).forEach(key => {
-            console.error(`Field '${key}':`, err.error.errors[key]);
+            alert(`Field '${key}': ${err.error.errors[key]}`);
           });
         }
       }
@@ -341,7 +336,6 @@ export class HrAbsencesComponent implements OnInit {
       return { ...base, [field]: normalized } as GrantAbsenceRequest;
     });
     // log after update to help debug binding issues in the dialog
-    console.debug('[HR] updateGrantField', field, value, this.grantRequest());
   }
 
   get hoursList(): string[] {
@@ -390,14 +384,14 @@ export class HrAbsencesComponent implements OnInit {
                 return updated;
               });
             },
-            error: (err) => console.error(`Failed to load stats for employee ${emp.id}`, err)
+            error: (err) => alert(`Failed to load stats for employee ${emp.id}`)
           });
         });
 
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load employees', err);
+        alert('Failed to load employees');
         this.isLoading.set(false);
       }
     });
@@ -456,14 +450,12 @@ export class HrAbsencesComponent implements OnInit {
       { label: this.translate.instant(halfKeys[0]) || 'Morning', value: true },
       { label: this.translate.instant(halfKeys[1]) || 'Afternoon', value: false }
     ];
-    console.debug('[HR] populateTranslatedOptions - instantHalf', this.translate.currentLang, instantHalf);
     this.halfDayOptions.set(instantHalf);
     this.translate.get(halfKeys).subscribe(trans => {
       const updatedHalf = [
         { label: trans[halfKeys[0]] || this.translate.instant(halfKeys[0]) || 'Morning', value: true },
         { label: trans[halfKeys[1]] || this.translate.instant(halfKeys[1]) || 'Afternoon', value: false }
       ];
-      console.debug('[HR] populateTranslatedOptions - async half', this.translate.currentLang, updatedHalf);
       this.halfDayOptions.set(updatedHalf);
     });
   }
@@ -482,14 +474,12 @@ export class HrAbsencesComponent implements OnInit {
   }
 
   approveEmployee(employeeId: number) {
-    console.debug('[HR] approveEmployee', employeeId);
     // TODO: integrate with backend approval endpoint once available.
     // For now open the employee absences page for review and log action.
     this.viewEmployeeAbsences(String(employeeId));
   }
 
   rejectEmployee(employeeId: number) {
-    console.debug('[HR] rejectEmployee', employeeId);
     // TODO: integrate with backend rejection endpoint once available.
     // For now open the employee absences page for review and log action.
     this.viewEmployeeAbsences(String(employeeId));
@@ -500,7 +490,7 @@ export class HrAbsencesComponent implements OnInit {
     if (!query) {
       return this.employees();
     }
-    return this.employees().filter(emp => 
+    return this.employees().filter(emp =>
       emp.employeeName.toLowerCase().includes(query)
     );
   }
@@ -548,7 +538,7 @@ export class HrAbsencesComponent implements OnInit {
         this.pendingAbsences.set(response.absences);
       },
       error: (err) => {
-        console.error('Failed to load pending absences', err);
+        alert('Failed to load pending absences');
       }
     });
   }
@@ -563,7 +553,7 @@ export class HrAbsencesComponent implements OnInit {
         this.loadEmployeesAbsences();
       },
       error: (err) => {
-        console.error('Failed to approve absence', err);
+        alert('Failed to approve absence');
       }
     });
   }
@@ -592,7 +582,7 @@ export class HrAbsencesComponent implements OnInit {
         this.loadEmployeesAbsences();
       },
       error: (err) => {
-        console.error('Failed to reject absence', err);
+        alert('Failed to reject absence');
       }
     });
   }

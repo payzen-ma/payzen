@@ -23,7 +23,7 @@ public class TimesheetImportService : ITimesheetImportService
 
     public TimesheetImportService(AppDbContext db, ILogger<TimesheetImportService> logger)
     {
-        _db     = db;
+        _db = db;
         _logger = logger;
     }
 
@@ -73,8 +73,10 @@ public class TimesheetImportService : ITimesheetImportService
 
         try
         {
-            if (ext == ".xlsx") await ParseXlsx(fileStream, parsedRows, result);
-            else await ParseCsv(fileStream, parsedRows, result);
+            if (ext == ".xlsx")
+                await ParseXlsx(fileStream, parsedRows, result);
+            else
+                await ParseCsv(fileStream, parsedRows, result);
         }
         catch (Exception ex)
         {
@@ -83,19 +85,24 @@ public class TimesheetImportService : ITimesheetImportService
         }
 
         result.TotalLines = parsedRows.Count;
-        if (parsedRows.Count == 0) return ServiceResult<TimesheetImportResultDto>.Ok(result);
+        if (parsedRows.Count == 0)
+            return ServiceResult<TimesheetImportResultDto>.Ok(result);
 
         var startOfMonth = new DateOnly(year, month, 1);
-        var endOfMonth   = startOfMonth.AddMonths(1).AddDays(-1);
+        var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
         DateOnly periodStart, periodEnd;
 
         if (mode == "bi_monthly")
         {
             periodStart = half == 1 ? startOfMonth : startOfMonth.AddDays(15);
-            periodEnd   = half == 1 ? startOfMonth.AddDays(14) : endOfMonth;
+            periodEnd = half == 1 ? startOfMonth.AddDays(14) : endOfMonth;
             result.Half = half;
         }
-        else { periodStart = startOfMonth; periodEnd = endOfMonth; }
+        else
+        {
+            periodStart = startOfMonth;
+            periodEnd = endOfMonth;
+        }
 
         var hoursByEmployeeId = new Dictionary<int, decimal>();
         foreach (var row in parsedRows)
@@ -123,27 +130,29 @@ public class TimesheetImportService : ITimesheetImportService
             result.SuccessCount++;
         }
 
-        if (hoursByEmployeeId.Count == 0) return ServiceResult<TimesheetImportResultDto>.Ok(result);
+        if (hoursByEmployeeId.Count == 0)
+            return ServiceResult<TimesheetImportResultDto>.Ok(result);
 
         var existing = await _db.EmployeeAttendances
             .Where(a => hoursByEmployeeId.Keys.Contains(a.EmployeeId)
                      && a.WorkDate >= periodStart && a.WorkDate <= periodEnd
                      && a.Source == AttendanceSource.Manual)
             .ToListAsync(ct);
-        if (existing.Count > 0) _db.EmployeeAttendances.RemoveRange(existing);
+        if (existing.Count > 0)
+            _db.EmployeeAttendances.RemoveRange(existing);
 
         var now = DateTimeOffset.UtcNow;
         foreach (var kvp in hoursByEmployeeId)
             _db.EmployeeAttendances.Add(new EmployeeAttendance
             {
-                EmployeeId          = kvp.Key,
-                WorkDate            = periodStart,
-                WorkedHours         = kvp.Value,
+                EmployeeId = kvp.Key,
+                WorkDate = periodStart,
+                WorkedHours = kvp.Value,
                 BreakMinutesApplied = 0,
-                Status              = AttendanceStatus.Present,
-                Source              = AttendanceSource.Manual,
-                CreatedAt           = now,
-                CreatedBy           = userId ?? 0
+                Status = AttendanceStatus.Present,
+                Source = AttendanceSource.Manual,
+                CreatedAt = now,
+                CreatedBy = userId ?? 0
             });
 
         await _db.SaveChangesAsync(ct);
@@ -176,7 +185,7 @@ public class TimesheetImportService : ITimesheetImportService
         }
 
         var start = new DateOnly(year, month, 1);
-        var end   = start.AddMonths(1).AddDays(-1);
+        var end = start.AddMonths(1).AddDays(-1);
 
         var list = await _db.EmployeeAttendances.AsNoTracking()
             .Include(a => a.Employee).Include(a => a.Breaks)
@@ -185,23 +194,23 @@ public class TimesheetImportService : ITimesheetImportService
             .OrderBy(a => a.Employee!.FirstName).ThenBy(a => a.WorkDate)
             .Select(a => new EmployeeAttendanceReadDto
             {
-                Id                  = a.Id,
-                EmployeeId          = a.EmployeeId,
-                EmployeeName        = a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}" : null,
-                WorkDate            = a.WorkDate,
-                CheckIn             = a.CheckIn,
-                CheckOut            = a.CheckOut,
-                WorkedHours         = a.WorkedHours,
+                Id = a.Id,
+                EmployeeId = a.EmployeeId,
+                EmployeeName = a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}" : null,
+                WorkDate = a.WorkDate,
+                CheckIn = a.CheckIn,
+                CheckOut = a.CheckOut,
+                WorkedHours = a.WorkedHours,
                 BreakMinutesApplied = a.BreakMinutesApplied,
-                Status              = a.Status,
-                Source              = a.Source,
+                Status = a.Status,
+                Source = a.Source,
                 Breaks = a.Breaks!.Select(b => new EmployeeAttendanceBreakReadDto
                 {
-                    Id         = b.Id,
+                    Id = b.Id,
                     BreakStart = b.BreakStart,
-                    BreakEnd   = b.BreakEnd,
-                    BreakType  = b.BreakType ?? string.Empty,
-                    CreatedAt  = b.CreatedAt,
+                    BreakEnd = b.BreakEnd,
+                    BreakType = b.BreakType ?? string.Empty,
+                    CreatedAt = b.CreatedAt,
                     ModifiedAt = b.UpdatedAt
                 }).ToList()
             })
@@ -218,19 +227,30 @@ public class TimesheetImportService : ITimesheetImportService
         using var wb = new XLWorkbook(stream);
         var ws = wb.Worksheet(1);
         var firstRow = ws.FirstRowUsed();
-        if (firstRow == null) return;
+        if (firstRow == null)
+            return;
         var headerRowNum = firstRow.RowNumber();
-        var lastRowNum   = ws.LastRowUsed().RowNumber();
-        var headerMap    = BuildHeaderMap(ws.Row(headerRowNum));
+        var lastRowNum = ws.LastRowUsed().RowNumber();
+        var headerMap = BuildHeaderMap(ws.Row(headerRowNum));
 
         for (var r = headerRowNum + 1; r <= lastRowNum; r++)
         {
             var row = ws.Row(r);
-            var mat  = GetCell(row, headerMap, "MAT", "Matricule", "Mat");
-            var nrh  = GetCell(row, headerMap, "NR H", "NRH", "NB H", "HEURES");
-            if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh)) continue;
+            var mat = GetCell(row, headerMap, "MAT", "Matricule", "Mat");
+            var nrh = GetCell(row, headerMap, "NR H", "NRH", "NB H", "HEURES");
+            if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh))
+                continue;
             if (!TryParseDecimal(nrh, out var h) || h < 0)
-            { result.ErrorCount++; result.Errors.Add(new() { Row = r, Matricule = mat, Message = $"Heures invalides : '{nrh}'." }); continue; }
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new()
+                {
+                    Row = r,
+                    Matricule = mat,
+                    Message = $"Heures invalides : '{nrh}'."
+                });
+                continue;
+            }
             rows.Add((r, mat, h));
         }
         await Task.CompletedTask;
@@ -241,7 +261,8 @@ public class TimesheetImportService : ITimesheetImportService
     {
         using var reader = new StreamReader(stream);
         var headerLine = await reader.ReadLineAsync();
-        if (headerLine == null) return;
+        if (headerLine == null)
+            return;
         var delim = headerLine.Contains('\t') ? '\t' : ';';
         var headers = headerLine.Split(delim);
         var headerMap = BuildHeaderMap(headers);
@@ -250,13 +271,24 @@ public class TimesheetImportService : ITimesheetImportService
         while ((line = await reader.ReadLineAsync()) != null)
         {
             rowIdx++;
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
             var cells = line.Split(delim);
             var mat = GetCell(cells, headerMap, "MAT", "Matricule", "Mat");
             var nrh = GetCell(cells, headerMap, "NR H", "NRH", "NB H", "HEURES");
-            if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh)) continue;
+            if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh))
+                continue;
             if (!TryParseDecimal(nrh, out var h) || h < 0)
-            { result.ErrorCount++; result.Errors.Add(new() { Row = rowIdx, Matricule = mat, Message = $"Heures invalides : '{nrh}'." }); continue; }
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new()
+                {
+                    Row = rowIdx,
+                    Matricule = mat,
+                    Message = $"Heures invalides : '{nrh}'."
+                });
+                continue;
+            }
             rows.Add((rowIdx, mat, h));
         }
     }
@@ -279,7 +311,8 @@ public class TimesheetImportService : ITimesheetImportService
         for (var i = 0; i < headers.Length; i++)
         {
             var key = Normalize(headers[i]);
-            if (!string.IsNullOrWhiteSpace(key) && !map.ContainsKey(key)) map[key] = i;
+            if (!string.IsNullOrWhiteSpace(key) && !map.ContainsKey(key))
+                map[key] = i;
         }
         return map;
     }
@@ -291,7 +324,8 @@ public class TimesheetImportService : ITimesheetImportService
             if (map.TryGetValue(Normalize(c), out var idx))
             {
                 var v = Clean(row.Cell(idx + 1).GetString());
-                if (!string.IsNullOrWhiteSpace(v)) return v;
+                if (!string.IsNullOrWhiteSpace(v))
+                    return v;
             }
         }
         return null;
@@ -304,7 +338,8 @@ public class TimesheetImportService : ITimesheetImportService
             if (map.TryGetValue(Normalize(c), out var idx) && idx >= 0 && idx < cells.Length)
             {
                 var v = Clean(cells[idx]);
-                if (!string.IsNullOrWhiteSpace(v)) return v;
+                if (!string.IsNullOrWhiteSpace(v))
+                    return v;
             }
         }
         return null;
@@ -312,21 +347,25 @@ public class TimesheetImportService : ITimesheetImportService
 
     private static string Normalize(string? input)
     {
-        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(input))
+            return string.Empty;
         var s = input.Trim().Trim('"', '\'', '=');
         var norm = s.Normalize(NormalizationForm.FormD);
         var sb = new StringBuilder();
         foreach (var ch in norm)
         {
-            if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark) continue;
-            if (char.IsLetterOrDigit(ch)) sb.Append(char.ToLowerInvariant(ch));
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark)
+                continue;
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(char.ToLowerInvariant(ch));
         }
         return sb.ToString();
     }
 
     private static string? Clean(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
         var s = raw.Trim().Trim('"', '\'', '=').Replace('\u00A0', ' ').Trim();
         return string.IsNullOrWhiteSpace(s) ? null : s;
     }
@@ -334,7 +373,8 @@ public class TimesheetImportService : ITimesheetImportService
     private static bool TryParseDecimal(string? input, out decimal value)
     {
         value = 0m;
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
         var s = input.Trim().Replace('\u00A0', ' ').Trim();
         var lastDot = s.LastIndexOf('.');
         var lastComma = s.LastIndexOf(',');
@@ -342,8 +382,10 @@ public class TimesheetImportService : ITimesheetImportService
         var norm = dec == ','
             ? s.Replace(".", "").Replace(" ", "").Replace(',', '.')
             : s.Replace(",", "").Replace(" ", "");
-        if (norm.StartsWith("(") && norm.EndsWith(")")) norm = "-" + norm[1..^1];
-        if (norm.StartsWith("+")) norm = norm[1..];
+        if (norm.StartsWith("(") && norm.EndsWith(")"))
+            norm = "-" + norm[1..^1];
+        if (norm.StartsWith("+"))
+            norm = norm[1..];
         return decimal.TryParse(norm, NumberStyles.Number, CultureInfo.InvariantCulture, out value)
             || decimal.TryParse(s, NumberStyles.Any, new CultureInfo("fr-FR"), out value);
     }

@@ -60,7 +60,7 @@ import {
             </div>
             <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune règle définie</h3>
             <p class="text-sm text-gray-500 mb-4">Ajoutez des règles d'exonération pour cet élément</p>
-            <button 
+            <button
               (click)="onAddRule()"
               class="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600">
               Ajouter une règle
@@ -71,14 +71,14 @@ import {
           <div *ngIf="rules.length > 0" class="space-y-4">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-sm font-medium text-gray-700">{{ rules.length }} règle(s) configurée(s)</h4>
-              <button 
+              <button
                 (click)="onAddRule()"
                 class="text-sm text-primary-600 hover:text-primary-700 hover:underline">
                 + Ajouter
               </button>
             </div>
 
-            <div *ngFor="let rule of rules; trackBy: trackById" 
+            <div *ngFor="let rule of rules; trackBy: trackById"
                  class="border border-gray-200 rounded-lg overflow-hidden">
               <!-- Rule Header -->
               <div class="p-4 flex items-start justify-between"
@@ -96,15 +96,15 @@ import {
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span *ngIf="isRuleActive(rule)" 
+                  <span *ngIf="isRuleActive(rule)"
                         class="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     Actif
                   </span>
-                  <span *ngIf="!isRuleActive(rule)" 
+                  <span *ngIf="!isRuleActive(rule)"
                         class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
                     Inactif
                   </span>
-                  <button 
+                  <button
                     (click)="onEditRule(rule)"
                     class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     title="Modifier">
@@ -112,7 +112,7 @@ import {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     (click)="onDeleteRule(rule)"
                     class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                     title="Supprimer">
@@ -136,7 +136,7 @@ import {
                   <div>
                     <p class="text-xs text-gray-500 mb-1">Période</p>
                     <p class="text-gray-900">
-                      {{ formatDate(rule.effectiveFrom) }} → 
+                      {{ formatDate(rule.effectiveFrom) }} →
                       {{ rule.effectiveTo ? formatDate(rule.effectiveTo) : 'En cours' }}
                     </p>
                   </div>
@@ -180,7 +180,7 @@ import {
                 <div *ngIf="rule.variants && rule.variants.length > 0" class="mt-4">
                   <p class="text-xs text-gray-500 mb-2">Variantes</p>
                   <div class="flex flex-wrap gap-2">
-                    <span *ngFor="let variant of rule.variants" 
+                    <span *ngFor="let variant of rule.variants"
                           class="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                       {{ variant.variantLabel }}
                       <span *ngIf="variant.overrideCap" class="text-gray-500">({{ variant.overrideCap }} MAD)</span>
@@ -194,7 +194,7 @@ import {
 
         <!-- Actions -->
         <div class="flex justify-end pt-4 border-t">
-          <button 
+          <button
             (click)="onClose()"
             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Fermer
@@ -207,7 +207,7 @@ import {
 export class ElementRulesViewComponent implements OnChanges {
   @Input() visible = false;
   @Input() element: ReferentielElementListDto | null = null;
-  
+
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() addRule = new EventEmitter<ReferentielElementListDto>();
   @Output() editRule = new EventEmitter<ElementRuleDto>();
@@ -240,7 +240,6 @@ export class ElementRulesViewComponent implements OnChanges {
         this.loading = false;
       },
       error: (err: any) => {
-        console.error('Failed to load element details:', err);
         this.loading = false;
       }
     });
@@ -248,11 +247,11 @@ export class ElementRulesViewComponent implements OnChanges {
 
   isRuleActive(rule: ElementRuleDto): boolean {
     if (!rule.isActive) return false;
-    
+
     const now = new Date();
     const effectiveFrom = new Date(rule.effectiveFrom);
     const effectiveTo = rule.effectiveTo ? new Date(rule.effectiveTo) : null;
-    
+
     return effectiveFrom <= now && (!effectiveTo || effectiveTo >= now);
   }
 

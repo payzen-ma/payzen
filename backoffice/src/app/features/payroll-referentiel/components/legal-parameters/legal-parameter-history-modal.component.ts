@@ -17,11 +17,11 @@ import {
   standalone: true,
   imports: [CommonModule, ModalComponent],
   template: `
-    <app-modal 
-      [(visible)]="visible" 
+    <app-modal
+      [(visible)]="visible"
       [title]="'Historique: ' + (parameterName || '')"
       (visibleChange)="onVisibleChange($event)">
-      
+
       <div class="space-y-4">
         <!-- Loading State -->
         <div *ngIf="loading" class="flex items-center justify-center py-8">
@@ -30,19 +30,19 @@ import {
           </svg>
           <span class="ml-2 text-gray-600">Chargement de l'historique...</span>
         </div>
-        
+
         <!-- Empty State -->
         <div *ngIf="!loading && history.length === 0" class="text-center py-8">
           <p class="text-gray-500">Aucun historique disponible</p>
         </div>
-        
+
         <!-- History Timeline -->
         <div *ngIf="!loading && history.length > 0" class="relative">
           <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-          
+
           <div *ngFor="let item of history; let i = index; let first = first" class="relative pl-10 pb-6 last:pb-0">
             <!-- Timeline Dot -->
-            <div 
+            <div
               class="absolute left-2.5 w-3 h-3 rounded-full border-2 border-white"
               [ngClass]="{
                 'bg-green-500': isCurrentlyActive(item),
@@ -50,31 +50,31 @@ import {
                 'bg-gray-400': !isCurrentlyActive(item) && !isFuture(item)
               }">
             </div>
-            
+
             <!-- Version Card -->
-            <div 
+            <div
               class="bg-white border rounded-lg p-4"
               [class.border-green-300]="isCurrentlyActive(item)"
               [class.border-gray-200]="!isCurrentlyActive(item)">
-              
+
               <!-- Header -->
               <div class="flex items-start justify-between mb-2">
                 <div>
                   <h4 class="font-medium text-gray-900">{{ item.name }}</h4>
                   <p class="text-xs text-gray-500">{{ formatPeriod(item) }}</p>
                 </div>
-                <span 
+                <span
                   class="px-2 py-0.5 text-xs font-medium rounded-full"
                   [ngClass]="getStatusClass(item)">
                   {{ getStatusLabel(item) }}
                 </span>
               </div>
-              
+
               <!-- Value -->
               <div class="text-xl font-bold text-primary-600 mb-2">
                 {{ formatValue(item) }}
               </div>
-              
+
               <!-- Description -->
               <p *ngIf="item.description" class="text-sm text-gray-600">
                 {{ item.description }}
@@ -82,7 +82,7 @@ import {
             </div>
           </div>
         </div>
-        
+
         <!-- Close Button -->
         <div class="flex justify-end pt-4 border-t border-gray-200">
           <button
@@ -98,63 +98,62 @@ import {
 export class LegalParameterHistoryModalComponent implements OnChanges {
   @Input() visible = false;
   @Input() parameterName: string | null = null;
-  
+
   @Output() visibleChange = new EventEmitter<boolean>();
-  
+
   // Data
   history: LegalParameterDto[] = [];
-  
+
   // State
   loading = false;
-  
+
   constructor(private payrollService: PayrollReferentielService) {}
-  
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible'] && this.visible && this.parameterName) {
       this.loadHistory();
     }
   }
-  
+
   /**
    * Load parameter history from API
    */
   private loadHistory(): void {
     if (!this.parameterName) return;
-    
+
     this.loading = true;
     this.history = [];
-    
+
     this.payrollService.getLegalParameterHistory(this.parameterName).subscribe({
       next: (data) => {
         // Sort by effectiveFrom descending (newest first)
-        this.history = data.sort((a, b) => 
+        this.history = data.sort((a, b) =>
           new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime()
         );
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load parameter history:', err);
         this.loading = false;
       }
     });
   }
-  
+
   /**
    * Check if parameter version is currently active
    */
   isCurrentlyActive(param: LegalParameterDto): boolean {
     if (!param.isActive) return false;
-    
+
     const now = new Date();
     const effectiveFrom = new Date(param.effectiveFrom);
     const effectiveTo = param.effectiveTo ? new Date(param.effectiveTo) : null;
-    
+
     if (now < effectiveFrom) return false;
     if (effectiveTo && now > effectiveTo) return false;
-    
+
     return true;
   }
-  
+
   /**
    * Check if parameter version is in the future
    */
@@ -163,7 +162,7 @@ export class LegalParameterHistoryModalComponent implements OnChanges {
     const effectiveFrom = new Date(param.effectiveFrom);
     return now < effectiveFrom;
   }
-  
+
   /**
    * Get status label
    */
@@ -173,7 +172,7 @@ export class LegalParameterHistoryModalComponent implements OnChanges {
     if (this.isCurrentlyActive(param)) return 'Actuel';
     return 'Expiré';
   }
-  
+
   /**
    * Get status CSS class
    */
@@ -187,21 +186,21 @@ export class LegalParameterHistoryModalComponent implements OnChanges {
       default: return 'bg-gray-100 text-gray-600';
     }
   }
-  
+
   /**
    * Format parameter value for display
    */
   formatValue(param: LegalParameterDto): string {
     return formatParameterValue(param);
   }
-  
+
   /**
    * Format effective period for display
    */
   formatPeriod(param: LegalParameterDto): string {
     return formatEffectivePeriod(param);
   }
-  
+
   /**
    * Close modal
    */

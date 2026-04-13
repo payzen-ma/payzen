@@ -48,9 +48,9 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         var breakRecord = new EmployeeAttendanceBreak
         {
             EmployeeAttendanceId = dto.AttendanceId,
-            BreakStart           = dto.BreakStart,
-            BreakType            = dto.BreakType,
-            CreatedBy            = userId
+            BreakStart = dto.BreakStart,
+            BreakType = dto.BreakType,
+            CreatedBy = userId
         };
         _db.EmployeeAttendanceBreaks.Add(breakRecord);
         await _db.SaveChangesAsync(ct);
@@ -68,9 +68,9 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         if (dto.BreakEnd <= openBreak.BreakStart)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("L'heure de fin doit être après l'heure de début.");
 
-        openBreak.BreakEnd   = dto.BreakEnd;
-        openBreak.UpdatedBy  = userId;
-        openBreak.UpdatedAt  = DateTimeOffset.UtcNow;
+        openBreak.BreakEnd = dto.BreakEnd;
+        openBreak.UpdatedBy = userId;
+        openBreak.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         await RecalculateWorkedHoursAsync(attendanceId, ct);
         return ServiceResult<EmployeeAttendanceBreakReadDto>.Ok(ToDto(openBreak));
@@ -85,11 +85,11 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         if (dto.BreakEnd <= dto.BreakStart)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("L'heure de fin doit être après l'heure de début.");
 
-        b.BreakStart  = dto.BreakStart;
-        b.BreakEnd    = dto.BreakEnd;
-        b.BreakType   = dto.BreakType;
-        b.UpdatedBy   = updatedBy;
-        b.UpdatedAt   = DateTimeOffset.UtcNow;
+        b.BreakStart = dto.BreakStart;
+        b.BreakEnd = dto.BreakEnd;
+        b.BreakType = dto.BreakType;
+        b.UpdatedBy = updatedBy;
+        b.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         await RecalculateWorkedHoursAsync(b.EmployeeAttendanceId, ct);
         return ServiceResult<EmployeeAttendanceBreakReadDto>.Ok(ToDto(b));
@@ -119,8 +119,8 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         {
             attendanceId,
             totalBreakMinutes = (int)totalMinutes,
-            totalBreakTime    = TimeSpan.FromMinutes(totalMinutes).ToString(@"hh\:mm"),
-            breakCount        = breaks.Count
+            totalBreakTime = TimeSpan.FromMinutes(totalMinutes).ToString(@"hh\:mm"),
+            breakCount = breaks.Count
         });
     }
 
@@ -137,17 +137,17 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
             .SumAsync(b => EF.Functions.DateDiffMinute(b.BreakStart, b.BreakEnd!.Value), ct);
 
         attendance.BreakMinutesApplied = (int)breakMinutes;
-        attendance.WorkedHours         = (decimal)((totalMinutes - breakMinutes) / 60);
+        attendance.WorkedHours = (decimal)((totalMinutes - breakMinutes) / 60);
         await _db.SaveChangesAsync(ct);
     }
 
     private static EmployeeAttendanceBreakReadDto ToDto(EmployeeAttendanceBreak b) => new()
     {
-        Id         = b.Id,
+        Id = b.Id,
         BreakStart = b.BreakStart,
-        BreakEnd   = b.BreakEnd,
-        BreakType  = b.BreakType ?? string.Empty,
-        CreatedAt  = b.CreatedAt,
+        BreakEnd = b.BreakEnd,
+        BreakType = b.BreakType ?? string.Empty,
+        CreatedAt = b.CreatedAt,
         ModifiedAt = b.UpdatedAt
     };
 }

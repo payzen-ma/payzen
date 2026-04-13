@@ -55,7 +55,7 @@ export class CreateCompanyComponent implements OnInit {
   selectedCountryId: number | null = null;
   showCityDropdown = false;
   selectedCityId: number | null = null;
-  
+
   // Success modal
   showSuccessModal = false;
   createdAdmin: any = null;
@@ -80,7 +80,7 @@ export class CreateCompanyComponent implements OnInit {
       next: (data) => {
         this.cities = data.cities;
         this.countries = data.countries;
-        
+
         // Set Morocco as default country
         const morocco = this.countries.find(c => c.name.toLowerCase() === 'maroc');
         if (morocco) {
@@ -90,7 +90,6 @@ export class CreateCompanyComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading form data:', error);
       }
     });
   }
@@ -113,10 +112,10 @@ export class CreateCompanyComponent implements OnInit {
   onCityInput(event: Event) {
     const input = (event.target as HTMLInputElement).value;
     this.city = input;
-    
+
     if (input.length > 0) {
-      this.filteredCities = this.cities.filter(c => 
-        c.countryId === this.selectedCountryId && 
+      this.filteredCities = this.cities.filter(c =>
+        c.countryId === this.selectedCountryId &&
         c.name.toLowerCase().includes(input.toLowerCase())
       );
       this.showCityDropdown = this.filteredCities.length > 0;
@@ -153,11 +152,11 @@ export class CreateCompanyComponent implements OnInit {
 
   onSubmit() {
     if (this.isSubmitting) return;
-    
+
     this.isSubmitting = true;
-    
+
     const selectedCountry = this.countries.find(c => c.name === this.country);
-    
+
     const companyData: any = {
       companyName: this.companyName,
       email: this.email,
@@ -173,7 +172,7 @@ export class CreateCompanyComponent implements OnInit {
       adminDateOfBirth: this.adminDateOfBirth,
       adminPhone: this.adminPhone
     };
-    
+
     // Add cityId if existing city selected, otherwise add cityName for new city
     if (this.selectedCityId) {
       companyData.cityId = this.selectedCityId;
@@ -183,8 +182,7 @@ export class CreateCompanyComponent implements OnInit {
 
     this.companyService.createCompany(companyData).subscribe({
       next: (response: any) => {
-        console.log('Company created successfully:', response);
-        
+
         // Transform admin data to handle both PascalCase and camelCase
         const admin = response.admin || response.Admin;
         this.createdAdmin = {
@@ -197,19 +195,18 @@ export class CreateCompanyComponent implements OnInit {
         this.isSubmitting = false;
       },
       error: (error) => {
-        console.error('Error creating company:', error);
         this.showNotification('Erreur lors de la création de l\'entreprise: ' + (error.error?.message || error.message), 'error');
         this.isSubmitting = false;
       }
     });
   }
-  
+
   closeSuccessModal() {
     this.showSuccessModal = false;
     // Optionally redirect or reset form
     window.location.href = '/companies';
   }
-  
+
   copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => {
       this.showNotification('Copié dans le presse-papier!', 'success');

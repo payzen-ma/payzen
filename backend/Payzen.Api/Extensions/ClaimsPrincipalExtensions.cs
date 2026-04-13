@@ -4,15 +4,15 @@ using Microsoft.IdentityModel.JsonWebTokens;
 namespace Payzen.Api.Extensions;
 
 public static class ClaimsPrincipalExtensions
-{
-    public static int GetUserId(this ClaimsPrincipal user)
     {
+    public static int GetUserId(this ClaimsPrincipal user)
+        {
         var val = user.FindFirst("uid")?.Value
             ?? throw new InvalidOperationException("User ID claim not found");
         return int.TryParse(val, out var id)
             ? id
             : throw new InvalidOperationException("Invalid User ID format");
-    }
+        }
 
     public static string GetUserEmail(this ClaimsPrincipal principal) =>
         principal.FindFirst(ClaimTypes.Email)?.Value
@@ -27,14 +27,14 @@ public static class ClaimsPrincipalExtensions
         user.Claims.Any(c => c.Type == "permission" && c.Value == permission);
 
     public static bool HasAnyPermission(this ClaimsPrincipal user, params string[] permissions)
-    {
+        {
         var perms = user.GetPermissions();
         return permissions.Any(p => perms.Contains(p));
-    }
+        }
 
     public static bool HasAllPermissions(this ClaimsPrincipal user, params string[] permissions)
-    {
+        {
         var perms = user.GetPermissions();
         return permissions.All(p => perms.Contains(p));
+        }
     }
-}

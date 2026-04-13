@@ -1,42 +1,29 @@
-<aside
-  [style.width.px]="currentWidth()"
-  styleClass="sidebar"
+<aside [style.width.px]="currentWidth()" styleClass="sidebar"
   class="sidebar flex flex-col font-sans shadow-md transition-all duration-300 ease-in-out overflow-hidden h-full bg-white border-r border-gray-200"
-  [ngClass]="className()"
->
+  [ngClass]="className()">
   <!-- Brand -->
   <div class="flex items-center py-4 relative" [class.px-4]="!isSidebarCollapsed()" [class.px-2]="isSidebarCollapsed()">
     <!-- Logo -->
     <div class="flex items-center justify-center w-full">
       @if (!isSidebarCollapsed()) {
-        <img src="assets/images/logo.png" alt="PayZen Logo" class="h-10 w-auto transition-all duration-300" />
+      <img src="assets/images/logo.png" alt="PayZen Logo" class="h-10 w-auto transition-all duration-300" />
       } @else {
-        <img src="assets/images/logo.png" alt="PayZen" class="h-8 w-8 object-contain transition-all duration-300" />
+      <img src="assets/images/logo.png" alt="PayZen" class="h-8 w-8 object-contain transition-all duration-300" />
       }
     </div>
 
     <!-- Action Buttons -->
     <div class="flex items-center gap-1 absolute right-2 top-1/2 -translate-y-1/2">
       @if (showCloseButton() && !isSidebarCollapsed()) {
-        <button
-          pButton
-          type="button"
-          icon="pi pi-times"
-          class="p-button-text p-button-rounded p-button-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 w-8 h-8 md:hidden"
-          (click)="closeSidebar()"
-          aria-label="Close sidebar"
-        ></button>
+      <button pButton type="button" icon="pi pi-times"
+        class="p-button-text p-button-rounded p-button-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 w-8 h-8 md:hidden"
+        (click)="closeSidebar()" aria-label="Close sidebar"></button>
       }
 
       @if (Collapsible()) {
-        <button
-          pButton
-          type="button"
-          [icon]="isSidebarCollapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
-          class="p-button-text p-button-rounded p-button-sm text-gray-400 hover:text-gray-600 sidebar-toggle-icon w-8 h-8 hidden md:flex"
-          (click)="toggle()"
-          [attr.aria-label]="isSidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-        ></button>
+      <button pButton type="button" [icon]="isSidebarCollapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
+        class="p-button-text p-button-rounded p-button-sm text-gray-400 hover:text-gray-600 sidebar-toggle-icon w-8 h-8 hidden md:flex"
+        (click)="toggle()" [attr.aria-label]="isSidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"></button>
       }
     </div>
   </div>
@@ -44,82 +31,65 @@
   <!-- Nav -->
   <nav
     [class]="'flex-1 flex flex-col overflow-y-auto overflow-x-hidden ' + (isSidebarCollapsed() ? 'gap-0.5 px-1.5 pt-1.5' : 'gap-0.5 px-2 pt-1.5')"
-    role="navigation"
-    [attr.aria-label]="'nav.mainMenu' | translate"
-  >
+    role="navigation" [attr.aria-label]="'nav.mainMenu' | translate">
     <app-sidebar-group>
       @for (group of groupedMenuItems(); track group.key; let isFirst = $first) {
-        <!-- Group separator (not for the first group) -->
-        @if (!isFirst && !isSidebarCollapsed()) {
-          <div class="border-t border-gray-200 my-1.5"></div>
-        }
-        
-        <!-- Group label (only when not collapsed) -->
-        @if (!isSidebarCollapsed() && group.items.length > 0) {
-          <button
-            type="button"
-            class="sidebar-group-toggle"
-            (click)="toggleGroup(group.key)"
-            [attr.aria-expanded]="isGroupExpanded(group.key)"
-          >
-            <app-sidebar-group-label class="px-2 mb-0.5 mt-1.5">
-              <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                {{ group.label | translate }}
-              </span>
-            </app-sidebar-group-label>
-            <i
-              class="pi text-[10px] text-gray-400"
-              [class.pi-chevron-down]="isGroupExpanded(group.key)"
-              [class.pi-chevron-right]="!isGroupExpanded(group.key)">
-            </i>
-          </button>
-        }
+      <!-- Group separator (not for the first group) -->
+      @if (!isFirst && !isSidebarCollapsed()) {
+      <div class="border-t border-gray-200 my-1.5"></div>
+      }
 
-        <!-- Group items -->
-        <div
-          class="sidebar-group-content"
-          [class.expanded]="isSidebarCollapsed() || isGroupExpanded(group.key)"
-          [style.maxHeight]="(isSidebarCollapsed() || isGroupExpanded(group.key)) ? ((group.items.length * 56) + 'px') : '0px'"
-        >
-          @for (item of group.items; track item.label) {
-            <a
-              [routerLink]="item.notImplemented || (isExpertMode() && !isClientView()) ? null : item.routerLink"
-              (click)="handleNavigation(item, $event)"
-              routerLinkActive="active"
-              class="sidebar-item group"
-              [class.justify-center]="isSidebarCollapsed()"
-              [class.justify-start]="!isSidebarCollapsed()"
-              [class.opacity-50]="item.notImplemented || (isExpertMode() && !isClientView())"
-              [class.cursor-not-allowed]="item.notImplemented || (isExpertMode() && !isClientView())"
-              [class.pointer-events-none]="item.notImplemented"
-              [class.highlight]="item.highlight && !item.notImplemented"
-              [attr.aria-label]="item.label | translate"
-              [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.notImplemented ? 'Bientôt disponible' : (isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : ''))"
-              tooltipPosition="right"
-            >
-              <i [class]="item.icon + (isSidebarCollapsed() ? '' : ' me-2.5')" class="text-base transition-colors group-hover:text-(--primary)" aria-hidden="true"></i>
+      <!-- Group label (only when not collapsed) -->
+      @if (!isSidebarCollapsed() && group.items.length > 0) {
+      <button type="button" class="sidebar-group-toggle" (click)="toggleGroup(group.key)"
+        [attr.aria-expanded]="isGroupExpanded(group.key)">
+        <app-sidebar-group-label class="px-2 mb-0.5 mt-1.5">
+          <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+            {{ group.label | translate }}
+          </span>
+        </app-sidebar-group-label>
+        <i class="pi text-[10px] text-gray-400" [class.pi-chevron-down]="isGroupExpanded(group.key)"
+          [class.pi-chevron-right]="!isGroupExpanded(group.key)">
+        </i>
+      </button>
+      }
 
-              @if (!isSidebarCollapsed()) {
-                <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
+      <!-- Group items -->
+      <div class="sidebar-group-content" [class.expanded]="isSidebarCollapsed() || isGroupExpanded(group.key)"
+        [style.maxHeight]="(isSidebarCollapsed() || isGroupExpanded(group.key)) ? ((group.items.length * 56) + 'px') : '0px'">
+        @for (item of group.items; track item.label) {
+        <a [routerLink]="item.notImplemented || (isExpertMode() && !isClientView()) ? null : item.routerLink"
+          (click)="handleNavigation(item, $event)" routerLinkActive="active" class="sidebar-item group"
+          [class.justify-center]="isSidebarCollapsed()" [class.justify-start]="!isSidebarCollapsed()"
+          [class.opacity-50]="item.notImplemented || (isExpertMode() && !isClientView())"
+          [class.cursor-not-allowed]="item.notImplemented || (isExpertMode() && !isClientView())"
+          [class.pointer-events-none]="item.notImplemented" [class.highlight]="item.highlight && !item.notImplemented"
+          [attr.aria-label]="item.label | translate"
+          [pTooltip]="isSidebarCollapsed() ? (item.label | translate) : (item.notImplemented ? 'Bientôt disponible' : (isExpertMode() && !isClientView() ? ('expert.selectCompanyFirst' | translate) : ''))"
+          tooltipPosition="right">
+          <app-iconify [icon]="item.icon ?? ''"
+            [attr.class]="(item.icon ?? '') + (isSidebarCollapsed() ? '' : ' me-2.5') + ' text-base transition-colors group-hover:text-[var(--primary)]'"
+            aria-hidden="true"></app-iconify>
 
-                @if (item.notImplemented) {
-                  <span class="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-200 text-gray-500">
-                    Bientôt
-                  </span>
-                } @else if (item.itemBadge) {
-                  <span
-                    class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
-                    [style.background-color]="item.itemBadge.color + '20'"
-                    [style.color]="item.itemBadge.color">
-                    {{ item.itemBadge.count }}
-                  </span>
-                } @else if (isExpertMode() && !isClientView()) {
-                  <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
-                }
-              }
-            </a>
+          @if (!isSidebarCollapsed()) {
+          <span class="font-medium text-[13px] whitespace-nowrap">{{ item.label | translate }}</span>
+
+          @if (item.notImplemented) {
+          <span class="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-gray-200 text-gray-500">
+            Bientôt
+          </span>
+          } @else if (item.itemBadge) {
+          <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold"
+            [style.background-color]="item.itemBadge.color + '20'" [style.color]="item.itemBadge.color">
+            {{ item.itemBadge.count }}
+          </span>
+          } @else if (isExpertMode() && !isClientView()) {
+          <i class="pi pi-lock text-xs text-gray-400 ms-auto" aria-hidden="true"></i>
           }
-        </div>
+          }
+        </a>
+        }
+      </div>
       }
     </app-sidebar-group>
   </nav>
@@ -127,67 +97,62 @@
   <!-- User Profile -->
   <div class="mt-auto border-t border-gray-200">
     <div class="p-2.5">
-      <div
-        (click)="profileMenu.toggle($event)"
+      <div (click)="profileMenu.toggle($event)"
         [class]="'w-full hover:bg-gray-50 flex cursor-pointer items-center rounded-lg transition-all duration-200 border border-transparent hover:border-gray-200 p-1.5 ' + (isSidebarCollapsed() ? 'justify-center' : 'gap-2.5')"
-        [pTooltip]="isSidebarCollapsed() ? userDisplayName() : ''"
-        tooltipPosition="right"
-      >
+        [pTooltip]="isSidebarCollapsed() ? userDisplayName() : ''" tooltipPosition="right">
         <div class="relative">
-            <p-avatar 
-              [icon]="isExpertMode() ? 'pi pi-briefcase' : 'pi pi-user'" 
-              shape="circle" 
-              [class]="isExpertMode() ? 'bg-purple-100 text-purple-700 shrink-0' : 'bg-gray-100 text-gray-600 shrink-0'">
-            </p-avatar>
-            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+          <p-avatar [icon]="isExpertMode() ? 'pi pi-briefcase' : 'pi pi-user'" shape="circle"
+            [class]="isExpertMode() ? 'bg-purple-100 text-purple-700 shrink-0' : 'bg-gray-100 text-gray-600 shrink-0'">
+          </p-avatar>
+          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
         </div>
 
         @if (!isSidebarCollapsed()) {
-          <div class="flex-1 text-left overflow-hidden">
-            <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
-            <div class="text-[11px] text-gray-500 truncate">{{ userRoleLabel() | translate }}</div>
-          </div>
-          <i class="pi pi-chevron-up text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+        <div class="flex-1 text-left overflow-hidden">
+          <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
+          <div class="text-[11px] text-gray-500 truncate">{{ userRoleLabel() | translate }}</div>
+        </div>
+        <i class="pi pi-chevron-up text-[10px] text-gray-400 group-hover:text-gray-600 transition-colors"></i>
         }
       </div>
 
-      <p-menu #profileMenu [model]="profileMenuItems()" [popup]="true" appendTo="body" styleClass="profile-menu shadow-lg border border-gray-200 rounded-xl overflow-hidden min-w-[240px]">
+      <p-menu #profileMenu [model]="profileMenuItems()" [popup]="true" appendTo="body"
+        styleClass="profile-menu shadow-lg border border-gray-200 rounded-xl overflow-hidden min-w-[240px]">
         <ng-template pTemplate="item" let-item>
-            @if (!item.separator) {
-                <!-- User Header -->
-                @if (item.id === 'user-header') {
-                    <div class="px-3 py-2 bg-gray-50 border-b border-gray-100">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full bg-(--primary)/10 flex items-center justify-center">
-                                <i class="pi pi-user text-(--primary) text-sm"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
-                                <div class="text-[11px] text-gray-500 truncate">{{ item.label }}</div>
-                            </div>
-                        </div>
-                    </div>
-                } @else if (item.id === 'logout') {
-                    <!-- Logout Item -->
-                    <button 
-                        type="button"
-                        class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
-                        (click)="logout(); profileMenu.hide()">
-                        <i [class]="item.icon" class="text-sm"></i>
-                        <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
-                    </button>
-                } @else {
-                    <!-- Regular Menu Item -->
-                    <a [routerLink]="item.routerLink" 
-                       [attr.href]="item.url"
-                       [attr.target]="item.target"
-                       class="flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-(--primary) no-underline transition-colors duration-150 cursor-pointer group"
-                       (click)="item.command ? item.command({originalEvent: $event, item: item}) : null; profileMenu.hide()">
-                        <i [class]="item.icon" class="text-sm text-gray-400 group-hover:text-(--primary) transition-colors"></i>
-                        <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
-                    </a>
-                }
-            }
+          @if (!item.separator) {
+          <!-- User Header -->
+          @if (item.id === 'user-header') {
+          <div class="px-3 py-2 bg-gray-50 border-b border-gray-100">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-9 h-9 rounded-full bg-[color-mix(in_srgb,var(--primary)_10%,white)] flex items-center justify-center">
+                <i class="pi pi-user text-[var(--primary)] text-sm"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-[13px] text-gray-900 truncate">{{ userDisplayName() }}</div>
+                <div class="text-[11px] text-gray-500 truncate">{{ item.label }}</div>
+              </div>
+            </div>
+          </div>
+          } @else if (item.id === 'logout') {
+          <!-- Logout Item -->
+          <button type="button"
+            class="w-full flex items-center gap-2.5 px-3 py-2 text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+            (click)="logout(); profileMenu.hide()">
+            <app-iconify [icon]="item.icon ?? ''" [attr.class]="(item.icon ?? '') + ' text-sm'"></app-iconify>
+            <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
+          </button>
+          } @else {
+          <!-- Regular Menu Item -->
+          <a [routerLink]="item.routerLink" [attr.href]="item.url" [attr.target]="item.target"
+            class="flex items-center gap-2.5 px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-[var(--primary)] no-underline transition-colors duration-150 cursor-pointer group"
+            (click)="item.command ? item.command({originalEvent: $event, item: item}) : null; profileMenu.hide()">
+            <app-iconify [icon]="item.icon ?? ''"
+              [attr.class]="(item.icon ?? '') + ' text-sm text-gray-400 group-hover:text-[var(--primary)] transition-colors'"></app-iconify>
+            <span class="font-medium text-[13px]">{{ item.label | translate }}</span>
+          </a>
+          }
+          }
         </ng-template>
       </p-menu>
     </div>
@@ -195,14 +160,8 @@
 </aside>
 
 <!-- Company Selection Required Dialog -->
-<p-dialog 
-  [(visible)]="showCompanyRequiredDialog" 
-  [modal]="true" 
-  [closable]="true"
-  [draggable]="false"
-  [resizable]="false"
-  [style]="{width: '400px'}"
-  [header]="'expert.selectCompanyRequired' | translate">
+<p-dialog [(visible)]="showCompanyRequiredDialog" [modal]="true" [closable]="true" [draggable]="false"
+  [resizable]="false" [style]="{width: '400px'}" [header]="'expert.selectCompanyRequired' | translate">
   <div class="flex flex-col items-center gap-4 py-4">
     <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
       <i class="pi pi-building text-3xl text-purple-600"></i>
@@ -214,13 +173,8 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button 
-        pButton 
-        type="button" 
-        [label]="'common.ok' | translate" 
-        icon="pi pi-check"
-        (click)="closeCompanyRequiredDialog()"
-        class="p-button-primary">
+      <button pButton type="button" [label]="'common.ok' | translate" icon="pi pi-check"
+        (click)="closeCompanyRequiredDialog()" class="p-button-primary">
       </button>
     </div>
   </ng-template>

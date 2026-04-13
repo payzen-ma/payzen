@@ -1,32 +1,39 @@
-<div class="max-w-7xl mx-auto px-6 py-6">
-  <p-toast />
+<section class="payslip-page bulletin-page salary-page">
+  <div class="payslip-shell bulletin-shell">
+    <p-toast />
 
-  <div class="card">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">{{ 'overtime.hr.title' | translate }}</h2>
+    <header class="payslip-hero bulletin-hero">
+      <div class="module-header__text">
+        <p class="payslip-eyebrow">Heures supplémentaires</p>
+        <h1 class="page-title">{{ 'overtime.hr.title' | translate }}</h1>
+      </div>
+    </header>
+
+    <div class="payslip-card bulletin-card surface">
+
+      <p-table [value]="employees()" [loading]="isLoading()" styleClass="p-datatable-sm" [paginator]="true" [rows]="5"
+        [rowsPerPageOptions]="[5,10,25,50]">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'employees.name' | translate }}</th>
+            <th>{{ 'employees.position' | translate }}</th>
+            <th>{{ 'employees.department' | translate }}</th>
+            <th>{{ 'common.actions' | translate }}</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-emp>
+          <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(emp)">
+            <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+            <td>{{ emp.position }}</td>
+            <td>{{ emp.department }}</td>
+            <td>
+              <p-button icon="pi pi-plus" (onClick)="openDeclare(emp); $event.stopPropagation()"
+                [label]="'overtime.hr.declare' | translate"></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
     </div>
-
-    <p-table [value]="employees()" [loading]="isLoading()" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50]">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>{{ 'employees.name' | translate }}</th>
-          <th>{{ 'employees.position' | translate }}</th>
-          <th>{{ 'employees.department' | translate }}</th>
-          <th>{{ 'common.actions' | translate }}</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-emp>
-        <tr class="saas-table-row cursor-pointer" (click)="viewEmployee(emp)">
-          <td>{{ emp.firstName }} {{ emp.lastName }}</td>
-          <td>{{ emp.position }}</td>
-          <td>{{ emp.department }}</td>
-          <td>
-            <p-button icon="pi pi-plus" (onClick)="openDeclare(emp); $event.stopPropagation()" [label]="'overtime.hr.declare' | translate"></p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
   </div>
-
-  </div>
+</section>

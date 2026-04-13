@@ -17,15 +17,15 @@ export class RolesComponent implements OnInit {
   roles: Role[] = [];
   permissions: Permission[] = [];
   permissionsByResource: { [resource: string]: Permission[] } = {};
-  
+
   isLoading = false;
   error: string | null = null;
-  
+
   // Modal state
   showModal = false;
   isEditMode = false;
   currentRole: Role | null = null;
-  
+
   // Form data
   formData = {
     name: '',
@@ -153,7 +153,6 @@ export class RolesComponent implements OnInit {
     this.usersLoading = true;
     this.usersError = null;
 
-    console.debug('[Roles] openUsersDrawer for role', role?.id, role?.name);
     this.fetchUsersForRole(role);
   }
 
@@ -162,7 +161,6 @@ export class RolesComponent implements OnInit {
     this.usersError = null;
     this.roleService.getUsersByRole(role.id).subscribe({
       next: (resp) => {
-        console.debug('[Roles] raw users response for role', role.id, resp);
         let usersArray: any[] = [];
         if (!resp) {
           usersArray = [];
@@ -180,7 +178,6 @@ export class RolesComponent implements OnInit {
           usersArray = [];
         }
 
-        console.debug('[Roles] extracted users array length', (usersArray || []).length);
         this.usersForRole = usersArray.map(u => ({
           id: u.UserId ?? u.id,
           username: u.Username ?? u.username,
@@ -204,7 +201,6 @@ export class RolesComponent implements OnInit {
         this.usersLoading = false;
       },
       error: (err) => {
-        console.error('Error loading users for role', err);
         this.usersError = this.extractApiError(err) || 'Erreur lors du chargement des utilisateurs';
         this.showNotification(this.usersError, 'error');
         this.usersLoading = false;
@@ -214,7 +210,6 @@ export class RolesComponent implements OnInit {
 
   // Click wrapper to help debug template click binding
   onOpenUsers(role: Role) {
-    console.debug('[Roles] onOpenUsers clicked for', role?.id, role?.name);
     // show a small mock immediately so we can see visual feedback
     this.selectedRoleForUsers = role;
     this.showUsersDrawer = true;
@@ -253,11 +248,9 @@ export class RolesComponent implements OnInit {
             next: (resp) => {
               const users = (resp && (resp.Users ?? resp.users)) || (Array.isArray(resp) ? resp : []);
               (r as any).Users = users;
-              console.log("Users for role", r.id, users);
               r.userCount = Array.isArray(users) ? users.length : (r.userCount ?? 0);
             },
             error: (err) => {
-              console.debug('[Roles] could not fetch users for role', r.id, err);
               this.showNotification(`Erreur chargement utilisateurs (rôle ${r.id}): ${this.extractApiError(err) || 'Erreur réseau'}`, 'error');
             }
           });
@@ -275,25 +268,20 @@ export class RolesComponent implements OnInit {
                 }));
                 r.permissions = mapped;
               } catch (ex) {
-                console.debug('[Roles] could not map permissions for role', r.id, ex);
                 const mapErr = this.extractApiError(ex) || String(ex);
                 this.showNotification(`Erreur mappage permissions (rôle ${r.id}): ${mapErr}`, 'error');
               }
             },
             error: (err) => {
-              console.debug('[Roles] could not fetch permissions for role', r.id, err);
               this.showNotification(`Erreur chargement permissions (rôle ${r.id}): ${this.extractApiError(err) || 'Erreur réseau'}`, 'error');
             }
           });
         });
-        console.log('[Roles] loaded roles total:', this.roles.length);
         this.roles.forEach(r => {
-          console.log('[Roles] role:', { id: r.id, name: r.name, userCount: r.userCount, UsersLength: r.Users?.length ?? r.users?.length ?? 0 });
         });
         this.isLoading = false;
       },
       error: (err) => {
-        console.log('Error loading roles:', err);
         this.error = this.extractApiError(err) || 'Erreur lors du chargement des rôles';
         this.showNotification(this.error ?? 'Erreur lors du chargement des rôles', 'error');
         this.isLoading = false;
@@ -314,7 +302,6 @@ export class RolesComponent implements OnInit {
         }, {} as { [resource: string]: Permission[] });
       },
       error: (err) => {
-        console.error('Error loading permissions:', err);
         this.error = this.extractApiError(err) || this.error;
         this.showNotification(this.error ?? 'Erreur lors du chargement des permissions', 'error');
       }
@@ -359,12 +346,10 @@ export class RolesComponent implements OnInit {
             description: p.PermissionDescription ?? p.Description ?? p.description
           }));
         } catch (e) {
-          console.error('Error mapping role permissions', e);
           this.showNotification(this.extractApiError(e) || 'Erreur lors du mapping des permissions', 'error');
         }
       },
       error: (err) => {
-        console.error('Error fetching role permissions:', err);
         this.showNotification(this.extractApiError(err) || 'Erreur lors du chargement des permissions du rôle', 'error');
       }
     });
@@ -431,14 +416,12 @@ export class RolesComponent implements OnInit {
               this.showNotification('Rôle mis à jour', 'success');
             },
             error: (permErr) => {
-              console.error('Error assigning permissions after role update:', permErr);
               const msg = this.extractApiError(permErr) || 'Erreur lors de l\'attribution des permissions';
               this.showNotification(msg, 'error');
             }
           });
         },
         error: (err) => {
-          console.error('Error updating role:', err);
           const msg = this.extractApiError(err) || 'Erreur lors de la mise à jour du rôle';
           this.showNotification(msg, 'error');
         }
@@ -455,7 +438,6 @@ export class RolesComponent implements OnInit {
                 this.showNotification('Rôle créé', 'success');
               },
               error: (permErr) => {
-                console.error('Error assigning permissions after role create:', permErr);
                 const msg = this.extractApiError(permErr) || 'Erreur lors de l\'attribution des permissions';
                 this.showNotification(msg, 'error');
               }
@@ -468,7 +450,6 @@ export class RolesComponent implements OnInit {
           }
         },
         error: (err) => {
-          console.error('Error creating role:', err);
           const msg = this.extractApiError(err) || 'Erreur lors de la création du rôle';
           this.showNotification(msg, 'error');
         }
@@ -486,7 +467,6 @@ export class RolesComponent implements OnInit {
         this.showNotification('Rôle supprimé', 'success');
       },
       error: (err) => {
-        console.error('Error deleting role:', err);
         const msg = this.extractApiError(err) || 'Erreur lors de la suppression du rôle';
         this.showNotification(msg, 'error');
       }

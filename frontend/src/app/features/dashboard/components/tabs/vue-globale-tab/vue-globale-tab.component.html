@@ -1,43 +1,64 @@
-<section class="space-y-6">
-  <app-section-header
-    [eyebrow]="data().meta.eyebrow ?? ''"
-    [title]="data().meta.title"
-    [subtitle]="data().meta.subtitle"
-    [badge]="data().meta.badge ?? ''"
-    [icon]="data().meta.icon ?? 'pi pi-home'"
-  />
+<article class="vue-globale-surface">
+  <header class="vue-globale-hero">
+    @if (data().meta.eyebrow) {
+    <p class="hero-eyebrow vue-globale-hero-eyebrow">{{ data().meta.eyebrow }}</p>
+    }
 
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="vue-globale-heading">
+      <div class="vue-globale-heading-line">
+        <h1 class="hero-title vue-globale-title">{{ data().meta.title }}</h1>
+        @if (data().meta.badge) {
+        <span class="vue-globale-badge">{{ data().meta.badge }}</span>
+        }
+      </div>
+      <p class="hero-subtitle vue-globale-subtitle">{{ data().meta.subtitle }}</p>
+    </div>
+  </header>
+
+  <div class="stats-grid vue-globale-kpi">
     @for (metric of data().kpis; track metric.label) {
-      <app-kpi-card [metric]="metric" />
+    <app-kpi-card [metric]="metric" />
     }
   </div>
 
-  <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 class="text-base font-semibold text-gray-600">Évolution effectif - 6 derniers mois</h3>
-      <div class="mt-4">
+  <div class="vue-globale-charts">
+    <article class="card-section vue-globale-chart-card">
+      <h2 class="card-section__title vue-globale-chart-card__title">Évolution effectif - 6 derniers mois</h2>
+      <div class="vue-globale-chart-body">
         <app-bar-chart [config]="data().effectifEvolution" />
       </div>
     </article>
 
-    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 class="text-base font-semibold text-gray-600">Répartition par département</h3>
-      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr] md:items-center">
-        <app-donut-chart [config]="data().repartitionDepartement" />
-
-        <ul class="space-y-2">
+    <article class="card-section vue-globale-chart-card">
+      <h2 class="card-section__title vue-globale-chart-card__title">Répartition par département</h2>
+      <div class="vue-globale-donut-block">
+        <div class="vue-globale-donut-chart">
+          <app-donut-chart [config]="data().repartitionDepartement" />
+        </div>
+        <ul class="vue-globale-legend" aria-label="Légende de la répartition par département">
           @for (slice of data().repartitionDepartement.slices; track slice.label) {
-            <li class="flex items-center justify-between gap-3 text-sm text-gray-600">
-              <span class="inline-flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full" [style.background]="slice.color"></span>
-                {{ slice.label }}
-              </span>
-              <span class="font-semibold">{{ slice.value }}</span>
-            </li>
+          <li class="vue-globale-legend__row">
+            <span class="vue-globale-legend__label">
+              <span class="vue-globale-legend__swatch" [style.background]="slice.color"></span>
+              {{ slice.label }}
+            </span>
+            <span class="vue-globale-legend__value">{{ slice.value }}</span>
+          </li>
           }
         </ul>
       </div>
     </article>
   </div>
-</section>
+
+  @if (data().footerNav; as nav) {
+  <nav class="vue-globale-pagination" aria-label="Pagination">
+    <button type="button" class="vue-globale-pagination__btn" disabled aria-label="Page précédente">
+      <i class="pi pi-chevron-left" aria-hidden="true"></i>
+    </button>
+    <span class="vue-globale-pagination__label">{{ nav.current }} / {{ nav.total }}</span>
+    <button type="button" class="vue-globale-pagination__btn" aria-label="Page suivante">
+      <i class="pi pi-chevron-right" aria-hidden="true"></i>
+    </button>
+  </nav>
+  }
+</article>

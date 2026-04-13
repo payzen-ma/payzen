@@ -11,26 +11,26 @@ public class PayrollDtoBuilder
 {
     private readonly EmployeePayrollDto _dto = new()
     {
-        FullName            = "Test Employé",
-        BaseSalary          = 5000m,
+        FullName = "Test Employé",
+        BaseSalary = 5000m,
         // IMPORTANT: le moteur utilise (AnneePaie,MoisPaie) pour calculer la fin de mois
         // dans Module01_Anciennete. Doit être non-zéro sinon exception => Success=false.
-        PayMonth            = DateTime.Today.Month,
-        PayYear             = DateTime.Today.Year,
+        PayMonth = DateTime.Today.Month,
+        PayYear = DateTime.Today.Year,
         // Par défaut, ancienneté < 2 ans pour coller aux hypothèses de nombreux tests
         // (CNSS/NI/CIMR attendent un PrimeAnciennete = 0).
-        ContractStartDate   = DateTime.Today.AddYears(-1),
-        AncienneteYears     = 4,
-        MaritalStatus       = "CELIBATAIRE",
-        NumberOfChildren    = 0,
-        HasSpouse           = false,
-        DisableAmo          = false,
+        ContractStartDate = DateTime.Today.AddYears(-1),
+        AncienneteYears = 4,
+        MaritalStatus = "CELIBATAIRE",
+        NumberOfChildren = 0,
+        HasSpouse = false,
+        DisableAmo = false,
         HasPrivateInsurance = false,
-        Absences            = new(),
-        Overtimes           = new(),
-        Leaves              = new(),
-        PackageItems        = new(),
-        SalaryComponents    = new(),
+        Absences = new(),
+        Overtimes = new(),
+        Leaves = new(),
+        PackageItems = new(),
+        SalaryComponents = new(),
     };
 
     public static PayrollDtoBuilder Create() => new();
@@ -55,16 +55,19 @@ public class PayrollDtoBuilder
 
     public PayrollDtoBuilder WithAnciennete(int years)
     {
-        _dto.AncienneteYears    = years;
-        _dto.ContractStartDate  = DateTime.Today.AddYears(-years);
+        _dto.AncienneteYears = years;
+        _dto.ContractStartDate = DateTime.Today.AddYears(-years);
         return this;
     }
 
     public PayrollDtoBuilder WithOvertimeHours(decimal h25 = 0, decimal h50 = 0, decimal h100 = 0)
     {
-        if (h25  > 0) _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h25,  RateMultiplier = 1.25m });
-        if (h50  > 0) _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h50,  RateMultiplier = 1.50m });
-        if (h100 > 0) _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h100, RateMultiplier = 2.00m });
+        if (h25 > 0)
+            _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h25, RateMultiplier = 1.25m });
+        if (h50 > 0)
+            _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h50, RateMultiplier = 1.50m });
+        if (h100 > 0)
+            _dto.Overtimes.Add(new PayrollOvertimeDto { DurationInHours = h100, RateMultiplier = 2.00m });
         return this;
     }
 
@@ -73,13 +76,13 @@ public class PayrollDtoBuilder
         // Le moteur active le régime CIMR uniquement si CimrNumber != null
         _dto.CimrNumber = "CIMR_TEST";
         _dto.CimrEmployeeRate = employeeRate;
-        _dto.CimrCompanyRate  = companyRate;
+        _dto.CimrCompanyRate = companyRate;
         return this;
     }
 
     public PayrollDtoBuilder WithPrivateInsurance(decimal rate)
     {
-        _dto.HasPrivateInsurance  = true;
+        _dto.HasPrivateInsurance = true;
         _dto.PrivateInsuranceRate = rate;
         return this;
     }
@@ -93,10 +96,10 @@ public class PayrollDtoBuilder
                 // - Status = "Approved"
                 // - AbsenceType != "MATERNITE"
                 // - DurationType ∈ {"FullDay","HalfDay"}
-                AbsenceDate  = DateTime.Today.AddDays(-i),
-                AbsenceType  = "ABSENCE",
+                AbsenceDate = DateTime.Today.AddDays(-i),
+                AbsenceType = "ABSENCE",
                 DurationType = "FullDay",
-                Status       = "Approved"
+                Status = "Approved"
             });
         return this;
     }
@@ -105,12 +108,12 @@ public class PayrollDtoBuilder
     {
         _dto.PackageItems.Add(new PayrollPackageItemDto
         {
-            Label      = label,
+            Label = label,
             DefaultValue = amount,
-            IsTaxable  = isTaxable,
+            IsTaxable = isTaxable,
             // Flags non utilisés dans les tests actuels
-            IsSocial   = false,
-            IsCIMR      = false
+            IsSocial = false,
+            IsCIMR = false
         });
         return this;
     }
@@ -120,10 +123,10 @@ public class PayrollDtoBuilder
         _dto.SalaryComponents.Add(new PayrollSalaryComponentDto
         {
             ComponentType = componentType,
-            Amount        = amount,
-            IsTaxable     = isTaxable,
-            IsSocial      = true,
-            IsCIMR        = false
+            Amount = amount,
+            IsTaxable = isTaxable,
+            IsSocial = true,
+            IsCIMR = false
         });
         return this;
     }

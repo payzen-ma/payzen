@@ -116,9 +116,12 @@ public class PayrollCalculationEngine
         {
             foreach (var o in data.Overtimes)
             {
-                if (Math.Abs(o.RateMultiplier - 1.25m) < 0.01m) ctx.HSup25Pct += o.DurationInHours;
-                else if (Math.Abs(o.RateMultiplier - 1.50m) < 0.01m) ctx.HSup50Pct += o.DurationInHours;
-                else if (Math.Abs(o.RateMultiplier - 2.00m) < 0.01m) ctx.HSup100Pct += o.DurationInHours;
+                if (Math.Abs(o.RateMultiplier - 1.25m) < 0.01m)
+                    ctx.HSup25Pct += o.DurationInHours;
+                else if (Math.Abs(o.RateMultiplier - 1.50m) < 0.01m)
+                    ctx.HSup50Pct += o.DurationInHours;
+                else if (Math.Abs(o.RateMultiplier - 2.00m) < 0.01m)
+                    ctx.HSup100Pct += o.DurationInHours;
             }
         }
 
@@ -133,7 +136,7 @@ public class PayrollCalculationEngine
             {
                 ctx.PrimesImposables.Add(new PrimeImposableItem
                 {
-                    Label   = c.ComponentType,
+                    Label = c.ComponentType,
                     Montant = MontantPanierProratiseSiLibelle(c.ComponentType, c.Amount, ctx.JoursTravailles)
                 });
             }
@@ -146,7 +149,7 @@ public class PayrollCalculationEngine
             {
                 ctx.PrimesImposables.Add(new PrimeImposableItem
                 {
-                    Label   = p.Label,
+                    Label = p.Label,
                     Montant = MontantPanierProratiseSiLibelle(p.Label, p.DefaultValue, ctx.JoursTravailles)
                 });
             }
@@ -186,7 +189,7 @@ public class PayrollCalculationEngine
             if (!TryAssignNiDedicatedCategory(ctx, c.ComponentType, c.Amount))
                 ctx.PrimesImposables.Add(new PrimeImposableItem
                 {
-                    Label   = string.IsNullOrWhiteSpace(c.ComponentType) ? "Composante salaire" : c.ComponentType,
+                    Label = string.IsNullOrWhiteSpace(c.ComponentType) ? "Composante salaire" : c.ComponentType,
                     Montant = c.Amount
                 });
         }
@@ -197,7 +200,7 @@ public class PayrollCalculationEngine
             if (!TryAssignNiDedicatedCategory(ctx, p.Label, p.DefaultValue))
                 ctx.PrimesImposables.Add(new PrimeImposableItem
                 {
-                    Label   = string.IsNullOrWhiteSpace(p.Label) ? "Ligne package" : p.Label,
+                    Label = string.IsNullOrWhiteSpace(p.Label) ? "Ligne package" : p.Label,
                     Montant = p.DefaultValue
                 });
         }
@@ -213,21 +216,61 @@ public class PayrollCalculationEngine
     {
         var u = NormalizeLabel(label);
 
-        if (u.Contains("TRANSPORT") && !u.Contains("KILOM")) { ctx.NiTransport += amount; return true; }
-        if (u.Contains("KILOM")) { ctx.NiKilometrique += amount; return true; }
-        if (u.Contains("TOURNEE")) { ctx.NiTournee += amount; return true; }
-        if (u.Contains("REPRES")) { ctx.NiRepresentation += amount; return true; }
+        if (u.Contains("TRANSPORT") && !u.Contains("KILOM"))
+        {
+            ctx.NiTransport += amount;
+            return true;
+        }
+        if (u.Contains("KILOM"))
+        {
+            ctx.NiKilometrique += amount;
+            return true;
+        }
+        if (u.Contains("TOURNEE"))
+        {
+            ctx.NiTournee += amount;
+            return true;
+        }
+        if (u.Contains("REPRES"))
+        {
+            ctx.NiRepresentation += amount;
+            return true;
+        }
         if (u.Contains("PANIER"))
         {
             ctx.NiPanier += MontantPanierProratise(amount, ctx.JoursTravailles);
             return true;
         }
-        if (u.Contains("CAISSE")) { ctx.NiCaisse += amount; return true; }
-        if (u.Contains("SALISSURE")) { ctx.NiSalissure += amount; return true; }
-        if (u.Contains("LAIT")) { ctx.NiLait += amount; return true; }
-        if (u.Contains("OUTILLAGE")) { ctx.NiOutillage += amount; return true; }
-        if (u.Contains("AIDE") && u.Contains("MEDIC")) { ctx.NiAideMedicale += amount; return true; }
-        if (u.Contains("GRATIF") || u.Contains("SOCIAL")) { ctx.NiGratifSociale += amount; return true; }
+        if (u.Contains("CAISSE"))
+        {
+            ctx.NiCaisse += amount;
+            return true;
+        }
+        if (u.Contains("SALISSURE"))
+        {
+            ctx.NiSalissure += amount;
+            return true;
+        }
+        if (u.Contains("LAIT"))
+        {
+            ctx.NiLait += amount;
+            return true;
+        }
+        if (u.Contains("OUTILLAGE"))
+        {
+            ctx.NiOutillage += amount;
+            return true;
+        }
+        if (u.Contains("AIDE") && u.Contains("MEDIC"))
+        {
+            ctx.NiAideMedicale += amount;
+            return true;
+        }
+        if (u.Contains("GRATIF") || u.Contains("SOCIAL"))
+        {
+            ctx.NiGratifSociale += amount;
+            return true;
+        }
 
         return false;
     }
@@ -258,7 +301,8 @@ public class PayrollCalculationEngine
 
     private static decimal MontantPanierProratiseSiLibelle(string? label, decimal amount, int joursTravailles)
     {
-        if (string.IsNullOrWhiteSpace(label)) return amount;
+        if (string.IsNullOrWhiteSpace(label))
+            return amount;
         return label.ToUpperInvariant().Contains("PANIER")
             ? MontantPanierProratise(amount, joursTravailles)
             : amount;

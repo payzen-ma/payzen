@@ -1,20 +1,20 @@
-import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, FormArray } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { CheckboxModule } from 'primeng/checkbox';
-import { LeaveService } from '../../../../core/services/leave.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LeaveScope, LeaveType, LeaveTypeCreateDto, LeaveTypePatchDto, LeaveTypePolicy, LeaveTypePolicyCreateDto, LeaveTypePolicyPatchDto } from '../../../../core/models';
 import { CompanyContextService } from '../../../../core/services/companyContext.service';
-import { LeaveType, LeaveTypeCreateDto, LeaveTypePatchDto, LeaveTypePolicy, LeaveTypePolicyCreateDto, LeaveTypePolicyPatchDto, LeaveScope } from '../../../../core/models';
-import { HttpErrorResponse } from '@angular/common/http';
+import { LeaveService } from '../../../../core/services/leave.service';
 
 @Component({
   selector: 'app-leave-settings-tab',
@@ -308,14 +308,14 @@ export class LeaveSettingsTabComponent implements OnInit {
   ngOnInit() {
     this.initForm();
     this.initPolicyForm();
-    
+
     // Debug: vérifier les valeurs initiales
     Object.keys(this.policyForm.controls).forEach(key => {
       const control = this.policyForm.get(key);
       if (control) {
       }
     });
-    
+
     this.load();
     this.loadPoliciesForCompany();
     this.loadLegalRules();
@@ -365,7 +365,7 @@ export class LeaveSettingsTabComponent implements OnInit {
       control.markAsPristine();
       control.markAsUntouched();
     } else {
-      console.error(`Control ${controlName} not found in policyForm`);
+      alert(`Control ${controlName} not found in policy form`);
     }
   }
 
@@ -378,7 +378,8 @@ export class LeaveSettingsTabComponent implements OnInit {
       control.markAsPristine();
       control.markAsUntouched();
     } else {
-      console.error(`Control ${controlName} not found in main form`);
+
+      alert(`Control ${controlName} not found in main form`);
     }
   }
 
@@ -449,20 +450,20 @@ export class LeaveSettingsTabComponent implements OnInit {
   onSavePolicy() {
     if (this.policyForm.invalid) {
       this.policyForm.markAllAsTouched();
-      this.messageService.add({ 
-        severity: 'error', 
-        summary: 'Erreur de validation', 
-        detail: 'Veuillez corriger les erreurs dans le formulaire' 
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur de validation',
+        detail: 'Veuillez corriger les erreurs dans le formulaire'
       });
       return;
     }
 
     const validation = this.validatePolicyForm();
     if (validation.errors.length > 0) {
-      this.messageService.add({ 
-        severity: 'error', 
-        summary: 'Erreur de validation', 
-        detail: validation.errors.join('; ') 
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur de validation',
+        detail: validation.errors.join('; ')
       });
       return;
     }
@@ -475,7 +476,7 @@ export class LeaveSettingsTabComponent implements OnInit {
     this.submitLoading.set(true);
     const v = this.policyForm.value;
     const companyId = Number(this.contextService.companyId());
-    
+
     const dto: LeaveTypePolicyCreateDto | LeaveTypePolicyPatchDto = {
       CompanyId: companyId,
       LeaveTypeId: Number(v.leaveTypeId),
@@ -501,10 +502,10 @@ export class LeaveSettingsTabComponent implements OnInit {
         this.submitLoading.set(false);
         this.closePolicyDialog();
         this.loadPoliciesForCompany();
-        this.messageService.add({ 
-          severity: 'success', 
-          summary: 'Succès', 
-          detail: this.isPolicyEditMode ? 'Politique mise à jour avec succès' : 'Politique créée avec succès' 
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: this.isPolicyEditMode ? 'Politique mise à jour avec succès' : 'Politique créée avec succès'
         });
       },
       error: (err) => {
@@ -522,7 +523,6 @@ export class LeaveSettingsTabComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading leave types', err);
         this.loading.set(false);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load leave types' });
       }
@@ -533,7 +533,7 @@ export class LeaveSettingsTabComponent implements OnInit {
     const companyId = this.contextService.companyId();
     this.loading.set(true);
     this.leaveService.getPoliciesByCompany(companyId ? Number(companyId) : undefined).subscribe({
-      error: (err) => { console.error('Error loading policies', err); this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load policies' }); }
+      error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load policies' }); }
     });
   }
 
@@ -550,7 +550,7 @@ export class LeaveSettingsTabComponent implements OnInit {
         });
         this.legalRules.set(map);
       },
-      error: (err) => { console.error('Error loading legal rules', err); this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Could not load leave-type legal rules' }); }
+      error: (err) => { this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Could not load leave-type legal rules' }); }
     });
   }
 
@@ -558,7 +558,7 @@ export class LeaveSettingsTabComponent implements OnInit {
     this.loading.set(true);
     this.leaveService.getPoliciesByLeaveType(leaveTypeId).subscribe({
       next: (res) => { this.policies.set(res || []); this.loading.set(false); },
-      error: (err) => { console.error('Error loading policies by leave type', err); this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load policies for this leave type' }); }
+      error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load policies for this leave type' }); }
     });
   }
 
@@ -718,10 +718,10 @@ export class LeaveSettingsTabComponent implements OnInit {
       leaveName: item.LeaveName,
       scope: item.Scope === LeaveScope.Company ? 'Company' : 'Global'
     });
-    
+
     // Set boolean values safely
     this.setBooleanSafeForm('isActive', item.IsActive);
-    
+
     this.dialogVisible.set(true);
   }
 

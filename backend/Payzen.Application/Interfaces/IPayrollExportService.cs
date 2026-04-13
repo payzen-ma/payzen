@@ -1,4 +1,4 @@
-﻿using Payzen.Application.Common;
+using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
 
 namespace Payzen.Application.Interfaces;

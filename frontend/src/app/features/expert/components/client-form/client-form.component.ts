@@ -44,7 +44,7 @@ export class ClientFormComponent implements OnInit {
   form!: FormGroup;
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
-  
+
   // City search
   cities = signal<CityLookupOption[]>([]);
   citiesLoading = signal<boolean>(false);
@@ -151,7 +151,7 @@ export class ClientFormComponent implements OnInit {
 
   private createCompany(): void {
     const expertCompanyId = this.authService.currentUser()?.companyId;
-    
+
     if (!expertCompanyId) {
       this.errorMessage.set(this.translate.instant('errors.createFailed'));
       this.isLoading.set(false);
@@ -162,7 +162,7 @@ export class ClientFormComponent implements OnInit {
     // Le backend expert n'utilise plus ces champs pour créer un admin,
     // mais le DTO actuel les exige encore : on envoie des valeurs techniques.
     const generatedAdminEmail = `no-admin+${Date.now()}@payzen.local`;
-    
+
     const dto: CompanyCreateByExpertDto = {
       CompanyName: formValue.companyName,
       CompanyEmail: formValue.email,
@@ -189,9 +189,8 @@ export class ClientFormComponent implements OnInit {
         this.save.emit();
       },
       error: (err) => {
-        console.error('Error creating company:', err);
         let msg = this.translate.instant('errors.createFailed');
-        
+
         if (err.status === 409) {
           msg = this.translate.instant('errors.createFailed');
           if (typeof err.error === 'string') {
@@ -209,7 +208,7 @@ export class ClientFormComponent implements OnInit {
             msg = err.error;
           }
         }
-        
+
         this.errorMessage.set(msg);
         this.isLoading.set(false);
       }
@@ -220,7 +219,7 @@ export class ClientFormComponent implements OnInit {
     if (!this.company) return;
 
     const formValue = this.form.value;
-    
+
     const updateData: Partial<Company> = {
       id: this.company.id,
       legalName: formValue.companyName,
@@ -241,7 +240,6 @@ export class ClientFormComponent implements OnInit {
         this.save.emit();
       },
       error: (err) => {
-        console.error('Error updating company:', err);
         this.errorMessage.set('Failed to update company. Please try again.');
         this.isLoading.set(false);
       }

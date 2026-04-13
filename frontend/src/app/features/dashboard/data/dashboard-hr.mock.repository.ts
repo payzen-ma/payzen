@@ -9,24 +9,25 @@ const MOCK_DASHBOARD_DATA: DashboardHrData = {
   appSubtitle: 'Spec UI pour Ayoub - Donnees en dur - Entreprise test : TECHCO SARL - 87 employes - Casablanca',
   vueGlobale: {
     meta: {
-      eyebrow: '',
       title: 'Vue Globale RH',
-      badge: 'Home',
-      subtitle: 'KPIs instantanes - Snapshot du mois en cours - Janvier 2025',
+      badge: 'HOME',
+      subtitle: 'KPIs instantanés - Snapshot du mois en cours - Janvier 2025',
       icon: 'pi pi-home'
     },
     kpis: [
       { label: 'Effectif total', value: '87', subLabel: '+3 ce mois', trend: { value: '+3', direction: 'up' } },
       { label: 'Masse salariale', value: '412 K', subLabel: 'MAD / mois', trend: { value: '+2.4%', direction: 'up' } },
       { label: 'Turnover (12M)', value: '8.3%', subLabel: 'vs N-1', trend: { value: '-1.1%', direction: 'down' } },
-      { label: 'Parite F/H', value: '41 / 59', subLabel: '% Femmes / Hommes', trend: { value: 'stable', direction: 'flat' } }
+      { label: 'Parité F/H', value: '41 / 59', subLabel: '% Femmes / Hommes', trend: { value: 'stable', direction: 'flat' } }
     ],
     effectifEvolution: {
       labels: ['Aout', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
       values: [82, 83, 84, 84, 85, 87],
       datasetLabel: 'Effectif',
       color: '#2563eb',
-      highlightLast: true
+      highlightLast: false,
+      ySuggestedMax: 90,
+      yTickStep: 10
     },
     repartitionDepartement: {
       centerLabel: '87',
@@ -37,14 +38,14 @@ const MOCK_DASHBOARD_DATA: DashboardHrData = {
         { label: 'Support', value: 12, color: '#6366f1' },
         { label: 'Autres', value: 11, color: '#d4d4d8' }
       ]
-    }
+    },
+    footerNav: { current: 2, total: 93 }
   },
   mouvementsRh: {
     meta: {
-      eyebrow: '',
       title: 'Mouvements RH',
-      badge: 'Entrees / Sorties',
-      subtitle: 'Historique des entrees et sorties - Janvier 2025 - 5 entrees - 2 sorties',
+      badge: 'Entrées / sorties',
+      subtitle: 'Historique des entrées et sorties — janvier 2025 — 5 entrées — 2 sorties',
       icon: 'pi pi-refresh'
     },
     summary: [
@@ -64,25 +65,26 @@ const MOCK_DASHBOARD_DATA: DashboardHrData = {
   },
   masseSalariale: {
     meta: {
-      eyebrow: '',
-      title: 'Masse Salariale',
+      title: 'Masse salariale',
       badge: 'Paie',
-      subtitle: 'Analyse des couts salariaux - Charges patronales incluses - Janvier 2025',
+      subtitle: 'Analyse des coûts salariaux — charges patronales incluses — janvier 2025',
       icon: 'pi pi-wallet'
     },
     kpis: [
       { label: 'Brut total', value: '412 K', subLabel: 'MAD' },
-      { label: 'Net total verse', value: '318 K', subLabel: 'MAD apres IR/CNSS' },
+      { label: 'Net total versé', value: '318 K', subLabel: 'MAD après IR / CNSS' },
       { label: 'Charges patronales', value: '89 K', subLabel: 'CNSS + AMO employeur' },
-      { label: 'Cout total employeur', value: '501 K', subLabel: 'MAD / mois' }
+      { label: 'Coût total employeur', value: '501 K', subLabel: 'MAD / mois' }
     ],
     masseBrute12Mois: {
       labels: ['Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
       values: [368, 371, 370, 374, 380, 388, 383, 390, 397, 402, 408, 412],
       datasetLabel: 'Masse salariale brute',
       color: '#14b8a6',
-      highlightLast: true,
-      suffix: 'K MAD'
+      highlightLast: false,
+      suffix: 'K MAD',
+      ySuggestedMax: 420,
+      yTickStep: 20
     },
     repartitionDepartement: [
       { label: 'Tech & Dev (27 pers.)', rightLabel: '148 K MAD - 36%', percent: 36, color: '#2563eb' },
@@ -94,16 +96,15 @@ const MOCK_DASHBOARD_DATA: DashboardHrData = {
   },
   pariteDiversite: {
     meta: {
-      eyebrow: '',
-      title: 'Parite & Diversite',
-      badge: 'Equite',
-      subtitle: 'Indicateurs d\'equilibre Femmes / Hommes - Janvier 2025',
+      title: 'Parité & diversité',
+      badge: 'Équité',
+      subtitle: 'Indicateurs d’équilibre femmes / hommes — janvier 2025',
       icon: 'pi pi-balance-scale'
     },
     kpis: [
-      { label: 'Effectif femmes', value: '36', subLabel: '41.4% de l\'effectif', accent: 'purple' },
-      { label: 'Effectif hommes', value: '51', subLabel: '58.6% de l\'effectif', accent: 'blue' },
-      { label: 'Ecart salarial moyen', value: '-4.2%', subLabel: 'Femmes vs Hommes meme poste', accent: 'danger' }
+      { label: 'Effectif femmes', value: '36', subLabel: '41,4 % de l’effectif', accent: 'purple' },
+      { label: 'Effectif hommes', value: '51', subLabel: '58,6 % de l’effectif', accent: 'blue' },
+      { label: 'Écart salarial moyen', value: '-4,2 %', subLabel: 'Femmes vs hommes — même poste', accent: 'danger' }
     ],
     pariteDepartement: [
       { label: 'Tech & Dev', rightLabel: '7F / 20H', percent: 26, color: '#7c3aed' },
@@ -116,22 +117,21 @@ const MOCK_DASHBOARD_DATA: DashboardHrData = {
       { label: 'Direction (5)', rightLabel: '20% F', percent: 20, color: '#ef4444' },
       { label: 'Managers (12)', rightLabel: '33% F', percent: 33, color: '#f97316' },
       { label: 'Cadres (38)', rightLabel: '42% F', percent: 42, color: '#22c55e' },
-      { label: 'Employes (32)', rightLabel: '53% F', percent: 53, color: '#14b8a6' }
+      { label: 'Employés (32)', rightLabel: '53% F', percent: 53, color: '#14b8a6' }
     ]
   },
   conformiteSociale: {
     meta: {
-      eyebrow: '',
-      title: 'Conformite Sociale',
-      badge: 'CNSS - AMO - IR',
-      subtitle: 'Etat des declarations et cotisations - Janvier 2025',
+      title: 'Conformité sociale',
+      badge: 'CNSS — AMO — IR',
+      subtitle: 'État des déclarations et cotisations — janvier 2025',
       icon: 'pi pi-check-circle'
     },
     kpis: [
-      { label: 'CNSS salariale', value: '27.4 K', subLabel: 'MAD - Taux 4.29% - Calcule' },
-      { label: 'CNSS patronale', value: '58.1 K', subLabel: 'MAD - Taux 21.09% - Calcule' },
-      { label: 'AMO (salariale)', value: '8.2 K', subLabel: 'MAD - Taux 2.26% - Calcule' },
-      { label: 'IR retenu a la source', value: '66.4 K', subLabel: 'MAD - Bareme progressif - Calcule' }
+      { label: 'CNSS salariale', value: '27,4 K', subLabel: 'MAD — taux 4,29 % — calculé' },
+      { label: 'CNSS patronale', value: '58,1 K', subLabel: 'MAD — taux 21,09 % — calculé' },
+      { label: 'AMO (salariale)', value: '8,2 K', subLabel: 'MAD — taux 2,26 % — calculé' },
+      { label: 'IR retenu à la source', value: '66,4 K', subLabel: 'MAD — barème progressif — calculé' }
     ],
     declarations: [
       { declaration: 'Bordereau CNSS - Jan 2025', montantMad: '85 500', echeance: '28/02/2025', statut: { label: 'En attente', severity: 'warn' }, reference: 'BV-2025-001' },

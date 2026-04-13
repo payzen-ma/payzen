@@ -101,28 +101,17 @@ export class PointageImportComponent {
 
     // 🔍 DEBUG: Vérifier le token et ses claims
     const token = this.authService.getToken();
-    console.log('=== DEBUG: Import Pointage ===');
-    console.log('Token présent:', !!token);
     
     if (token) {
       // Décoder le token pour voir les claims
       try {
         const payload = this.decodeJwtToken(token);
-        console.log('Token décodé:', payload);
-        console.log('Claim "uid" présent:', payload?.uid);
-        console.log('Claim "sub" présent:', payload?.sub);
-        console.log('Token expire à:', payload?.exp ? new Date(payload.exp * 1000) : 'N/A');
-        console.log('Token expiré:', payload?.exp ? Date.now() > payload.exp * 1000 : 'N/A');
       } catch (e) {
         console.error('Erreur lors du décodage du token:', e);
       }
     } else {
       console.warn('⚠️ Aucun token trouvé !');
     }
-
-    console.log('Utilisateur authentifié:', this.authService.isAuthenticated());
-    console.log('Utilisateur courant:', this.authService.getCurrentUser());
-    console.log('===============================');
 
     this.errorMessage.set(null);
     this.isImporting.set(true);
@@ -151,11 +140,8 @@ export class PointageImportComponent {
       url += `?${qs}`;
     }
 
-    console.log('📤 Envoi de la requête vers:', url);
-
     this.http.post<TimesheetImportResult>(url, formData).subscribe({
       next: (res) => {
-        console.log('✅ Import réussi:', res);
         this.totalLines.set(res.totalLines ?? 0);
         this.successLines.set(res.successCount ?? 0);
         this.errorLines.set(res.errorCount ?? 0);

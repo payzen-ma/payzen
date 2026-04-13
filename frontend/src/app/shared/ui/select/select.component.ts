@@ -127,7 +127,22 @@ export interface SelectOption {
   `,
   host: {
     '(document:click)': 'onClickOutside($event)'
-  }
+  },
+  styles: [
+    `
+      :host-context(.app-filters) button[type='button'],
+      :host-context(.app-filters) select {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+      :host-context(.app-filters) button[type='button']:focus,
+      :host-context(.app-filters) select:focus {
+        box-shadow: none !important;
+        outline: 2px solid color-mix(in srgb, var(--primary-500, #1a73e8) 28%, transparent);
+        outline-offset: 0;
+      }
+    `,
+  ],
 })
 export class SelectComponent implements ControlValueAccessor {
   @Input() id = `select-${Math.random().toString(36).substr(2, 9)}`;

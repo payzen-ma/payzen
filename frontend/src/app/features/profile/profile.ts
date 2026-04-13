@@ -1,11 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
-import { CardModule } from 'primeng/card';
+import { UserRole } from '@app/core/models/user.model';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { UserRole } from '@app/core/models/user.model';
+import { TranslateModule } from '@ngx-translate/core';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-profile',
@@ -46,5 +46,25 @@ export class ProfileComponent {
       return this.contextService.isClientView() ? 'Expert - vue client' : 'Expert - cabinet';
     }
     return 'Standard';
+  });
+
+  readonly initials = computed(() => {
+    const u = this.user();
+    const first = (u?.firstName ?? '').trim();
+    const last = (u?.lastName ?? '').trim();
+    const fromNames = `${first.charAt(0)}${last.charAt(0)}`.trim();
+    if (fromNames) return fromNames.toUpperCase();
+    const username = (u?.username ?? '').trim();
+    return username ? username.slice(0, 2).toUpperCase() : 'U';
+  });
+
+  readonly profileStrength = computed(() => {
+    const u = this.user();
+    let score = 20;
+    if (u?.firstName) score += 20;
+    if (u?.lastName) score += 20;
+    if (u?.email) score += 20;
+    if (u?.companyName) score += 20;
+    return Math.min(score, 100);
   });
 }

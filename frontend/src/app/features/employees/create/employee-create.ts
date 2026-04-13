@@ -1,27 +1,14 @@
-import { Component, OnInit, computed, inject, signal, effect } from '@angular/core';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { forkJoin, of } from 'rxjs';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { InputFieldComponent } from '@app/shared/components/form-controls/input-field';
-import { SelectFieldComponent } from '@app/shared/components/form-controls/select-field';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ContractType } from '@app/core/models/contract-type.model';
+import { JobPosition } from '@app/core/models/job-position.model';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { JobPositionService } from '@app/core/services/job-position.service';
 import { ContractTypeService } from '@app/core/services/contract-type.service';
-import { AttendanceTypeService, AttendanceTypeLookupOption } from '@app/core/services/attendance-type.service';
-import { EmployeeCategoryService, EmployeeCategoryLookupOption } from '@app/core/services/employee-category.service';
-import { SalaryPackageService } from '@app/core/services/salary-package.service';
-import { UserService } from '@app/core/services/user.service';
+import { EmployeeCategoryService } from '@app/core/services/employee-category.service';
 import {
   CityLookupOption,
   CreateEmployeeRequest,
@@ -30,9 +17,21 @@ import {
   LookupOption,
   ManagerLookupOption
 } from '@app/core/services/employee.service';
-import { JobPosition } from '@app/core/models/job-position.model';
-import { ContractType } from '@app/core/models/contract-type.model';
+import { JobPositionService } from '@app/core/services/job-position.service';
+import { SalaryPackageService } from '@app/core/services/salary-package.service';
+import { UserService } from '@app/core/services/user.service';
+import { InputFieldComponent } from '@app/shared/components/form-controls/input-field';
+import { SelectFieldComponent } from '@app/shared/components/form-controls/select-field';
 import { environment } from '@environments/environment';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { forkJoin, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-employee-create',
@@ -89,7 +88,6 @@ export class EmployeeCreatePage implements OnInit {
   private readonly userService = inject(UserService);
   private readonly jobPositionService = inject(JobPositionService);
   private readonly contractTypeService = inject(ContractTypeService);
-  private readonly attendanceTypeService = inject(AttendanceTypeService);
   private readonly employeeCategoryService = inject(EmployeeCategoryService);
 
   // Route prefix based on current context mode
@@ -99,11 +97,11 @@ export class EmployeeCreatePage implements OnInit {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    // Rôle utilisé pour envoyer l'invitation (sans mot de passe, activation via Entra/Google)
+    // Rôle attribué au compte utilisateur créé automatiquement (Entra + DB)
     inviteRoleId: [null as number | null, Validators.required],
     cinNumber: ['', Validators.required],
     birthDate: ['', Validators.required],
-    phone: ['', Validators.required],
+    phone: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
     phoneCountryId: [null as number | null, Validators.required],
     statusId: [null, Validators.required],
     genderId: [null],
@@ -133,6 +131,15 @@ export class EmployeeCreatePage implements OnInit {
   });
 
   constructor() {
+    this.employeeForm.controls.phone.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        const sanitized = String(value ?? '').replace(/\D/g, '').slice(0, 9);
+        if (sanitized !== (value ?? '')) {
+          this.employeeForm.controls.phone.setValue(sanitized, { emitEvent: false });
+        }
+      });
+
     this.employeeForm.controls.countryId.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => {
@@ -244,11 +251,7 @@ export class EmployeeCreatePage implements OnInit {
           }
         }
         this.isLoading.set(false);
-        // Load attendance types
-        this.attendanceTypeService.getLookupOptions().subscribe({
-          next: (types) => this.formData.update(f => ({ ...f, attendanceTypes: types })),
-          error: (err) => console.error('Failed to load attendance types', err)
-        });
+        // attendance types are provided by `getEmployeeFormData()` when available
         // Load employee categories
         const companyIdRaw = this.contextService.companyId();
         if (companyIdRaw !== null && companyIdRaw !== undefined) {
@@ -256,7 +259,7 @@ export class EmployeeCreatePage implements OnInit {
           if (!Number.isNaN(companyIdNum)) {
             this.employeeCategoryService.getLookupOptions(companyIdNum).subscribe({
               next: (categories) => this.formData.update(f => ({ ...f, employeeCategories: categories })),
-              error: (err) => console.error('Failed to load employee categories', err)
+              error: (err) => alert('Failed to load employee categories')
             });
           }
         }
@@ -268,20 +271,20 @@ export class EmployeeCreatePage implements OnInit {
             if (!data.jobPositions || data.jobPositions.length === 0) {
               this.jobPositionService.getByCompany(companyIdNum).subscribe({
                 next: (items: JobPosition[]) => this.formData.update(f => ({ ...f, jobPositions: items.map((i: JobPosition) => ({ id: i.id, label: i.name })) })),
-                error: () => {}
+                error: () => { }
               });
             }
             // If backend didn't return departments, load them for the selected company as well
             if (!data.departments || data.departments.length === 0) {
               this.employeeService.searchDepartments('', companyIdNum).subscribe({
                 next: (items: LookupOption[]) => this.formData.update(f => ({ ...f, departments: items })),
-                error: () => {}
+                error: () => { }
               });
             }
             if (!data.contractTypes || data.contractTypes.length === 0) {
               this.contractTypeService.getByCompany(companyIdNum).subscribe({
                 next: (items: ContractType[]) => this.formData.update(f => ({ ...f, contractTypes: items.map((i: ContractType) => ({ id: i.id, label: i.contractTypeName })) })),
-                error: () => {}
+                error: () => { }
               });
             }
           }
@@ -289,7 +292,6 @@ export class EmployeeCreatePage implements OnInit {
         this.loadSalaryPackages();
       },
       error: (err) => {
-        console.error('Error loading employee form data', err);
         this.errorMessage.set(err.error?.message || this.translate.instant('employees.create.error'));
         this.isLoading.set(false);
       }
@@ -304,7 +306,7 @@ export class EmployeeCreatePage implements OnInit {
           id: Number(r.id),
           label: String(r.name ?? r.code ?? r.id)
         }))
-        .filter(r => ALLOWED_ROLES.includes(r.label));
+          .filter(r => ALLOWED_ROLES.includes(r.label));
         this.inviteRoleOptions.set(options);
 
         // Par défaut : rôle "Employee" si on le trouve, sinon le premier rôle disponible.
@@ -315,7 +317,7 @@ export class EmployeeCreatePage implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load roles for invitation', err);
+        alert('Failed to load roles for account creation');
       }
     });
   }
@@ -357,7 +359,6 @@ export class EmployeeCreatePage implements OnInit {
       this.createMissingEntities(departmentValue, jobPositionValue, companyId).subscribe({
         next: () => proceedAfterMissing(),
         error: (err: any) => {
-          console.error('Error creating department/job position', err);
           this.isSubmitting.set(false);
           this.errorMessage.set(this.translate.instant('employees.create.error'));
         }
@@ -401,7 +402,7 @@ export class EmployeeCreatePage implements OnInit {
       );
     }
 
-    return createObservables.length > 0 
+    return createObservables.length > 0
       ? forkJoin(createObservables)
       : of([]);
   }
@@ -427,7 +428,7 @@ export class EmployeeCreatePage implements OnInit {
       firstName: value.firstName ?? '',
       lastName: value.lastName ?? '',
       email: value.email ?? '',
-      phone: [selectedPhoneCode, value.phone].filter(Boolean).join(' ').trim(),
+      phone: String(value.phone ?? '').trim(),
       dateOfBirth: value.birthDate ?? '',
       cinNumber: value.cinNumber || null,
       statusId: Number(value.statusId),
@@ -484,19 +485,16 @@ export class EmployeeCreatePage implements OnInit {
             }).subscribe({
               next: () => this.handleEmployeeCreationSuccess(),
               error: (assignmentError) => {
-                console.error('Error assigning salary package on employee create', assignmentError);
                 this.handleEmployeeCreationSuccess(true);
               }
             });
           },
           error: (contractError) => {
-            console.error('Error loading active contract for salary package assignment', contractError);
             this.handleEmployeeCreationSuccess(true);
           }
         });
       },
       error: (err) => {
-        console.error('Error creating employee', err);
         this.isSubmitting.set(false);
         const errorText = err.error?.message || this.translate.instant('employees.create.error');
         this.errorMessage.set(errorText);
@@ -554,7 +552,6 @@ export class EmployeeCreatePage implements OnInit {
         this.salaryPackageOptions.set(options);
       },
       error: (error) => {
-        console.error('Failed to load salary packages for employee create form', error);
         this.salaryPackageOptions.set([]);
       }
     });

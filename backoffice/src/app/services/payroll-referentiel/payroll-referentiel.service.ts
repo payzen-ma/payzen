@@ -4,38 +4,38 @@
  * Follows existing patterns: PascalCase ↔ camelCase transformation, HttpParams for queries
  */
 
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
-  LegalParameterDto,
-  CreateLegalParameterDto,
-  UpdateLegalParameterDto
-} from '../../models/payroll-referentiel/legal-parameter.model';
-import {
-  ReferentielElementDto,
-  ReferentielElementListDto,
-  CreateReferentielElementDto,
-  UpdateReferentielElementDto,
-  ConvergenceResultDto,
-  ElementStatus
-} from '../../models/payroll-referentiel/referentiel-element.model';
-import {
-  ElementRuleDto,
   CreateElementRuleDto,
+  ElementRuleDto,
   UpdateElementRuleDto
 } from '../../models/payroll-referentiel/element-rule.model';
-import { PaymentFrequency, ExemptionType, CapUnit, BaseReference } from '../../models/payroll-referentiel/lookup.models';
+import {
+  CreateLegalParameterDto,
+  LegalParameterDto,
+  UpdateLegalParameterDto
+} from '../../models/payroll-referentiel/legal-parameter.model';
+import { BaseReference, CapUnit, ExemptionType, PaymentFrequency } from '../../models/payroll-referentiel/lookup.models';
+import {
+  ConvergenceResultDto,
+  CreateReferentielElementDto,
+  ElementStatus,
+  ReferentielElementDto,
+  ReferentielElementListDto,
+  UpdateReferentielElementDto
+} from '../../models/payroll-referentiel/referentiel-element.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PayrollReferentielService {
-  private baseUrl = 'http://localhost:5119/api/payroll';
+  private baseUrl = 'https://api-test.payzenhr.com/api/payroll';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ============================================================
   // Legal Parameters API

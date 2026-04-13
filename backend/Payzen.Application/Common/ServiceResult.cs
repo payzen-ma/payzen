@@ -1,18 +1,26 @@
 namespace Payzen.Application.Common;
 
 /// <summary>
-/// Résultat standard d'une opération de service.
-/// Utilisé par tous les services Application pour retourner succès/erreur + données.
+/// RÃ©sultat standard d'une opÃ©ration de service.
+/// UtilisÃ© par tous les services Application pour retourner succÃ¨s/erreur + donnÃ©es.
 /// Pattern: if (!result.Success) return BadRequest(result.Errors); return Ok(result.Data);
 /// </summary>
 public class ServiceResult<T>
 {
-    public bool Success { get; private set; }
-    public T? Data { get; private set; }
+    public bool Success
+    {
+        get; private set;
+    }
+    public T? Data
+    {
+        get; private set;
+    }
     public List<string> Errors { get; private set; } = new();
     public string? Error => Errors.Count > 0 ? Errors[0] : null;
 
-    private ServiceResult() { }
+    private ServiceResult()
+    {
+    }
 
     public static ServiceResult<T> Ok(T data) => new() { Success = true, Data = data };
 
@@ -30,15 +38,20 @@ public class ServiceResult<T>
 }
 
 /// <summary>
-/// Version sans données de retour (Create, Delete, Update sans retour).
+/// Version sans donnÃ©es de retour (Create, Delete, Update sans retour).
 /// </summary>
 public class ServiceResult
 {
-    public bool Success { get; private set; }
+    public bool Success
+    {
+        get; private set;
+    }
     public List<string> Errors { get; private set; } = new();
     public string? Error => Errors.Count > 0 ? Errors[0] : null;
 
-    private ServiceResult() { }
+    private ServiceResult()
+    {
+    }
 
     public static ServiceResult Ok() => new() { Success = true };
 

@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { ContractInfo, EmployeeDocument, LeaveDetail, PayslipDetail } from './employee-dashboard.model';
 import { EmployeeDashboardService } from './employee-dashboard.service';
-import { LeaveDetail, ContractInfo, PayslipDetail, EmployeeDocument } from './employee-dashboard.model';
 
 @Component({
     selector: 'app-employee-dashboard',
@@ -74,37 +74,36 @@ export class EmployeeDashboardComponent implements OnInit {
 
                 // Map nested arrays that also use PascalCase
                 this.leavesDetails = (data.LeavesDetails || data.leavesDetails || []).map((item: any) => ({
-                    label: item.Label || item.label, 
-                    remaining: item.Remaining || item.remaining, 
-                    total: item.Total || item.total, 
-                    colorClass: item.ColorClass || item.colorClass, 
-                    isText: item.IsText || item.isText, 
+                    label: item.Label || item.label,
+                    remaining: item.Remaining || item.remaining,
+                    total: item.Total || item.total,
+                    colorClass: item.ColorClass || item.colorClass,
+                    isText: item.IsText || item.isText,
                     text: item.Text || item.text
                 }));
 
                 this.contractInfo = (data.ContractInfo || data.contractInfo || []).map((item: any) => ({
-                    label: item.Label || item.label, 
-                    value: item.Value || item.value, 
-                    isTag: item.IsTag || item.isTag, 
+                    label: item.Label || item.label,
+                    value: item.Value || item.value,
+                    isTag: item.IsTag || item.isTag,
                     tagColor: item.TagColor || item.tagColor
                 }));
 
                 this.payslipDetails = (data.PayslipDetails || data.payslipDetails || []).map((item: any) => ({
-                    label: item.Label || item.label, 
-                    value: item.Value || item.value, 
+                    label: item.Label || item.label,
+                    value: item.Value || item.value,
                     type: item.Type || item.type
                 }));
 
                 this.documents = (data.Documents || data.documents || []).map((item: any) => ({
-                    title: item.Title || item.title, 
-                    subtitle: item.Subtitle || item.subtitle, 
+                    title: item.Title || item.title,
+                    subtitle: item.Subtitle || item.subtitle,
                     status: item.Status || item.status
                 }));
 
                 this.isLoading = false;
             },
             error: (err) => {
-                console.error('Failed to load dashboard data', err);
                 this.isLoading = false;
             }
         });
@@ -125,10 +124,39 @@ export class EmployeeDashboardComponent implements OnInit {
                 this.loadDashboardData();
             },
             error: (err) => {
-                console.error('Failed to recalculate leave balances', err);
                 this.leaveRecalcError = err?.error?.Message || err?.error?.message || 'Recalcul impossible pour le moment.';
                 this.isRecalculatingLeaves = false;
             }
         });
+    }
+
+    getLeaveToneClass(source: string): string {
+        return `employee-dashboard-progress__fill employee-dashboard-progress__fill--${this.resolveTone(source)}`;
+    }
+
+    getTagToneClass(source?: string): string {
+        return `employee-dashboard-tag employee-dashboard-tag--${this.resolveTone(source)}`;
+    }
+
+    private resolveTone(source?: string): 'success' | 'warning' | 'danger' | 'info' | 'muted' {
+        const value = (source ?? '').toLowerCase();
+
+        if (value.includes('success') || value.includes('green') || value.includes('emerald')) {
+            return 'success';
+        }
+
+        if (value.includes('warning') || value.includes('amber') || value.includes('yellow') || value.includes('orange')) {
+            return 'warning';
+        }
+
+        if (value.includes('danger') || value.includes('error') || value.includes('red')) {
+            return 'danger';
+        }
+
+        if (value.includes('info') || value.includes('blue') || value.includes('cyan')) {
+            return 'info';
+        }
+
+        return 'muted';
     }
 }

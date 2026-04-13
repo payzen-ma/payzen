@@ -203,7 +203,6 @@ export class LeavePoliciesPage implements OnInit {
     const companyId = parseInt(this.contextService.companyId() || '0', 10);
 
     if (!companyId) {
-      console.warn('No company ID available for loading leave types');
       return;
     }
 
@@ -215,7 +214,6 @@ export class LeavePoliciesPage implements OnInit {
         this.leaveTypes.set(activeTypes);
       },
       error: (err: any) => {
-        console.error('Error loading leave types for company', companyId, ':', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Erreur',
@@ -244,7 +242,6 @@ export class LeavePoliciesPage implements OnInit {
         this.isLoading.set(false);
       },
       error: (err: any) => {
-        console.error('Error loading leave policies for company', companyId, ':', err);
         this.error.set(err?.error?.message || 'Unable to load leave policies');
         this.policies.set([]);
         this.isLoading.set(false);
@@ -305,25 +302,25 @@ export class LeavePoliciesPage implements OnInit {
   openEditPolicy(policy: LeaveTypePolicy, event?: Event): void {
     event?.stopPropagation();
     this.selectedPolicy.set(policy);
-    
+
     // Debug logging
-    
+
     // Ensure all controls are enabled first
     this.form.enable();
-    
+
     this.patchForm(policy);
-    
+
     // Only disable leave type selection on edit
     this.form.get('leaveTypeId')?.disable();
-    
+
     // Debug form values after patch
-    
+
     this.showDialog.set(true);
   }
 
   private patchForm(policy: LeaveTypePolicy): void {
     // Log pour debugging
-    
+
     this.form.patchValue({
       leaveTypeId: policy.LeaveTypeId,
       isEnabled: policy.IsEnabled,
@@ -344,7 +341,7 @@ export class LeavePoliciesPage implements OnInit {
     this.form.updateValueAndValidity();
     this.form.markAsPristine();
     this.form.markAsUntouched();
-    
+
     // Log des valeurs finales
   }
 
@@ -453,7 +450,7 @@ export class LeavePoliciesPage implements OnInit {
 
   toggleEnabled(policy: LeaveTypePolicy): void {
     const newState = !policy.IsEnabled;
-    
+
     this.leaveService.updatePolicy(policy.Id, { IsEnabled: newState }).subscribe({
       next: (updated: any) => {
         // Update local state
@@ -464,7 +461,7 @@ export class LeavePoliciesPage implements OnInit {
           updatedList[index] = { ...updatedList[index], IsEnabled: newState };
           this.policies.set(updatedList);
         }
-        
+
         this.messageService.add({
           severity: 'success',
           summary: 'Succès',

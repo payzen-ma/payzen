@@ -31,10 +31,10 @@ export interface ReferentielElementSelection {
   standalone: true,
   imports: [CommonModule, FormsModule, ModalComponent],
   template: `
-    <app-modal 
-      [(visible)]="visible" 
+    <app-modal
+      [(visible)]="visible"
       [title]="'Sélectionner un élément référentiel'">
-      
+
       <div class="space-y-4">
         <!-- Search and Filter -->
         <div class="flex gap-3">
@@ -49,7 +49,7 @@ export interface ReferentielElementSelection {
               placeholder="Rechercher par nom ou code..."
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
           </div>
-          
+
           <select
             [(ngModel)]="convergenceFilter"
             (ngModelChange)="onFilterChange()"
@@ -83,7 +83,7 @@ export interface ReferentielElementSelection {
                       <h4 class="font-medium text-gray-900">{{ element.name }}</h4>
                       <span class="text-xs text-gray-500">{{ element.name }}</span>
                     </div>
-                    
+
                     <div class="flex flex-wrap items-center gap-2 text-xs">
                       <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
                         {{ element.categoryName }}
@@ -140,7 +140,7 @@ export interface ReferentielElementSelection {
         @if (selectedElementDetail && !isLoading) {
           <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 class="font-semibold text-blue-900 mb-3">{{ selectedElementDetail.name }}</h4>
-            
+
             @if (selectedElementDetail.description) {
               <p class="text-sm text-blue-800 mb-3">{{ selectedElementDetail.description }}</p>
             }
@@ -235,7 +235,6 @@ export class ReferentielElementPickerComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed to load referentiel elements:', err);
         this.isLoading = false;
       }
     });
@@ -273,7 +272,7 @@ export class ReferentielElementPickerComponent implements OnInit {
 
   selectElement(element: ReferentielElementListDto): void {
     this.loadingElementId = element.id;
-    
+
     // Load full element details with rules
     this.payrollService.getReferentielElementById(element.id).subscribe({
       next: (fullElement) => {
@@ -281,7 +280,6 @@ export class ReferentielElementPickerComponent implements OnInit {
         this.loadingElementId = null;
       },
       error: (err) => {
-        console.error('Failed to load element details:', err);
         this.loadingElementId = null;
       }
     });

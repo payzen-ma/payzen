@@ -33,17 +33,17 @@ namespace payzen_backend.Services.Llm
             _logger.LogInformation("📊 PRIMES ENVOYÉES À GEMINI (depuis la DB)");
             _logger.LogInformation("📊 ⚠️  Mode : UNIQUEMENT SalaryComponents (PackageItems ignorés)");
             _logger.LogInformation("📊 ═══════════════════════════════════════════════════════════════");
-            
+
             _logger.LogInformation($"👤 Employé : {payrollData.FullName}");
             _logger.LogInformation($"💰 Salaire de base : {payrollData.BaseSalary:N2} MAD");
             _logger.LogInformation("");
-            
+
             _logger.LogInformation($"📋 SalaryComponents : {payrollData.SalaryComponents?.Count ?? 0}");
             if (payrollData.SalaryComponents != null && payrollData.SalaryComponents.Any())
             {
                 var imposables = payrollData.SalaryComponents.Where(c => c.IsTaxable).ToList();
                 var nonImposables = payrollData.SalaryComponents.Where(c => !c.IsTaxable).ToList();
-                
+
                 _logger.LogInformation("");
                 _logger.LogInformation($"✅ IMPOSABLES : {imposables.Count} items");
                 foreach (var comp in imposables)
@@ -51,7 +51,7 @@ namespace payzen_backend.Services.Llm
                     _logger.LogInformation($"   • {comp.ComponentType,-30} : {comp.Amount,10:N2} MAD");
                     _logger.LogInformation($"     └─ IsTaxable={comp.IsTaxable}, IsSocial={comp.IsSocial}, IsCIMR={comp.IsCIMR}");
                 }
-                
+
                 _logger.LogInformation("");
                 _logger.LogInformation($"⚪ NON IMPOSABLES : {nonImposables.Count} items");
                 foreach (var comp in nonImposables)
@@ -62,7 +62,7 @@ namespace payzen_backend.Services.Llm
             }
             _logger.LogInformation("📊 ═══════════════════════════════════════════════════════════════");
             _logger.LogInformation("");
-            
+
             var dataJson = JsonSerializer.Serialize(payrollData, new JsonSerializerOptions
             {
                 WriteIndented = false,
@@ -79,10 +79,10 @@ namespace payzen_backend.Services.Llm
 
             var systemPrompt = $$"""
                 Tu es un moteur de calcul de paie marocaine expert en PAYZEN DSL v3.1.
-                
+
                 RÈGLES DSL CI-DESSOUS (À APPLIQUER STRICTEMENT) :
                 {{regleContent}}
-                
+
                 INSTRUCTIONS CRITIQUES :
                 1. Exécute le @PIPELINE dans l'ordre strict : MODULE[01] à MODULE[12]
                 2. Respecte TOUTES les RÈGLES CRITIQUES du DSL
@@ -110,13 +110,13 @@ namespace payzen_backend.Services.Llm
                    - Salissure : MAX 239.00 MAD pour CNSS, 210.00 MAD pour DGI
                    - IMPORTANT : partie_exoneree = MIN(montant_saisi, plafond)
                    - IMPORTANT : partie_imposable = MAX(0, montant_saisi - plafond)
-                
+
                 FORMAT DE SORTIE :
                 - Réponds UNIQUEMENT avec un objet JSON valide
                 - NE PAS utiliser de markdown, backticks, ou ```json
                 - Commence par { et termine par }
                 - ⭐ TOUS les champs numériques doivent avoir EXACTEMENT 2 décimales (.00 ou .XX)
-                
+
                 STRUCTURE JSON ATTENDUE :
                 {
                   "employe": {"nom": "...", "prenom": "..."},
@@ -152,7 +152,7 @@ namespace payzen_backend.Services.Llm
                   "total_charges_patronales": 0.00,
                   "cout_employeur_total": 0.00
                 }
-                
+
                 ⭐ EXEMPLE INDEMNITÉS NON IMPOSABLES (CRITIQUE) :
                 "indemnites_non_imposables": [
                   {
@@ -172,20 +172,20 @@ namespace payzen_backend.Services.Llm
                 ],
                 "total_ni_exonere": 1389.20,
                 "total_ni_imposable": 610.80
-                
+
                 ⚠️  NE PAS FAIRE :
                 "les primes imposables": {"Prime 1": 1000, "Prime 2": 500}  ❌ MAUVAIS FORMAT
-                
+
                 ✅ FORMAT CORRECT :
                 "primes_imposables": [{"label": "...", "montant": 0.00}, ...]
                 """;
 
             var userMessage = $$"""
                 {{instruction}}
-                
+
                 Données de l'employé à traiter (format DSL) :
                 {{dslJson}}
-                
+
                 Rappel : Réponds UNIQUEMENT avec le JSON, sans markdown, sans explication.
                 """;
 
@@ -240,19 +240,19 @@ namespace payzen_backend.Services.Llm
             }
 
             var firstCandidate = candidates[0];
-            
+
             // ⭐ Vérifier si la réponse a été tronquée
             if (firstCandidate.TryGetProperty("finishReason", out var finishReason))
             {
                 var reason = finishReason.GetString();
                 Console.WriteLine($"⚙️  Gemini finishReason: {reason}");
-                
+
                 if (reason == "MAX_TOKENS")
                 {
                     _logger.LogWarning("⚠️  ATTENTION : La réponse de Gemini a été TRONQUÉE (MAX_TOKENS atteint). Augmentez maxOutputTokens.");
                 }
             }
-            
+
             var contentProp = firstCandidate.GetProperty("content");
             var parts = contentProp.GetProperty("parts");
             var textPart = parts[0].GetProperty("text").GetString();
@@ -268,14 +268,14 @@ namespace payzen_backend.Services.Llm
                 var inputTokens = usage.GetProperty("promptTokenCount").GetInt32();
                 var outputTokens = usage.GetProperty("candidatesTokenCount").GetInt32();
                 var totalTokens = usage.GetProperty("totalTokenCount").GetInt32();
-                
+
                 Console.WriteLine($"📊 Statistiques Gemini :");
                 Console.WriteLine($"   - Modèle : gemini-2.5-flash");
                 Console.WriteLine($"   - Input Tokens : {inputTokens}");
                 Console.WriteLine($"   - Output Tokens : {outputTokens}");
                 Console.WriteLine($"   - Total Tokens : {totalTokens}");
                 Console.WriteLine($"   - 💰 Coût : GRATUIT (15 req/min, 1500 req/jour)");
-                
+
                 // ⭐ Alerte si on approche de la limite
                 if (outputTokens > 15000)
                 {
@@ -285,7 +285,7 @@ namespace payzen_backend.Services.Llm
 
             // Nettoyer la réponse
             var cleanedText = CleanJsonResponse(textPart.Trim());
-            
+
             return cleanedText;
         }
 
@@ -296,55 +296,55 @@ namespace payzen_backend.Services.Llm
         {
             var joursAbsents = data.Absences?.Count(a => a.DurationType == "FullDay") ?? 0;
             var joursTravailles = 26 - joursAbsents;
-            
+
             var hSup25 = data.Overtimes?.Where(o => o.RateMultiplier >= 1.20m && o.RateMultiplier < 1.40m).Sum(o => o.DurationInHours) ?? 0;
             var hSup50 = data.Overtimes?.Where(o => o.RateMultiplier >= 1.40m && o.RateMultiplier < 1.75m).Sum(o => o.DurationInHours) ?? 0;
             var hSup100 = data.Overtimes?.Where(o => o.RateMultiplier >= 1.75m).Sum(o => o.DurationInHours) ?? 0;
-            
+
             var primesImposables = new List<object>();
             var primesNonImposables = new List<object>();
-            
+
             _logger.LogInformation("🔄 Conversion au format DSL pour Gemini :");
             _logger.LogInformation("   ⚠️  Mode : UNIQUEMENT SalaryComponents (PackageItems ignorés)");
-            
+
             // Extraire UNIQUEMENT les primes depuis SalaryComponents
             var salaryComponents = data.SalaryComponents?.ToList() ?? new();
             var componentsImposables = salaryComponents.Where(c => c.IsTaxable).ToList();
             var componentsNonImposables = salaryComponents.Where(c => !c.IsTaxable).ToList();
-            
+
             _logger.LogInformation($"   - SalaryComponents imposables : {componentsImposables.Count}");
             foreach (var comp in componentsImposables)
             {
                 primesImposables.Add(new { label = comp.ComponentType, montant = comp.Amount });
                 _logger.LogInformation($"     → Prime ajoutée : {comp.ComponentType} = {comp.Amount:N2} MAD");
             }
-            
+
             _logger.LogInformation($"   - SalaryComponents non imposables : {componentsNonImposables.Count}");
             foreach (var comp in componentsNonImposables)
             {
                 primesNonImposables.Add(new { label = comp.ComponentType, montant = comp.Amount });
                 _logger.LogInformation($"     → Indemnité ajoutée : {comp.ComponentType} = {comp.Amount:N2} MAD");
             }
-            
+
             _logger.LogInformation($"   - TOTAL primes imposables envoyées au LLM : {primesImposables.Count}");
             _logger.LogInformation($"   - TOTAL indemnités non imposables envoyées au LLM : {primesNonImposables.Count}");
-            
+
             var regimeCimr = "AUCUN";
             if (data.CimrEmployeeRate.HasValue && data.CimrEmployeeRate > 0)
             {
                 regimeCimr = "AL_KAMIL";
             }
-            
+
             decimal mutuelleSalariale = 0;
             if (data.HasPrivateInsurance && data.PrivateInsuranceRate.HasValue)
             {
                 mutuelleSalariale = data.BaseSalary * data.PrivateInsuranceRate.Value / 100;
             }
-            
+
             _logger.LogInformation($"   - Régime CIMR : {regimeCimr}");
             _logger.LogInformation($"   - Mutuelle salariale : {mutuelleSalariale:N2} MAD");
             _logger.LogInformation("");
-            
+
             return new
             {
                 nom = data.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "",
@@ -376,11 +376,11 @@ namespace payzen_backend.Services.Llm
                 interet_pret_logement = 0
             };
         }
-        
+
         private static string MapContractType(string? contractType)
         {
             if (string.IsNullOrEmpty(contractType)) return "PP";
-            if (contractType.Contains("CDI", StringComparison.OrdinalIgnoreCase) || 
+            if (contractType.Contains("CDI", StringComparison.OrdinalIgnoreCase) ||
                 contractType.Contains("Permanent", StringComparison.OrdinalIgnoreCase))
                 return "PP";
             if (contractType.Contains("Partiel", StringComparison.OrdinalIgnoreCase))
@@ -404,12 +404,12 @@ namespace payzen_backend.Services.Llm
             {
                 response = response.Substring(3);
             }
-            
+
             if (response.EndsWith("```"))
             {
                 response = response.Substring(0, response.Length - 3);
             }
-            
+
             return response.Trim();
         }
     }

@@ -20,12 +20,12 @@ namespace Payzen.Infrastructure.Services.Payroll;
 /// </summary>
 public class PayrollService : IPayrollService
 {
-    private readonly AppDbContext             _db;
+    private readonly AppDbContext _db;
     private readonly PayrollCalculationEngine _engine;
 
     public PayrollService(AppDbContext db, PayrollCalculationEngine engine)
     {
-        _db     = db;
+        _db = db;
         _engine = engine;
     }
 
@@ -35,10 +35,12 @@ public class PayrollService : IPayrollService
         PayrollSimulateRequestDto dto, int userId, CancellationToken ct = default)
     {
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
-        if (data == null) return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
+        if (data == null)
+            return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
 
         var result = _engine.CalculatePayroll(data);
-        if (!result.Success) return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
+        if (!result.Success)
+            return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
 
         var entity = await PersistResultAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, userId, result, false, ct);
         return ServiceResult<PayrollResultReadDto>.Ok(MapToRead(entity, result));
@@ -48,10 +50,12 @@ public class PayrollService : IPayrollService
         PayrollSimulateRequestDto dto, CancellationToken ct = default)
     {
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
-        if (data == null) return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
+        if (data == null)
+            return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
 
         var result = _engine.CalculatePayroll(data);
-        if (!result.Success) return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
+        if (!result.Success)
+            return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
 
         // Simulation : on crée un DTO sans persister
         var fakeEntity = new PayrollResult { EmployeeId = dto.EmployeeId, CompanyId = 0, Month = dto.PayMonth, Year = dto.PayYear, PayHalf = dto.PayHalf };
@@ -72,7 +76,8 @@ public class PayrollService : IPayrollService
         {
             var simDto = new PayrollSimulateRequestDto { EmployeeId = empId, PayMonth = dto.PayMonth, PayYear = dto.PayYear, PayHalf = dto.PayHalf };
             var res = await CalculateAsync(simDto, userId, ct);
-            if (res.Success) results.Add(res.Data!);
+            if (res.Success)
+                results.Add(res.Data!);
         }
         return ServiceResult<IEnumerable<PayrollResultReadDto>>.Ok(results);
     }
@@ -100,34 +105,34 @@ public class PayrollService : IPayrollService
             .ThenBy(pr => pr.Employee!.FirstName)
             .Select(pr => new PayrollBulletinResultItemDto
             {
-                Id                           = pr.Id,
-                EmployeeId                   = pr.EmployeeId,
-                EmployeeName                 = pr.Employee!.FirstName + " " + pr.Employee.LastName,
-                CompanyId                    = pr.CompanyId,
-                CompanyName                  = pr.Company!.CompanyName,
-                Month                        = pr.Month,
-                Year                         = pr.Year,
-                PayHalf                      = pr.PayHalf,
-                Status                       = pr.Status,
-                ErrorMessage                 = pr.ErrorMessage,
-                SalaireBase                  = pr.SalaireBase,
-                TotalBrut                    = pr.TotalBrut,
-                TotalCotisationsSalariales   = pr.TotalCotisationsSalariales,
-                TotalCotisationsPatronales   = pr.TotalCotisationsPatronales,
-                ImpotRevenu                  = pr.ImpotRevenu,
-                TotalNet                     = pr.TotalNet ?? pr.NetAPayer,
-                TotalNet2                    = pr.TotalNet2,
-                ProcessedAt                  = pr.ProcessedAt,
-                ClaudeModel                  = pr.ClaudeModel,
-                TokensUsed                   = pr.TokensUsed
+                Id = pr.Id,
+                EmployeeId = pr.EmployeeId,
+                EmployeeName = pr.Employee!.FirstName + " " + pr.Employee.LastName,
+                CompanyId = pr.CompanyId,
+                CompanyName = pr.Company!.CompanyName,
+                Month = pr.Month,
+                Year = pr.Year,
+                PayHalf = pr.PayHalf,
+                Status = pr.Status,
+                ErrorMessage = pr.ErrorMessage,
+                SalaireBase = pr.SalaireBase,
+                TotalBrut = pr.TotalBrut,
+                TotalCotisationsSalariales = pr.TotalCotisationsSalariales,
+                TotalCotisationsPatronales = pr.TotalCotisationsPatronales,
+                ImpotRevenu = pr.ImpotRevenu,
+                TotalNet = pr.TotalNet ?? pr.NetAPayer,
+                TotalNet2 = pr.TotalNet2,
+                ProcessedAt = pr.ProcessedAt,
+                ClaudeModel = pr.ClaudeModel,
+                TokensUsed = pr.TokensUsed
             })
             .ToListAsync(ct);
 
         return ServiceResult<PayrollBulletinResultsResponseDto>.Ok(new PayrollBulletinResultsResponseDto
         {
-            Count   = list.Count,
-            Month   = month,
-            Year    = year,
+            Count = list.Count,
+            Month = month,
+            Year = year,
             Results = list
         });
     }
@@ -137,7 +142,11 @@ public class PayrollService : IPayrollService
         var q = _db.PayrollResults.Where(pr => pr.CompanyId == companyId && pr.Year == year && pr.Month == month && pr.DeletedAt == null);
         var count = await q.CountAsync(ct);
         var totalNet = await q.SumAsync(pr => pr.TotalNet ?? pr.NetAPayer ?? 0, ct);
-        return ServiceResult<object>.Ok(new { count, totalNet });
+        return ServiceResult<object>.Ok(new
+        {
+            count,
+            totalNet
+        });
     }
 
     public async Task<ServiceResult<PayrollResultReadDto>> GetResultByIdAsync(int id, CancellationToken ct = default)
@@ -166,7 +175,7 @@ public class PayrollService : IPayrollService
             return ServiceResult<PayrollBulletinDetailDto>.Fail("Résultat de paie introuvable.");
 
         var startOfPeriod = new DateTime(result.Year, result.Month, 1);
-        var endOfPeriod   = startOfPeriod.AddMonths(1).AddDays(-1);
+        var endOfPeriod = startOfPeriod.AddMonths(1).AddDays(-1);
 
         // Période de paie : null/mensuel, 1 => 1-15, 2 => 16-31.
         if (result.PayHalf == 1)
@@ -175,7 +184,7 @@ public class PayrollService : IPayrollService
             startOfPeriod = startOfPeriod.AddDays(15);
 
         var startDate = DateOnly.FromDateTime(startOfPeriod);
-        var endDate   = DateOnly.FromDateTime(endOfPeriod);
+        var endDate = DateOnly.FromDateTime(endOfPeriod);
 
         var absences = await _db.EmployeeAbsences
             .AsNoTracking()
@@ -187,12 +196,12 @@ public class PayrollService : IPayrollService
             .OrderBy(ea => ea.AbsenceDate)
             .Select(ea => new PayrollBulletinAbsenceDto
             {
-                Id           = ea.Id,
-                AbsenceDate  = ea.AbsenceDate.ToString("yyyy-MM-dd"),
-                AbsenceType  = ea.AbsenceType,
-                Reason       = ea.Reason,
+                Id = ea.Id,
+                AbsenceDate = ea.AbsenceDate.ToString("yyyy-MM-dd"),
+                AbsenceType = ea.AbsenceType,
+                Reason = ea.Reason,
                 DurationType = ea.DurationType.ToString(),
-                Status       = ea.Status.ToString()
+                Status = ea.Status.ToString()
             })
             .ToListAsync(ct);
 
@@ -206,9 +215,9 @@ public class PayrollService : IPayrollService
             .OrderBy(eo => eo.OvertimeDate)
             .Select(eo => new PayrollBulletinOvertimeDto
             {
-                Id                    = eo.Id,
-                OvertimeDate          = eo.OvertimeDate.ToString("yyyy-MM-dd"),
-                DurationInHours       = eo.DurationInHours,
+                Id = eo.Id,
+                OvertimeDate = eo.OvertimeDate.ToString("yyyy-MM-dd"),
+                DurationInHours = eo.DurationInHours,
                 RateMultiplierApplied = eo.RateMultiplierApplied
             })
             .ToListAsync(ct);
@@ -224,11 +233,11 @@ public class PayrollService : IPayrollService
             .OrderBy(lr => lr.StartDate)
             .Select(lr => new PayrollBulletinLeaveDto
             {
-                Id                   = lr.Id,
-                StartDate            = lr.StartDate.ToString("yyyy-MM-dd"),
-                EndDate              = lr.EndDate.ToString("yyyy-MM-dd"),
-                WorkingDaysDeducted  = lr.WorkingDaysDeducted,
-                LeaveTypeName        = lr.LeaveType != null ? (lr.LeaveType.LeaveNameFr ?? lr.LeaveType.LeaveCode) : null
+                Id = lr.Id,
+                StartDate = lr.StartDate.ToString("yyyy-MM-dd"),
+                EndDate = lr.EndDate.ToString("yyyy-MM-dd"),
+                WorkingDaysDeducted = lr.WorkingDaysDeducted,
+                LeaveTypeName = lr.LeaveType != null ? (lr.LeaveType.LeaveNameFr ?? lr.LeaveType.LeaveCode) : null
             })
             .ToListAsync(ct);
 
@@ -236,9 +245,9 @@ public class PayrollService : IPayrollService
             .OrderBy(p => p.Ordre)
             .Select(p => new PayrollBulletinDetailPrimeDto
             {
-                Label     = p.Label,
-                Montant   = p.Montant,
-                Ordre     = p.Ordre,
+                Label = p.Label,
+                Montant = p.Montant,
+                Ordre = p.Ordre,
                 IsTaxable = p.IsTaxable
             })
             .ToList();
@@ -247,81 +256,81 @@ public class PayrollService : IPayrollService
             .OrderBy(s => s.StepOrder)
             .Select(s => new PayrollBulletinAuditStepDto
             {
-                StepOrder          = s.StepOrder,
-                ModuleName         = s.ModuleName,
+                StepOrder = s.StepOrder,
+                ModuleName = s.ModuleName,
                 FormulaDescription = s.FormulaDescription,
-                InputsJson         = s.InputsJson,
-                OutputsJson        = s.OutputsJson
+                InputsJson = s.InputsJson,
+                OutputsJson = s.OutputsJson
             })
             .ToList();
 
         var dto = new PayrollBulletinDetailDto
         {
-            Id                         = result.Id,
-            EmployeeId                 = result.EmployeeId,
-            EmployeeName               = $"{result.Employee.FirstName} {result.Employee.LastName}",
-            CompanyId                  = result.CompanyId,
-            CompanyName                = result.Company.CompanyName,
-            Month                      = result.Month,
-            Year                       = result.Year,
-            PayHalf                    = result.PayHalf,
-            Status                     = result.Status,
-            ErrorMessage               = result.ErrorMessage,
-            SalaireBase                = result.SalaireBase,
-            HeuresSupp25               = result.HeuresSupp25,
-            HeuresSupp50               = result.HeuresSupp50,
-            HeuresSupp100              = result.HeuresSupp100,
-            Conges                     = result.Conges,
-            JoursFeries                = result.JoursFeries,
-            PrimeAnciennete            = result.PrimeAnciennete,
-            PrimeImposable1            = result.PrimeImposable1,
-            PrimeImposable2            = result.PrimeImposable2,
-            PrimeImposable3            = result.PrimeImposable3,
-            TotalPrimesImposables      = result.TotalPrimesImposables,
-            TotalBrut                  = result.TotalBrut,
-            FraisProfessionnels        = result.FraisProfessionnels,
-            IndemniteRepresentation    = result.IndemniteRepresentation,
-            PrimeTransport             = result.PrimeTransport,
-            PrimePanier                = result.PrimePanier,
-            IndemniteDeplacement       = result.IndemniteDeplacement,
-            IndemniteCaisse            = result.IndemniteCaisse,
-            PrimeSalissure             = result.PrimeSalissure,
-            GratificationsFamilial     = result.GratificationsFamilial,
-            PrimeVoyageMecque          = result.PrimeVoyageMecque,
-            IndemniteLicenciement      = result.IndemniteLicenciement,
-            IndemniteKilometrique      = result.IndemniteKilometrique,
-            PrimeTourne                = result.PrimeTourne,
-            PrimeOutillage             = result.PrimeOutillage,
-            AideMedicale               = result.AideMedicale,
-            AutresPrimesNonImposable   = result.AutresPrimesNonImposable,
-            TotalIndemnites            = result.TotalIndemnites,
-            TotalNiExcedentImposable   = result.TotalNiExcedentImposable,
-            CnssPartSalariale          = result.CnssPartSalariale,
-            CimrPartSalariale          = result.CimrPartSalariale,
-            AmoPartSalariale           = result.AmoPartSalariale,
-            MutuellePartSalariale      = result.MutuellePartSalariale,
+            Id = result.Id,
+            EmployeeId = result.EmployeeId,
+            EmployeeName = $"{result.Employee.FirstName} {result.Employee.LastName}",
+            CompanyId = result.CompanyId,
+            CompanyName = result.Company.CompanyName,
+            Month = result.Month,
+            Year = result.Year,
+            PayHalf = result.PayHalf,
+            Status = result.Status,
+            ErrorMessage = result.ErrorMessage,
+            SalaireBase = result.SalaireBase,
+            HeuresSupp25 = result.HeuresSupp25,
+            HeuresSupp50 = result.HeuresSupp50,
+            HeuresSupp100 = result.HeuresSupp100,
+            Conges = result.Conges,
+            JoursFeries = result.JoursFeries,
+            PrimeAnciennete = result.PrimeAnciennete,
+            PrimeImposable1 = result.PrimeImposable1,
+            PrimeImposable2 = result.PrimeImposable2,
+            PrimeImposable3 = result.PrimeImposable3,
+            TotalPrimesImposables = result.TotalPrimesImposables,
+            TotalBrut = result.TotalBrut,
+            FraisProfessionnels = result.FraisProfessionnels,
+            IndemniteRepresentation = result.IndemniteRepresentation,
+            PrimeTransport = result.PrimeTransport,
+            PrimePanier = result.PrimePanier,
+            IndemniteDeplacement = result.IndemniteDeplacement,
+            IndemniteCaisse = result.IndemniteCaisse,
+            PrimeSalissure = result.PrimeSalissure,
+            GratificationsFamilial = result.GratificationsFamilial,
+            PrimeVoyageMecque = result.PrimeVoyageMecque,
+            IndemniteLicenciement = result.IndemniteLicenciement,
+            IndemniteKilometrique = result.IndemniteKilometrique,
+            PrimeTourne = result.PrimeTourne,
+            PrimeOutillage = result.PrimeOutillage,
+            AideMedicale = result.AideMedicale,
+            AutresPrimesNonImposable = result.AutresPrimesNonImposable,
+            TotalIndemnites = result.TotalIndemnites,
+            TotalNiExcedentImposable = result.TotalNiExcedentImposable,
+            CnssPartSalariale = result.CnssPartSalariale,
+            CimrPartSalariale = result.CimrPartSalariale,
+            AmoPartSalariale = result.AmoPartSalariale,
+            MutuellePartSalariale = result.MutuellePartSalariale,
             TotalCotisationsSalariales = result.TotalCotisationsSalariales,
-            CnssPartPatronale          = result.CnssPartPatronale,
-            CimrPartPatronale          = result.CimrPartPatronale,
-            AmoPartPatronale           = result.AmoPartPatronale,
-            MutuellePartPatronale      = result.MutuellePartPatronale,
+            CnssPartPatronale = result.CnssPartPatronale,
+            CimrPartPatronale = result.CimrPartPatronale,
+            AmoPartPatronale = result.AmoPartPatronale,
+            MutuellePartPatronale = result.MutuellePartPatronale,
             TotalCotisationsPatronales = result.TotalCotisationsPatronales,
-            ImpotRevenu                = result.ImpotRevenu,
-            Arrondi                    = result.Arrondi,
-            AvanceSurSalaire           = result.AvanceSurSalaire,
-            InteretSurLogement         = result.InteretSurLogement,
-            BrutImposable              = result.BrutImposable,
-            NetImposable               = result.NetImposable,
-            TotalGains                 = result.TotalGains,
-            TotalRetenues              = result.TotalRetenues,
-            NetAPayer                  = result.NetAPayer,
-            TotalNet                   = result.TotalNet,
-            TotalNet2                  = result.TotalNet2,
-            Primes                     = primes,
-            CalculationAuditSteps      = auditSteps,
-            Absences                   = absences,
-            Overtimes                  = overtimes,
-            Leaves                     = leaves
+            ImpotRevenu = result.ImpotRevenu,
+            Arrondi = result.Arrondi,
+            AvanceSurSalaire = result.AvanceSurSalaire,
+            InteretSurLogement = result.InteretSurLogement,
+            BrutImposable = result.BrutImposable,
+            NetImposable = result.NetImposable,
+            TotalGains = result.TotalGains,
+            TotalRetenues = result.TotalRetenues,
+            NetAPayer = result.NetAPayer,
+            TotalNet = result.TotalNet,
+            TotalNet2 = result.TotalNet2,
+            Primes = primes,
+            CalculationAuditSteps = auditSteps,
+            Absences = absences,
+            Overtimes = overtimes,
+            Leaves = leaves
         };
 
         return ServiceResult<PayrollBulletinDetailDto>.Ok(dto);
@@ -376,7 +385,8 @@ public class PayrollService : IPayrollService
     public async Task<ServiceResult> DeleteResultAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var pr = await _db.PayrollResults.FindAsync(new object[] { id }, ct);
-        if (pr == null) return ServiceResult.Fail("Résultat introuvable.");
+        if (pr == null)
+            return ServiceResult.Fail("Résultat introuvable.");
         pr.DeletedAt = DateTimeOffset.UtcNow;
         pr.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -399,7 +409,8 @@ public class PayrollService : IPayrollService
             .Include(e => e.Category)
             .FirstOrDefaultAsync(e => e.Id == employeeId, ct);
 
-        if (employee == null) return null;
+        if (employee == null)
+            return null;
 
         // Contrat actif à la date de paie
         var payDate = new DateTime(year, month, 1);
@@ -411,7 +422,8 @@ public class PayrollService : IPayrollService
             .OrderByDescending(c => c.StartDate)
             .FirstOrDefaultAsync(ct);
 
-        if (contract == null) return null;
+        if (contract == null)
+            return null;
 
         // Salaire actif
         var salary = await _db.EmployeeSalaries
@@ -421,7 +433,7 @@ public class PayrollService : IPayrollService
             .FirstOrDefaultAsync(ct);
 
         var periodStart = DateOnly.FromDateTime(new DateTime(year, month, 1));
-        var monthEnd    = DateOnly.FromDateTime(new DateTime(year, month, DateTime.DaysInMonth(year, month)));
+        var monthEnd = DateOnly.FromDateTime(new DateTime(year, month, DateTime.DaysInMonth(year, month)));
 
         var periodEnd = monthEnd;
         if (payHalf == 1)
@@ -438,7 +450,7 @@ public class PayrollService : IPayrollService
 
         // Absences du mois
         var startOfMonth = periodStart;
-        var endOfMonth   = periodEnd;
+        var endOfMonth = periodEnd;
 
         var absences = await _db.EmployeeAbsences
             .Where(a => a.EmployeeId == employeeId
@@ -457,13 +469,13 @@ public class PayrollService : IPayrollService
 
         // Congés approuvés chevauchant le mois
         var leaveStart = startOfMonth;
-        var leaveEnd   = endOfMonth;
+        var leaveEnd = endOfMonth;
         var leaves = await _db.LeaveRequests
             .Include(lr => lr.LeaveType)
             .Where(lr => lr.EmployeeId == employeeId
                       && lr.Status == LeaveRequestStatus.Approved
                       && lr.StartDate <= leaveEnd
-                      && lr.EndDate   >= leaveStart)
+                      && lr.EndDate >= leaveStart)
             .ToListAsync(ct);
 
         // Pointage (heures travaillées)
@@ -478,78 +490,78 @@ public class PayrollService : IPayrollService
 
         return new EmployeePayrollDto
         {
-            FullName              = $"{employee.FirstName} {employee.LastName}",
-            CinNumber             = employee.CinNumber,
-            CnssNumber            = employee.CnssNumber,
-            CimrNumber            = employee.CimrNumber,
-            CimrEmployeeRate      = employee.CimrEmployeeRate,
-            CimrCompanyRate       = employee.CimrCompanyRate,
-            HasPrivateInsurance   = employee.HasPrivateInsurance,
-            PrivateInsuranceRate  = employee.PrivateInsuranceRate,
-            DisableAmo            = employee.DisableAmo,
-            MaritalStatus         = employee.MaritalStatus?.Code,
-            NumberOfChildren      = employee.Children?.Count(c => c.IsDependent) ?? 0,
-            HasSpouse             = employee.Spouses?.Any(s => s.IsDependent) ?? false,
+            FullName = $"{employee.FirstName} {employee.LastName}",
+            CinNumber = employee.CinNumber,
+            CnssNumber = employee.CnssNumber,
+            CimrNumber = employee.CimrNumber,
+            CimrEmployeeRate = employee.CimrEmployeeRate,
+            CimrCompanyRate = employee.CimrCompanyRate,
+            HasPrivateInsurance = employee.HasPrivateInsurance,
+            PrivateInsuranceRate = employee.PrivateInsuranceRate,
+            DisableAmo = employee.DisableAmo,
+            MaritalStatus = employee.MaritalStatus?.Code,
+            NumberOfChildren = employee.Children?.Count(c => c.IsDependent) ?? 0,
+            HasSpouse = employee.Spouses?.Any(s => s.IsDependent) ?? false,
 
-            ContractType          = contract.ContractType?.ContractTypeName,
-            LegalContractType     = contract.ContractType?.LegalContractType?.Code,
-            StateEmploymentProgram= contract.ContractType?.StateEmploymentProgram?.Code,
-            JobPosition           = contract.JobPosition?.Name,
-            ContractStartDate     = contract.StartDate,
-            AncienneteYears       = anciennete,
+            ContractType = contract.ContractType?.ContractTypeName,
+            LegalContractType = contract.ContractType?.LegalContractType?.Code,
+            StateEmploymentProgram = contract.ContractType?.StateEmploymentProgram?.Code,
+            JobPosition = contract.JobPosition?.Name,
+            ContractStartDate = contract.StartDate,
+            AncienneteYears = anciennete,
 
-            BaseSalary            = salary?.BaseSalary ?? 0m,
-            BaseSalaryHourly      = salary?.BaseSalaryHourly,
-            SalaryComponents      = salary?.Components?
+            BaseSalary = salary?.BaseSalary ?? 0m,
+            BaseSalaryHourly = salary?.BaseSalaryHourly,
+            SalaryComponents = salary?.Components?
                 .Where(c => DateOnly.FromDateTime(c.EffectiveDate) <= periodEnd
                             && (c.EndDate == null || DateOnly.FromDateTime(c.EndDate.Value) >= periodStart))
                 .Select(c => new PayrollSalaryComponentDto
                 {
                     ComponentType = c.ComponentType,
-                    Amount        = c.Amount,
-                    IsTaxable     = c.IsTaxable,
-                    IsSocial      = c.IsSocial,
-                    IsCIMR        = c.IsCIMR
+                    Amount = c.Amount,
+                    IsTaxable = c.IsTaxable,
+                    IsSocial = c.IsSocial,
+                    IsCIMR = c.IsCIMR
                 }).ToList() ?? new(),
 
             SalaryPackageName = assignment?.SalaryPackage?.Name,
             PackageItems = assignment?.SalaryPackage?.Items?.Select(i => new PayrollPackageItemDto
             {
-                Label         = i.Label,
-                DefaultValue  = i.DefaultValue,
-                Type          = i.Type,
-                IsTaxable     = i.IsTaxable,
-                IsSocial      = i.IsSocial,
-                IsCIMR        = i.IsCIMR,
-                ExemptionLimit= i.ExemptionLimit
+                Label = i.Label,
+                DefaultValue = i.DefaultValue,
+                Type = i.Type,
+                IsTaxable = i.IsTaxable,
+                IsSocial = i.IsSocial,
+                IsCIMR = i.IsCIMR,
+                ExemptionLimit = i.ExemptionLimit
             }).ToList() ?? new(),
 
             Absences = absences.Select(a => new PayrollAbsenceDto
             {
-                AbsenceType  = a.AbsenceType,
-                AbsenceDate  = a.AbsenceDate.ToDateTime(TimeOnly.MinValue),
+                AbsenceType = a.AbsenceType,
+                AbsenceDate = a.AbsenceDate.ToDateTime(TimeOnly.MinValue),
                 DurationType = a.DurationType.ToString(),
-                Status       = a.Status.ToString()
+                Status = a.Status.ToString()
             }).ToList(),
 
             Overtimes = overtimes.Select(o => new PayrollOvertimeDto
             {
-                OvertimeDate     = o.OvertimeDate.ToDateTime(TimeOnly.MinValue),
-                DurationInHours  = o.DurationInHours,
-                RateMultiplier   = o.RateMultiplierApplied
+                OvertimeDate = o.OvertimeDate.ToDateTime(TimeOnly.MinValue),
+                DurationInHours = o.DurationInHours,
+                RateMultiplier = o.RateMultiplierApplied
             }).ToList(),
 
             Leaves = leaves.Select(lr => new PayrollLeaveDto
             {
-                LeaveType  = lr.LeaveType?.LeaveNameFr,
-                StartDate  = lr.StartDate,
-                EndDate    = lr.EndDate,
-                DaysCount  = lr.WorkingDaysDeducted
+                LeaveType = lr.LeaveType?.LeaveNameFr,
+                StartDate = lr.StartDate,
+                EndDate = lr.EndDate,
+                DaysCount = lr.WorkingDaysDeducted
             }).ToList(),
 
-            PayMonth         = month,
-            PayYear          = year,
-            PayHalf          = payHalf,
+            PayMonth = month,
+            PayYear = year,
+            PayHalf = payHalf,
             TotalWorkedHours = totalWorkedHours
         };
     }
@@ -585,14 +597,14 @@ public class PayrollService : IPayrollService
 
         var entity = new PayrollResult
         {
-            EmployeeId  = employeeId,
-            CompanyId   = employee?.CompanyId ?? 0,
-            Month       = month,
-            Year        = year,
-            PayHalf     = payHalf,
-            Status      = PayrollResultStatus.OK,
+            EmployeeId = employeeId,
+            CompanyId = employee?.CompanyId ?? 0,
+            Month = month,
+            Year = year,
+            PayHalf = payHalf,
+            Status = PayrollResultStatus.OK,
             ProcessedAt = DateTime.UtcNow,
-            CreatedBy   = userId
+            CreatedBy = userId
         };
 
         ApplyResultToEntity(calc, entity);
@@ -606,13 +618,13 @@ public class PayrollService : IPayrollService
         {
             var steps = calc.AuditSteps.Select(s => new PayrollCalculationAuditStep
             {
-                PayrollResultId    = entity.Id,
-                StepOrder          = s.StepOrder,
-                ModuleName         = s.ModuleName,
+                PayrollResultId = entity.Id,
+                StepOrder = s.StepOrder,
+                ModuleName = s.ModuleName,
                 FormulaDescription = s.FormulaDescription,
-                InputsJson         = s.InputsJson,
-                OutputsJson        = s.OutputsJson,
-                CreatedBy          = userId
+                InputsJson = s.InputsJson,
+                OutputsJson = s.OutputsJson,
+                CreatedBy = userId
             });
             _db.PayrollCalculationAuditSteps.AddRange(steps);
         }
@@ -623,100 +635,100 @@ public class PayrollService : IPayrollService
 
     private static void ApplyResultToEntity(PayrollCalculationResult calc, PayrollResult entity)
     {
-        entity.SalaireBase             = calc.SalaireBase26j;
-        entity.PrimeAnciennete         = calc.PrimeAnciennete;
-        entity.PrimeAnciennteRate      = calc.TauxAnciennete;
-        entity.HeuresSupp25            = calc.MontHsupp25;
-        entity.HeuresSupp50            = calc.MontHsupp50;
-        entity.HeuresSupp100           = calc.MontHsupp100;
-        entity.Conges                  = calc.JoursConge;
-        entity.JoursFeries             = calc.JoursFeries;
-        entity.PrimeImposable1         = calc.PrimeImposable1;
-        entity.PrimeImposable2         = calc.PrimeImposable2;
-        entity.PrimeImposable3         = calc.PrimeImposable3;
-        entity.TotalPrimesImposables   = calc.TotalPrimesImposables;
-        entity.TotalBrut               = calc.SalaireBrutImposable;
-        entity.BrutImposable           = calc.SalaireBrutImposable;
-        entity.TotalNiExcedentImposable= calc.TotalNiExcedentImposable;
+        entity.SalaireBase = calc.SalaireBase26j;
+        entity.PrimeAnciennete = calc.PrimeAnciennete;
+        entity.PrimeAnciennteRate = calc.TauxAnciennete;
+        entity.HeuresSupp25 = calc.MontHsupp25;
+        entity.HeuresSupp50 = calc.MontHsupp50;
+        entity.HeuresSupp100 = calc.MontHsupp100;
+        entity.Conges = calc.JoursConge;
+        entity.JoursFeries = calc.JoursFeries;
+        entity.PrimeImposable1 = calc.PrimeImposable1;
+        entity.PrimeImposable2 = calc.PrimeImposable2;
+        entity.PrimeImposable3 = calc.PrimeImposable3;
+        entity.TotalPrimesImposables = calc.TotalPrimesImposables;
+        entity.TotalBrut = calc.SalaireBrutImposable;
+        entity.BrutImposable = calc.SalaireBrutImposable;
+        entity.TotalNiExcedentImposable = calc.TotalNiExcedentImposable;
 
         entity.IndemniteRepresentation = calc.NiLineRepresentation;
-        entity.PrimeTransport          = calc.NiLineTransport;
-        entity.PrimePanier             = calc.NiLinePanier;
-        entity.IndemniteCaisse         = calc.NiLineCaisse;
-        entity.PrimeSalissure          = calc.NiLineSalissure;
-        entity.GratificationsFamilial  = calc.NiLineGratifSociale;
-        entity.IndemniteKilometrique   = calc.NiLineKilometrique;
-        entity.PrimeTourne             = calc.NiLineTournee;
-        entity.PrimeOutillage          = calc.NiLineOutillage;
-        entity.AideMedicale            = calc.NiLineAideMedicale;
+        entity.PrimeTransport = calc.NiLineTransport;
+        entity.PrimePanier = calc.NiLinePanier;
+        entity.IndemniteCaisse = calc.NiLineCaisse;
+        entity.PrimeSalissure = calc.NiLineSalissure;
+        entity.GratificationsFamilial = calc.NiLineGratifSociale;
+        entity.IndemniteKilometrique = calc.NiLineKilometrique;
+        entity.PrimeTourne = calc.NiLineTournee;
+        entity.PrimeOutillage = calc.NiLineOutillage;
+        entity.AideMedicale = calc.NiLineAideMedicale;
         entity.AutresPrimesNonImposable = calc.NiLineAutres + calc.NiLineLait;
-        entity.TotalIndemnites         = calc.TotalNiExonere;
+        entity.TotalIndemnites = calc.TotalNiExonere;
 
-        entity.FraisProfessionnels     = calc.MontantFp;
-        entity.CnssPartSalariale       = calc.CnssRgSalarial;
-        entity.AmoPartSalariale        = calc.CnssAmoSalarial;
-        entity.CnssBase                = calc.BaseCnssRg;
-        entity.CimrPartSalariale       = calc.CimrSalarial;
-        entity.CimrBase                = calc.BaseCimr;
-        entity.AmoBase                 = calc.SalaireBrutImposable;
-        entity.MutuelleBase            = calc.SalaireBrutImposable;
-        entity.CnssPartPatronale       = calc.CnssRgPatronal;
-        entity.AmoPartPatronale        = calc.CnssAmoPatronal;
-        entity.CimrPartPatronale       = calc.CimrPatronal;
+        entity.FraisProfessionnels = calc.MontantFp;
+        entity.CnssPartSalariale = calc.CnssRgSalarial;
+        entity.AmoPartSalariale = calc.CnssAmoSalarial;
+        entity.CnssBase = calc.BaseCnssRg;
+        entity.CimrPartSalariale = calc.CimrSalarial;
+        entity.CimrBase = calc.BaseCimr;
+        entity.AmoBase = calc.SalaireBrutImposable;
+        entity.MutuelleBase = calc.SalaireBrutImposable;
+        entity.CnssPartPatronale = calc.CnssRgPatronal;
+        entity.AmoPartPatronale = calc.CnssAmoPatronal;
+        entity.CimrPartPatronale = calc.CimrPatronal;
         entity.TotalCotisationsSalariales = calc.TotalCnssSalarial + calc.CimrSalarial + calc.MutuelleSalarialeAmount;
         entity.TotalCotisationsPatronales = calc.TotalCnssPatronal + calc.CimrPatronal + calc.MutuellePatronaleAmount;
-        entity.MutuellePartSalariale   = calc.MutuelleSalarialeAmount;
-        entity.MutuellePartPatronale   = calc.MutuellePatronaleAmount;
-        entity.ImpotRevenu             = calc.IrFinal;
-        entity.IrTaux                  = calc.TauxIr;
-        entity.NetImposable            = calc.RevenuNetImposable;
-        entity.AvanceSurSalaire        = calc.AvanceSalaire;
-        entity.InteretSurLogement      = calc.InteretPretLogement;
-        entity.TotalGains              = calc.SalaireBrutImposable + calc.TotalNiExonere;
-        entity.TotalRetenues           = calc.TotalRetenuesSalariales;
-        entity.NetAPayer               = calc.SalaireNet;
-        entity.TotalNet                = calc.SalaireNet;
-        entity.TotalNet2               = calc.SalaireNet;
-        entity.ErrorMessage            = calc.ErrorMessage;
-        entity.Status                  = calc.Success ? PayrollResultStatus.OK : PayrollResultStatus.Error;
+        entity.MutuellePartSalariale = calc.MutuelleSalarialeAmount;
+        entity.MutuellePartPatronale = calc.MutuellePatronaleAmount;
+        entity.ImpotRevenu = calc.IrFinal;
+        entity.IrTaux = calc.TauxIr;
+        entity.NetImposable = calc.RevenuNetImposable;
+        entity.AvanceSurSalaire = calc.AvanceSalaire;
+        entity.InteretSurLogement = calc.InteretPretLogement;
+        entity.TotalGains = calc.SalaireBrutImposable + calc.TotalNiExonere;
+        entity.TotalRetenues = calc.TotalRetenuesSalariales;
+        entity.NetAPayer = calc.SalaireNet;
+        entity.TotalNet = calc.SalaireNet;
+        entity.TotalNet2 = calc.SalaireNet;
+        entity.ErrorMessage = calc.ErrorMessage;
+        entity.Status = calc.Success ? PayrollResultStatus.OK : PayrollResultStatus.Error;
     }
 
     // ── Mapper ────────────────────────────────────────────────────────────────
 
     private static PayrollResultReadDto MapToRead(PayrollResult pr, PayrollCalculationResult? calc) => new()
     {
-        Id                    = pr.Id,
-        EmployeeId            = pr.EmployeeId,
-        EmployeeFullName      = pr.Employee != null ? $"{pr.Employee.FirstName} {pr.Employee.LastName}" : string.Empty,
-        CompanyId             = pr.CompanyId,
-        Month                 = pr.Month,
-        Year                  = pr.Year,
-        PayHalf               = pr.PayHalf,
-        Status                = pr.Status,
-        ErrorMessage          = pr.ErrorMessage,
-        SalaireBase           = pr.SalaireBase,
-        PrimeAnciennete       = pr.PrimeAnciennete,
-        PrimeAnciennteRate    = pr.PrimeAnciennteRate,
-        HeuresSupp25          = pr.HeuresSupp25,
-        HeuresSupp50          = pr.HeuresSupp50,
-        HeuresSupp100         = pr.HeuresSupp100,
+        Id = pr.Id,
+        EmployeeId = pr.EmployeeId,
+        EmployeeFullName = pr.Employee != null ? $"{pr.Employee.FirstName} {pr.Employee.LastName}" : string.Empty,
+        CompanyId = pr.CompanyId,
+        Month = pr.Month,
+        Year = pr.Year,
+        PayHalf = pr.PayHalf,
+        Status = pr.Status,
+        ErrorMessage = pr.ErrorMessage,
+        SalaireBase = pr.SalaireBase,
+        PrimeAnciennete = pr.PrimeAnciennete,
+        PrimeAnciennteRate = pr.PrimeAnciennteRate,
+        HeuresSupp25 = pr.HeuresSupp25,
+        HeuresSupp50 = pr.HeuresSupp50,
+        HeuresSupp100 = pr.HeuresSupp100,
         TotalPrimesImposables = pr.TotalPrimesImposables,
-        BrutImposable         = pr.BrutImposable,
-        FraisProfessionnels   = pr.FraisProfessionnels,
-        BaseCnss              = pr.CnssBase,
-        CnssRgSalarial        = pr.CnssPartSalariale,
-        CnssAmoSalarial       = pr.AmoPartSalariale,
-        CimrSalarial          = pr.CimrPartSalariale,
-        MutuelleSalariale     = pr.MutuellePartSalariale,
-        IrTaux                = pr.IrTaux,
-        IR                    = pr.ImpotRevenu,
-        RevenuNetImposable    = pr.NetImposable,
-        SalaireNet            = pr.NetAPayer,
-        CnssRgPatronal        = pr.CnssPartPatronale,
-        AmoPatronal           = pr.AmoPartPatronale,
-        CimrPatronal          = pr.CimrPartPatronale,
-        TotalChargesPatronales= pr.TotalCotisationsPatronales,
-        Primes                = pr.Primes?.Select(p => new PayrollResultPrimeDto { Label = p.Label, Montant = p.Montant, IsTaxable = p.IsTaxable }).ToList() ?? new(),
-        AuditSteps            = pr.CalculationAuditSteps?.OrderBy(s => s.StepOrder).Select(s => new PayrollAuditStepDto { StepOrder = s.StepOrder, ModuleName = s.ModuleName, FormulaDescription = s.FormulaDescription }).ToList()
+        BrutImposable = pr.BrutImposable,
+        FraisProfessionnels = pr.FraisProfessionnels,
+        BaseCnss = pr.CnssBase,
+        CnssRgSalarial = pr.CnssPartSalariale,
+        CnssAmoSalarial = pr.AmoPartSalariale,
+        CimrSalarial = pr.CimrPartSalariale,
+        MutuelleSalariale = pr.MutuellePartSalariale,
+        IrTaux = pr.IrTaux,
+        IR = pr.ImpotRevenu,
+        RevenuNetImposable = pr.NetImposable,
+        SalaireNet = pr.NetAPayer,
+        CnssRgPatronal = pr.CnssPartPatronale,
+        AmoPatronal = pr.AmoPartPatronale,
+        CimrPatronal = pr.CimrPartPatronale,
+        TotalChargesPatronales = pr.TotalCotisationsPatronales,
+        Primes = pr.Primes?.Select(p => new PayrollResultPrimeDto { Label = p.Label, Montant = p.Montant, IsTaxable = p.IsTaxable }).ToList() ?? new(),
+        AuditSteps = pr.CalculationAuditSteps?.OrderBy(s => s.StepOrder).Select(s => new PayrollAuditStepDto { StepOrder = s.StepOrder, ModuleName = s.ModuleName, FormulaDescription = s.FormulaDescription }).ToList()
     };
 }

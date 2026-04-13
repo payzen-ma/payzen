@@ -39,6 +39,10 @@ export interface BarChartConfig {
   highlightLast?: boolean;
   horizontal?: boolean;
   suffix?: string;
+  /** Axe Y (effectif) : plafond suggéré (ex. 90 pour échelle 0–90). */
+  ySuggestedMax?: number;
+  /** Pas entre graduations Y (ex. 10). */
+  yTickStep?: number;
 }
 
 export interface DonutSlice {
@@ -84,11 +88,19 @@ export interface DeclarationRow {
   reference: string;
 }
 
+/** Pagination bas de page (maquette Figma). */
+export interface VueGlobaleFooterNav {
+  current: number;
+  total: number;
+}
+
 export interface VueGlobaleData {
   meta: SectionMeta;
   kpis: KpiMetric[];
   effectifEvolution: BarChartConfig;
   repartitionDepartement: DonutChartConfig;
+  /** Affichage optionnel type « 2 / 93 » avec flèches. */
+  footerNav?: VueGlobaleFooterNav | null;
 }
 
 export interface MouvementsRhData {

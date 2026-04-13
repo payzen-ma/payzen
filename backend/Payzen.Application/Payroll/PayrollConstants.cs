@@ -12,40 +12,40 @@ public static class PayrollConstants
     public const int RoundingDecimals = 2;
 
     // CNSS
-    public const decimal PLAFOND_CNSS_MENSUEL        = 6000.00m;
-    public const decimal CNSS_RG_SALARIAL            = 0.0448m;
-    public const decimal CNSS_RG_PATRONAL            = 0.0898m;
-    public const decimal CNSS_AMO_SALARIAL           = 0.0226m;
-    public const decimal CNSS_AMO_PATRONAL           = 0.0226m;
-    public const decimal CNSS_AMO_PARTICIPATION_PAT  = 0.0185m;
-    public const decimal CNSS_ALLOC_FAM_PAT          = 0.0640m;
-    public const decimal CNSS_FP_PAT                 = 0.0160m;
+    public const decimal PLAFOND_CNSS_MENSUEL = 6000.00m;
+    public const decimal CNSS_RG_SALARIAL = 0.0448m;
+    public const decimal CNSS_RG_PATRONAL = 0.0898m;
+    public const decimal CNSS_AMO_SALARIAL = 0.0226m;
+    public const decimal CNSS_AMO_PATRONAL = 0.0226m;
+    public const decimal CNSS_AMO_PARTICIPATION_PAT = 0.0185m;
+    public const decimal CNSS_ALLOC_FAM_PAT = 0.0640m;
+    public const decimal CNSS_FP_PAT = 0.0160m;
 
     // Plafonds Indemnités Non Imposables
-    public const decimal PLAFOND_NI_TRANSPORT        = 500.00m;
-    public const decimal PLAFOND_NI_TRANSPORT_HU     = 750.00m;
-    public const decimal PLAFOND_NI_TOURNEE          = 1500.00m;
-    public const decimal PLAFOND_NI_REPRESENTATION   = 0.10m;   // 10% du salaire
-    public const decimal PLAFOND_NI_PANIER_JOUR      = 34.20m;
-    public const decimal PLAFOND_NI_CAISSE           = 239.00m;
-    public const decimal PLAFOND_NI_CAISSE_DGI       = 190.00m;
-    public const decimal PLAFOND_NI_LAIT             = 196.00m;
-    public const decimal PLAFOND_NI_LAIT_DGI         = 150.00m;
-    public const decimal PLAFOND_NI_OUTILLAGE        = 119.00m;
-    public const decimal PLAFOND_NI_OUTILLAGE_DGI    = 100.00m;
-    public const decimal PLAFOND_NI_SALISSURE        = 239.00m;
-    public const decimal PLAFOND_NI_SALISSURE_DGI    = 210.00m;
-    public const decimal PLAFOND_NI_GRATIF_ANNUEL    = 5000.00m;
-    public const decimal PLAFOND_NI_GRATIF_DGI       = 2500.00m;
+    public const decimal PLAFOND_NI_TRANSPORT = 500.00m;
+    public const decimal PLAFOND_NI_TRANSPORT_HU = 750.00m;
+    public const decimal PLAFOND_NI_TOURNEE = 1500.00m;
+    public const decimal PLAFOND_NI_REPRESENTATION = 0.10m;   // 10% du salaire
+    public const decimal PLAFOND_NI_PANIER_JOUR = 34.20m;
+    public const decimal PLAFOND_NI_CAISSE = 239.00m;
+    public const decimal PLAFOND_NI_CAISSE_DGI = 190.00m;
+    public const decimal PLAFOND_NI_LAIT = 196.00m;
+    public const decimal PLAFOND_NI_LAIT_DGI = 150.00m;
+    public const decimal PLAFOND_NI_OUTILLAGE = 119.00m;
+    public const decimal PLAFOND_NI_OUTILLAGE_DGI = 100.00m;
+    public const decimal PLAFOND_NI_SALISSURE = 239.00m;
+    public const decimal PLAFOND_NI_SALISSURE_DGI = 210.00m;
+    public const decimal PLAFOND_NI_GRATIF_ANNUEL = 5000.00m;
+    public const decimal PLAFOND_NI_GRATIF_DGI = 2500.00m;
 
     // IR
     public const decimal IR_DEDUCTION_FAMILLE = 30.00m;
 
     // Frais professionnels (MODULE 08)
-    public const decimal FP_SEUIL_35   = 6500.00m;
-    public const decimal FP_TAUX_35    = 0.35m;
+    public const decimal FP_SEUIL_35 = 6500.00m;
+    public const decimal FP_TAUX_35 = 0.35m;
     public const decimal FP_PLAFOND_35 = 2916.67m;
-    public const decimal FP_TAUX_25    = 0.25m;
+    public const decimal FP_TAUX_25 = 0.25m;
     public const decimal FP_PLAFOND_25 = 2916.67m;
 
     /// <summary>Barème IR mensuel 2026 (RNI_min, RNI_max, taux, déduction mensuelle)</summary>

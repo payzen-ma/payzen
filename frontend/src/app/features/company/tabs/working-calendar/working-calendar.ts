@@ -151,7 +151,6 @@ export class WorkingCalendarComponent implements OnInit {
             this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading working calendars:', error);
         this.messageService.add({
           severity: 'error',
           summary: this.translateService.instant('common.error'),
@@ -212,7 +211,7 @@ export class WorkingCalendarComponent implements OnInit {
     }
 
     const days = this.editableDays();
-    
+
     // Validate all working days
     for (const day of days) {
       if (!this.validateDay(day)) {
@@ -255,7 +254,6 @@ export class WorkingCalendarComponent implements OnInit {
         this.loadWorkingCalendars();
       })
       .catch((error) => {
-        console.error('Error saving working calendar:', error);
         this.messageService.add({
           severity: 'error',
           summary: this.translateService.instant('common.error'),

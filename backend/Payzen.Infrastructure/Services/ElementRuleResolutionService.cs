@@ -18,7 +18,8 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
     public async Task<decimal?> GetParameterValueEffectiveAtAsync(
         string code, DateOnly asOfDate, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(code)) return null;
+        if (string.IsNullOrWhiteSpace(code))
+            return null;
         return await _db.LegalParameters
             .AsNoTracking()
             .Where(p => p.Code.ToLower() == code.Trim().ToLower()
@@ -69,7 +70,8 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
 
     public async Task<int?> GetAuthorityIdByCodeAsync(string code, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(code)) return null;
+        if (string.IsNullOrWhiteSpace(code))
+            return null;
         return await _db.Authorities
             .AsNoTracking()
             .Where(a => a.Code.ToLower() == code.Trim().ToLower() && a.DeletedAt == null)
@@ -90,18 +92,18 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
 
         decimal GetBaseRef(BaseReference br) => br switch
         {
-            BaseReference.BASE_SALARY  => baseSalary  ?? 0,
+            BaseReference.BASE_SALARY => baseSalary ?? 0,
             BaseReference.GROSS_SALARY => grossSalary ?? 0,
-            BaseReference.SBI          => sbi         ?? 0,
-            _                          => baseSalary  ?? 0
+            BaseReference.SBI => sbi ?? 0,
+            _ => baseSalary ?? 0
         };
 
         decimal CapToMonthly(decimal amount, CapUnit unit) => unit switch
         {
             CapUnit.PER_MONTH => amount,
-            CapUnit.PER_DAY   => amount * workingDaysPerMonth,
-            CapUnit.PER_YEAR  => amount / 12,
-            _                 => amount
+            CapUnit.PER_DAY => amount * workingDaysPerMonth,
+            CapUnit.PER_YEAR => amount / 12,
+            _ => amount
         };
 
         switch (rule.ExemptionType)
@@ -113,47 +115,54 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
                 return 0;
 
             case ExemptionType.CAPPED:
-                if (rule.Cap == null) return 0;
+                if (rule.Cap == null)
+                    return 0;
                 return Math.Min(lineAmount, CapToMonthly(rule.Cap.CapAmount, rule.Cap.CapUnit));
 
             case ExemptionType.FORMULA:
                 var fv = ResolveFormulaCap(rule, paramValuesByCode);
-                if (fv == null) return 0;
+                if (fv == null)
+                    return 0;
                 var fMonthly = rule.Formula != null ? CapToMonthly(fv.Value, rule.Formula.ResultUnit) : fv.Value;
                 return Math.Min(lineAmount, fMonthly);
 
             case ExemptionType.FORMULA_CAPPED:
                 var rfv = ResolveFormulaCap(rule, paramValuesByCode);
-                if (rfv == null) return 0;
+                if (rfv == null)
+                    return 0;
                 var fcMonthly = rule.Formula != null ? CapToMonthly(rfv.Value, rule.Formula.ResultUnit) : rfv.Value;
                 decimal? fixedCap = rule.Cap != null ? CapToMonthly(rule.Cap.CapAmount, rule.Cap.CapUnit) : null;
                 var effCap = fixedCap.HasValue ? Math.Min(fcMonthly, fixedCap.Value) : fcMonthly;
                 return Math.Min(lineAmount, effCap);
 
             case ExemptionType.PERCENTAGE:
-                if (rule.Percentage == null) return 0;
+                if (rule.Percentage == null)
+                    return 0;
                 var pctExempt = GetBaseRef(rule.Percentage.BaseReference) * (rule.Percentage.Percentage / 100m);
                 return Math.Min(lineAmount, pctExempt);
 
             case ExemptionType.PERCENTAGE_CAPPED:
-                if (rule.Percentage == null) return 0;
+                if (rule.Percentage == null)
+                    return 0;
                 var pctCExempt = GetBaseRef(rule.Percentage.BaseReference) * (rule.Percentage.Percentage / 100m);
                 if (rule.Cap != null)
                     pctCExempt = Math.Min(pctCExempt, CapToMonthly(rule.Cap.CapAmount, rule.Cap.CapUnit));
                 return Math.Min(lineAmount, pctCExempt);
 
             case ExemptionType.DUAL_CAP:
-                if (rule.DualCap == null) return 0;
+                if (rule.DualCap == null)
+                    return 0;
                 var dualBase = GetBaseRef(rule.DualCap.BaseReference);
                 int periodsInUnit = rule.DualCap.FixedCapUnit switch
                 {
-                    CapUnit.PER_DAY   => workingDaysPerMonth,
+                    CapUnit.PER_DAY => workingDaysPerMonth,
                     CapUnit.PER_MONTH => 1,
-                    CapUnit.PER_YEAR  => 1,
-                    _                 => 1
+                    CapUnit.PER_YEAR => 1,
+                    _ => 1
                 };
                 var effDualCap = rule.DualCap.CalculateEffectiveCap(dualBase, periodsInUnit);
-                if (rule.DualCap.FixedCapUnit == CapUnit.PER_YEAR) effDualCap /= 12;
+                if (rule.DualCap.FixedCapUnit == CapUnit.PER_YEAR)
+                    effDualCap /= 12;
                 return Math.Min(lineAmount, effDualCap);
 
             case ExemptionType.TIERED:
@@ -167,7 +176,8 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
     private static decimal? ResolveFormulaCap(
         ElementRule rule, IReadOnlyDictionary<string, decimal> paramValuesByCode)
     {
-        if (rule.Formula == null) return null;
+        if (rule.Formula == null)
+            return null;
         var code = rule.Formula.Parameter?.Code;
         if (!string.IsNullOrEmpty(code) && paramValuesByCode.TryGetValue(code, out var val))
             return val * rule.Formula.Multiplier;
@@ -176,17 +186,21 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
 
     private static decimal ComputeTieredExempt(ElementRule rule, decimal lineAmount)
     {
-        if (rule.Tiers == null || !rule.Tiers.Any()) return 0;
+        if (rule.Tiers == null || !rule.Tiers.Any())
+            return 0;
         decimal exempt = 0, remaining = lineAmount;
         foreach (var tier in rule.Tiers.OrderBy(t => t.TierOrder))
         {
             var segmentEnd = Math.Min(tier.ToAmount ?? lineAmount, lineAmount);
-            if (segmentEnd <= tier.FromAmount || remaining <= 0) continue;
+            if (segmentEnd <= tier.FromAmount || remaining <= 0)
+                continue;
             var inTier = Math.Min(remaining, segmentEnd - tier.FromAmount);
-            if (inTier <= 0) continue;
-            exempt    += inTier * (tier.ExemptPercent / 100m);
+            if (inTier <= 0)
+                continue;
+            exempt += inTier * (tier.ExemptPercent / 100m);
             remaining -= inTier;
-            if (remaining <= 0) break;
+            if (remaining <= 0)
+                break;
         }
         return Math.Min(lineAmount, exempt);
     }

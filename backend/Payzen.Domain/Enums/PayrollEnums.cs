@@ -49,10 +49,10 @@ public enum ElementStatus
     ARCHIVED
 }
 
-/// <summary>Régime CIMR (DSL @ENUM RegimeCIMR)</summary>
+/// <summary>RÃ©gime CIMR (DSL @ENUM RegimeCIMR)</summary>
 public enum RegimeCimr
-{ 
-    AUCUN, 
-    AL_KAMIL, 
-    AL_MOUNASSIB 
+{
+    AUCUN,
+    AL_KAMIL,
+    AL_MOUNASSIB
 }

@@ -74,25 +74,28 @@
     </div>
 
     <!-- Filters & Search -->
-    <div class="card card-compact mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="w-full flex-1 min-w-0">
-          <p-iconfield iconPosition="left" class="w-full search-field">
-            <p-inputicon class="pi pi-search text-gray-400"></p-inputicon>
+    <div class="app-filters app-filters--surface mb-6">
+      <div class="app-filters__row">
+        <div class="app-filters__item app-filters__item--search">
+          <label class="app-filters__label" for="leave-types-search">{{ 'common.search' | translate }}</label>
+          <p-iconfield iconPosition="left" class="w-full app-filter-search">
+            <p-inputicon class="pi pi-search app-filter-search__icon"></p-inputicon>
             <input
+              id="leave-types-search"
               pInputText
               type="text"
-              class="w-full input"
+              class="w-full app-filter-search__input"
               [(ngModel)]="searchQueryModel"
               [placeholder]="'leave.types.searchPlaceholder' | translate"
+              [attr.aria-label]="'leave.types.searchPlaceholder' | translate"
             />
           </p-iconfield>
         </div>
 
-        <!-- Scope Filter -->
-        <div class="w-full md:w-56 shrink-0">
+        <div class="app-filters__item app-filters__item--sm">
+          <label class="app-filters__label" for="leave-types-scope">{{ 'leave.types.scope' | translate }}</label>
           <p-select
+            inputId="leave-types-scope"
             [options]="scopeOptions()"
             [(ngModel)]="selectedScopeModel"
             optionLabel="label"
@@ -102,16 +105,18 @@
           />
         </div>
 
-        <!-- Clear Filters -->
-        <button
-          pButton
-          type="button"
-          icon="pi pi-times"
-          [label]="'common.clear' | translate"
-          (click)="clearFilters()"
-          [disabled]="disableClearButton"
-          [ngClass]="disableClearButton ? 'btn btn-disabled' : 'shrink-0 btn btn-danger'"
-        ></button>
+        <div class="app-filters__actions">
+          <button
+            pButton
+            type="button"
+            [label]="'common.clear' | translate"
+            (click)="clearFilters()"
+            [disabled]="disableClearButton"
+            class="app-filter-clear"
+            [class.app-filter-clear--disabled]="disableClearButton"
+            title="{{ 'common.clear' | translate }}"
+          ></button>
+        </div>
       </div>
     </div>
 

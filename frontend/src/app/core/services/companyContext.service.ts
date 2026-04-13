@@ -1,10 +1,10 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { 
-  CompanyMembership, 
-  AppContext, 
-  CONTEXT_STORAGE_KEYS 
+import {
+  CompanyMembership,
+  AppContext,
+  CONTEXT_STORAGE_KEYS
 } from '@app/core/models/membership.model';
 
 @Injectable({
@@ -13,64 +13,64 @@ import {
 export class CompanyContextService {
   // Use inject() to avoid circular dependency issues
   private readonly router = inject(Router);
-  
+
   // ============================================
   // SIGNALS - Reactive State Management
   // ============================================
-  
+
   /** Current selected context (company + role) */
   private readonly _currentContext = signal<AppContext | null>(this.loadStoredContext());
-  
+
   /** All available memberships for the logged-in user */
   private readonly _memberships = signal<CompanyMembership[]>(this.loadStoredMemberships());
-  
+
   /** Loading state for context operations */
   private readonly _isLoading = signal<boolean>(false);
 
   // ============================================
   // CONTEXT CHANGE NOTIFICATION
   // ============================================
-  
+
   /** Subject to emit when context changes - components can subscribe to refresh their data */
   private readonly _contextChanged$ = new Subject<{ companyId: string | null; isExpertMode: boolean }>();
-  
+
   /** Public observable for components to subscribe to context changes */
   readonly contextChanged$ = this._contextChanged$.asObservable();
 
   // ============================================
   // PUBLIC COMPUTED SIGNALS
   // ============================================
-  
+
   /** Read-only access to current context */
   readonly currentContext = this._currentContext.asReadonly();
-  
+
   /** Read-only access to memberships */
   readonly memberships = this._memberships.asReadonly();
-  
+
   /** Loading state */
   readonly isLoading = this._isLoading.asReadonly();
-  
+
   /** Check if a context has been selected */
   readonly hasContext = computed(() => this._currentContext() !== null);
-  
+
   /** Check if user has multiple memberships requiring selection */
   readonly requiresContextSelection = computed(() => this._memberships().length > 1);
-  
+
   /** Current company ID from context */
   readonly companyId = computed(() => this._currentContext()?.companyId ?? null);
-  
+
   /** Current role from context */
   readonly role = computed(() => this._currentContext()?.role ?? null);
-  
+
   /** Check if current context is in Expert Mode */
   readonly isExpertMode = computed(() => this._currentContext()?.isExpertMode ?? false);
 
   /** Check if expert is viewing a client company */
   readonly isClientView = computed(() => this._currentContext()?.isClientView ?? false);
-  
+
   /** Current company name */
   readonly companyName = computed(() => this._currentContext()?.companyName ?? null);
-  
+
   /** Current permissions */
   readonly permissions = computed(() => this._currentContext()?.permissions ?? []);
 
@@ -80,14 +80,14 @@ export class CompanyContextService {
       const context = this._currentContext();
       if (context) {
         localStorage.setItem(
-          CONTEXT_STORAGE_KEYS.CURRENT_CONTEXT, 
+          CONTEXT_STORAGE_KEYS.CURRENT_CONTEXT,
           JSON.stringify(context)
         );
       } else {
         localStorage.removeItem(CONTEXT_STORAGE_KEYS.CURRENT_CONTEXT);
       }
     });
-    
+
     // Effect to persist memberships
     effect(() => {
       const memberships = this._memberships();
@@ -112,7 +112,7 @@ export class CompanyContextService {
    */
   switchContext(companyId: string): void {
     const current = this._currentContext();
-    
+
     // If in expert mode, we are switching client view
     if (current?.isExpertMode) {
       // If switching to the cabinet itself (portfolio view)
@@ -120,15 +120,15 @@ export class CompanyContextService {
         this.resetToPortfolioContext();
         return;
       }
-      
+
       // Otherwise switching to a client
       // We need the company name. If we don't have it, we might need to fetch it or pass it.
       // For now, we'll try to find it in the loaded companies if possible, or use a placeholder.
       // Ideally, this method should take a Company object or we fetch it.
-      // Since we are calling this from the dashboard where we have the company object, 
+      // Since we are calling this from the dashboard where we have the company object,
       // we should probably update the signature or find a way to get the name.
       // For this implementation, we'll assume the caller might have passed the name or we use a placeholder.
-      
+
       this.switchToClientContext({ id: companyId, legalName: 'Loading...' }, true);
     } else {
       // Standard mode switching (between memberships)
@@ -190,7 +190,6 @@ export class CompanyContextService {
   switchToClientContext(company: { id: string, legalName: string }, navigate: boolean = false): void {
     const current = this._currentContext();
     if (!current || !current.isExpertMode) {
-      console.warn('Cannot switch to client context: Not in expert mode');
       return;
     }
 
@@ -205,13 +204,13 @@ export class CompanyContextService {
     };
 
     this._currentContext.set(newContext);
-    
+
     // Notify subscribers about context change - this will trigger data refresh
     this._contextChanged$.next({
       companyId: newContext.companyId,
       isExpertMode: newContext.isExpertMode
     });
-    
+
     // Optionally navigate to client view
     if (navigate) {
       this.router.navigate(['/expert/client-view']);
@@ -246,7 +245,7 @@ export class CompanyContextService {
     }
 
     this._currentContext.set(newContext);
-    
+
     // Notify subscribers about context change
     this._contextChanged$.next({
       companyId: newContext.companyId,
@@ -341,7 +340,6 @@ export class CompanyContextService {
         return context;
       }
     } catch (error) {
-      console.warn('Failed to load stored context:', error);
       localStorage.removeItem(CONTEXT_STORAGE_KEYS.CURRENT_CONTEXT);
     }
     return null;
@@ -357,7 +355,6 @@ export class CompanyContextService {
         return JSON.parse(stored) as CompanyMembership[];
       }
     } catch (error) {
-      console.warn('Failed to load stored memberships:', error);
       localStorage.removeItem(CONTEXT_STORAGE_KEYS.MEMBERSHIPS);
     }
     return [];
