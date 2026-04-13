@@ -1,0 +1,282 @@
+/* ===================================
+   PAGE HEADER — correspond à l'image
+   =================================== */
+
+.page-header {
+    background-color: #f9fafb;
+    padding: 0.875rem 2rem;
+    border: none;
+    box-shadow: none;
+}
+
+.page-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    /* alignement vertical centré and force left/right layout */
+}
+
+/* ── Titre gauche ── */
+.greeting-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    align-self: stretch;
+}
+
+.greeting-title {
+    color: var(--Text-Primary, #1F2937);
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 110%;
+    /* 26.4px */
+    letter-spacing: -0.96px;
+}
+
+/* ── Dropdowns droite ── */
+.filters-section {
+    display: flex;
+    padding: var(--Space-2, 8px) var(--Space-3, 12px);
+    align-items: center;
+    gap: var(--Space-2, 8px);
+    align-self: stretch;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--Space-2, 8px);
+
+}
+
+/* PrimeNG p-select — style correspondant à l'image */
+:deep(.filter-dropdown.p-select) {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    /* match Figma surface/200 */
+    border-radius: 8px;
+    padding: 9px 13px;
+    /* px values from Figma container */
+    height: auto;
+    /* allow content-driven height */
+    min-width: 180px;
+    max-width: 240px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+:deep(.filter-dropdown.p-select:hover) {
+    border-color: #9ca3af;
+}
+
+:deep(.filter-dropdown .p-select-label) {
+    font-size: 14px;
+    font-weight: 500;
+    /* Inter Medium */
+    color: #475669;
+    /* surface/600 from Figma */
+    padding: 0;
+    letter-spacing: -0.56px;
+    /* match Figma tracking */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+}
+
+/* make label act like a block so padding/spacing are respected */
+:deep(.filter-dropdown .p-select-label) {
+    display: inline-block !important;
+    max-width: calc(100% - 3rem) !important;
+}
+
+/* increase overall horizontal padding inside select trigger */
+:deep(.filter-dropdown .p-select-trigger) {
+    padding: 0 1.25rem 0 0.75rem !important;
+}
+
+:deep(.filter-dropdown .p-select-dropdown) {
+    width: 2rem;
+    color: #6b7280;
+}
+
+/* icon container sizing to match Figma ~14px */
+:deep(.filter-dropdown .p-select-trigger) {
+    position: relative;
+    padding-right: 28px !important;
+    /* leave room for icon */
+}
+
+:deep(.filter-dropdown .p-select-trigger)::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+}
+
+/* ensure trigger area has left padding so text isn't cramped */
+:deep(.filter-dropdown .p-select-trigger) {
+    padding-left: 0.75rem;
+}
+
+/* Per-dropdown right icon using Figma asset URLs */
+.dept-filter :deep(.p-select-trigger),
+.parity-filter :deep(.p-select-trigger),
+.month-filter :deep(.p-select-trigger) {
+    position: relative;
+}
+
+/* department icon */
+.dept-filter :deep(.p-select-trigger)::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background-image: url('/assets/icons/departments.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+}
+
+/* parity icon */
+.parity-filter :deep(.p-select-trigger)::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background-image: url('/assets/icons/parity.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+}
+
+/* month icon */
+.month-filter :deep(.p-select-trigger)::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background-image: url('/assets/icons/month.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .page-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .filters-section {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    :deep(.filter-dropdown.p-select) {
+        flex: 1;
+        min-width: 120px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .greeting-title {
+        font-size: 1rem;
+    }
+
+    .filters-section {
+        gap: 0.5rem;
+    }
+}
+
+/* stronger specificity for PrimeNG placeholder/label when component state applies */
+:deep(.filter-dropdown.p-select) :deep(.p-select-label),
+:deep(.filter-dropdown.p-select) :deep(.p-select-label.p-placeholder) {
+    padding: 0 1rem !important;
+    letter-spacing: 0.4px !important;
+    word-spacing: 2px !important;
+}
+
+/* ensure the visible span inside select gets spacing even if PrimeNG overrides */
+:deep(.filter-dropdown.p-select) span.p-select-label {
+    padding-left: 0.75rem !important;
+}
+
+/* force padding between select border and text for all states */
+:deep(.filter-dropdown.p-select) :deep(.p-select-trigger) :deep(.p-select-label),
+:deep(.filter-dropdown.p-select) :deep(.p-select-trigger) :deep(.p-placeholder) {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+/* fallback: apply padding to the inner text node element */
+:deep(.filter-dropdown.p-select) :deep(.p-select-label) {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+/* -----------------------------
+   HR Tablist (Figma node 3383:470)
+   ----------------------------- */
+.hr-tablist {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.hr-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary, #64748b);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.56px;
+    white-space: nowrap;
+}
+
+.hr-tab img.icon,
+.hr-tab .icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+}
+
+.hr-tab.active {
+    background: var(--primary-50, #ebf5ff);
+    color: var(--primary-600, #1557b0);
+}
+
+.hr-tab:not(.active):hover {
+    background: rgba(0, 0, 0, 0.02);
+}

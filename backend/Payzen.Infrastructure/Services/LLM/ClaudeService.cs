@@ -17,10 +17,10 @@ public class ClaudeService : ILlmService
 
     public ClaudeService(IHttpClientFactory httpFactory, IConfiguration config, IWebHostEnvironment env)
     {
-        _http   = httpFactory.CreateClient("Claude");
+        _http = httpFactory.CreateClient("Claude");
         _apiKey = config["Anthropic:ApiKey"] ?? throw new InvalidOperationException("Anthropic:ApiKey manquant dans la configuration.");
-        _model  = config["Anthropic:Model"]  ?? "claude-sonnet-4-20250514";
-        _env    = env;
+        _model = config["Anthropic:Model"] ?? "claude-sonnet-4-20250514";
+        _env = env;
     }
 
     public async Task<string> CompleteAsync(string systemPrompt, string userMessage, CancellationToken ct = default)
@@ -29,7 +29,7 @@ public class ClaudeService : ILlmService
     public async Task<string> AnalyseSalarieAsync(string regleContent, EmployeePayrollDto payrollData, string instruction, CancellationToken ct = default)
     {
         var systemPrompt = $"Tu es un expert en paie marocaine. Voici les règles applicables :\n{regleContent}";
-        var userMessage  = $"Analyse la fiche de paie suivante et {instruction}\n\nDonnées :\n{JsonSerializer.Serialize(payrollData, new JsonSerializerOptions { WriteIndented = true })}";
+        var userMessage = $"Analyse la fiche de paie suivante et {instruction}\n\nDonnées :\n{JsonSerializer.Serialize(payrollData, new JsonSerializerOptions { WriteIndented = true })}";
         return await CallApiAsync(systemPrompt, userMessage, ct);
     }
 
@@ -71,10 +71,10 @@ public class ClaudeService : ILlmService
     {
         var request = new
         {
-            model      = _model,
+            model = _model,
             max_tokens = 4096,
-            system     = systemPrompt,
-            messages   = new[] { new { role = "user", content = userMessage } }
+            system = systemPrompt,
+            messages = new[] { new { role = "user", content = userMessage } }
         };
 
         var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");

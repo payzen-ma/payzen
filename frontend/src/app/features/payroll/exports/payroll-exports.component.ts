@@ -1,13 +1,12 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
-import { PayrollExportService } from './payroll-export.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { PayrollExportService } from './payroll-export.service';
 
-import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
+import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /** État de chargement par export */
@@ -18,24 +17,23 @@ type ExportKey = 'journal' | 'cnss' | 'cnssPdf' | 'ir' | 'irPdf';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     TranslateModule,
     SelectComponent,
     ButtonComponent
   ],
   templateUrl: './payroll-exports.component.html',
-  styleUrls: ['./payroll-exports.component.css']
+  styleUrl: './payroll-exports.component.css'
 })
 export class PayrollExportsComponent implements OnInit {
-  private readonly exportService   = inject(PayrollExportService);
-  private readonly contextService  = inject(CompanyContextService);
-  private readonly translate       = inject(TranslateService);
+  private readonly exportService = inject(PayrollExportService);
+  private readonly contextService = inject(CompanyContextService);
+  private readonly translate = inject(TranslateService);
 
   // ── Formulaire ─────────────────────────────────────────────────────────
-  selectedYear  = signal<number>(new Date().getFullYear());
+  selectedYear = signal<number>(new Date().getFullYear());
   selectedMonth = signal<number>(new Date().getMonth() + 1);
 
-  readonly yearOptions: SelectOption[]  = this.buildYearOptions();
+  readonly yearOptions: SelectOption[] = this.buildYearOptions();
   readonly monthOptions: SelectOption[] = this.buildMonthOptions();
 
   // ── Loading states ──────────────────────────────────────────────────────
@@ -45,12 +43,12 @@ export class PayrollExportsComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   // ── Actions ─────────────────────────────────────────────────────────────
 
   onExportJournal(): void {
-    this.download('journal', `JournalPaie_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
+    this.download('journal', `JournalPaie_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.xlsx`);
   }
 
   onExportCnss(): void {
@@ -82,11 +80,11 @@ export class PayrollExportsComponent implements OnInit {
     this.setLoading(key, true);
 
     const call$ =
-      key === 'journal'  ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.selectedMonth()) :
-      key === 'cnss'     ? this.exportService.downloadCnss(companyId, this.selectedYear(), this.selectedMonth()) :
-      key === 'cnssPdf'  ? this.exportService.downloadCnssPdf(companyId, this.selectedYear(), this.selectedMonth()) :
-      key === 'ir'       ? this.exportService.downloadIr(companyId, this.selectedYear(), this.selectedMonth()) :
-                           this.exportService.downloadIrPdf(companyId, this.selectedYear(), this.selectedMonth());
+      key === 'journal' ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.selectedMonth()) :
+        key === 'cnss' ? this.exportService.downloadCnss(companyId, this.selectedYear(), this.selectedMonth()) :
+          key === 'cnssPdf' ? this.exportService.downloadCnssPdf(companyId, this.selectedYear(), this.selectedMonth()) :
+            key === 'ir' ? this.exportService.downloadIr(companyId, this.selectedYear(), this.selectedMonth()) :
+              this.exportService.downloadIrPdf(companyId, this.selectedYear(), this.selectedMonth());
 
     call$.pipe(finalize(() => this.setLoading(key, false)))
       .subscribe({
@@ -97,9 +95,9 @@ export class PayrollExportsComponent implements OnInit {
         error: (err) => {
           const msg = err?.status === 404
             ? this.translate.instant('payrollExportsPage.messages.noBulletins')
-            : this.translate.instant('payrollExportsPage.messages.errorGeneric', { 
-                error: err?.statusText ?? this.translate.instant('payrollExportsPage.messages.errorUnknown')
-              });
+            : this.translate.instant('payrollExportsPage.messages.errorGeneric', {
+              error: err?.statusText ?? this.translate.instant('payrollExportsPage.messages.errorUnknown')
+            });
           this.errorMessage.set(msg);
         }
       });
@@ -130,9 +128,9 @@ export class PayrollExportsComponent implements OnInit {
       'payslip.months.july', 'payslip.months.august', 'payslip.months.september',
       'payslip.months.october', 'payslip.months.november', 'payslip.months.december'
     ];
-    return monthKeys.map((key, index) => ({ 
-      value: index + 1, 
-      label: this.translate.instant(key) 
+    return monthKeys.map((key, index) => ({
+      value: index + 1,
+      label: this.translate.instant(key)
     }));
   }
 }

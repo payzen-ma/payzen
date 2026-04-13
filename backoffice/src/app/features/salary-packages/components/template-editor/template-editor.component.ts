@@ -326,7 +326,7 @@ export interface DraftTemplate extends Omit<SalaryPackage, 'items'> {
                           <div class="relative">
                             @if (item.referentielElementId) {
                               <!-- Selected element display -->
-                              <div 
+                              <div
                                 class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white flex items-center justify-between gap-2"
                                 [class.cursor-pointer]="canEdit"
                                 [class.hover:border-primary]="canEdit"
@@ -335,7 +335,7 @@ export interface DraftTemplate extends Omit<SalaryPackage, 'items'> {
                                   <span class="font-medium text-gray-900 truncate">{{ item.label }}</span>
                                   <span class="text-xs text-gray-500 font-mono shrink-0">{{ item.referentielElementCode }}</span>
                                   @if (item.isConvergence !== undefined) {
-                                    <span 
+                                    <span
                                       class="text-xs px-1.5 py-0.5 rounded shrink-0"
                                       [class.bg-green-100]="item.isConvergence"
                                       [class.text-green-700]="item.isConvergence"
@@ -779,7 +779,6 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
         this.rehydrateReferentielFields();
       },
       error: (err: any) => {
-        console.error('Failed to load referentiel elements, using hardcoded fallback:', err);
         this.apiReferentielElements = [];
         this.filteredReferentielElements = [];
         this.loadingReferentielElements = false;
@@ -945,10 +944,10 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
   // Item Management
   addItem(): void {
     if (!this.canEdit) return;
-    
+
     // Get type defaults for allowance
     const resolved = this.payrollRulesService.resolveFlagsFromType('allowance');
-    
+
     const newItem: DraftItem = {
       clientId: this.nextItemId++,
       label: '',
@@ -985,7 +984,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
       this.activeDropdownIndex = index;
       this.elementSearchTerm = '';
       this.filterElements();
-      
+
       // Defer adding click-outside listener so the current click doesn't close it immediately
       setTimeout(() => {
         document.addEventListener('click', this.onClickOutsideDropdown);
@@ -1080,7 +1079,6 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
         this.applyReferentielRules(item, cnssRule, irRule);
       },
       error: (err) => {
-        console.error('Failed to load element rules:', err);
         // Apply default rules if fetch fails
         item.isTaxable = true;
         item.isSocial = true;
@@ -1192,9 +1190,9 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
    */
   toggleAutoMode(item: DraftItem): void {
     if (!this.canEdit) return;
-    
+
     item.isAuto = !item.isAuto;
-    
+
     if (item.isAuto) {
       // Re-apply auto rules when switching back to auto
       this.applyAutoRules(item);
@@ -1215,7 +1213,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
   private applyAutoRules(item: DraftItem): void {
     const resolved = this.payrollRulesService.resolveFlags(item.label || '', item.type);
     this.applyResolvedFlags(item, resolved);
-    
+
     // Store matched element ID if found
     if (resolved.matchedElement) {
       item.matchedElementId = resolved.matchedElement.id;
@@ -1274,7 +1272,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
       item.cnssMode = 'included';
     }
 
-    // Apply IR rule  
+    // Apply IR rule
     if (irRule) {
       const { isTaxable, mode, ceiling } = this.interpretExemptionRule(irRule);
       item.isTaxable = isTaxable ?? true;
@@ -1290,7 +1288,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
 
     // CIMR is typically not exempt for allowances
     item.isCIMR = true;
-    
+
     // Allowances are usually variable
     item.isVariable = true;
   }
@@ -1311,14 +1309,14 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
           isSocial: false,
           mode: 'excluded'
         };
-        
+
       case 'FULLY_SUBJECT':
         return {
           isTaxable: true,
           isSocial: true,
           mode: 'included'
         };
-        
+
       case 'CAPPED':
       case 'FORMULA':
       case 'FORMULA_CAPPED':
@@ -1330,7 +1328,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
           mode: 'exempt_with_ceiling',
           ceiling
         };
-        
+
       case 'PERCENTAGE':
       case 'PERCENTAGE_CAPPED':
         // Partially subject based on percentage
@@ -1339,7 +1337,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
           isSocial: true,
           mode: 'conditional'
         };
-        
+
       case 'TIERED':
         // Complex tiered exemption
         return {
@@ -1347,7 +1345,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
           isSocial: true,
           mode: 'conditional'
         };
-        
+
       default:
         return {
           isTaxable: true,
@@ -1368,7 +1366,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
         value: rule.cap.capAmount
       };
     }
-    
+
     if (rule.formula) {
       return {
         type: 'smig_multiple',
@@ -1377,7 +1375,7 @@ export class TemplateEditorComponent implements OnInit, OnChanges {
         value: rule.formula.currentCapValue
       };
     }
-    
+
     return undefined;
   }
 

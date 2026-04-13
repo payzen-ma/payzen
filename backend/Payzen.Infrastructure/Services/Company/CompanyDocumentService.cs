@@ -26,7 +26,7 @@ public class CompanyDocumentService : ICompanyDocumentService
         var folder = Path.Combine(webRoot, "uploads", "companies", companyId.ToString());
         Directory.CreateDirectory(folder);
 
-        var ext      = Path.GetExtension(file.FileName);
+        var ext = Path.GetExtension(file.FileName);
         var fileName = $"{documentType ?? "doc"}_{Guid.NewGuid():N}{ext}";
         var fullPath = Path.Combine(folder, fileName);
 
@@ -61,14 +61,14 @@ public class CompanyDocumentService : ICompanyDocumentService
         if (!File.Exists(fullPath))
             return ServiceResult<(byte[], string, string)>.Fail("Fichier introuvable.");
 
-        var bytes       = await File.ReadAllBytesAsync(fullPath, ct);
-        var ext         = Path.GetExtension(fullPath).ToLowerInvariant();
+        var bytes = await File.ReadAllBytesAsync(fullPath, ct);
+        var ext = Path.GetExtension(fullPath).ToLowerInvariant();
         var contentType = ext switch
         {
-            ".pdf"  => "application/pdf",
+            ".pdf" => "application/pdf",
             ".jpg" or ".jpeg" => "image/jpeg",
-            ".png"  => "image/png",
-            _       => "application/octet-stream"
+            ".png" => "image/png",
+            _ => "application/octet-stream"
         };
         return ServiceResult<(byte[], string, string)>.Ok((bytes, contentType, Path.GetFileName(fullPath)));
     }

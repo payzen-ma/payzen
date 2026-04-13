@@ -31,7 +31,7 @@ public class InvitationService : IInvitationService
             dto.CompanyId,
             dto.RoleId,
             token);
-        
+
         var invitation = new Invitation
         {
             Token = token,
@@ -43,28 +43,28 @@ public class InvitationService : IInvitationService
             ExpiresAt = DateTime.UtcNow.AddHours(48),
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _db.Invitations.Add(invitation);
         await _db.SaveChangesAsync(ct);
-        
+
         // Envoyer l'email d'invitation
         var company = await _db.Companies
             .Where(c => c.Id == dto.CompanyId)
             .Select(c => c.CompanyName)
             .FirstOrDefaultAsync(ct);
-        
+
         var role = await _db.Roles
             .Where(r => r.Id == dto.RoleId)
             .Select(r => r.Name)
             .FirstOrDefaultAsync(ct);
-        
+
         await _emailService.SendInvitationEmailAsync(
-            dto.Email, 
-            company ?? "Payzen", 
-            role ?? "Admin", 
-            token, 
+            dto.Email,
+            company ?? "Payzen",
+            role ?? "Admin",
+            token,
             ct);
-        
+
         return token;
     }
 
@@ -78,7 +78,7 @@ public class InvitationService : IInvitationService
             dto.RoleId,
             dto.EmployeeId,
             token);
-        
+
         var invitation = new Invitation
         {
             Token = token,
@@ -90,27 +90,27 @@ public class InvitationService : IInvitationService
             ExpiresAt = DateTime.UtcNow.AddHours(48),
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _db.Invitations.Add(invitation);
         await _db.SaveChangesAsync(ct);
-        
+
         var company = await _db.Companies
             .Where(c => c.Id == dto.CompanyId)
             .Select(c => c.CompanyName)
             .FirstOrDefaultAsync(ct);
-        
+
         var role = await _db.Roles
             .Where(r => r.Id == dto.RoleId)
             .Select(r => r.Name)
             .FirstOrDefaultAsync(ct);
-        
+
         await _emailService.SendInvitationEmailAsync(
-            dto.Email, 
-            company ?? "Payzen", 
-            role ?? "Employé", 
-            token, 
+            dto.Email,
+            company ?? "Payzen",
+            role ?? "Employé",
+            token,
             ct);
-        
+
         return token;
     }
 
@@ -121,17 +121,17 @@ public class InvitationService : IInvitationService
             .Include(i => i.Role)
             .Where(i => i.Token == token && i.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
-        
+
         if (invitation == null || invitation.Status != InvitationStatus.Pending)
             return null;
-        
+
         if (invitation.ExpiresAt < DateTime.UtcNow)
         {
             invitation.Status = InvitationStatus.Expired;
             await _db.SaveChangesAsync(ct);
             return null;
         }
-        
+
         return new ValidateInvitationResponseDto
         {
             CompanyName = invitation.Company?.CompanyName ?? "Payzen",
@@ -257,7 +257,8 @@ public class InvitationService : IInvitationService
     private static string MaskEmail(string email)
     {
         var at = email.IndexOf('@');
-        if (at <= 1) return "***" + email[at..];
+        if (at <= 1)
+            return "***" + email[at..];
         return email[0] + "***" + email[(at - 1)..];
     }
 
@@ -273,8 +274,10 @@ public class InvitationService : IInvitationService
         var first = parts.Length > 0 ? parts[0] : "Utilisateur";
         var last = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : "Invité";
         const int max = 80;
-        if (first.Length > max) first = first[..max];
-        if (last.Length > max) last = last[..max];
+        if (first.Length > max)
+            first = first[..max];
+        if (last.Length > max)
+            last = last[..max];
         return (first, last);
     }
 }

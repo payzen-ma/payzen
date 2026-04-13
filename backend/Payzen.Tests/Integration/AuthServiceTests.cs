@@ -14,7 +14,7 @@ namespace Payzen.Tests.Integration;
 public class AuthServiceTests : IDisposable
 {
     private readonly AppDbContext _db;
-    private readonly AuthService  _svc;
+    private readonly AuthService _svc;
     private const int AdminId = 1;
 
     public AuthServiceTests()
@@ -30,10 +30,10 @@ public class AuthServiceTests : IDisposable
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["JwtSettings:Key"]          = "test_secret_key_must_be_at_least_32_chars_long",
-                ["JwtSettings:Issuer"]       = "PayzenTest",
-                ["JwtSettings:Audience"]     = "PayzenClient",
-                ["JwtSettings:ExpiresInMinutes"]= "60"
+                ["JwtSettings:Key"] = "test_secret_key_must_be_at_least_32_chars_long",
+                ["JwtSettings:Issuer"] = "PayzenTest",
+                ["JwtSettings:Audience"] = "PayzenClient",
+                ["JwtSettings:ExpiresInMinutes"] = "60"
             })
             .Build();
 
@@ -49,10 +49,10 @@ public class AuthServiceTests : IDisposable
         // Seed un user admin de test (sans mot de passe, auth via Entra)
         _db.Users.Add(new Users
         {
-            Id        = AdminId,
-            Email     = "admin@test.ma",
-            Username  = "admin",
-            IsActive  = true,
+            Id = AdminId,
+            Email = "admin@test.ma",
+            Username = "admin",
+            IsActive = true,
             CreatedBy = 0
         });
         _db.SaveChanges();
@@ -88,7 +88,7 @@ public class AuthServiceTests : IDisposable
     {
         var dto = new UserCreateDto
         {
-            Email    = "nouveau@test.ma",
+            Email = "nouveau@test.ma",
             Username = "nouveau",
             IsActive = true
         };
@@ -104,7 +104,7 @@ public class AuthServiceTests : IDisposable
     {
         var dto = new UserCreateDto
         {
-            Email    = "admin@test.ma", // déjà dans la DB
+            Email = "admin@test.ma", // déjà dans la DB
             Username = "admin2",
             IsActive = true
         };

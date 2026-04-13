@@ -50,7 +50,6 @@ export class ViewCompanyComponent implements OnInit {
       error: (err) => {
         this.error = 'Erreur lors du chargement de l\'entreprise';
         this.isLoading = false;
-        console.error('Error loading company:', err);
       }
     });
   }
@@ -62,7 +61,6 @@ export class ViewCompanyComponent implements OnInit {
         this.inviteRoleId = this.detectAdminRoleId(data);
       },
       error: (err) => {
-        console.error('Error loading roles:', err);
         this.toast.error('Impossible de charger les rôles pour l’invitation.');
       }
     });
@@ -103,7 +101,6 @@ export class ViewCompanyComponent implements OnInit {
           err?.error?.message ||
           'Échec de l’envoi de l’invitation admin.';
         this.toast.error(message);
-        console.error('Error inviting admin:', err);
       }
     });
   }
@@ -121,8 +118,8 @@ export class ViewCompanyComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
+    return status === 'active'
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800';
   }
 

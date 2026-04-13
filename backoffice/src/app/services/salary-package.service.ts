@@ -1,31 +1,31 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
+  AutoRules,
+  CimrConfig,
+  CimrRegime,
+  PayComponent,
+  RegulationVersion,
+  SalaryComponentType,
   SalaryPackage,
+  SalaryPackageCloneRequest,
   SalaryPackageItem,
   SalaryPackageStatus,
   SalaryPackageWriteRequest,
-  SalaryPackageCloneRequest,
-  SalaryComponentType,
-  PayComponent,
-  TemplateType,
-  RegulationVersion,
-  AutoRules,
-  CimrConfig,
-  CimrRegime
+  TemplateType
 } from '../models/salary-package.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SalaryPackageService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private packagesUrl = `${this.baseUrl}/api/salary-packages`;
   private componentsUrl = `${this.baseUrl}/api/pay-components`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ============ Salary Packages ============
 

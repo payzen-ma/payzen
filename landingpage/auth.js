@@ -4,7 +4,16 @@
  * pour éviter les erreurs PKCE (AADSTS9002325).
  * MSAL dans l'app Angular gère automatiquement PKCE.
  */
-const APP_BASE_URL = 'http://localhost:4200';
+// Détection automatique de l'environnement
+const ENV_URLS = {
+  'test.payzenhr.com': 'https://app-test.payzenhr.com',
+  'demo.payzenhr.com': 'https://app-test.payzenhr.com',
+  'payzenhr.com': 'https://app.payzenhr.com',
+  'www.payzenhr.com': 'https://app.payzenhr.com',
+  'localhost': 'http://localhost:4200'
+};
+
+const APP_BASE_URL = ENV_URLS[window.location.hostname] || 'http://localhost:4200';
 
 /**
  * Redirige vers l'app Angular qui déclenche msal.loginRedirect()
@@ -20,7 +29,6 @@ function redirectToSignIn() {
  */
 function redirectToSignUp() {
   // Landing -> login en mode signup (prompt=create), puis callback => /signup/company
-  console.log('[landing] redirectToSignUp -> /login?mode=signup');
   window.location.href = `${APP_BASE_URL}/login?mode=signup`;
 }
 

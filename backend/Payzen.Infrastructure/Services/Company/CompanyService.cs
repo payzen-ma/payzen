@@ -28,7 +28,7 @@ public class CompanyService : ICompanyService
         ICompanyEventLogService companyEventLog,
         IInvitationService invitationService)
     {
-        _db  = db;
+        _db = db;
         _env = env;
         _onboarding = onboarding;
         _companyEventLog = companyEventLog;
@@ -179,7 +179,7 @@ public class CompanyService : ICompanyService
             {
                 var city = new City
                 {
-                    CityName  = dto.CityName!.Trim(),
+                    CityName = dto.CityName!.Trim(),
                     CountryId = dto.CountryId,
                     CreatedBy = createdBy
                 };
@@ -196,27 +196,27 @@ public class CompanyService : ICompanyService
             // ---------- créer l'entreprise ----------
             var company = new Domain.Entities.Company.Company
             {
-                CompanyName     = dto.CompanyName.Trim(),
-                Email           = dto.CompanyEmail.Trim(),
-                PhoneNumber     = dto.CompanyPhoneNumber.Trim(),
-                CountryPhoneCode= dto.CountryPhoneCode ?? country.CountryPhoneCode,
-                CompanyAddress  = dto.CompanyAddress.Trim(),
-                CityId          = cityId,
-                CountryId       = dto.CountryId,
-                CnssNumber      = dto.CnssNumber.Trim(),
+                CompanyName = dto.CompanyName.Trim(),
+                Email = dto.CompanyEmail.Trim(),
+                PhoneNumber = dto.CompanyPhoneNumber.Trim(),
+                CountryPhoneCode = dto.CountryPhoneCode ?? country.CountryPhoneCode,
+                CompanyAddress = dto.CompanyAddress.Trim(),
+                CityId = cityId,
+                CountryId = dto.CountryId,
+                CnssNumber = dto.CnssNumber.Trim(),
                 IsCabinetExpert = dto.IsCabinetExpert,
-                IceNumber       = dto.IceNumber?.Trim(),
-                IfNumber        = dto.IfNumber?.Trim(),
-                RcNumber        = dto.RcNumber?.Trim(),
-                RibNumber       = dto.RibNumber?.Trim(),
-                PatenteNumber   = dto.PatenteNumber?.Trim(),
-                WebsiteUrl      = dto.WebsiteUrl?.Trim(),
-                LegalForm       = dto.LegalForm?.Trim(),
-                FoundingDate    = dto.FoundingDate,
-                BusinessSector  = dto.BusinessSector?.Trim(),
-                PaymentMethod   = dto.PaymentMethod?.Trim(),
-                AuthType        = "C",
-                CreatedBy       = createdBy
+                IceNumber = dto.IceNumber?.Trim(),
+                IfNumber = dto.IfNumber?.Trim(),
+                RcNumber = dto.RcNumber?.Trim(),
+                RibNumber = dto.RibNumber?.Trim(),
+                PatenteNumber = dto.PatenteNumber?.Trim(),
+                WebsiteUrl = dto.WebsiteUrl?.Trim(),
+                LegalForm = dto.LegalForm?.Trim(),
+                FoundingDate = dto.FoundingDate,
+                BusinessSector = dto.BusinessSector?.Trim(),
+                PaymentMethod = dto.PaymentMethod?.Trim(),
+                AuthType = "C",
+                CreatedBy = createdBy
             };
 
             _db.Companies.Add(company);
@@ -239,11 +239,11 @@ public class CompanyService : ICompanyService
                 adminEmployee = new Domain.Entities.Employee.Employee
                 {
                     FirstName = dto.AdminFirstName.Trim(),
-                    LastName  = dto.AdminLastName.Trim(),
-                    Email     = dto.AdminEmail.Trim(),
-                    Phone     = dto.AdminPhone.Trim(),
+                    LastName = dto.AdminLastName.Trim(),
+                    Email = dto.AdminEmail.Trim(),
+                    Phone = dto.AdminPhone.Trim(),
                     CompanyId = company.Id,
-                    StatusId  = activeStatus.Id,
+                    StatusId = activeStatus.Id,
                     CinNumber = "TEMP-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                     DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)), // temporaire
                     CreatedBy = createdBy
@@ -362,7 +362,8 @@ public class CompanyService : ICompanyService
             sendInvitation: false,
             existingAdminUserId: null,
             createAdminAccount: false);
-        if (!result.Success) return result;
+        if (!result.Success)
+            return result;
         var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == result.Data!.Company.Id, ct);
         if (company != null)
         {
@@ -449,7 +450,8 @@ public class CompanyService : ICompanyService
                 {
                     var phoneCode = !string.IsNullOrWhiteSpace(dto.CountryPhoneCode) ? dto.CountryPhoneCode.Trim() : (c.CountryPhoneCode ?? "+000");
                     var code = new string(name.Where(char.IsLetter).Take(3).ToArray()).ToUpper();
-                    if (string.IsNullOrWhiteSpace(code)) code = "UNK";
+                    if (string.IsNullOrWhiteSpace(code))
+                        code = "UNK";
                     var newCountry = new Country { CountryName = name, CountryCode = code, CountryPhoneCode = phoneCode, CreatedBy = updatedBy };
                     _db.Countries.Add(newCountry);
                     await _db.SaveChangesAsync(ct);
@@ -467,7 +469,9 @@ public class CompanyService : ICompanyService
 
             if (dto.CityId.HasValue)
             {
-                if (c.CityId == dto.CityId.Value) { /* no change */ }
+                if (c.CityId == dto.CityId.Value)
+                { /* no change */
+                }
                 else
                 {
                     var city = await _db.Cities.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.CityId.Value && x.DeletedAt == null, ct);
@@ -586,9 +590,12 @@ public class CompanyService : ICompanyService
             c.isActive = dto.IsActive.Value;
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.SignatoryName)) c.SignatoryName = dto.SignatoryName.Trim();
-        if (!string.IsNullOrWhiteSpace(dto.SignatoryTitle)) c.SignatoryTitle = dto.SignatoryTitle.Trim();
-        if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity)) c.PayrollPeriodicity = dto.PayrollPeriodicity.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.SignatoryName))
+            c.SignatoryName = dto.SignatoryName.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.SignatoryTitle))
+            c.SignatoryTitle = dto.SignatoryTitle.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity))
+            c.PayrollPeriodicity = dto.PayrollPeriodicity.Trim();
 
         if (!string.IsNullOrWhiteSpace(dto.AuthType))
         {
@@ -618,7 +625,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var c = await _db.Companies.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult.Fail("Société introuvable.");
+        if (c == null)
+            return ServiceResult.Fail("Société introuvable.");
         c.DeletedAt = DateTimeOffset.UtcNow;
         c.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -661,17 +669,21 @@ public class CompanyService : ICompanyService
             var description = BuildHistoryDescription(e.eventName, e.oldValue, e.newValue);
             return new CompanyHistoryDto
             {
-                Type        = "company",
-                Title       = title,
-                Date        = e.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+                Type = "company",
+                Title = title,
+                Date = e.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
                 Description = description,
-                Details     = new Dictionary<string, object?>
+                Details = new Dictionary<string, object?>
                 {
-                    ["oldValue"] = e.oldValue, ["oldValueId"] = e.oldValueId, ["newValue"] = e.newValue, ["newValueId"] = e.newValueId,
-                    ["employeeId"] = e.employeeId, ["source"] = "company"
+                    ["oldValue"] = e.oldValue,
+                    ["oldValueId"] = e.oldValueId,
+                    ["newValue"] = e.newValue,
+                    ["newValueId"] = e.newValueId,
+                    ["employeeId"] = e.employeeId,
+                    ["source"] = "company"
                 },
-                ModifiedBy  = (name != null || role != null) ? new ModifiedByDto { Name = name, Role = role } : null,
-                Timestamp   = e.CreatedAt.ToString("o")
+                ModifiedBy = (name != null || role != null) ? new ModifiedByDto { Name = name, Role = role } : null,
+                Timestamp = e.CreatedAt.ToString("o")
             };
         }).ToList();
 
@@ -748,7 +760,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<DepartementReadDto>> UpdateDepartementAsync(int id, DepartementUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var dep = await _db.Departements.FirstOrDefaultAsync(d => d.Id == id && d.DeletedAt == null, ct);
-        if (dep == null) return ServiceResult<DepartementReadDto>.Fail("Département non trouvé");
+        if (dep == null)
+            return ServiceResult<DepartementReadDto>.Fail("Département non trouvé");
 
         var oldName = dep.DepartementName;
         var oldCompanyId = dep.CompanyId;
@@ -795,7 +808,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteDepartementAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var dep = await _db.Departements.FirstOrDefaultAsync(d => d.Id == id && d.DeletedAt == null, ct);
-        if (dep == null) return ServiceResult.Fail("Département non trouvé");
+        if (dep == null)
+            return ServiceResult.Fail("Département non trouvé");
         var hasEmployees = await _db.Employees.AnyAsync(e => e.DepartementId == id && e.DeletedAt == null, ct);
         if (hasEmployees)
             return ServiceResult.Fail("Impossible de supprimer ce département car il contient des employés actifs");
@@ -864,7 +878,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<JobPositionReadDto>> UpdateJobPositionAsync(int id, JobPositionUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var jp = await _db.JobPositions.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (jp == null) return ServiceResult<JobPositionReadDto>.Fail("Poste non trouvé");
+        if (jp == null)
+            return ServiceResult<JobPositionReadDto>.Fail("Poste non trouvé");
 
         var oldName = jp.Name;
         if (!string.IsNullOrWhiteSpace(dto.Name) && dto.Name != jp.Name)
@@ -888,7 +903,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteJobPositionAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var jp = await _db.JobPositions.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (jp == null) return ServiceResult.Fail("Poste non trouvé");
+        if (jp == null)
+            return ServiceResult.Fail("Poste non trouvé");
         var hasContracts = await _db.EmployeeContracts.AnyAsync(ec => ec.JobPositionId == id && ec.DeletedAt == null, ct);
         if (hasContracts)
             return ServiceResult.Fail("Impossible de supprimer ce poste car il est utilisé dans des contrats d'employés");
@@ -927,8 +943,10 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<ContractTypeReadDto>> UpdateContractTypeAsync(int id, ContractTypeUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var ct2 = await _db.ContractTypes.FindAsync(new object[] { id }, ct);
-        if (ct2 == null) return ServiceResult<ContractTypeReadDto>.Fail("Type de contrat introuvable.");
-        ct2.ContractTypeName = dto.ContractTypeName ?? ct2.ContractTypeName; ct2.UpdatedBy = updatedBy;
+        if (ct2 == null)
+            return ServiceResult<ContractTypeReadDto>.Fail("Type de contrat introuvable.");
+        ct2.ContractTypeName = dto.ContractTypeName ?? ct2.ContractTypeName;
+        ct2.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<ContractTypeReadDto>.Ok(new ContractTypeReadDto { Id = ct2.Id, ContractTypeName = ct2.ContractTypeName, CompanyId = ct2.CompanyId });
     }
@@ -936,9 +954,12 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteContractTypeAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var ct2 = await _db.ContractTypes.FindAsync(new object[] { id }, ct);
-        if (ct2 == null) return ServiceResult.Fail("Type de contrat introuvable.");
-        ct2.DeletedAt = DateTimeOffset.UtcNow; ct2.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (ct2 == null)
+            return ServiceResult.Fail("Type de contrat introuvable.");
+        ct2.DeletedAt = DateTimeOffset.UtcNow;
+        ct2.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     // ── WorkingCalendar ──────────────────────────────────────────────────────
@@ -949,18 +970,19 @@ public class CompanyService : ICompanyService
     private static WorkingCalendarReadDto MapWorkingCalendarRead(WorkingCalendar wc)
     {
         var dow = wc.DayOfWeek;
-        if (dow < 0 || dow > 6) dow = 0;
+        if (dow < 0 || dow > 6)
+            dow = 0;
         return new WorkingCalendarReadDto
         {
-            Id            = wc.Id,
-            CompanyId     = wc.CompanyId,
-            CompanyName   = wc.Company?.CompanyName ?? string.Empty,
-            DayOfWeek     = wc.DayOfWeek,
+            Id = wc.Id,
+            CompanyId = wc.CompanyId,
+            CompanyName = wc.Company?.CompanyName ?? string.Empty,
+            DayOfWeek = wc.DayOfWeek,
             DayOfWeekName = DayNames[dow],
-            IsWorkingDay  = wc.IsWorkingDay,
-            StartTime     = wc.StartTime,
-            EndTime       = wc.EndTime,
-            CreatedAt     = wc.CreatedAt.UtcDateTime
+            IsWorkingDay = wc.IsWorkingDay,
+            StartTime = wc.StartTime,
+            EndTime = wc.EndTime,
+            CreatedAt = wc.CreatedAt.UtcDateTime
         };
     }
 
@@ -1015,12 +1037,12 @@ public class CompanyService : ICompanyService
 
         var wc = new WorkingCalendar
         {
-            CompanyId    = dto.CompanyId,
-            DayOfWeek    = dto.DayOfWeek,
+            CompanyId = dto.CompanyId,
+            DayOfWeek = dto.DayOfWeek,
             IsWorkingDay = dto.IsWorkingDay,
-            StartTime    = dto.StartTime,
-            EndTime      = dto.EndTime,
-            CreatedBy    = userId
+            StartTime = dto.StartTime,
+            EndTime = dto.EndTime,
+            CreatedBy = userId
         };
         _db.WorkingCalendars.Add(wc);
         await _db.SaveChangesAsync(ct);
@@ -1059,7 +1081,7 @@ public class CompanyService : ICompanyService
             if (dto.IsWorkingDay.Value)
             {
                 var startTime = dto.StartTime ?? wc.StartTime;
-                var endTime   = dto.EndTime ?? wc.EndTime;
+                var endTime = dto.EndTime ?? wc.EndTime;
                 if (startTime == null || endTime == null)
                     return ServiceResult<WorkingCalendarReadDto>.Fail("Les horaires de début et de fin sont requis pour un jour travaillé");
                 if (startTime >= endTime)
@@ -1124,8 +1146,10 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<IEnumerable<HolidayReadDto>>> GetHolidaysAsync(int? companyId, int? year, CancellationToken ct = default)
     {
         var query = _db.Holidays.Where(h => h.DeletedAt == null).AsQueryable();
-        if (companyId.HasValue) query = query.Where(h => h.CompanyId == companyId || h.CompanyId == null);
-        if (year.HasValue)      query = query.Where(h => h.HolidayDate.Year == year.Value);
+        if (companyId.HasValue)
+            query = query.Where(h => h.CompanyId == companyId || h.CompanyId == null);
+        if (year.HasValue)
+            query = query.Where(h => h.HolidayDate.Year == year.Value);
         var list = await query
             .OrderBy(h => h.HolidayDate)
             .Select(h => new HolidayReadDto
@@ -1158,7 +1182,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<HolidayReadDto>> GetHolidayByIdAsync(int id, CancellationToken ct = default)
     {
         var h = await _db.Holidays.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (h == null) return ServiceResult<HolidayReadDto>.Fail("Férié introuvable.");
+        if (h == null)
+            return ServiceResult<HolidayReadDto>.Fail("Férié introuvable.");
         return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto
         {
             Id = h.Id,
@@ -1187,7 +1212,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<bool>> CheckHolidayAsync(int? companyId, DateOnly date, CancellationToken ct = default)
     {
         var q = _db.Holidays.Where(h => h.DeletedAt == null && h.HolidayDate == date);
-        if (companyId.HasValue) q = q.Where(h => h.CompanyId == companyId || h.CompanyId == null);
+        if (companyId.HasValue)
+            q = q.Where(h => h.CompanyId == companyId || h.CompanyId == null);
         var isHoliday = await q.AnyAsync(ct);
         return ServiceResult<bool>.Ok(isHoliday);
     }
@@ -1251,23 +1277,40 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<HolidayReadDto>> UpdateHolidayAsync(int id, HolidayUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var h = await _db.Holidays.FindAsync(new object[] { id }, ct);
-        if (h == null) return ServiceResult<HolidayReadDto>.Fail("Férié introuvable.");
-        if (dto.NameFr != null) h.NameFr = dto.NameFr;
-        if (dto.NameAr != null) h.NameAr = dto.NameAr;
-        if (dto.NameEn != null) h.NameEn = dto.NameEn;
-        if (dto.HolidayDate.HasValue) h.HolidayDate = dto.HolidayDate.Value;
-        if (dto.Description != null) h.Description = dto.Description;
-        if (dto.CountryId.HasValue) h.CountryId = dto.CountryId.Value;
-        if (dto.Scope.HasValue) h.Scope = dto.Scope.Value;
-        if (dto.HolidayType != null) h.HolidayType = dto.HolidayType;
-        if (dto.IsMandatory.HasValue) h.IsMandatory = dto.IsMandatory.Value;
-        if (dto.IsPaid.HasValue) h.IsPaid = dto.IsPaid.Value;
-        if (dto.IsRecurring.HasValue) h.IsRecurring = dto.IsRecurring.Value;
-        if (dto.RecurrenceRule != null) h.RecurrenceRule = dto.RecurrenceRule;
-        if (dto.Year.HasValue) h.Year = dto.Year.Value;
-        if (dto.AffectPayroll.HasValue) h.AffectPayroll = dto.AffectPayroll.Value;
-        if (dto.AffectAttendance.HasValue) h.AffectAttendance = dto.AffectAttendance.Value;
-        if (dto.IsActive.HasValue) h.IsActive = dto.IsActive.Value;
+        if (h == null)
+            return ServiceResult<HolidayReadDto>.Fail("Férié introuvable.");
+        if (dto.NameFr != null)
+            h.NameFr = dto.NameFr;
+        if (dto.NameAr != null)
+            h.NameAr = dto.NameAr;
+        if (dto.NameEn != null)
+            h.NameEn = dto.NameEn;
+        if (dto.HolidayDate.HasValue)
+            h.HolidayDate = dto.HolidayDate.Value;
+        if (dto.Description != null)
+            h.Description = dto.Description;
+        if (dto.CountryId.HasValue)
+            h.CountryId = dto.CountryId.Value;
+        if (dto.Scope.HasValue)
+            h.Scope = dto.Scope.Value;
+        if (dto.HolidayType != null)
+            h.HolidayType = dto.HolidayType;
+        if (dto.IsMandatory.HasValue)
+            h.IsMandatory = dto.IsMandatory.Value;
+        if (dto.IsPaid.HasValue)
+            h.IsPaid = dto.IsPaid.Value;
+        if (dto.IsRecurring.HasValue)
+            h.IsRecurring = dto.IsRecurring.Value;
+        if (dto.RecurrenceRule != null)
+            h.RecurrenceRule = dto.RecurrenceRule;
+        if (dto.Year.HasValue)
+            h.Year = dto.Year.Value;
+        if (dto.AffectPayroll.HasValue)
+            h.AffectPayroll = dto.AffectPayroll.Value;
+        if (dto.AffectAttendance.HasValue)
+            h.AffectAttendance = dto.AffectAttendance.Value;
+        if (dto.IsActive.HasValue)
+            h.IsActive = dto.IsActive.Value;
         h.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<HolidayReadDto>.Ok(new HolidayReadDto
@@ -1298,9 +1341,12 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteHolidayAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var h = await _db.Holidays.FindAsync(new object[] { id }, ct);
-        if (h == null) return ServiceResult.Fail("Férié introuvable.");
-        h.DeletedAt = DateTimeOffset.UtcNow; h.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (h == null)
+            return ServiceResult.Fail("Férié introuvable.");
+        h.DeletedAt = DateTimeOffset.UtcNow;
+        h.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     // ── Documents ────────────────────────────────────────────────────────────
@@ -1400,7 +1446,8 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult<CompanyDocumentReadDto>> UpdateDocumentAsync(int id, CompanyDocumentUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var doc = await _db.CompanyDocuments.FindAsync(new object[] { id }, ct);
-        if (doc == null || doc.DeletedAt != null) return ServiceResult<CompanyDocumentReadDto>.Fail("Document non trouvé");
+        if (doc == null || doc.DeletedAt != null)
+            return ServiceResult<CompanyDocumentReadDto>.Fail("Document non trouvé");
         // Parité monolithe : ne pas écraser le nom avec une chaîne vide / blanche
         if (!string.IsNullOrWhiteSpace(dto.Name))
             doc.Name = dto.Name;
@@ -1424,9 +1471,12 @@ public class CompanyService : ICompanyService
     public async Task<ServiceResult> DeleteDocumentAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var doc = await _db.CompanyDocuments.FindAsync(new object[] { id }, ct);
-        if (doc == null || doc.DeletedAt != null) return ServiceResult.Fail("Document non trouvé");
-        doc.DeletedAt = DateTimeOffset.UtcNow; doc.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (doc == null || doc.DeletedAt != null)
+            return ServiceResult.Fail("Document non trouvé");
+        doc.DeletedAt = DateTimeOffset.UtcNow;
+        doc.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     // ── File storage ─────────────────────────────────────────────────────────
@@ -1451,7 +1501,8 @@ public class CompanyService : ICompanyService
 
         var webRoot = WebRootPathHelper.ResolveWwwRoot(_env);
         var full = Path.Combine(webRoot, filePath.TrimStart('/'));
-        if (File.Exists(full)) File.Delete(full);
+        if (File.Exists(full))
+            File.Delete(full);
         return Task.FromResult(ServiceResult.Ok());
     }
 
@@ -1462,10 +1513,17 @@ public class CompanyService : ICompanyService
 
         var webRoot = WebRootPathHelper.ResolveWwwRoot(_env);
         var full = Path.Combine(webRoot, filePath.TrimStart('/'));
-        if (!File.Exists(full)) return ServiceResult<(byte[], string, string)>.Fail("Fichier introuvable.");
-        var bytes    = await File.ReadAllBytesAsync(full, ct);
-        var ext      = Path.GetExtension(filePath).ToLower();
-        var mimeType = ext switch { ".pdf" => "application/pdf", ".png" => "image/png", ".jpg" or ".jpeg" => "image/jpeg", _ => "application/octet-stream" };
+        if (!File.Exists(full))
+            return ServiceResult<(byte[], string, string)>.Fail("Fichier introuvable.");
+        var bytes = await File.ReadAllBytesAsync(full, ct);
+        var ext = Path.GetExtension(filePath).ToLower();
+        var mimeType = ext switch
+        {
+            ".pdf" => "application/pdf",
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            _ => "application/octet-stream"
+        };
         return ServiceResult<(byte[], string, string)>.Ok((bytes, mimeType, Path.GetFileName(filePath)));
     }
 
@@ -1473,61 +1531,61 @@ public class CompanyService : ICompanyService
 
     private static CompanyListDto MapToList(Domain.Entities.Company.Company c) => new()
     {
-        Id               = c.Id,
-        CompanyName      = c.CompanyName,
-        IsCabinetExpert  = c.IsCabinetExpert,
-        Email            = c.Email,
-        PhoneNumber      = c.PhoneNumber,
+        Id = c.Id,
+        CompanyName = c.CompanyName,
+        IsCabinetExpert = c.IsCabinetExpert,
+        Email = c.Email,
+        PhoneNumber = c.PhoneNumber,
         CountryPhoneCode = c.CountryPhoneCode,
-        CityName         = c.City?.CityName,
-        CountryName      = c.Country?.CountryName,
-        CompanyAddress   = c.CompanyAddress,
-        CnssNumber       = c.CnssNumber,
-        IceNumber        = c.IceNumber,
-        IfNumber         = c.IfNumber,
-        RcNumber         = c.RcNumber,
-        PatenteNumber    = c.PatenteNumber,
-        WebsiteUrl       = c.WebsiteUrl,
-        RibNumber        = c.RibNumber,
-        LegalForm        = c.LegalForm,
-        isActive         = c.isActive,
-        FoundingDate     = c.FoundingDate,
-        SignatoryName    = c.SignatoryName,
-        SignatoryTitle   = c.SignatoryTitle,
+        CityName = c.City?.CityName,
+        CountryName = c.Country?.CountryName,
+        CompanyAddress = c.CompanyAddress,
+        CnssNumber = c.CnssNumber,
+        IceNumber = c.IceNumber,
+        IfNumber = c.IfNumber,
+        RcNumber = c.RcNumber,
+        PatenteNumber = c.PatenteNumber,
+        WebsiteUrl = c.WebsiteUrl,
+        RibNumber = c.RibNumber,
+        LegalForm = c.LegalForm,
+        isActive = c.isActive,
+        FoundingDate = c.FoundingDate,
+        SignatoryName = c.SignatoryName,
+        SignatoryTitle = c.SignatoryTitle,
         PayrollPeriodicity = c.PayrollPeriodicity,
-        AuthType         = c.AuthType,
-        CreatedAt        = c.CreatedAt.DateTime
+        AuthType = c.AuthType,
+        CreatedAt = c.CreatedAt.DateTime
     };
 
     private static CompanyReadDto MapToRead(Domain.Entities.Company.Company c) => new()
     {
-        Id                 = c.Id,
-        CompanyName        = c.CompanyName,
-        Email              = c.Email,
-        PhoneNumber        = c.PhoneNumber,
-        CountryPhoneCode   = c.CountryPhoneCode,
-        CompanyAddress     = c.CompanyAddress,
-        CityId             = c.CityId,
-        CityName           = c.City?.CityName,
-        CountryId          = c.CountryId,
-        CountryName        = c.Country?.CountryName,
-        CnssNumber         = c.CnssNumber,
-        IsCabinetExpert    = c.IsCabinetExpert,
-        IceNumber          = c.IceNumber,
-        IfNumber           = c.IfNumber,
-        RcNumber           = c.RcNumber,
-        LegalForm          = c.LegalForm,
-        WebsiteUrl         = c.WebsiteUrl,
-        PatentNumber       = c.PatenteNumber,
-        RibNumber          = c.RibNumber,
-        FoundingDate       = c.FoundingDate,
-        BusinessSector     = c.BusinessSector,
-        isActive           = c.isActive,
-        SignatoryName      = c.SignatoryName,
-        SignatoryTitle     = c.SignatoryTitle,
+        Id = c.Id,
+        CompanyName = c.CompanyName,
+        Email = c.Email,
+        PhoneNumber = c.PhoneNumber,
+        CountryPhoneCode = c.CountryPhoneCode,
+        CompanyAddress = c.CompanyAddress,
+        CityId = c.CityId,
+        CityName = c.City?.CityName,
+        CountryId = c.CountryId,
+        CountryName = c.Country?.CountryName,
+        CnssNumber = c.CnssNumber,
+        IsCabinetExpert = c.IsCabinetExpert,
+        IceNumber = c.IceNumber,
+        IfNumber = c.IfNumber,
+        RcNumber = c.RcNumber,
+        LegalForm = c.LegalForm,
+        WebsiteUrl = c.WebsiteUrl,
+        PatentNumber = c.PatenteNumber,
+        RibNumber = c.RibNumber,
+        FoundingDate = c.FoundingDate,
+        BusinessSector = c.BusinessSector,
+        isActive = c.isActive,
+        SignatoryName = c.SignatoryName,
+        SignatoryTitle = c.SignatoryTitle,
         PayrollPeriodicity = c.PayrollPeriodicity,
-        AuthType           = c.AuthType,
-        CreatedAt          = c.CreatedAt.DateTime
+        AuthType = c.AuthType,
+        CreatedAt = c.CreatedAt.DateTime
     };
 
 }

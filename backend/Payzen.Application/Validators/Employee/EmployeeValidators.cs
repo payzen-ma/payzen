@@ -10,7 +10,14 @@ public class EmployeeCreateValidator : AbstractValidator<EmployeeCreateDto>
         RuleFor(x => x.FirstName).NotEmpty().Length(2, 500);
         RuleFor(x => x.LastName).NotEmpty().Length(2, 500);
         RuleFor(x => x.CinNumber).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.Phone).NotEmpty().MaximumLength(10).WithMessage("Le numéro de téléphone doit contenir 10 chiffres");
+        RuleFor(x => x.Phone)
+            .NotEmpty()
+            .Matches("^\\d{9}$")
+            .WithMessage("Le numéro de téléphone doit contenir exactement 9 chiffres");
+        RuleFor(x => x.CountryPhoneCode)
+            .NotEmpty()
+            .Matches("^\\+\\d{1,4}$")
+            .WithMessage("L'indicatif pays est invalide (ex: +212)");
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(500);
         RuleFor(x => x.StatusId).GreaterThan(0).WithMessage("L'ID du statut est requis");
 
@@ -41,9 +48,22 @@ public class EmployeeUpdateValidator : AbstractValidator<EmployeeUpdateDto>
     {
         When(x => x.Email != null, () =>
             RuleFor(x => x.Email!).EmailAddress().MaximumLength(500));
-        
+
         When(x => x.Phone != null, () =>
-            RuleFor(x => x.Phone!).MaximumLength(10).WithMessage("Le numéro de téléphone doit contenir 10 chiffres"));
+            RuleFor(x => x.Phone!)
+                .Matches("^\\d{9}$")
+                .WithMessage("Le numéro de téléphone doit contenir exactement 9 chiffres"));
+
+        When(x => x.Phone != null, () =>
+            RuleFor(x => x.CountryPhoneCode)
+                .NotEmpty()
+                .Matches("^\\+\\d{1,4}$")
+                .WithMessage("L'indicatif pays est invalide (ex: +212)"));
+
+        When(x => x.CountryPhoneCode != null, () =>
+            RuleFor(x => x.CountryPhoneCode!)
+                .Matches("^\\+\\d{1,4}$")
+                .WithMessage("L'indicatif pays est invalide (ex: +212)"));
 
         When(x => x.FirstName != null, () =>
             RuleFor(x => x.FirstName!).Length(2, 500));

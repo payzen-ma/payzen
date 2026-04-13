@@ -1,3 +1,17 @@
+// MOBILE MENU TOGGLE
+window.toggleMenu = function toggleMenu() {
+    const nav = document.getElementById('navLinks');
+    const ham = document.getElementById('hamburger');
+    nav.classList.toggle('active');
+    ham.classList.toggle('active');
+};
+
+// Close menu when clicking nav link
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('active');
+}));
+
 // PROGRESS BAR
 window.addEventListener('scroll', () => {
     const p = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
@@ -21,11 +35,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click
 
 // WAITLIST
 window.join = function join(i, s, f) {
-    console.log('[Waitlist] join() called — input id:', i, '| success id:', s, '| form id:', f);
 
     const el = document.getElementById(i);
     const v = el.value.trim();
-    console.log('[Waitlist] Email entered:', v);
 
     if (!v || !v.includes('@') || !v.includes('.')) {
         console.warn('[Waitlist] Validation failed — email is empty or malformed:', v);
@@ -43,11 +55,9 @@ window.join = function join(i, s, f) {
     fd.append('action', 'subscribe');
     fd.append('email', v);
     fd.append('source', i === 'hem' ? 'hero' : 'cta');
-    console.log('[Waitlist] Sending POST to ./subscribe.php', { action: 'subscribe', email: v, source: fd.get('source') });
 
     fetch('./subscribe.php', { method: 'POST', body: fd })
         .then(r => {
-            console.log('[Waitlist] HTTP response — status:', r.status, r.statusText, '| ok:', r.ok);
             return r.ok
                 ? r.json()
                 : r.text().then(txt => {
@@ -60,9 +70,7 @@ window.join = function join(i, s, f) {
             return { success: false, message: 'Erreur réseau. Réessayez.' };
         })
         .then(data => {
-            console.log('[Waitlist] Parsed response data:', data);
             if (data.success) {
-                console.log('[Waitlist] Success — hiding form, showing confirmation.');
                 document.getElementById(f).style.display = 'none';
                 document.getElementById(s).style.display = 'block';
             } else {

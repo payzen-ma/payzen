@@ -6,10 +6,19 @@ namespace Payzen.Domain.Entities.Leave;
 
 public class LeaveTypePolicy : BaseEntity
 {
-    public int? CompanyId { get; set; }
-    public Company.Company? Company { get; set; }
+    public int? CompanyId
+    {
+        get; set;
+    }
+    public Company.Company? Company
+    {
+        get; set;
+    }
 
-    public int LeaveTypeId { get; set; }
+    public int LeaveTypeId
+    {
+        get; set;
+    }
     public LeaveType LeaveType { get; set; } = null!;
 
     public bool IsEnabled { get; set; } = true;
@@ -37,6 +46,12 @@ public class LeaveTypePolicy : BaseEntity
     public int MinConsecutiveDays { get; set; } = 0;
     public bool UseWorkingCalendar { get; set; } = true;
 
-    public DateOnly? EffectiveFrom { get; set; }
-    public DateOnly? EffectiveTo { get; set; }
+    public DateOnly? EffectiveFrom
+    {
+        get; set;
+    }
+    public DateOnly? EffectiveTo
+    {
+        get; set;
+    }
 }

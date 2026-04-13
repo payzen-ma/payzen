@@ -6,13 +6,31 @@ namespace Payzen.Domain.Entities.Payroll.Referentiel;
 /// <summary>The exemption rule for an element under a specific authority</summary>
 public class ElementRule : BaseEntity
 {
-    public int ElementId { get; set; }
-    public int AuthorityId { get; set; }
-    public ExemptionType ExemptionType { get; set; }
+    public int ElementId
+    {
+        get; set;
+    }
+    public int AuthorityId
+    {
+        get; set;
+    }
+    public ExemptionType ExemptionType
+    {
+        get; set;
+    }
     public string RuleDetails { get; set; } = "{}";
-    public string? SourceRef { get; set; }
-    public DateOnly EffectiveFrom { get; set; }
-    public DateOnly? EffectiveTo { get; set; }
+    public string? SourceRef
+    {
+        get; set;
+    }
+    public DateOnly EffectiveFrom
+    {
+        get; set;
+    }
+    public DateOnly? EffectiveTo
+    {
+        get; set;
+    }
     public ElementStatus Status { get; set; } = ElementStatus.DRAFT;
 
 
@@ -21,10 +39,22 @@ public class ElementRule : BaseEntity
     public virtual Authority Authority { get; set; } = null!;
 
     // Rule details (0 or 1 of each, depending on ExemptionType)
-    public virtual RuleCap? Cap { get; set; }
-    public virtual RulePercentage? Percentage { get; set; }
-    public virtual RuleFormula? Formula { get; set; }
-    public virtual RuleDualCap? DualCap { get; set; }
+    public virtual RuleCap? Cap
+    {
+        get; set;
+    }
+    public virtual RulePercentage? Percentage
+    {
+        get; set;
+    }
+    public virtual RuleFormula? Formula
+    {
+        get; set;
+    }
+    public virtual RuleDualCap? DualCap
+    {
+        get; set;
+    }
     public virtual ICollection<RuleTier> Tiers { get; set; } = new List<RuleTier>();
     public virtual ICollection<RuleVariant> Variants { get; set; } = new List<RuleVariant>();
 

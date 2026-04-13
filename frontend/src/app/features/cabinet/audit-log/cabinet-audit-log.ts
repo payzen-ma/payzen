@@ -17,6 +17,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { IconifyComponent } from '@app/shared/ui/iconify/iconify.component';
 
 import { AuditLogService } from '@app/core/services/audit-log.service';
 import { CompanyService } from '@app/core/services/company.service';
@@ -46,6 +47,8 @@ import { Company } from '@app/core/models/company.model';
     InputTextModule,
     IconFieldModule,
     InputIconModule
+    ,
+    IconifyComponent
   ],
   templateUrl: './cabinet-audit-log.html',
   styleUrl: './cabinet-audit-log.css'
@@ -59,7 +62,7 @@ export class CabinetAuditLogComponent implements OnInit {
   readonly logs = signal<AuditLogDisplayItem[]>([]);
   readonly isLoading = signal<boolean>(true);
   readonly viewMode = signal<'timeline' | 'table'>('timeline');
-  
+
   // Filters
   readonly dateRange = signal<Date[] | null>(null);
   readonly selectedEventTypes = signal<AuditEventType[]>([]);
@@ -87,12 +90,12 @@ export class CabinetAuditLogComponent implements OnInit {
     // Assuming Relay users only see logs for companies they have access to
     // For now, we'll simulate this by filtering out "Cabinet" level events if not Owner
     if (role !== 'Owner') {
-       items = items.filter(log => log.entityType !== 'Cabinet');
+      items = items.filter(log => log.entityType !== 'Cabinet');
     }
 
     if (query) {
-      items = items.filter(log => 
-        log.description.toLowerCase().includes(query) || 
+      items = items.filter(log =>
+        log.description.toLowerCase().includes(query) ||
         log.actor.name.toLowerCase().includes(query) ||
         log.entityName.toLowerCase().includes(query)
       );
@@ -105,7 +108,7 @@ export class CabinetAuditLogComponent implements OnInit {
     if (company) {
       // Assuming log has companyId or we filter by entityName matching company name
       // Ideally AuditLogDisplayItem should have companyId
-      items = items.filter(log => log.entityName === company.legalName); 
+      items = items.filter(log => log.entityName === company.legalName);
     }
 
     if (dates && dates.length === 2 && dates[0] && dates[1]) {
@@ -127,14 +130,13 @@ export class CabinetAuditLogComponent implements OnInit {
 
   loadData(): void {
     this.isLoading.set(true);
-    
+
     this.auditLogService.getCabinetAuditLogs().subscribe({
       next: (logs) => {
         this.logs.set(logs);
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load audit logs', err);
         this.isLoading.set(false);
       }
     });

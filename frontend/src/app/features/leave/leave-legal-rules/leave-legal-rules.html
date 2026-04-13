@@ -74,31 +74,36 @@
     </div>
 
     <!-- Search -->
-    <div class="card card-compact mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="w-full flex-1 min-w-0">
-          <p-iconfield iconPosition="left" class="w-full search-field">
-            <p-inputicon class="pi pi-search text-gray-400"></p-inputicon>
+    <div class="app-filters app-filters--surface mb-6">
+      <div class="app-filters__row">
+        <div class="app-filters__item app-filters__item--search">
+          <label class="app-filters__label" for="leave-legal-rules-search">{{ 'common.search' | translate }}</label>
+          <p-iconfield iconPosition="left" class="w-full app-filter-search">
+            <p-inputicon class="pi pi-search app-filter-search__icon"></p-inputicon>
             <input
+              id="leave-legal-rules-search"
               pInputText
               type="text"
-              class="w-full input"
+              class="w-full app-filter-search__input"
               [(ngModel)]="searchQueryModel"
               [placeholder]="'leave.legalRules.searchPlaceholder' | translate"
+              [attr.aria-label]="'leave.legalRules.searchPlaceholder' | translate"
             />
           </p-iconfield>
         </div>
 
-        @if (searchQuery()) {
+        <div class="app-filters__actions">
           <button
             pButton
             type="button"
-            icon="pi pi-times"
             [label]="'common.clear' | translate"
-            class="shrink-0 btn btn-secondary"
             (click)="clearSearch()"
+            [disabled]="!searchQuery()"
+            class="app-filter-clear"
+            [class.app-filter-clear--disabled]="!searchQuery()"
+            title="{{ 'common.clear' | translate }}"
           ></button>
-        }
+        </div>
       </div>
     </div>
 

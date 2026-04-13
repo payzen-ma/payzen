@@ -1,5 +1,18 @@
 /* Employee Profile History Tab Styles */
 
+.employee-profile-page .card,
+.employee-profile-page .card-compact {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.employee-profile-page .history-container .animate-fade-in,
+.employee-profile-page .history-container .animate-slide-down,
+.employee-profile-page .history-container .custom-timeline .card {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 /* Custom Timeline Styles */
 ::ng-deep .history-container .custom-timeline {
   .p-timeline-event-opposite {
@@ -23,11 +36,12 @@
 
 /* Animations */
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
+  from {
+    opacity: 0;
   }
-  to { 
-    opacity: 1; 
+
+  to {
+    opacity: 1;
   }
 }
 
@@ -36,13 +50,14 @@
 }
 
 @keyframes slideDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -52,15 +67,15 @@
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
-  .history-container .grid-cols-1.md\:grid-cols-2 > div {
+  .history-container .grid-cols-1.md\:grid-cols-2>div {
     width: 100%;
   }
-  
+
   .history-container .flex-wrap {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .history-container header .flex {
     flex-direction: column;
     gap: 1rem;
@@ -74,6 +89,7 @@
 
 .history-container .card:hover {
   transform: translateY(-1px);
+  box-shadow: none !important;
 }
 
 /* Timeline marker styles */

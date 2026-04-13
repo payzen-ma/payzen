@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -15,13 +15,22 @@ namespace Payzen.Domain.Common;
 /// </summary>
 public class Result<T>
 {
-    public bool IsSuccess { get; private set; }
+    public bool IsSuccess
+    {
+        get; private set;
+    }
 
     /// <summary>La valeur retournée si l'opération a réussi</summary>
-    public T? Value { get; private set; }
+    public T? Value
+    {
+        get; private set;
+    }
 
     /// <summary>Message d'erreur si l'opération a échoué</summary>
-    public string? Error { get; private set; }
+    public string? Error
+    {
+        get; private set;
+    }
 
     private Result(bool isSuccess, T? value, string? error)
     {
@@ -43,8 +52,14 @@ public class Result<T>
 /// </summary>
 public class Result
 {
-    public bool IsSuccess { get; private set; }
-    public string? Error { get; private set; }
+    public bool IsSuccess
+    {
+        get; private set;
+    }
+    public string? Error
+    {
+        get; private set;
+    }
 
     private Result(bool isSuccess, string? error)
     {

@@ -40,19 +40,19 @@ public static class DbSeeder
             {
                 var company = new Company
                 {
-                    CompanyName     = "Payzen",
-                    Email           = "contact@payzen.ma",
-                    PhoneNumber     = "0522000000",
+                    CompanyName = "Payzen",
+                    Email = "contact@payzen.ma",
+                    PhoneNumber = "0522000000",
                     CountryPhoneCode = "+212",
-                    CompanyAddress  = "Casablanca, Maroc",
-                    CityId          = cityId,
-                    CountryId       = countryId,
-                    CnssNumber      = "J123456789",
-                    IceNumber       = "001234567000089",
-                    Currency        = "MAD",
+                    CompanyAddress = "Casablanca, Maroc",
+                    CityId = cityId,
+                    CountryId = countryId,
+                    CnssNumber = "J123456789",
+                    IceNumber = "001234567000089",
+                    Currency = "MAD",
                     PayrollPeriodicity = "Mensuelle",
-                    isActive        = true,
-                    CreatedBy       = 1,
+                    isActive = true,
+                    CreatedBy = 1,
                 };
                 db.Companies.Add(company);
             }
@@ -61,72 +61,78 @@ public static class DbSeeder
 
     private static async Task SeedGendersAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.Genders.AnyAsync(ct)) return;
+        if (await db.Genders.AnyAsync(ct))
+            return;
         db.Genders.AddRange(
-            new Gender { Code = "M",   NameFr = "Homme",  NameAr = "ذكر",   NameEn = "Male",   CreatedBy = 1 },
-            new Gender { Code = "F",   NameFr = "Femme",  NameAr = "أنثى",  NameEn = "Female", CreatedBy = 1 }
+            new Gender { Code = "M", NameFr = "Homme", NameAr = "ذكر", NameEn = "Male", CreatedBy = 1 },
+            new Gender { Code = "F", NameFr = "Femme", NameAr = "أنثى", NameEn = "Female", CreatedBy = 1 }
         );
     }
 
     private static async Task SeedStatusesAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.Statuses.AnyAsync(ct)) return;
+        if (await db.Statuses.AnyAsync(ct))
+            return;
         db.Statuses.AddRange(
-            new Status { Code = "ACTIVE",   NameFr = "Actif",     NameAr = "نشط",        NameEn = "Active",      IsActive = true, AffectsPayroll = true, AffectsAttendance = true, CreatedBy = 1 },
-            new Status { Code = "INACTIVE", NameFr = "Inactif",   NameAr = "غير نشط",    NameEn = "Inactive",    IsActive = false, CreatedBy = 1 },
-            new Status { Code = "LEAVE",    NameFr = "En congé",  NameAr = "في إجازة",   NameEn = "On leave",    IsActive = true, AffectsAttendance = true, CreatedBy = 1 },
-            new Status { Code = "RESIGNED", NameFr = "Démissionnaire", NameAr = "مستقيل", NameEn = "Resigned",  IsActive = false, AffectsAccess = true, CreatedBy = 1 },
-            new Status { Code = "RETIRED",  NameFr = "Retraité",  NameAr = "متقاعد",     NameEn = "Retired",     IsActive = false, AffectsAccess = true, CreatedBy = 1 }
+            new Status { Code = "ACTIVE", NameFr = "Actif", NameAr = "نشط", NameEn = "Active", IsActive = true, AffectsPayroll = true, AffectsAttendance = true, CreatedBy = 1 },
+            new Status { Code = "INACTIVE", NameFr = "Inactif", NameAr = "غير نشط", NameEn = "Inactive", IsActive = false, CreatedBy = 1 },
+            new Status { Code = "LEAVE", NameFr = "En congé", NameAr = "في إجازة", NameEn = "On leave", IsActive = true, AffectsAttendance = true, CreatedBy = 1 },
+            new Status { Code = "RESIGNED", NameFr = "Démissionnaire", NameAr = "مستقيل", NameEn = "Resigned", IsActive = false, AffectsAccess = true, CreatedBy = 1 },
+            new Status { Code = "RETIRED", NameFr = "Retraité", NameAr = "متقاعد", NameEn = "Retired", IsActive = false, AffectsAccess = true, CreatedBy = 1 }
         );
     }
 
     private static async Task SeedEducationLevelsAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.EducationLevels.AnyAsync(ct)) return;
+        if (await db.EducationLevels.AnyAsync(ct))
+            return;
         db.EducationLevels.AddRange(
-            new EducationLevel { Code = "NONE",    NameFr = "Sans diplôme",  NameAr = "بدون شهادة", NameEn = "No degree",    LevelOrder = 1, CreatedBy = 1 },
-            new EducationLevel { Code = "BAC",     NameFr = "Baccalauréat",  NameAr = "البكالوريا",  NameEn = "High school",  LevelOrder = 2, CreatedBy = 1 },
-            new EducationLevel { Code = "BAC+2",   NameFr = "Bac+2 (BTS/DUT)", NameAr = "باك+2",    NameEn = "Bac+2",        LevelOrder = 3, CreatedBy = 1 },
-            new EducationLevel { Code = "LICENCE", NameFr = "Licence (Bac+3)", NameAr = "الإجازة",  NameEn = "Bachelor",     LevelOrder = 4, CreatedBy = 1 },
-            new EducationLevel { Code = "MASTER",  NameFr = "Master (Bac+5)",  NameAr = "الماستر",  NameEn = "Master",       LevelOrder = 5, CreatedBy = 1 },
-            new EducationLevel { Code = "DOCTORAT",NameFr = "Doctorat",        NameAr = "الدكتوراه", NameEn = "PhD",          LevelOrder = 6, CreatedBy = 1 }
+            new EducationLevel { Code = "NONE", NameFr = "Sans diplôme", NameAr = "بدون شهادة", NameEn = "No degree", LevelOrder = 1, CreatedBy = 1 },
+            new EducationLevel { Code = "BAC", NameFr = "Baccalauréat", NameAr = "البكالوريا", NameEn = "High school", LevelOrder = 2, CreatedBy = 1 },
+            new EducationLevel { Code = "BAC+2", NameFr = "Bac+2 (BTS/DUT)", NameAr = "باك+2", NameEn = "Bac+2", LevelOrder = 3, CreatedBy = 1 },
+            new EducationLevel { Code = "LICENCE", NameFr = "Licence (Bac+3)", NameAr = "الإجازة", NameEn = "Bachelor", LevelOrder = 4, CreatedBy = 1 },
+            new EducationLevel { Code = "MASTER", NameFr = "Master (Bac+5)", NameAr = "الماستر", NameEn = "Master", LevelOrder = 5, CreatedBy = 1 },
+            new EducationLevel { Code = "DOCTORAT", NameFr = "Doctorat", NameAr = "الدكتوراه", NameEn = "PhD", LevelOrder = 6, CreatedBy = 1 }
         );
     }
 
     private static async Task SeedMaritalStatusesAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.MaritalStatuses.AnyAsync(ct)) return;
+        if (await db.MaritalStatuses.AnyAsync(ct))
+            return;
         db.MaritalStatuses.AddRange(
-            new MaritalStatus { Code = "SINGLE",   NameFr = "Célibataire", NameAr = "أعزب",   NameEn = "Single",   CreatedBy = 1 },
-            new MaritalStatus { Code = "MARRIED",  NameFr = "Marié(e)",    NameAr = "متزوج",  NameEn = "Married",  CreatedBy = 1 },
-            new MaritalStatus { Code = "DIVORCED", NameFr = "Divorcé(e)",  NameAr = "مطلق",   NameEn = "Divorced", CreatedBy = 1 },
-            new MaritalStatus { Code = "WIDOWED",  NameFr = "Veuf/Veuve",  NameAr = "أرمل",   NameEn = "Widowed",  CreatedBy = 1 }
+            new MaritalStatus { Code = "SINGLE", NameFr = "Célibataire", NameAr = "أعزب", NameEn = "Single", CreatedBy = 1 },
+            new MaritalStatus { Code = "MARRIED", NameFr = "Marié(e)", NameAr = "متزوج", NameEn = "Married", CreatedBy = 1 },
+            new MaritalStatus { Code = "DIVORCED", NameFr = "Divorcé(e)", NameAr = "مطلق", NameEn = "Divorced", CreatedBy = 1 },
+            new MaritalStatus { Code = "WIDOWED", NameFr = "Veuf/Veuve", NameAr = "أرمل", NameEn = "Widowed", CreatedBy = 1 }
         );
     }
 
     private static async Task SeedLegalContractTypesAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.LegalContractTypes.AnyAsync(ct)) return;
+        if (await db.LegalContractTypes.AnyAsync(ct))
+            return;
         db.LegalContractTypes.AddRange(
-            new LegalContractType { Code = "CDI",      Name = "Contrat à Durée Indéterminée", CreatedBy = 1 },
-            new LegalContractType { Code = "CDD",      Name = "Contrat à Durée Déterminée",   CreatedBy = 1 },
-            new LegalContractType { Code = "STAGE",    Name = "Convention de Stage",           CreatedBy = 1 },
-            new LegalContractType { Code = "FREELANCE",Name = "Contrat de Prestation",         CreatedBy = 1 },
-            new LegalContractType { Code = "INTERIM",  Name = "Contrat d'Intérim",             CreatedBy = 1 }
+            new LegalContractType { Code = "CDI", Name = "Contrat à Durée Indéterminée", CreatedBy = 1 },
+            new LegalContractType { Code = "CDD", Name = "Contrat à Durée Déterminée", CreatedBy = 1 },
+            new LegalContractType { Code = "STAGE", Name = "Convention de Stage", CreatedBy = 1 },
+            new LegalContractType { Code = "FREELANCE", Name = "Contrat de Prestation", CreatedBy = 1 },
+            new LegalContractType { Code = "INTERIM", Name = "Contrat d'Intérim", CreatedBy = 1 }
         );
     }
 
     private static async Task SeedCountriesAndCitiesAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.Countries.AnyAsync(ct)) return;
+        if (await db.Countries.AnyAsync(ct))
+            return;
 
         var maroc = new Domain.Entities.Referentiel.Country
         {
-            CountryName     = "Maroc",
-            CountryNameAr   = "المغرب",
-            CountryCode     = "MA",
-            CountryPhoneCode= "+212",
-            CreatedBy       = 1,
+            CountryName = "Maroc",
+            CountryNameAr = "المغرب",
+            CountryCode = "MA",
+            CountryPhoneCode = "+212",
+            CreatedBy = 1,
             Cities = new List<City>
             {
                 new() { CityName = "Casablanca",  CreatedBy = 1 },
@@ -315,7 +321,8 @@ public static class DbSeeder
         {
             foreach (var p in permissions)
             {
-                if (await db.Permissions.AnyAsync(x => x.Name == p.Name && x.DeletedAt == null, ct)) continue;
+                if (await db.Permissions.AnyAsync(x => x.Name == p.Name && x.DeletedAt == null, ct))
+                    continue;
                 db.Permissions.Add(p);
             }
         }
@@ -323,19 +330,20 @@ public static class DbSeeder
 
     private static async Task SeedGlobalLeaveTypesAsync(AppDbContext db, CancellationToken ct)
     {
-        if (await db.LeaveTypes.AnyAsync(lt => lt.CompanyId == null, ct)) return;
+        if (await db.LeaveTypes.AnyAsync(lt => lt.CompanyId == null, ct))
+            return;
 
         // ── Congé annuel légal ────────────────────────────────────────────────
         var annual = new LeaveType
         {
-            LeaveCode        = "ANNUAL",
-            LeaveNameFr      = "Congé annuel",
-            LeaveNameAr      = "إجازة سنوية",
-            LeaveNameEn      = "Annual Leave",
+            LeaveCode = "ANNUAL",
+            LeaveNameFr = "Congé annuel",
+            LeaveNameAr = "إجازة سنوية",
+            LeaveNameEn = "Annual Leave",
             LeaveDescription = "Congé annuel légal — Code du Travail Art. 231",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -373,14 +381,14 @@ public static class DbSeeder
         // ── Congés exceptionnels légaux ───────────────────────────────────────
         var mariage = new LeaveType
         {
-            LeaveCode        = "MARIAGE",
-            LeaveNameFr      = "Mariage de l'employé",
-            LeaveNameAr      = "زواج الموظف",
-            LeaveNameEn      = "Employee Marriage",
+            LeaveCode = "MARIAGE",
+            LeaveNameFr = "Mariage de l'employé",
+            LeaveNameAr = "زواج الموظف",
+            LeaveNameEn = "Employee Marriage",
             LeaveDescription = "Congé exceptionnel pour mariage — Code du Travail Art. 274",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -410,14 +418,14 @@ public static class DbSeeder
 
         var naissance = new LeaveType
         {
-            LeaveCode        = "NAISSANCE",
-            LeaveNameFr      = "Naissance / adoption",
-            LeaveNameAr      = "ولادة / تبني",
-            LeaveNameEn      = "Birth / Adoption",
+            LeaveCode = "NAISSANCE",
+            LeaveNameFr = "Naissance / adoption",
+            LeaveNameAr = "ولادة / تبني",
+            LeaveNameEn = "Birth / Adoption",
             LeaveDescription = "Congé exceptionnel pour naissance ou adoption — Code du Travail Art. 274",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -447,14 +455,14 @@ public static class DbSeeder
 
         var deces = new LeaveType
         {
-            LeaveCode        = "DECES",
-            LeaveNameFr      = "Décès conjoint / enfant",
-            LeaveNameAr      = "وفاة الزوج أو الطفل",
-            LeaveNameEn      = "Death of spouse / child",
+            LeaveCode = "DECES",
+            LeaveNameFr = "Décès conjoint / enfant",
+            LeaveNameAr = "وفاة الزوج أو الطفل",
+            LeaveNameEn = "Death of spouse / child",
             LeaveDescription = "Congé exceptionnel pour décès d'un proche — Code du Travail Art. 274",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -494,14 +502,14 @@ public static class DbSeeder
 
         var maladie = new LeaveType
         {
-            LeaveCode        = "MALADIE",
-            LeaveNameFr      = "Congé maladie",
-            LeaveNameAr      = "إجازة مرضية",
-            LeaveNameEn      = "Sick Leave",
+            LeaveCode = "MALADIE",
+            LeaveNameFr = "Congé maladie",
+            LeaveNameAr = "إجازة مرضية",
+            LeaveNameEn = "Sick Leave",
             LeaveDescription = "Congé maladie sur justificatif médical",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -518,14 +526,14 @@ public static class DbSeeder
 
         var maternite = new LeaveType
         {
-            LeaveCode        = "MATERNITE",
-            LeaveNameFr      = "Congé maternité",
-            LeaveNameAr      = "إجازة الأمومة",
-            LeaveNameEn      = "Maternity Leave",
+            LeaveCode = "MATERNITE",
+            LeaveNameFr = "Congé maternité",
+            LeaveNameAr = "إجازة الأمومة",
+            LeaveNameEn = "Maternity Leave",
             LeaveDescription = "Congé maternité légal — Code du Travail Art. 152 (14 semaines)",
-            Scope            = LeaveScope.Global,
-            IsActive         = true,
-            CreatedBy        = 1,
+            Scope = LeaveScope.Global,
+            IsActive = true,
+            CreatedBy = 1,
             Policies = new List<LeaveTypePolicy>
             {
                 new()
@@ -559,13 +567,15 @@ public static class DbSeeder
     {
         var adminRole = await db.Roles
             .FirstOrDefaultAsync(r => r.Name == "Admin Payzen" && r.DeletedAt == null, ct);
-        if (adminRole == null) return;
+        if (adminRole == null)
+            return;
 
         var permissionIds = await db.Permissions
             .Where(p => p.DeletedAt == null)
             .Select(p => p.Id)
             .ToListAsync(ct);
-        if (permissionIds.Count == 0) return;
+        if (permissionIds.Count == 0)
+            return;
 
         var existingPermissionIds = await db.RolesPermissions
             .Where(rp => rp.RoleId == adminRole.Id && rp.DeletedAt == null)
@@ -579,13 +589,15 @@ public static class DbSeeder
     {
         var adminCompanyRole = await db.Roles
             .FirstOrDefaultAsync(r => r.Name == "Admin" && r.DeletedAt == null, ct);
-        if (adminCompanyRole == null) return;
+        if (adminCompanyRole == null)
+            return;
 
         var permissionIds = await db.Permissions
             .Where(p => p.DeletedAt == null && (p.Resource == "users" || p.Resource == "roles" || p.Resource == "users-roles"))
             .Select(p => p.Id)
             .ToListAsync(ct);
-        if (permissionIds.Count == 0) return;
+        if (permissionIds.Count == 0)
+            return;
 
         var existingPermissionIds = await db.RolesPermissions
             .Where(rp => rp.RoleId == adminCompanyRole.Id && rp.DeletedAt == null)

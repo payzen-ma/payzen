@@ -17,24 +17,54 @@ public class AncienneteRateSet : BaseEntity
 {
 
     /// <summary>null = Legal default. non-null = Company-specific rates.</summary>
-    public int? CompanyId { get; set; }
+    public int? CompanyId
+    {
+        get; set;
+    }
 
     /// <summary>Reference to the rate set this was cloned from (null for legal defaults).</summary>
-    public int? ClonedFromId { get; set; }
+    public int? ClonedFromId
+    {
+        get; set;
+    }
 
-    public required string Code { get; set; }
-    public required string Name { get; set; }
+    public required string Code
+    {
+        get; set;
+    }
+    public required string Name
+    {
+        get; set;
+    }
 
     /// <summary>true = Legal minimum rates (backoffice). false = Company-specific enhanced rates.</summary>
-    public bool IsLegalDefault { get; set; }
+    public bool IsLegalDefault
+    {
+        get; set;
+    }
 
-    public string? Source { get; set; }
-    public DateOnly EffectiveFrom { get; set; }
-    public DateOnly? EffectiveTo { get; set; }
+    public string? Source
+    {
+        get; set;
+    }
+    public DateOnly EffectiveFrom
+    {
+        get; set;
+    }
+    public DateOnly? EffectiveTo
+    {
+        get; set;
+    }
 
     // Navigation
-    public virtual Company.Company? Company { get; set; }
-    public virtual AncienneteRateSet? ClonedFrom { get; set; }
+    public virtual Company.Company? Company
+    {
+        get; set;
+    }
+    public virtual AncienneteRateSet? ClonedFrom
+    {
+        get; set;
+    }
     public virtual ICollection<AncienneteRate> Rates { get; set; } = new List<AncienneteRate>();
     public virtual ICollection<AncienneteRateSet> Clones { get; set; } = new List<AncienneteRateSet>();
 

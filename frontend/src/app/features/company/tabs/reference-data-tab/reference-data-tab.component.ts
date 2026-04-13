@@ -39,14 +39,14 @@ export class ReferenceDataTabComponent implements OnInit {
 
   // Signals for data
   educationLevels = signal<EducationLevel[]>([]);
-  
+
   // Loading states
   loadingEducationLevels = signal(false);
-  
+
   // Dialog states
   dialogVisible = signal(false);
   submitLoading = signal(false);
-  
+
   // Form
   itemForm!: FormGroup;
   isEditMode = false;
@@ -75,7 +75,6 @@ export class ReferenceDataTabComponent implements OnInit {
         this.loadingEducationLevels.set(false);
       },
       error: (err) => {
-        console.error('Error loading education levels', err);
         this.loadingEducationLevels.set(false);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load education levels' });
       }
@@ -183,7 +182,7 @@ export class ReferenceDataTabComponent implements OnInit {
 
   private handleError(err: HttpErrorResponse) {
     let detail = 'An error occurred';
-    
+
     if (err.status === 409) {
       detail = 'This name already exists';
     } else if (err.status === 400) {

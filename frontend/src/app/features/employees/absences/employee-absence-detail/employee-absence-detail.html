@@ -1,289 +1,231 @@
-<div class="min-h-screen bg-gray-50">
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-      <!-- Header -->
-      <div class="mb-6">
-        <button
-          pButton
-          icon="pi pi-arrow-left"
-          [label]="'common.back' | translate"
-          (click)="goBack()"
-          [text]="true"
-          severity="secondary"
-          class="mb-3"
-        ></button>
-        <div class="flex items-center gap-3">
-          <div class="bg-(--primary)/10 text-(--primary) p-3 rounded-(--rads-lg)">
-            <i class="pi pi-user text-2xl"></i>
-          </div>
-          <div>
-            <h1 class="heading">
-              {{ employeeName() }}
-            </h1>
-            <p class="subheading mt-1">
-              {{ 'absences.manageEmployeeAbsences' | translate }}
-            </p>
+<section class="payslip-page bulletin-page salary-page">
+  <div class="payslip-shell bulletin-shell">
+    <div>
+      <div class="max-w-7xl mx-auto px-6 pt-4">
+        <!-- Header -->
+        <div class="payslip-hero bulletin-hero mb-6">
+          <button pButton icon="pi pi-arrow-left" [label]="'common.back' | translate" (click)="goBack()" [text]="true"
+            severity="secondary" class="mb-3"></button>
+          <div class="flex items-center gap-3">
+            <div>
+              <p class="payslip-eyebrow">Absences</p>
+              <h1 class="heading">
+                {{ employeeName() }}
+              </h1>
+              <p class="subheading mt-1">
+                {{ 'absences.manageEmployeeAbsences' | translate }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="max-w-7xl mx-auto px-6 py-6">
+    <div class="max-w-7xl mx-auto px-6 py-6">
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.total' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalAbsences }}</h3>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <p-card styleClass="card h-full">
+          <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
+            <div class="flex-1">
+              <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.total' | translate }}</p>
+              <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalAbsences }}</h3>
+            </div>
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
+              <i class="pi pi-calendar text-(--primary) text-xl"></i>
+            </div>
           </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-calendar text-(--primary) text-xl"></i>
+        </p-card>
+        <p-card styleClass="card h-full">
+          <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
+            <div class="flex-1">
+              <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.totalDays' | translate }}</p>
+              <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalDays }}</h3>
+            </div>
+            <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
+              <i class="pi pi-clock text-(--primary) text-xl"></i>
+            </div>
           </div>
-        </div>
-      </p-card>
-      <p-card styleClass="card h-full">
-        <div class="stat-card items-start justify-between gap-4 p-0 border-none shadow-none">
-          <div class="flex-1">
-            <p class="text-sm text-(--text-secondary) mb-1">{{ 'absences.stats.totalDays' | translate }}</p>
-            <h3 class="text-2xl font-semibold text-(--text-primary) mb-2">{{ stats().totalDays }}</h3>
-          </div>
-          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-(--primary)/10">
-            <i class="pi pi-clock text-(--primary) text-xl"></i>
-          </div>
-        </div>
-      </p-card>
-    </div>
+        </p-card>
+      </div>
 
-    <!-- Absences Table -->
-    <div class="card-compact relative">
-      <!-- Loading Overlay -->
-      @if (isLoading()) {
+      <!-- Absences Table -->
+      <div class="payslip-card bulletin-card surface relative">
+        <!-- Loading Overlay -->
+        @if (isLoading()) {
         <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
           <div class="flex flex-col items-center gap-3">
             <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
             <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
           </div>
         </div>
-      }
+        }
 
-      <p-table
-        [value]="absences()"
-        styleClass="p-datatable-sm"
-        [tableStyle]="{'min-width': '50rem'}"
-        [paginator]="true"
-        [rows]="10"
-        [rowsPerPageOptions]="[10, 25, 50]"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="absenceDate" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.date' | translate }}
-                <p-sortIcon field="absenceDate"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="absenceType" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.type' | translate }}
-                <p-sortIcon field="absenceType"></p-sortIcon>
-              </div>
-            </th>
-            <th pSortableColumn="durationType" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.duration' | translate }}
-                <p-sortIcon field="durationType"></p-sortIcon>
-              </div>
-            </th>
-            <th class="saas-table-header">{{ 'absences.table.reason' | translate }}</th>
-            <th pSortableColumn="status" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.table.status' | translate }}
-                <p-sortIcon field="status"></p-sortIcon>
-              </div>
-            </th>
-            <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
-            <th pSortableColumn="createdAt" class="saas-table-header">
-              <div class="flex items-center gap-2">
-                {{ 'absences.createdAt' | translate }}
-                <p-sortIcon field="createdAt"></p-sortIcon>
-              </div>
-            </th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-absence>
-          <tr class="saas-table-row">
-            <!-- Date -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
-                  <i class="pi pi-calendar text-blue-600"></i>
-                </div>
-                <div>
-                  <div class="font-medium text-(--text-primary)">{{ absence.absenceDate | date: 'dd/MM/yyyy' }}</div>
-                  <div class="text-xs text-(--text-secondary)">{{ absence.absenceDate | date: 'EEEE' }}</div>
-                </div>
-              </div>
-            </td>
-            
-            <!-- Type -->
-            <td class="px-6 py-4">
-              <p-tag 
-                [value]="getAbsenceTypeLabel(absence.absenceType) | translate" 
-                [severity]="getAbsenceTypeSeverity(absence.absenceType)"
-              ></p-tag>
-            </td>
-            
-            <!-- Duration -->
-            <td class="px-6 py-4">
-              <div class="flex flex-col gap-1">
+        <p-table [value]="absences()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}"
+          [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="absenceDate" class="saas-table-header">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-clock text-(--text-secondary) text-sm"></i>
-                  <span class="font-medium text-(--text-primary)">{{ getDurationLabel(absence) | translate }}</span>
+                  {{ 'absences.table.date' | translate }}
+                  <p-sortIcon field="absenceDate"></p-sortIcon>
                 </div>
-                @if (absence.durationType === 'HalfDay' && absence.isMorning !== undefined) {
+              </th>
+              <th pSortableColumn="absenceType" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'absences.table.type' | translate }}
+                  <p-sortIcon field="absenceType"></p-sortIcon>
+                </div>
+              </th>
+              <th pSortableColumn="durationType" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'absences.table.duration' | translate }}
+                  <p-sortIcon field="durationType"></p-sortIcon>
+                </div>
+              </th>
+              <th class="saas-table-header">{{ 'absences.table.reason' | translate }}</th>
+              <th pSortableColumn="status" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'absences.table.status' | translate }}
+                  <p-sortIcon field="status"></p-sortIcon>
+                </div>
+              </th>
+              <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+              <th pSortableColumn="createdAt" class="saas-table-header">
+                <div class="flex items-center gap-2">
+                  {{ 'absences.createdAt' | translate }}
+                  <p-sortIcon field="createdAt"></p-sortIcon>
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-absence>
+            <tr class="saas-table-row">
+              <!-- Date -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+                    <i class="pi pi-calendar text-blue-600"></i>
+                  </div>
+                  <div>
+                    <div class="font-medium text-(--text-primary)">{{ absence.absenceDate | date: 'dd/MM/yyyy' }}</div>
+                    <div class="text-xs text-(--text-secondary)">{{ absence.absenceDate | date: 'EEEE' }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Type -->
+              <td class="px-6 py-4">
+                <p-tag [value]="getAbsenceTypeLabel(absence.absenceType) | translate"
+                  [severity]="getAbsenceTypeSeverity(absence.absenceType)"></p-tag>
+              </td>
+
+              <!-- Duration -->
+              <td class="px-6 py-4">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-clock text-(--text-secondary) text-sm"></i>
+                    <span class="font-medium text-(--text-primary)">{{ getDurationLabel(absence) | translate }}</span>
+                  </div>
+                  @if (absence.durationType === 'HalfDay' && absence.isMorning !== undefined) {
                   <span class="text-xs text-(--text-secondary) ml-5">
                     {{ absence.isMorning ? ('absences.morning' | translate) : ('absences.afternoon' | translate) }}
                   </span>
-                }
-                @if (absence.durationType === 'Hourly' && absence.startTime && absence.endTime) {
+                  }
+                  @if (absence.durationType === 'Hourly' && absence.startTime && absence.endTime) {
                   <span class="text-xs text-(--text-secondary) ml-5">
                     {{ formatTime(absence.startTime) }} - {{ formatTime(absence.endTime) }}
                   </span>
-                }
-              </div>
-            </td>
-            
-            <!-- Reason -->
-            <td class="px-6 py-4">
-              <span class="text-(--text-secondary)">{{ absence.reason || '-' }}</span>
-            </td>
-            
-            <!-- Status -->
-            <td class="px-6 py-4">
-              @if (absence.status === 'Draft') {
-                <p-tag [value]="'absences.status.draft' | translate" severity="secondary"></p-tag>
-              }
-              @if (absence.status === 'Submitted') {
-                <p-tag [value]="'absences.status.submitted' | translate" severity="info"></p-tag>
-              }
-              @if (absence.status === 'Approved') {
-                <p-tag [value]="'absences.status.approved' | translate" severity="success"></p-tag>
-              }
-              @if (absence.status === 'Rejected') {
-                <p-tag [value]="'absences.status.rejected' | translate" severity="danger"></p-tag>
-              }
-              @if (absence.status === 'Cancelled') {
-                <p-tag [value]="'absences.status.cancelled' | translate" severity="warn"></p-tag>
-              }
-              @if (absence.status === 'Expired') {
-                <p-tag [value]="'absences.status.expired' | translate" severity="secondary"></p-tag>
-              }
-              @if (!absence.status) {
-                <p-tag value="-" severity="secondary"></p-tag>
-              }
-            </td>
-            
-            <!-- Actions -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-1">
+                  }
+                </div>
+              </td>
+
+              <!-- Reason -->
+              <td class="px-6 py-4">
+                <span class="text-(--text-secondary)">{{ absence.reason || '-' }}</span>
+              </td>
+
+              <!-- Status -->
+              <td class="px-6 py-4">
                 @if (absence.status === 'Draft') {
-                  <button
-                    pButton
-                    icon="pi pi-send"
-                    [pTooltip]="'absences.submit' | translate"
-                    tooltipPosition="top"
-                    (click)="submitAbsence(absence.id); $event.stopPropagation()"
-                    severity="primary"
-                    [text]="true"
-                    [rounded]="true"
-                  ></button>
-                  <button
-                    pButton
-                    icon="pi pi-pencil"
-                    [pTooltip]="'common.edit' | translate"
-                    tooltipPosition="top"
-                    (click)="openEditDialog(absence); $event.stopPropagation()"
-                    severity="secondary"
-                    [text]="true"
-                    [rounded]="true"
-                  ></button>
-                }
-                @if (canDelete(absence.status)) {
-                  <button
-                    pButton
-                    icon="pi pi-trash"
-                    [pTooltip]="'common.delete' | translate"
-                    tooltipPosition="top"
-                    (click)="openDeleteDialog(absence.id); $event.stopPropagation()"
-                    severity="danger"
-                    [text]="true"
-                    [rounded]="true"
-                  ></button>
+                <p-tag [value]="'absences.status.draft' | translate" severity="secondary"></p-tag>
                 }
                 @if (absence.status === 'Submitted') {
-                  <button
-                    pButton
-                    icon="pi pi-check"
-                    [pTooltip]="'absences.approve' | translate"
-                    tooltipPosition="top"
-                    (click)="approveAbsence(absence.id)"
-                    severity="success"
-                    [text]="true"
-                    [rounded]="true"
-                  ></button>
-                  <button
-                    pButton
-                    icon="pi pi-times"
-                    [pTooltip]="'absences.reject' | translate"
-                    tooltipPosition="top"
-                    (click)="rejectAbsence(absence.id); $event.stopPropagation()"
-                    severity="danger"
-                    [text]="true"
-                    [rounded]="true"
-                  ></button>
+                <p-tag [value]="'absences.status.submitted' | translate" severity="info"></p-tag>
                 }
-              </div>
-            </td>
-            
-            <!-- Created At -->
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-clock text-(--text-secondary) text-sm"></i>
-                <span class="text-sm text-(--text-secondary)">{{ absence.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="7" class="text-center py-12">
-              <div class="flex flex-col items-center gap-3">
-                <i class="pi pi-calendar-times text-gray-300 text-5xl"></i>
-                <p class="text-(--text-secondary) font-medium">{{ 'absences.noAbsences' | translate }}</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+                @if (absence.status === 'Approved') {
+                <p-tag [value]="'absences.status.approved' | translate" severity="success"></p-tag>
+                }
+                @if (absence.status === 'Rejected') {
+                <p-tag [value]="'absences.status.rejected' | translate" severity="danger"></p-tag>
+                }
+                @if (absence.status === 'Cancelled') {
+                <p-tag [value]="'absences.status.cancelled' | translate" severity="warn"></p-tag>
+                }
+                @if (absence.status === 'Expired') {
+                <p-tag [value]="'absences.status.expired' | translate" severity="secondary"></p-tag>
+                }
+                @if (!absence.status) {
+                <p-tag value="-" severity="secondary"></p-tag>
+                }
+              </td>
+
+              <!-- Actions -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-1">
+                  @if (absence.status === 'Draft') {
+                  <button pButton icon="pi pi-send" [pTooltip]="'absences.submit' | translate" tooltipPosition="top"
+                    (click)="submitAbsence(absence.id); $event.stopPropagation()" severity="primary" [text]="true"
+                    [rounded]="true"></button>
+                  <button pButton icon="pi pi-pencil" [pTooltip]="'common.edit' | translate" tooltipPosition="top"
+                    (click)="openEditDialog(absence); $event.stopPropagation()" severity="secondary" [text]="true"
+                    [rounded]="true"></button>
+                  }
+                  @if (canDelete(absence.status)) {
+                  <button pButton icon="pi pi-trash" [pTooltip]="'common.delete' | translate" tooltipPosition="top"
+                    (click)="openDeleteDialog(absence.id); $event.stopPropagation()" severity="danger" [text]="true"
+                    [rounded]="true"></button>
+                  }
+                  @if (absence.status === 'Submitted') {
+                  <button pButton icon="pi pi-check" [pTooltip]="'absences.approve' | translate" tooltipPosition="top"
+                    (click)="approveAbsence(absence.id)" severity="success" [text]="true" [rounded]="true"></button>
+                  <button pButton icon="pi pi-times" [pTooltip]="'absences.reject' | translate" tooltipPosition="top"
+                    (click)="rejectAbsence(absence.id); $event.stopPropagation()" severity="danger" [text]="true"
+                    [rounded]="true"></button>
+                  }
+                </div>
+              </td>
+
+              <!-- Created At -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-clock text-(--text-secondary) text-sm"></i>
+                  <span class="text-sm text-(--text-secondary)">{{ absence.createdAt | date: 'dd/MM/yyyy HH:mm'
+                    }}</span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center py-12">
+                <div class="flex flex-col items-center gap-3">
+                  <i class="pi pi-calendar-times text-gray-300 text-5xl"></i>
+                  <p class="text-(--text-secondary) font-medium">{{ 'absences.noAbsences' | translate }}</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <!-- Reject Dialog -->
-<p-dialog
-  [(visible)]="showRejectDialog"
-  [modal]="true"
-  [style]="{width: '500px'}"
-  [header]="'absences.rejectDialog.title' | translate"
-  [closable]="true"
-  [draggable]="false"
-  [resizable]="false"
-  (onHide)="cancelRejection()"
-  styleClass="reject-dialog"
->
+<p-dialog [(visible)]="showRejectDialog" [modal]="true" [style]="{width: '500px'}"
+  [header]="'absences.rejectDialog.title' | translate" [closable]="true" [draggable]="false" [resizable]="false"
+  (onHide)="cancelRejection()" styleClass="reject-dialog">
   <div class="p-6">
     <div class="mb-4">
       <div class="flex items-center gap-2 mb-3">
@@ -293,20 +235,15 @@
         </p>
       </div>
     </div>
-    
+
     <div class="form-field">
       <label class="block text-sm font-medium text-(--text-primary) mb-2">
         {{ 'absences.rejectDialog.reason' | translate }}
         <span class="text-red-500 ml-1">*</span>
       </label>
-      <textarea
-        pTextarea
-        [(ngModel)]="rejectReason"
-        [placeholder]="'absences.rejectDialog.reasonPlaceholder' | translate"
-        rows="5"
-        class="w-full"
-        [autoResize]="true"
-      ></textarea>
+      <textarea pTextarea [(ngModel)]="rejectReason"
+        [placeholder]="'absences.rejectDialog.reasonPlaceholder' | translate" rows="5" class="w-full"
+        [autoResize]="true"></textarea>
       <small class="block mt-2 text-xs text-(--text-secondary)">
         {{ 'absences.rejectDialog.hint' | translate }}
       </small>
@@ -315,108 +252,98 @@
 
   <ng-template pTemplate="footer">
     <div class="flex gap-3 justify-end px-6 pb-4">
-      <button
-        pButton
-        [label]="'common.cancel' | translate"
-        severity="secondary"
-        [outlined]="true"
-        (click)="cancelRejection()"
-        icon="pi pi-times"
-      ></button>
-      <button
-        pButton
-        [label]="'absences.rejectDialog.confirm' | translate"
-        severity="danger"
-        icon="pi pi-ban"
-        (click)="confirmRejection()"
-        [disabled]="!rejectReason().trim()"
-      ></button>
+      <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true"
+        (click)="cancelRejection()" icon="pi pi-times"></button>
+      <button pButton [label]="'absences.rejectDialog.confirm' | translate" severity="danger" icon="pi pi-ban"
+        (click)="confirmRejection()" [disabled]="!rejectReason().trim()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
 <!-- Delete confirmation dialog -->
-<p-dialog
-  [visible]="showDeleteDialog()"
-  [modal]="true"
-  [style]="{width: '420px'}"
-  [header]="'absences.deleteDialog.title' | translate"
-  [closable]="true"
-  [draggable]="false"
-  [resizable]="false"
-  (onHide)="cancelDelete()"
-  styleClass="app-dialog"
->
+<p-dialog [visible]="showDeleteDialog()" [modal]="true" [style]="{width: '420px'}"
+  [header]="'absences.deleteDialog.title' | translate" [closable]="true" [draggable]="false" [resizable]="false"
+  (onHide)="cancelDelete()" styleClass="app-dialog">
   <p class="text-(--text-secondary) m-0">{{ 'absences.deleteDialog.message' | translate }}</p>
   <ng-template pTemplate="footer">
-    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="cancelDelete()" icon="pi pi-times"></button>
-    <button pButton [label]="'common.delete' | translate" severity="danger" icon="pi pi-trash" (click)="confirmDelete()"></button>
+    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true"
+      (click)="cancelDelete()" icon="pi pi-times"></button>
+    <button pButton [label]="'common.delete' | translate" severity="danger" icon="pi pi-trash"
+      (click)="confirmDelete()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- Edit absence dialog -->
-<p-dialog
-  [visible]="showEditDialog()"
-  [modal]="true"
-  [style]="{width: 'min(28rem, 95vw)'}"
-  [header]="'absences.editDialog.title' | translate"
-  [closable]="true"
-  [draggable]="false"
-  [resizable]="false"
-  (onHide)="cancelEdit()"
-  styleClass="app-dialog"
->
+<p-dialog [visible]="showEditDialog()" [modal]="true" [style]="{width: 'min(28rem, 95vw)'}"
+  [header]="'absences.editDialog.title' | translate" [closable]="true" [draggable]="false" [resizable]="false"
+  (onHide)="cancelEdit()" styleClass="app-dialog">
   @if (editedAbsence(); as a) {
-    <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4">
+    <div>
+      <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.date' | translate
+        }}</label>
+      <input type="date" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceDate"
+        (ngModelChange)="updateEditForm({ absenceDate: $event })" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.type' | translate
+        }}</label>
+      <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceType"
+        (ngModelChange)="updateEditForm({ absenceType: $event })">
+        @for (opt of absenceTypeOptions(); track opt.value) {
+        <option [value]="opt.value">{{ opt.label | translate }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.duration' | translate
+        }}</label>
+      <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().durationType"
+        (ngModelChange)="onEditDurationChange($event)">
+        @for (opt of durationTypeOptions(); track opt.value) {
+        <option [value]="opt.value">{{ opt.label | translate }}</option>
+        }
+      </select>
+    </div>
+    @if (editForm().durationType === 'HalfDay') {
+    <div>
+      <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.morning' | translate }} / {{
+        'absences.afternoon' | translate }}</label>
+      <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().isMorning"
+        (ngModelChange)="updateEditForm({ isMorning: $event })">
+        <option [ngValue]="true">{{ 'absences.morning' | translate }}</option>
+        <option [ngValue]="false">{{ 'absences.afternoon' | translate }}</option>
+      </select>
+    </div>
+    }
+    @if (editForm().durationType === 'Hourly') {
+    <div class="grid grid-cols-2 gap-2">
       <div>
-        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.date' | translate }}</label>
-        <input type="date" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceDate" (ngModelChange)="updateEditForm({ absenceDate: $event })" />
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.startTime' | translate
+          }}</label>
+        <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().startTime"
+          (ngModelChange)="updateEditForm({ startTime: $event })" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.type' | translate }}</label>
-        <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().absenceType" (ngModelChange)="updateEditForm({ absenceType: $event })">
-          @for (opt of absenceTypeOptions(); track opt.value) {
-            <option [value]="opt.value">{{ opt.label | translate }}</option>
-          }
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.duration' | translate }}</label>
-        <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().durationType" (ngModelChange)="onEditDurationChange($event)">
-          @for (opt of durationTypeOptions(); track opt.value) {
-            <option [value]="opt.value">{{ opt.label | translate }}</option>
-          }
-        </select>
-      </div>
-      @if (editForm().durationType === 'HalfDay') {
-        <div>
-          <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.morning' | translate }} / {{ 'absences.afternoon' | translate }}</label>
-          <select class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().isMorning" (ngModelChange)="updateEditForm({ isMorning: $event })">
-            <option [ngValue]="true">{{ 'absences.morning' | translate }}</option>
-            <option [ngValue]="false">{{ 'absences.afternoon' | translate }}</option>
-          </select>
-        </div>
-      }
-      @if (editForm().durationType === 'Hourly') {
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.startTime' | translate }}</label>
-            <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().startTime" (ngModelChange)="updateEditForm({ startTime: $event })" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.endTime' | translate }}</label>
-            <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().endTime" (ngModelChange)="updateEditForm({ endTime: $event })" />
-          </div>
-        </div>
-      }
-      <div>
-        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.reason' | translate }}</label>
-        <textarea pTextarea [ngModel]="editForm().reason" (ngModelChange)="updateEditForm({ reason: $event })" rows="2" class="w-full"></textarea>
+        <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.form.endTime' | translate
+          }}</label>
+        <input type="time" class="w-full p-2 border border-gray-300 rounded" [ngModel]="editForm().endTime"
+          (ngModelChange)="updateEditForm({ endTime: $event })" />
       </div>
     </div>
+    }
+    <div>
+      <label class="block text-sm font-medium text-(--text-primary) mb-1">{{ 'absences.table.reason' | translate
+        }}</label>
+      <textarea pTextarea [ngModel]="editForm().reason" (ngModelChange)="updateEditForm({ reason: $event })" rows="2"
+        class="w-full"></textarea>
+    </div>
+  </div>
   }
   <ng-template pTemplate="footer">
-    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="cancelEdit()" icon="pi pi-times"></button>
-    <button pButton [label]="'common.save' | translate" icon="pi pi-check" (click)="saveEdit()" [disabled]="!canSaveEdit()"></button>
+    <button pButton [label]="'common.cancel' | translate" severity="secondary" [outlined]="true" (click)="cancelEdit()"
+      icon="pi pi-times"></button>
+    <button pButton [label]="'common.save' | translate" icon="pi pi-check" (click)="saveEdit()"
+      [disabled]="!canSaveEdit()"></button>
   </ng-template>
 </p-dialog>

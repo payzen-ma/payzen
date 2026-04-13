@@ -54,7 +54,7 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   readonly pendingLeaves = signal<number>(0);
   readonly totalClients = signal<number>(0);
   readonly globalEmployeeCount = signal<number>(0);
-  
+
   // Dialog state
   readonly isClientFormVisible = signal<boolean>(false);
   readonly clientFormMode = signal<'create' | 'edit'>('create');
@@ -66,7 +66,7 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   });
 
   // Computed
-  readonly totalEmployees = computed(() => 
+  readonly totalEmployees = computed(() =>
     this.companies().reduce((acc, curr) => acc + (curr.employeeCount || 0), 0)
   );
 
@@ -94,11 +94,10 @@ export class ExpertDashboard implements OnInit, OnDestroy {
 
   loadClientCompanies(): void {
     this.isLoading.set(true);
-    
+
     this.companyService.getManagedCompanies().subscribe({
       next: (companies) => {
         this.companies.set(companies);
-        console.debug('[ExpertDashboard] mapped companies:', companies);
 
         // Try to fetch per-company employee counts if backend didn't provide them
         const missingCounts = companies.filter(c => !c.employeeCount || c.employeeCount === 0).map(c => c.id);
@@ -119,17 +118,15 @@ export class ExpertDashboard implements OnInit, OnDestroy {
                 }
               });
               this.companies.set(companiesArr);
-              console.debug('[ExpertDashboard] updated companies with counts:', this.companies());
             },
-            error: (err: any) => console.warn('Failed fetching per-company counts', err)
+            error: (err: any) => alert('Failed to load employee counts for some companies')
           });
         }
         // Do not auto-select a company so the cabinet-wide audit log is shown by default
-        console.debug('[ExpertDashboard] selectedCompany after load:', this.selectedCompany());
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load managed companies', err);
+        alert('Failed to load managed companies');
         this.isLoading.set(false);
       }
     });
@@ -142,7 +139,7 @@ export class ExpertDashboard implements OnInit, OnDestroy {
         this.globalEmployeeCount.set(summary.totalEmployees);
       },
       error: (err) => {
-        console.error('Failed to load dashboard summary', err);
+        alert('Failed to load dashboard summary');
       }
     });
   }

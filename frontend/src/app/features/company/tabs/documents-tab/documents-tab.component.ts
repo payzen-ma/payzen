@@ -1,23 +1,22 @@
-import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, WritableSignal, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CompanyDocumentDto } from '@app/core/models/company.model';
+import { CompanyDocumentService } from '@app/core/services/company-document.service';
+import { CompanyService } from '@app/core/services/company.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TableModule } from 'primeng/table';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { CompanyService } from '@app/core/services/company.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { CompanyDocumentService } from '@app/core/services/company-document.service';
-import { CompanyDocumentDto } from '@app/core/models/company.model';
-import { WritableSignal } from '@angular/core';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -121,7 +120,7 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
     // Load signatory data from company service
     this.companyService.getCompany().subscribe({
       next: (company) => this.loadSignatoryData(company),
-      error: (err) => console.error('Error loading company signatory:', err)
+      error: (err) => alert('Error loading company data: ' + (err?.error?.message ?? err?.message ?? err))
     });
 
     // Load documents from the dedicated API
@@ -132,7 +131,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading documents:', err);
         this.showToast('error',
           this.translate.instant('common.error'),
           this.translate.instant('company.documents.messages.loadError'));
@@ -152,7 +150,7 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
   private extractImageUrls(docs: CompanyDocumentDto[]) {
     const latest = (type: string) =>
       docs.filter(d => d.documentType === type)
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
     this.loadImagePreview(latest('signature'), this.signatureUrl);
     this.loadImagePreview(latest('stamp'), this.stampUrl);
     this.loadImagePreview(latest('logo'), this.logoUrl);
@@ -195,7 +193,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
           this.translate.instant(`company.documents.messages.${type}Uploaded`));
       },
       error: (err) => {
-        console.error(`Error uploading ${type}:`, err);
         this.uploadingImageType.set(null);
         this.showToast('error',
           this.translate.instant('common.error'),
@@ -226,7 +223,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
           this.translate.instant(`company.documents.messages.${type}Removed`));
       },
       error: (err) => {
-        console.error('Remove image error:', err);
         this.showToast('error',
           this.translate.instant('common.error'),
           this.translate.instant('company.documents.messages.deleteError'));
@@ -266,7 +262,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
           this.translate.instant('company.documents.messages.signatorySaved'));
       },
       error: (err) => {
-        console.error('Error saving signatory:', err);
         this.loading.set(false);
         this.showToast('error',
           this.translate.instant('common.error'),
@@ -276,8 +271,8 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
   }
 
   removeSignature() { this.removeImageDoc('signature'); }
-  removeStamp()     { this.removeImageDoc('stamp'); }
-  removeLogo()      { this.removeImageDoc('logo'); }
+  removeStamp() { this.removeImageDoc('stamp'); }
+  removeLogo() { this.removeImageDoc('logo'); }
 
   // ─── Upload document dialog ───────────────────────────────────────
   openUploadDialog() {
@@ -316,7 +311,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
           this.translate.instant('company.documents.messages.documentUploaded'));
       },
       error: (err) => {
-        console.error('Upload error:', err);
         this.uploading.set(false);
         this.showToast('error',
           this.translate.instant('common.error'),
@@ -339,7 +333,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        console.error('Download error:', err);
         this.showToast('error',
           this.translate.instant('common.error'),
           this.translate.instant('company.documents.messages.downloadError'));
@@ -362,7 +355,6 @@ export class DocumentsTabComponent implements OnInit, OnDestroy {
               this.translate.instant('company.documents.messages.deleteSuccess'));
           },
           error: (err) => {
-            console.error('Delete error:', err);
             this.showToast('error',
               this.translate.instant('common.error'),
               this.translate.instant('company.documents.messages.deleteError'));

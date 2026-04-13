@@ -177,4 +177,25 @@ export class PayrollService {
     }
     return years;
   }
+
+  /**
+   * Approuve (verrouille) tous les bulletins valides d'une période
+   */
+  approvePeriod(month: number, year: number, half?: number): Observable<any> {
+    const contextCompanyId = this.contextService.companyId();
+    const companyId = contextCompanyId ? parseInt(contextCompanyId.toString()) : undefined;
+    
+    if (!companyId) {
+      throw new Error('CompanyId est requis pour approuver la paie');
+    }
+    
+    let params = new HttpParams()
+      .set('companyId', companyId.toString())
+      .set('month', month.toString())
+      .set('year', year.toString());
+    const normalizedHalf = this.normalizeHalfParam(half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
+
+    return this.http.post(`${this.PAYROLL_URL}/approve`, null, { params });
+  }
 }

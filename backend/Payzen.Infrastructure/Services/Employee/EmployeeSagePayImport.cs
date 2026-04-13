@@ -588,14 +588,18 @@ internal static class EmployeeSagePayImport
 
     private static int LevenshteinDistance(string a, string b)
     {
-        if (string.IsNullOrEmpty(a)) return b?.Length ?? 0;
-        if (string.IsNullOrEmpty(b)) return a.Length;
+        if (string.IsNullOrEmpty(a))
+            return b?.Length ?? 0;
+        if (string.IsNullOrEmpty(b))
+            return a.Length;
 
         var n = a.Length;
         var m = b.Length;
         var d = new int[n + 1, m + 1];
-        for (var i = 0; i <= n; i++) d[i, 0] = i;
-        for (var j = 0; j <= m; j++) d[0, j] = j;
+        for (var i = 0; i <= n; i++)
+            d[i, 0] = i;
+        for (var j = 0; j <= m; j++)
+            d[0, j] = j;
         for (var i = 1; i <= n; i++)
         {
             for (var j = 1; j <= m; j++)
@@ -665,7 +669,8 @@ internal static class EmployeeSagePayImport
 
         string? CleanCell(string? raw)
         {
-            if (string.IsNullOrWhiteSpace(raw)) return null;
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
             var s = raw.Trim();
             if (s.StartsWith("=\"", StringComparison.Ordinal) && s.EndsWith('\"'))
                 s = s.Substring(2, s.Length - 3);
@@ -679,11 +684,13 @@ internal static class EmployeeSagePayImport
             foreach (var c in candidates)
             {
                 var candKey = NormalizeHeader(c ?? string.Empty);
-                if (string.IsNullOrWhiteSpace(candKey)) continue;
+                if (string.IsNullOrWhiteSpace(candKey))
+                    continue;
                 if (headerMap.TryGetValue(candKey, out var ix))
                 {
                     var v = CleanCell(cr.GetField(ix));
-                    if (!string.IsNullOrWhiteSpace(v)) return v;
+                    if (!string.IsNullOrWhiteSpace(v))
+                        return v;
                 }
             }
 
@@ -692,11 +699,13 @@ internal static class EmployeeSagePayImport
                 foreach (var c in candidates)
                 {
                     var candKey = NormalizeHeader(c ?? string.Empty);
-                    if (string.IsNullOrWhiteSpace(candKey)) continue;
+                    if (string.IsNullOrWhiteSpace(candKey))
+                        continue;
                     if (kv.Key.Contains(candKey, StringComparison.OrdinalIgnoreCase))
                     {
                         var v = CleanCell(cr.GetField(kv.Value));
-                        if (!string.IsNullOrWhiteSpace(v)) return v;
+                        if (!string.IsNullOrWhiteSpace(v))
+                            return v;
                     }
                 }
             }
@@ -706,13 +715,15 @@ internal static class EmployeeSagePayImport
                 foreach (var c in candidates)
                 {
                     var candKey = NormalizeHeader(c ?? string.Empty);
-                    if (string.IsNullOrWhiteSpace(candKey)) continue;
+                    if (string.IsNullOrWhiteSpace(candKey))
+                        continue;
                     try
                     {
                         if (LevenshteinDistance(kv.Key, candKey) <= 1)
                         {
                             var v = CleanCell(cr.GetField(kv.Value));
-                            if (!string.IsNullOrWhiteSpace(v)) return v;
+                            if (!string.IsNullOrWhiteSpace(v))
+                                return v;
                         }
                     }
                     catch
@@ -733,40 +744,49 @@ internal static class EmployeeSagePayImport
             foreach (var c in new[] { "nom", "nomdefamille", "nomfamille", "nomusage", "nomnaissance", "nompatronymique", "nomjeunefille" })
             {
                 var candKey = NormalizeHeader(c);
-                if (string.IsNullOrWhiteSpace(candKey)) continue;
+                if (string.IsNullOrWhiteSpace(candKey))
+                    continue;
                 if (headerMap.TryGetValue(candKey, out var ix))
                 {
                     var v = CleanCell(cr.GetField(ix));
-                    if (!string.IsNullOrWhiteSpace(v)) return v;
+                    if (!string.IsNullOrWhiteSpace(v))
+                        return v;
                 }
             }
 
             foreach (var kv in headerMap.OrderBy(x => x.Value))
             {
-                if (kv.Key.StartsWith("prenom", StringComparison.OrdinalIgnoreCase)) continue;
+                if (kv.Key.StartsWith("prenom", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 foreach (var c in new[] { "nom", "nomdefamille", "nomfamille", "nomusage" })
                 {
                     var candKey = NormalizeHeader(c);
-                    if (string.IsNullOrWhiteSpace(candKey)) continue;
-                    if (!kv.Key.Contains(candKey, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (string.IsNullOrWhiteSpace(candKey))
+                        continue;
+                    if (!kv.Key.Contains(candKey, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     var v = CleanCell(cr.GetField(kv.Value));
-                    if (!string.IsNullOrWhiteSpace(v)) return v;
+                    if (!string.IsNullOrWhiteSpace(v))
+                        return v;
                 }
             }
 
             foreach (var kv in headerMap.OrderBy(x => x.Value))
             {
-                if (kv.Key.StartsWith("prenom", StringComparison.OrdinalIgnoreCase)) continue;
+                if (kv.Key.StartsWith("prenom", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 foreach (var c in new[] { "nom", "nomdefamille", "nomfamille", "nomusage" })
                 {
                     var candKey = NormalizeHeader(c);
-                    if (string.IsNullOrWhiteSpace(candKey)) continue;
+                    if (string.IsNullOrWhiteSpace(candKey))
+                        continue;
                     try
                     {
                         if (LevenshteinDistance(kv.Key, candKey) <= 1)
                         {
                             var v = CleanCell(cr.GetField(kv.Value));
-                            if (!string.IsNullOrWhiteSpace(v)) return v;
+                            if (!string.IsNullOrWhiteSpace(v))
+                                return v;
                         }
                     }
                     catch { /* ignore */ }
@@ -785,37 +805,44 @@ internal static class EmployeeSagePayImport
                      })
             {
                 var candKey = NormalizeHeader(c);
-                if (string.IsNullOrWhiteSpace(candKey)) continue;
+                if (string.IsNullOrWhiteSpace(candKey))
+                    continue;
                 if (headerMap.TryGetValue(candKey, out var ix))
                 {
                     var v = CleanCell(cr.GetField(ix));
-                    if (!string.IsNullOrWhiteSpace(v)) return v;
+                    if (!string.IsNullOrWhiteSpace(v))
+                        return v;
                 }
             }
 
             foreach (var kv in headerMap.OrderBy(x => x.Value))
             {
-                if (kv.Key.Equals("nom", StringComparison.OrdinalIgnoreCase)) continue;
+                if (kv.Key.Equals("nom", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 if (kv.Key.Contains("prenom", StringComparison.OrdinalIgnoreCase))
                 {
                     var v = CleanCell(cr.GetField(kv.Value));
-                    if (!string.IsNullOrWhiteSpace(v)) return v;
+                    if (!string.IsNullOrWhiteSpace(v))
+                        return v;
                 }
             }
 
             foreach (var kv in headerMap.OrderBy(x => x.Value))
             {
-                if (kv.Key.Equals("nom", StringComparison.OrdinalIgnoreCase)) continue;
+                if (kv.Key.Equals("nom", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 foreach (var c in new[] { "prenom", "preno", "prnom" })
                 {
                     var candKey = NormalizeHeader(c);
-                    if (string.IsNullOrWhiteSpace(candKey)) continue;
+                    if (string.IsNullOrWhiteSpace(candKey))
+                        continue;
                     try
                     {
                         if (LevenshteinDistance(kv.Key, candKey) <= 1)
                         {
                             var v = CleanCell(cr.GetField(kv.Value));
-                            if (!string.IsNullOrWhiteSpace(v)) return v;
+                            if (!string.IsNullOrWhiteSpace(v))
+                                return v;
                         }
                     }
                     catch { /* ignore */ }
@@ -827,9 +854,11 @@ internal static class EmployeeSagePayImport
 
         static void TrySplitCombinedNameIntoDto(SageImportRowDto dto, string? combined)
         {
-            if (string.IsNullOrWhiteSpace(combined)) return;
+            if (string.IsNullOrWhiteSpace(combined))
+                return;
             var parts = combined.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2) return;
+            if (parts.Length < 2)
+                return;
             var nom = parts[^1].Trim();
             var prenom = string.Join(' ', parts.Take(parts.Length - 1)).Trim();
             if (string.IsNullOrWhiteSpace(dto.Nom))
@@ -840,9 +869,11 @@ internal static class EmployeeSagePayImport
 
         static void TrySplitNomColumnIfMultipart(SageImportRowDto dto)
         {
-            if (!string.IsNullOrWhiteSpace(dto.Prenom) || string.IsNullOrWhiteSpace(dto.Nom)) return;
+            if (!string.IsNullOrWhiteSpace(dto.Prenom) || string.IsNullOrWhiteSpace(dto.Nom))
+                return;
             var parts = dto.Nom!.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2) return;
+            if (parts.Length < 2)
+                return;
             dto.Prenom = string.Join(' ', parts.Take(parts.Length - 1)).Trim();
             dto.Nom = parts[^1].Trim();
         }
@@ -887,7 +918,8 @@ internal static class EmployeeSagePayImport
 
     private static string NormalizeHeader(string input)
     {
-        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(input))
+            return string.Empty;
         var s = input.Trim();
         if (s.StartsWith("=\"", StringComparison.Ordinal) && s.EndsWith('\"'))
             s = s.Substring(2, s.Length - 3);
@@ -897,8 +929,10 @@ internal static class EmployeeSagePayImport
         foreach (var ch in normalized)
         {
             var cat = CharUnicodeInfo.GetUnicodeCategory(ch);
-            if (cat == UnicodeCategory.NonSpacingMark) continue;
-            if (char.IsLetterOrDigit(ch)) sb.Append(char.ToLowerInvariant(ch));
+            if (cat == UnicodeCategory.NonSpacingMark)
+                continue;
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(char.ToLowerInvariant(ch));
         }
 
         return sb.ToString();
@@ -907,7 +941,8 @@ internal static class EmployeeSagePayImport
     private static bool TryParseDateOnlyFlexible(string? input, out DateOnly parsedDate)
     {
         parsedDate = default;
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
         var s = input.Trim().Replace('\u00A0', ' ').Trim('"', '\'');
         var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yy", "d/M/yy" };
         if (DateOnly.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
@@ -942,7 +977,8 @@ internal static class EmployeeSagePayImport
     private static bool TryParseDateTimeFlexible(string? input, out DateTime parsedDateTime)
     {
         parsedDateTime = default;
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
         var s = input.Trim().Replace('\u00A0', ' ').Trim('"', '\'');
         var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "dd/MM/yy", "d/M/yy" };
         if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))

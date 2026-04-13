@@ -1,15 +1,14 @@
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HttpResponse } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class EventLogService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/events`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Get events with optional filters and pagination

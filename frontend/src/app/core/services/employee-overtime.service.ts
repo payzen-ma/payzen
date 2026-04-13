@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { EmployeeOvertime } from '../models/employee-overtime.model';
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeOvertimeService {
-  private apiUrl = 'http://localhost:5119/api/employee-overtimes';
+  private apiUrl = 'https://api-test.payzenhr.com/api/employee-overtimes';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<EmployeeOvertime[]> {
     return this.http.get<EmployeeOvertime[]>(this.apiUrl);

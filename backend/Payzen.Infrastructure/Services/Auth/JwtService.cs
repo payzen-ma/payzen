@@ -20,11 +20,11 @@ public class JwtService : IJwtService
 
     public JwtService(IConfiguration config, AppDbContext db)
     {
-        _key            = config["JwtSettings:Key"]            ?? throw new InvalidOperationException("JwtSettings:Key manquant");
-        _issuer         = config["JwtSettings:Issuer"]         ?? throw new InvalidOperationException("JwtSettings:Issuer manquant");
-        _audience       = config["JwtSettings:Audience"]       ?? throw new InvalidOperationException("JwtSettings:Audience manquant");
+        _key = config["JwtSettings:Key"] ?? throw new InvalidOperationException("JwtSettings:Key manquant");
+        _issuer = config["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JwtSettings:Issuer manquant");
+        _audience = config["JwtSettings:Audience"] ?? throw new InvalidOperationException("JwtSettings:Audience manquant");
         _expiresMinutes = int.Parse(config["JwtSettings:ExpiresInMinutes"] ?? "120");
-        _db             = db;
+        _db = db;
     }
 
     public async Task<string> GenerateTokenAsync(Users user, CancellationToken ct = default)
@@ -67,14 +67,14 @@ public class JwtService : IJwtService
         foreach (var permission in permissions)
             claims.Add(new Claim("permission", permission));
 
-        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer:             _issuer,
-            audience:           _audience,
-            claims:             claims,
-            expires:            DateTime.UtcNow.AddMinutes(_expiresMinutes),
+            issuer: _issuer,
+            audience: _audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(_expiresMinutes),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -84,22 +84,22 @@ public class JwtService : IJwtService
     {
         try
         {
-            var handler    = new JwtSecurityTokenHandler();
-            var key        = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+            var handler = new JwtSecurityTokenHandler();
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
             var parameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey         = key,
-                ValidateIssuer           = true,
-                ValidIssuer              = _issuer,
-                ValidateAudience         = true,
-                ValidAudience            = _audience,
-                ValidateLifetime         = true,
-                ClockSkew                = TimeSpan.Zero
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = _issuer,
+                ValidateAudience = true,
+                ValidAudience = _audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
 
             var principal = handler.ValidateToken(token, parameters, out _);
-            var uidClaim  = principal.FindFirst("uid") ?? principal.FindFirst(JwtRegisteredClaimNames.Sub);
+            var uidClaim = principal.FindFirst("uid") ?? principal.FindFirst(JwtRegisteredClaimNames.Sub);
 
             return uidClaim != null && int.TryParse(uidClaim.Value, out var userId)
                 ? userId

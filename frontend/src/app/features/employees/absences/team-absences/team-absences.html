@@ -1,76 +1,64 @@
-<div class="salary-page">
-  <header class="page-header">
-    <div class="module-header__content">
-      <div class="module-header__icon">
-        <i class="pi pi-users"></i>
+<section class="payslip-page bulletin-page salary-page">
+  <div class="payslip-shell bulletin-shell">
+    <header class="payslip-hero bulletin-hero">
+      <div class="module-header__content">
+        <div class="module-header__text">
+          <p class="payslip-eyebrow">Absences</p>
+          <h1 class="page-title">{{ 'absences.teamTitle' | translate }}</h1>
+          <p class="page-subtitle">{{ 'absences.teamSubtitle' | translate }}</p>
+        </div>
       </div>
-      <div class="module-header__text">
-        <h1 class="page-title">{{ 'absences.teamTitle' | translate }}</h1>
-        <p class="page-subtitle">{{ 'absences.teamSubtitle' | translate }}</p>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Team Stats Cards -->
-  <section class="module-stats">
-    <div class="stat-card-module">
-      <div class="stat-card-module__inner">
-        <div class="stat-card-module__content">
-          <p>{{ 'absences.stats.total' | translate }}</p>
-          <h3>{{ teamStats().totalAbsences }}</h3>
-        </div>
-        <div class="stat-card-module__icon">
-          <i class="pi pi-calendar"></i>
-        </div>
-      </div>
-    </div>
-    <div class="stat-card-module">
-      <div class="stat-card-module__inner">
-        <div class="stat-card-module__content">
-          <p>{{ 'absences.stats.totalDays' | translate }}</p>
-          <h3>{{ teamStats().totalDays }}</h3>
-        </div>
-        <div class="stat-card-module__icon">
-          <i class="pi pi-clock"></i>
+    <!-- Team Stats Cards -->
+    <section class="module-stats">
+      <div class="stat-card-module">
+        <div class="stat-card-module__inner">
+          <div class="stat-card-module__content">
+            <p>{{ 'absences.stats.total' | translate }}</p>
+            <h3>{{ teamStats().totalAbsences }}</h3>
+          </div>
+          <div class="stat-card-module__icon">
+            <i class="pi pi-calendar"></i>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+      <div class="stat-card-module">
+        <div class="stat-card-module__inner">
+          <div class="stat-card-module__content">
+            <p>{{ 'absences.stats.totalDays' | translate }}</p>
+            <h3>{{ teamStats().totalDays }}</h3>
+          </div>
+          <div class="stat-card-module__icon">
+            <i class="pi pi-clock"></i>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <!-- Search -->
-  <section class="module-search-card">
-    <div class="module-search-wrapper">
-      <i class="pi pi-search"></i>
-      <input
-        pInputText
-        type="text"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        [placeholder]="'absences.searchEmployee' | translate"
-      />
-    </div>
-  </section>
+    <!-- Search -->
+    <section class="payslip-card bulletin-card module-search-card">
+      <div class="module-search-wrapper">
+        <i class="pi pi-search"></i>
+        <input pInputText type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+          [placeholder]="'absences.searchEmployee' | translate" />
+      </div>
+    </section>
 
-  <!-- Employees Table -->
-  <section class="module-table-card">
-    <!-- Loading Overlay -->
-    @if (isLoading()) {
+    <!-- Employees Table -->
+    <section class="payslip-card bulletin-card module-table-card">
+      <!-- Loading Overlay -->
+      @if (isLoading()) {
       <div class="loading-overlay">
         <div class="loading-overlay__content">
           <i class="pi pi-spin pi-spinner"></i>
           <p>{{ 'common.loading' | translate }}</p>
         </div>
       </div>
-    }
+      }
 
-    <p-table
-      [value]="filteredEmployees()"
-        styleClass="p-datatable-sm"
-        [tableStyle]="{'min-width': '50rem'}"
-        [paginator]="true"
-        [rows]="5"
-        [rowsPerPageOptions]="[5, 10, 25]"
-      >
+      <p-table [value]="filteredEmployees()" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '50rem'}"
+        [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5, 10, 25]">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="employeeName" class="saas-table-header">
@@ -130,31 +118,17 @@
             <!-- Actions -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
-                <button
-                  pButton
-                  icon="pi pi-eye"
-                  [pTooltip]="'absences.viewDetails' | translate"
-                  tooltipPosition="top"
-                  (click)="viewEmployeeAbsences(employee.employeeId); $event.stopPropagation()"
-                  severity="info"
-                  [text]="true"
-                  [rounded]="true"
-                ></button>
-                <button
-                  pButton
-                  icon="pi pi-plus"
-                  [pTooltip]="'absences.hrGrant' | translate"
-                  tooltipPosition="top"
+                <button pButton icon="pi pi-eye" [pTooltip]="'absences.viewDetails' | translate" tooltipPosition="top"
+                  (click)="viewEmployeeAbsences(employee.employeeId); $event.stopPropagation()" severity="info"
+                  [text]="true" [rounded]="true"></button>
+                <button pButton icon="pi pi-plus" [pTooltip]="'absences.hrGrant' | translate" tooltipPosition="top"
                   (click)="openGrantDialog(employee.employeeId, employee.employeeName); $event.stopPropagation()"
-                  severity="success"
-                  [text]="true"
-                  [rounded]="true"
-                ></button>
+                  severity="success" [text]="true" [rounded]="true"></button>
               </div>
             </td>
           </tr>
         </ng-template>
-        
+
         <ng-template pTemplate="emptymessage">
           <tr>
             <td colspan="4" class="text-center py-12">
@@ -166,23 +140,18 @@
           </tr>
         </ng-template>
       </p-table>
-  </section>
-</div>
+    </section>
+  </div>
+</section>
 
 <!-- Grant Absence Dialog -->
-<p-dialog
-  [(visible)]="showGrantDialog"
-  [modal]="true"
-  [style]="{width: '40rem'}"
-  [draggable]="false"
-  [resizable]="false"
-  [showHeader]="false"
-  styleClass="app-dialog"
->
+<p-dialog [(visible)]="showGrantDialog" [modal]="true" [style]="{width: '40rem'}" [draggable]="false"
+  [resizable]="false" [showHeader]="false" styleClass="app-dialog">
   <!-- Custom Header -->
   <div class="px-6 pt-6 pb-4 border-b border-gray-100">
     <div class="flex items-start gap-4">
-      <div class="shrink-0 size-12 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+      <div
+        class="shrink-0 size-12 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
         <i class="pi pi-calendar-plus text-white text-xl"></i>
       </div>
       <div class="flex-1 min-w-0">
@@ -193,9 +162,7 @@
           {{ grantRequest()?.employeeName }}
         </p>
       </div>
-      <button 
-        type="button" 
-        (click)="showGrantDialog.set(false)" 
+      <button type="button" (click)="showGrantDialog.set(false)"
         class="shrink-0 size-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         [attr.aria-label]="'common.close' | translate">
         <i class="pi pi-times text-lg"></i>
@@ -210,13 +177,8 @@
       <label class="form-label form-label-required">
         {{ 'absences.form.date' | translate }}
       </label>
-      <p-datepicker
-        [ngModel]="grantAbsenceDate()"
-        (ngModelChange)="updateGrantField('absenceDate', $event)"
-        dateFormat="dd/mm/yy"
-        [showIcon]="true"
-        styleClass="w-full"
-      ></p-datepicker>
+      <p-datepicker [ngModel]="grantAbsenceDate()" (ngModelChange)="updateGrantField('absenceDate', $event)"
+        dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full"></p-datepicker>
     </div>
 
     <!-- Type Field -->
@@ -224,15 +186,9 @@
       <label class="form-label form-label-required">
         {{ 'absences.form.type' | translate }}
       </label>
-      <p-select
-        [options]="absenceTypes"
-        [ngModel]="grantAbsenceType()"
-        (ngModelChange)="updateGrantField('absenceType', $event)"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-        [placeholder]="'absences.form.type' | translate"
-      ></p-select>
+      <p-select [options]="absenceTypes" [ngModel]="grantAbsenceType()"
+        (ngModelChange)="updateGrantField('absenceType', $event)" optionLabel="label" optionValue="value"
+        styleClass="w-full" [placeholder]="'absences.form.type' | translate"></p-select>
     </div>
 
     <!-- Duration Type Field -->
@@ -240,66 +196,48 @@
       <label class="form-label form-label-required">
         {{ 'absences.form.durationType' | translate }}
       </label>
-      <p-select
-        [options]="durationTypes"
-        [ngModel]="grantDurationType()"
-        (ngModelChange)="updateGrantField('durationType', $event)"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-        [placeholder]="'absences.form.durationType' | translate"
-      ></p-select>
+      <p-select [options]="durationTypes" [ngModel]="grantDurationType()"
+        (ngModelChange)="updateGrantField('durationType', $event)" optionLabel="label" optionValue="value"
+        styleClass="w-full" [placeholder]="'absences.form.durationType' | translate"></p-select>
     </div>
 
     <!-- Period Field (Half Day) -->
     @if (grantDurationType() === 'HalfDay') {
-      <div class="form-field p-4 bg-blue-50 border border-blue-100 rounded-lg">
-        <label class="form-label form-label-required">
-          {{ 'absences.form.period' | translate }}
-        </label>
-        <p-select
-          [options]="halfDayOptions"
-          [ngModel]="grantIsMorning()"
-          (ngModelChange)="updateGrantField('isMorning', $event)"
-          optionLabel="label"
-          optionValue="value"
-          styleClass="w-full"
-          [placeholder]="'absences.form.period' | translate"
-        ></p-select>
-      </div>
+    <div class="form-field p-4 bg-blue-50 border border-blue-100 rounded-lg">
+      <label class="form-label form-label-required">
+        {{ 'absences.form.period' | translate }}
+      </label>
+      <p-select [options]="halfDayOptions" [ngModel]="grantIsMorning()"
+        (ngModelChange)="updateGrantField('isMorning', $event)" optionLabel="label" optionValue="value"
+        styleClass="w-full" [placeholder]="'absences.form.period' | translate"></p-select>
+    </div>
     }
 
     <!-- Time Range (Hourly) -->
     @if (grantDurationType() === 'Hourly') {
-      <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg">
-        <label class="block text-sm font-medium text-gray-700 mb-3">
-          {{ 'absences.form.startTime' | translate }} - {{ 'absences.form.endTime' | translate }}
-        </label>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-field">
-            <label class="block text-xs text-gray-600 mb-1.5">
-              {{ 'absences.form.startTime' | translate }}
-            </label>
-            <input
-              type="time"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              [ngModel]="grantStartTime()"
-              (ngModelChange)="updateGrantField('startTime', $event)"
-            />
-          </div>
-          <div class="form-field">
-            <label class="block text-xs text-gray-600 mb-1.5">
-              {{ 'absences.form.endTime' | translate }}
-            </label>
-            <input
-              type="time"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              [ngModel]="grantEndTime()"
-              (ngModelChange)="updateGrantField('endTime', $event)"
-            />
-          </div>
+    <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+      <label class="block text-sm font-medium text-gray-700 mb-3">
+        {{ 'absences.form.startTime' | translate }} - {{ 'absences.form.endTime' | translate }}
+      </label>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-field">
+          <label class="block text-xs text-gray-600 mb-1.5">
+            {{ 'absences.form.startTime' | translate }}
+          </label>
+          <input type="time"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            [ngModel]="grantStartTime()" (ngModelChange)="updateGrantField('startTime', $event)" />
+        </div>
+        <div class="form-field">
+          <label class="block text-xs text-gray-600 mb-1.5">
+            {{ 'absences.form.endTime' | translate }}
+          </label>
+          <input type="time"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            [ngModel]="grantEndTime()" (ngModelChange)="updateGrantField('endTime', $event)" />
         </div>
       </div>
+    </div>
     }
 
     <!-- Reason Field -->
@@ -307,31 +245,18 @@
       <label class="form-label">
         {{ 'absences.form.reason' | translate }}
       </label>
-      <textarea
-        pInputTextarea
-        [ngModel]="grantReason()"
-        (ngModelChange)="updateGrantField('reason', $event)"
-        rows="4"
-        class="w-full"
-        [placeholder]="'absences.form.reasonPlaceholder' | translate"
-      ></textarea>
+      <textarea pInputTextarea [ngModel]="grantReason()" (ngModelChange)="updateGrantField('reason', $event)" rows="4"
+        class="w-full" [placeholder]="'absences.form.reasonPlaceholder' | translate"></textarea>
     </div>
   </div>
 
   <!-- Footer Actions -->
   <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
     <div class="flex items-center justify-end gap-3">
-      <p-button 
-        [label]="'common.cancel' | translate" 
-        severity="secondary"
-        size="small"
+      <p-button [label]="'common.cancel' | translate" severity="secondary" size="small"
         (onClick)="showGrantDialog.set(false)">
       </p-button>
-      <p-button 
-        [label]="'absences.declare' | translate" 
-        icon="pi pi-check"
-        size="small"
-        (onClick)="submitGrant()">
+      <p-button [label]="'absences.declare' | translate" icon="pi pi-check" size="small" (onClick)="submitGrant()">
       </p-button>
     </div>
   </div>

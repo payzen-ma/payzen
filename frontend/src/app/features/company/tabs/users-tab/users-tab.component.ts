@@ -108,7 +108,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
   assignRoleUserLabel = '';
   assignRoleRoleLabel = '';
   assignRoleAssignLabel = '';
-  
+
 
   // Avatar color palette
   private readonly avatarColors = [
@@ -124,7 +124,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
     this.initForm();
     this.loadUsers();
     this.loadRoles();
-    
+
     // Subscribe to company context changes to refresh users
     this.contextSub = this.contextService.contextChanged$.subscribe(() => {
       this.loadUsers();
@@ -164,14 +164,13 @@ export class UsersTabComponent implements OnInit, OnDestroy {
             const code = (r.code || '').toLowerCase();
             return !name.includes('admin payzen') && !code.includes('adminpayzen');
           })
-          .map(r => ({ 
-            label: r.name, 
+          .map(r => ({
+            label: r.name,
             value: String(r.id)
           }));
         this.roles.set(options);
       },
       error: (err) => {
-        console.error('Error loading roles', err);
         this.roleLoadError.set(this.translate.instant('company.users.messages.loadRolesError'));
       }
     });
@@ -306,7 +305,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
                 openWithRoles();
               },
               error: (e) => {
-                console.error('Error loading roles while matching user role', e);
                 this.selectInitialRoleFromDisplay(user);
                 this.blurActiveElement();
                 this.assignRoleDialogVisible.set(true);
@@ -326,7 +324,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
           this.assignRoleDialogVisible.set(true);
         },
         error: (err) => {
-          console.error('Error fetching user roles', err);
           this.selectInitialRoleFromDisplay(user);
           this.blurActiveElement();
           this.assignRoleDialogVisible.set(true);
@@ -342,7 +339,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
   private selectInitialRoleFromDisplay(user: UserDisplay) {
     const currentRoleName = user.role?.replace('user.role.', '').toLowerCase() || null;
     const options = this.roles();
-    const match = options.find(o => 
+    const match = options.find(o =>
       String(o.label).toLowerCase().includes(currentRoleName || '') ||
       currentRoleName?.includes(String(o.label).toLowerCase())
     );
@@ -416,7 +413,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         this.loadUsers();
       },
       error: (err) => {
-        console.error('Error updating roles', err);
         this.assigningRoleLoading.set(false);
         const apiMsg = this.formatApiError(err);
         this.showToast('error', this.translate.instant('common.error'), apiMsg);
@@ -463,7 +459,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         this.loadingEmployees.set(false);
       },
       error: (err) => {
-        console.error('Error loading available employees:', err);
         this.loadingEmployees.set(false);
       }
     });
@@ -497,12 +492,11 @@ export class UsersTabComponent implements OnInit, OnDestroy {
       next: () => {
         this.inviteLoading.set(false);
         this.inviteDialogVisible.set(false);
-        this.showToast('success', this.translate.instant('company.users.inviteSuccess'), 
+        this.showToast('success', this.translate.instant('company.users.inviteSuccess'),
           this.translate.instant('company.users.inviteSentTo', { name: employee.fullName }));
         this.loadUsers();
       },
       error: (err) => {
-        console.error('Error sending invite:', err);
         this.inviteLoading.set(false);
         this.showToast(
           'error',
@@ -547,10 +541,8 @@ export class UsersTabComponent implements OnInit, OnDestroy {
           const email = (e as any).email ?? (e as any).Email ?? '';
           const roleRaw = (e as any).roleName ?? (e as any).RoleName ?? (e as any).role ?? null;
           const userId = (e as any).userId ?? (e as any).UserId ?? null;
-          console.log('Mapping employee to user display:', { id: e.id, email, roleRaw, userId });
           // If we don't have role or user linkage, output the full payload for debugging
           if (!roleRaw && !userId) {
-            console.log('Full employee payload (no role/userId):', e);
           }
 
           // Default to viewer. We'll try several places to find role information
@@ -607,7 +599,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading employees for users tab:', err);
         this.loading.set(false);
         this.showToast(
           'error',
@@ -666,7 +657,6 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         );
       },
       error: (err) => {
-        console.error('Error removing user:', err);
         this.showToast(
           'error',
           this.translate.instant('common.error'),

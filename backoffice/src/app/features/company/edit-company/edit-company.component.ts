@@ -17,7 +17,7 @@ import { City, Country } from '../../../models/company.model';
 })
 export class EditCompanyComponent implements OnInit {
   companyId: number = 0;
-  
+
   // Form data
   companyName = '';
   email = '';
@@ -109,8 +109,6 @@ export class EditCompanyComponent implements OnInit {
         this.loadCompany();
       },
       error: (err) => {
-        console.error('Erreur lors du chargement des données de formulaire:', err);
-        // still attempt to load company even if form data fails
         this.loadCompany();
       }
     });
@@ -236,12 +234,10 @@ export class EditCompanyComponent implements OnInit {
         this.rcNumber = c.rcNumber || '';
         this.legalForm = c.legalForm || '';
         this.foundingDate = c.foundingDate ? c.foundingDate.split('T')[0] : '';
-        console.log('foundingDate loaded:', this.foundingDate);
 
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Erreur lors du chargement de la société', err);
         this.errorMessage = 'Impossible de charger la société.';
         this.isLoading = false;
       }
@@ -274,14 +270,12 @@ export class EditCompanyComponent implements OnInit {
       foundingDate: this.foundingDate,
     };
 
-    console.log('Submitting company update:', payload);
     this.companyService.patchCompany(this.companyId, payload).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.router.navigate(['/view-company', this.companyId]);
       },
       error: (err) => {
-        console.error('Erreur lors de la mise à jour de la société', err);
         this.errorMessage = 'Erreur lors de la mise à jour.';
         this.isSubmitting = false;
       }

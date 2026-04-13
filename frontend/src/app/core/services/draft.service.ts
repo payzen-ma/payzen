@@ -22,7 +22,7 @@ export class DraftService {
   private readonly STORAGE_PREFIX = 'draft_';
   private readonly VERSION = 1;
   private tabId: string;
-  
+
   // Observable for cross-tab draft updates
   private draftUpdated$ = new BehaviorSubject<{ key: string; draft: Draft | null }>({ key: '', draft: null });
 
@@ -51,7 +51,6 @@ export class DraftService {
       localStorage.setItem(key, JSON.stringify(draft));
       this.draftUpdated$.next({ key, draft });
     } catch (error) {
-      console.error('Failed to save draft:', error);
       this.handleStorageQuotaExceeded();
     }
   }
@@ -62,22 +61,20 @@ export class DraftService {
   loadDraft<T>(entityType: string, entityId: string): Draft<T> | null {
     const key = this.buildKey(entityType, entityId);
     const raw = localStorage.getItem(key);
-    
+
     if (!raw) return null;
 
     try {
       const draft = JSON.parse(raw) as Draft<T>;
-      
+
       // Version check
       if (draft.metadata.version !== this.VERSION) {
-        console.warn('Draft version mismatch, discarding');
         this.clearDraft(entityType, entityId);
         return null;
       }
 
       return draft;
     } catch (error) {
-      console.error('Failed to parse draft:', error);
       this.clearDraft(entityType, entityId);
       return null;
     }
@@ -115,7 +112,6 @@ export class DraftService {
           try {
             drafts.push(JSON.parse(raw));
           } catch (error) {
-            console.error('Failed to parse draft:', error);
           }
         }
       }
@@ -183,7 +179,7 @@ export class DraftService {
       })
       .filter(Boolean) as { key: string; savedAt: string }[];
 
-    draftsWithKeys.sort((a, b) => 
+    draftsWithKeys.sort((a, b) =>
       new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime()
     );
 

@@ -146,7 +146,6 @@ export class LeavePolicyFormPage implements OnInit {
         this.leaveType.set(leaveType);
       },
       error: (err: any) => {
-        console.error('Failed to load leave type:', err);
       }
     });
   }
@@ -278,7 +277,7 @@ export class LeavePolicyFormPage implements OnInit {
           detail: 'Politique mise à jour'
         });
         this.isSaving.set(false);
-        
+
         const leaveTypeId = this.leaveTypeId() || policy.LeaveTypeId;
         this.router.navigate([`${this.routePrefix()}/leave/types`, leaveTypeId]);
       },

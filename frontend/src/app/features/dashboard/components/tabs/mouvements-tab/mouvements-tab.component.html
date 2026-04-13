@@ -1,51 +1,57 @@
-<section class="space-y-6">
-  <app-section-header
-    [eyebrow]="data().meta.eyebrow ?? ''"
-    [title]="data().meta.title"
-    [subtitle]="data().meta.subtitle"
-    [badge]="data().meta.badge ?? ''"
-    [icon]="data().meta.icon ?? 'pi pi-refresh'"
-  />
+<article class="mouvements-surface">
+  <header class="mouvements-hero">
+    @if (data().meta.eyebrow) {
+    <p class="hero-eyebrow mouvements-hero-eyebrow">{{ data().meta.eyebrow }}</p>
+    }
 
-  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div class="mouvements-heading">
+      <div class="mouvements-heading-line">
+        <h1 class="hero-title mouvements-title">{{ data().meta.title }}</h1>
+        @if (data().meta.badge) {
+        <span class="mouvements-badge">{{ data().meta.badge }}</span>
+        }
+      </div>
+      <p class="hero-subtitle mouvements-subtitle">{{ data().meta.subtitle }}</p>
+    </div>
+  </header>
+
+  <div class="mouvements-kpi">
     @for (metric of data().summary; track metric.label) {
-      <app-kpi-card [metric]="metric" />
+    <app-kpi-card [metric]="metric" />
     }
   </div>
 
-  <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-      <div class="space-y-1">
-        <p class="text-sm font-semibold text-gray-900">Filtrer le tableau</p>
-        <p class="text-xs text-gray-500">Type de contrat (applique uniquement au tableau des mouvements)</p>
+  <article class="card-section mouvements-table-card">
+    <div class="mouvements-table-toolbar">
+      <div class="mouvements-table-toolbar__text">
+        <h2 class="mouvements-table-toolbar__title">Historique des mouvements</h2>
+        <p class="mouvements-table-toolbar__hint">Filtre appliqué uniquement au tableau ci-dessous.</p>
       </div>
-      <div class="min-w-52">
-        <label class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500" for="mouvements-contract-type">
-          Type de contrat
-        </label>
-        <select
-          id="mouvements-contract-type"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      <div class="mouvements-table-toolbar__filter">
+        <label class="mouvements-filter-label" for="mouvements-contract-type">Type de contrat</label>
+        <p-select
+          inputId="mouvements-contract-type"
+          [options]="contractTypeOptions()"
           [ngModel]="selectedContractType()"
           (ngModelChange)="onContractTypeChange($event)"
-        >
-          @for (option of contractTypeOptions(); track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Tous les types"
+          class="w-full min-w-[13rem]"
+          [styleClass]="'filter-dropdown hr-mouvements-contract-filter'" />
       </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <p-table [value]="filteredHistory()" styleClass="p-datatable-sm" [tableStyle]="{ minWidth: '980px' }">
+    <div class="mouvements-table-scroll">
+      <p-table [value]="filteredHistory()" styleClass="p-datatable-sm mouvements-datatable" [tableStyle]="{ minWidth: '980px' }">
         <ng-template pTemplate="header">
           <tr>
-            <th class="dashboard-table-header">Employe</th>
-            <th class="dashboard-table-header">Departement</th>
+            <th class="dashboard-table-header">Employé</th>
+            <th class="dashboard-table-header">Département</th>
             <th class="dashboard-table-header">Poste</th>
             <th class="dashboard-table-header">Type</th>
             <th class="dashboard-table-header">Date</th>
-            <th class="dashboard-table-header">Motif / Note</th>
+            <th class="dashboard-table-header">Motif / note</th>
             <th class="dashboard-table-header">Mouvement</th>
           </tr>
         </ng-template>
@@ -64,4 +70,4 @@
       </p-table>
     </div>
   </article>
-</section>
+</article>

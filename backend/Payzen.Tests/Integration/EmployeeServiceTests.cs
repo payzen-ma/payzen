@@ -16,10 +16,10 @@ namespace Payzen.Tests.Integration;
 /// </summary>
 public class EmployeeServiceTests : IDisposable
 {
-    private readonly AppDbContext  _db;
+    private readonly AppDbContext _db;
     private readonly EmployeeService _svc;
     private const int CompanyId = 1;
-    private const int UserId    = 99;
+    private const int UserId = 99;
 
     public EmployeeServiceTests()
     {
@@ -28,7 +28,7 @@ public class EmployeeServiceTests : IDisposable
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db  = new AppDbContext(opts);
+        _db = new AppDbContext(opts);
         var env = new Mock<IWebHostEnvironment>().Object;
         var eventLog = new Mock<IEmployeeEventLogService>().Object;
         var invitationService = new Mock<IInvitationService>().Object;
@@ -39,14 +39,14 @@ public class EmployeeServiceTests : IDisposable
         // Données référentielles minimales
         _db.Companies.Add(new Company
         {
-            Id          = CompanyId,
+            Id = CompanyId,
             CompanyName = "Société Test SARL",
             Email = "societe@test.ma",
             PhoneNumber = "0600000000",
             CompanyAddress = "Adresse Test",
             CityId = 1,
             CountryId = 1,
-            CreatedBy   = UserId
+            CreatedBy = UserId
         });
         _db.Genders.Add(new Gender
         {
@@ -78,14 +78,14 @@ public class EmployeeServiceTests : IDisposable
     {
         var dto = new EmployeeCreateDto
         {
-            FirstName   = "Youssef",
-            LastName    = "Alami",
-            Email       = "youssef@test.ma",
-            CinNumber   = "AA123456",
-            Phone       = "0600000001",
-            CompanyId   = CompanyId,
-            GenderId    = 1,
-            StatusId    = 1,
+            FirstName = "Youssef",
+            LastName = "Alami",
+            Email = "youssef@test.ma",
+            CinNumber = "AA123456",
+            Phone = "0600000001",
+            CompanyId = CompanyId,
+            GenderId = 1,
+            StatusId = 1,
             DateOfBirth = new DateOnly(1990, 5, 15)
         };
 
@@ -101,14 +101,14 @@ public class EmployeeServiceTests : IDisposable
     {
         var dto = new EmployeeCreateDto
         {
-            FirstName   = "Fatima",
-            LastName    = "Benali",
-            Email       = "fatima@test.ma",
-            CinNumber   = "AB987654",
-            Phone       = "0600000002",
-            CompanyId   = CompanyId,
-            GenderId    = 1,
-            StatusId    = 1,
+            FirstName = "Fatima",
+            LastName = "Benali",
+            Email = "fatima@test.ma",
+            CinNumber = "AB987654",
+            Phone = "0600000002",
+            CompanyId = CompanyId,
+            GenderId = 1,
+            StatusId = 1,
             DateOfBirth = new DateOnly(1988, 3, 20)
         };
         var created = await _svc.CreateAsync(dto, UserId);
@@ -134,18 +134,18 @@ public class EmployeeServiceTests : IDisposable
     {
         var dto = new EmployeeCreateDto
         {
-            FirstName   = "Hamid",
-            LastName    = "Tazi",
-            Email       = "hamid@test.ma",
-            CinNumber   = "AC111222",
-            Phone       = "0600000003",
-            CompanyId   = CompanyId,
-            GenderId    = 1,
-            StatusId    = 1,
+            FirstName = "Hamid",
+            LastName = "Tazi",
+            Email = "hamid@test.ma",
+            CinNumber = "AC111222",
+            Phone = "0600000003",
+            CompanyId = CompanyId,
+            GenderId = 1,
+            StatusId = 1,
             DateOfBirth = new DateOnly(1985, 7, 10)
         };
         var created = await _svc.CreateAsync(dto, UserId);
-        var id      = created.Data!.Id;
+        var id = created.Data!.Id;
 
         await _svc.DeleteAsync(id, UserId);
 
@@ -162,14 +162,14 @@ public class EmployeeServiceTests : IDisposable
         {
             await _svc.CreateAsync(new EmployeeCreateDto
             {
-                FirstName   = $"Prénom{i}",
-                LastName    = $"Nom{i}",
-                Email       = $"test{i}@test.ma",
-                CinNumber   = $"CIN{i + 1:000}",
-                Phone       = $"06000000{i + 10}",
-                CompanyId   = CompanyId,
-                GenderId    = 1,
-                StatusId    = 1,
+                FirstName = $"Prénom{i}",
+                LastName = $"Nom{i}",
+                Email = $"test{i}@test.ma",
+                CinNumber = $"CIN{i + 1:000}",
+                Phone = $"06000000{i + 10}",
+                CompanyId = CompanyId,
+                GenderId = 1,
+                StatusId = 1,
                 DateOfBirth = new DateOnly(1990, 1, 1)
             }, UserId);
         }

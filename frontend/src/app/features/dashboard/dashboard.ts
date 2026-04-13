@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -13,6 +13,8 @@ import { MouvementsTabComponent } from './components/tabs/mouvements-tab/mouveme
 import { MasseSalarialeTabComponent } from './components/tabs/masse-salariale-tab/masse-salariale-tab.component';
 import { PariteDiversiteTabComponent } from './components/tabs/parite-diversite-tab/parite-diversite-tab.component';
 import { ConformiteSocialeTabComponent } from './components/tabs/conformite-sociale-tab/conformite-sociale-tab.component';
+import { PageHeaderComponent } from '@app/shared/components/page-header/page-header.component';
+import { PageHeaderService } from '@app/shared/services/page-header.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,7 +29,8 @@ import { ConformiteSocialeTabComponent } from './components/tabs/conformite-soci
     MouvementsTabComponent,
     MasseSalarialeTabComponent,
     PariteDiversiteTabComponent,
-    ConformiteSocialeTabComponent
+    ConformiteSocialeTabComponent,
+    PageHeaderComponent
   ],
   providers: [
     DashboardHrStore,
@@ -39,7 +42,25 @@ import { ConformiteSocialeTabComponent } from './components/tabs/conformite-soci
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Dashboard {
-  constructor(readonly store: DashboardHrStore) {}
+  private pageHeaderService = inject(PageHeaderService);
+  constructor(readonly store: DashboardHrStore) { }
+
+  ngOnInit(): void {
+    // Register page header configuration
+    this.pageHeaderService.registerConfig({
+      showDepartments: true,
+      departmentOptions: this.departmentOptions(),
+      showParity: true,
+      parityOptions: this.parityOptions(),
+      showMonth: true,
+      monthOptions: this.store.monthOptions()
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Hide page header when leaving the dashboard
+    this.pageHeaderService.hide();
+  }
 
   sourceBadgeLabel(): string {
     return this.store.dataSource().toUpperCase();

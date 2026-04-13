@@ -147,10 +147,13 @@ public class DashboardService : IDashboardService
 
     private static string? NormalizeParity(string? parity)
     {
-        if (string.IsNullOrWhiteSpace(parity)) return null;
+        if (string.IsNullOrWhiteSpace(parity))
+            return null;
         var p = parity.Trim().ToUpperInvariant();
-        if (p is "F" or "FEMME" or "FEMALE" or "W") return "F";
-        if (p is "H" or "M" or "HOMME" or "MALE") return "M";
+        if (p is "F" or "FEMME" or "FEMALE" or "W")
+            return "F";
+        if (p is "H" or "M" or "HOMME" or "MALE")
+            return "M";
         return null;
     }
 
@@ -169,7 +172,8 @@ public class DashboardService : IDashboardService
 
     private static DateTime? ParseMonth(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
         return DateTime.TryParseExact(value + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)
             ? new DateTime(d.Year, d.Month, 1)
             : null;
@@ -209,10 +213,10 @@ public class DashboardService : IDashboardService
             .Include(e => e.Gender)
             .AsQueryable();
 
-        if (companyId.HasValue) 
+        if (companyId.HasValue)
             empQ = empQ
                 .Where(e => e.CompanyId == companyId.Value);
-        
+
         var employees = await empQ.ToListAsync(ct);
 
         var empIds = employees.Select(e => e.Id).ToList();
@@ -230,38 +234,38 @@ public class DashboardService : IDashboardService
 
         return new DashboardHrRawDto
         {
-            Meta = new DashboardHrMetaDto 
-            { 
-                CompanyId = companyId ?? 0, 
-                Month = month ?? DateTime.Today.ToString("yyyy-MM"), 
-                GeneratedAt = DateTimeOffset.UtcNow 
+            Meta = new DashboardHrMetaDto
+            {
+                CompanyId = companyId ?? 0,
+                Month = month ?? DateTime.Today.ToString("yyyy-MM"),
+                GeneratedAt = DateTimeOffset.UtcNow
             },
 
-            Employees = employees.Select(e => new DashboardHrRawEmployeeDto 
-            { 
-                Id = e.Id, 
-                FirstName = e.FirstName, 
-                LastName = e.LastName, 
-                Department = e.Departement?.DepartementName ?? string.Empty, 
-                StatusCode = e.Status?.Code ?? string.Empty, 
-                GenderCode = e.Gender?.Code ?? string.Empty 
+            Employees = employees.Select(e => new DashboardHrRawEmployeeDto
+            {
+                Id = e.Id,
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                Department = e.Departement?.DepartementName ?? string.Empty,
+                StatusCode = e.Status?.Code ?? string.Empty,
+                GenderCode = e.Gender?.Code ?? string.Empty
             }).ToList(),
 
-            Contracts = contracts.Select(c => new DashboardHrRawContractDto 
-            { 
-                EmployeeId = c.EmployeeId, 
-                StartDate = DateOnly.FromDateTime(c.StartDate), 
-                EndDate = c.EndDate.HasValue ? DateOnly.FromDateTime(c.EndDate.Value) : null, 
-                Position = c.JobPosition?.Name ?? string.Empty, 
-                ContractType = c.ContractType?.ContractTypeName ?? string.Empty 
+            Contracts = contracts.Select(c => new DashboardHrRawContractDto
+            {
+                EmployeeId = c.EmployeeId,
+                StartDate = DateOnly.FromDateTime(c.StartDate),
+                EndDate = c.EndDate.HasValue ? DateOnly.FromDateTime(c.EndDate.Value) : null,
+                Position = c.JobPosition?.Name ?? string.Empty,
+                ContractType = c.ContractType?.ContractTypeName ?? string.Empty
             }).ToList(),
 
-            Salaries  = salaries.Select(s => new DashboardHrRawSalaryDto 
-            { 
-                EmployeeId = s.EmployeeId, 
-                BaseSalary = s.BaseSalary ?? 0m, 
-                EffectiveDate = DateOnly.FromDateTime(s.EffectiveDate), 
-                EndDate = s.EndDate.HasValue ? DateOnly.FromDateTime(s.EndDate.Value) : null 
+            Salaries = salaries.Select(s => new DashboardHrRawSalaryDto
+            {
+                EmployeeId = s.EmployeeId,
+                BaseSalary = s.BaseSalary ?? 0m,
+                EffectiveDate = DateOnly.FromDateTime(s.EffectiveDate),
+                EndDate = s.EndDate.HasValue ? DateOnly.FromDateTime(s.EndDate.Value) : null
             }).ToList()
         };
     }
@@ -271,19 +275,20 @@ public class DashboardService : IDashboardService
         var raw = await GetHrDashboardRawAsync(companyId, month, ct);
         return new DashboardHrDto
         {
-            Meta             = raw.Meta,
-            VueGlobale       = await GetVueGlobaleAsync(companyId, month, ct),
-            MouvementsRh     = await GetMouvementsRhAsync(companyId, month, ct),
-            MasseSalariale   = await GetMasseSalarialeAsync(companyId, month, ct),
-            PariteDiversite  = await GetPariteDiversiteAsync(companyId, month, ct),
-            ConformiteSociale= await GetConformiteSocialeAsync(companyId, month, ct)
+            Meta = raw.Meta,
+            VueGlobale = await GetVueGlobaleAsync(companyId, month, ct),
+            MouvementsRh = await GetMouvementsRhAsync(companyId, month, ct),
+            MasseSalariale = await GetMasseSalarialeAsync(companyId, month, ct),
+            PariteDiversite = await GetPariteDiversiteAsync(companyId, month, ct),
+            ConformiteSociale = await GetConformiteSocialeAsync(companyId, month, ct)
         };
     }
 
     public async Task<DashboardHrVueGlobaleDto> GetVueGlobaleAsync(int? companyId, string? month, CancellationToken ct = default)
     {
         var q = _db.Employees.AsQueryable();
-        if (companyId.HasValue) q = q.Where(e => e.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(e => e.CompanyId == companyId.Value);
         var total = await q.CountAsync(ct);
         var femalePct = total > 0 ? (decimal)await q.Where(e => e.Gender != null && e.Gender.Code == "F").CountAsync(ct) / total * 100 : 0;
 
@@ -301,27 +306,34 @@ public class DashboardService : IDashboardService
     {
         var parsedMonth = month != null && DateOnly.TryParseExact(month + "-01", "yyyy-MM-dd", out var d) ? d : DateOnly.FromDateTime(DateTime.Today);
         var monthStart = new DateOnly(parsedMonth.Year, parsedMonth.Month, 1);
-        var monthEnd   = monthStart.AddMonths(1).AddDays(-1);
+        var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
         var q = _db.EmployeeContracts.Include(c => c.Employee).ThenInclude(e => e!.Departement).Include(c => c.JobPosition).Include(c => c.ContractType).AsQueryable();
-        if (companyId.HasValue) q = q.Where(c => c.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(c => c.CompanyId == companyId.Value);
 
         var allContracts = await q.ToListAsync(ct);
         var entrees = allContracts.Where(c => DateOnly.FromDateTime(c.StartDate) >= monthStart && DateOnly.FromDateTime(c.StartDate) <= monthEnd).ToList();
-        var sorties  = allContracts.Where(c => c.EndDate.HasValue && DateOnly.FromDateTime(c.EndDate.Value) >= monthStart && DateOnly.FromDateTime(c.EndDate.Value) <= monthEnd).ToList();
+        var sorties = allContracts.Where(c => c.EndDate.HasValue && DateOnly.FromDateTime(c.EndDate.Value) >= monthStart && DateOnly.FromDateTime(c.EndDate.Value) <= monthEnd).ToList();
 
         var rows = entrees.Select(c => new DashboardHrMovementRowDto
         {
-            EmployeeId = c.EmployeeId, EmployeeName = $"{c.Employee?.FirstName} {c.Employee?.LastName}",
+            EmployeeId = c.EmployeeId,
+            EmployeeName = $"{c.Employee?.FirstName} {c.Employee?.LastName}",
             Department = c.Employee?.Departement?.DepartementName ?? string.Empty,
-            Position = c.JobPosition?.Name ?? string.Empty, ContractType = c.ContractType?.ContractTypeName ?? string.Empty,
-            Date = DateOnly.FromDateTime(c.StartDate), MovementType = Domain.Enums.Dashboard.DashboardHrMovementType.ENTRY
+            Position = c.JobPosition?.Name ?? string.Empty,
+            ContractType = c.ContractType?.ContractTypeName ?? string.Empty,
+            Date = DateOnly.FromDateTime(c.StartDate),
+            MovementType = Domain.Enums.Dashboard.DashboardHrMovementType.ENTRY
         }).Concat(sorties.Select(c => new DashboardHrMovementRowDto
         {
-            EmployeeId = c.EmployeeId, EmployeeName = $"{c.Employee?.FirstName} {c.Employee?.LastName}",
+            EmployeeId = c.EmployeeId,
+            EmployeeName = $"{c.Employee?.FirstName} {c.Employee?.LastName}",
             Department = c.Employee?.Departement?.DepartementName ?? string.Empty,
-            Position = c.JobPosition?.Name ?? string.Empty, ContractType = c.ContractType?.ContractTypeName ?? string.Empty,
-            Date = DateOnly.FromDateTime(c.EndDate!.Value), MovementType = Domain.Enums.Dashboard.DashboardHrMovementType.EXIT
+            Position = c.JobPosition?.Name ?? string.Empty,
+            ContractType = c.ContractType?.ContractTypeName ?? string.Empty,
+            Date = DateOnly.FromDateTime(c.EndDate!.Value),
+            MovementType = Domain.Enums.Dashboard.DashboardHrMovementType.EXIT
         })).ToList();
 
         return new DashboardHrMouvementsDto
@@ -335,11 +347,11 @@ public class DashboardService : IDashboardService
     {
         var q = _db.EmployeeSalaries.Include(s => s.Employee).ThenInclude(e => e!.Departement).AsQueryable();
 
-        if (companyId.HasValue) 
+        if (companyId.HasValue)
             q = q.Where(s => s.Employee.CompanyId == companyId.Value);
-        
+
         var salaries = await q.ToListAsync(ct);
-        
+
         var total = salaries.Sum(s => s.BaseSalary ?? 0m);
 
         return new DashboardHrMasseSalarialeDto
@@ -351,10 +363,11 @@ public class DashboardService : IDashboardService
     public async Task<DashboardHrPariteDiversiteDto> GetPariteDiversiteAsync(int? companyId, string? month, CancellationToken ct = default)
     {
         var q = _db.Employees.Include(e => e.Gender).AsQueryable();
-        if (companyId.HasValue) q = q.Where(e => e.CompanyId == companyId.Value);
-        var total  = await q.CountAsync(ct);
+        if (companyId.HasValue)
+            q = q.Where(e => e.CompanyId == companyId.Value);
+        var total = await q.CountAsync(ct);
         var female = total > 0 ? await q.Where(e => e.Gender != null && e.Gender.Code == "F").CountAsync(ct) : 0;
-        var male   = total - female;
+        var male = total - female;
 
         return new DashboardHrPariteDiversiteDto
         {
@@ -486,9 +499,13 @@ public class DashboardService : IDashboardService
     public async Task<ServiceResult<object>> GetEmployeesSnapshotAsync(int? companyId, CancellationToken ct = default)
     {
         var q = _db.Employees.AsQueryable();
-        if (companyId.HasValue) q = q.Where(e => e.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(e => e.CompanyId == companyId.Value);
         var count = await q.CountAsync(ct);
-        return ServiceResult<object>.Ok(new { total = count });
+        return ServiceResult<object>.Ok(new
+        {
+            total = count
+        });
     }
 
     public async Task<ServiceResult<ExpertDashboardDto>> GetExpertDashboardAsync(int expertCompanyId, CancellationToken ct = default)
@@ -500,9 +517,9 @@ public class DashboardService : IDashboardService
         return ServiceResult<ExpertDashboardDto>.Ok(new ExpertDashboardDto
         {
             ExpertCompanyId = expertCompanyId,
-            TotalClients    = managed,
-            TotalEmployees  = await _db.Employees.AsNoTracking().Where(e => e.DeletedAt == null && _db.Companies.Any(c => c.Id == e.CompanyId && c.ManagedByCompanyId == expertCompanyId && c.DeletedAt == null)).CountAsync(ct),
-            AsOf            = DateTimeOffset.UtcNow
+            TotalClients = managed,
+            TotalEmployees = await _db.Employees.AsNoTracking().Where(e => e.DeletedAt == null && _db.Companies.Any(c => c.Id == e.CompanyId && c.ManagedByCompanyId == expertCompanyId && c.DeletedAt == null)).CountAsync(ct),
+            AsOf = DateTimeOffset.UtcNow
         });
     }
 

@@ -27,7 +27,6 @@ export class EntraRedirectService {
     await msalInstance.handleRedirectPromise(EntraRedirectService.HANDLE_REDIRECT_OPTS);
 
     if (this.isInteractionInProgress()) {
-      console.warn('MSAL interaction already in progress, skipping duplicate redirect.');
       return;
     }
 
@@ -36,7 +35,6 @@ export class EntraRedirectService {
     } catch (error: any) {
       // Évite de casser l'UI sur un double-clic ou un auto-trigger concurrent.
       if (error instanceof BrowserAuthError && error.errorCode === 'interaction_in_progress') {
-        console.warn('MSAL interaction_in_progress ignored.');
         return;
       }
       throw error;
@@ -51,6 +49,9 @@ export class EntraRedirectService {
     await this.safeLoginRedirect({
       scopes: ['openid', 'profile', 'email'],
       prompt: 'select_account',
+      extraQueryParameters: {
+        ui_locales: 'fr'
+      }
     });
   }
 
@@ -64,6 +65,10 @@ export class EntraRedirectService {
     await this.safeLoginRedirect({
       scopes: ['openid', 'profile', 'email'],
       prompt: 'create',
+      extraQueryParameters: {
+        ui_locales: 'fr-FR',  // Essayer le format complet
+        mkt: 'fr-FR'  // Market/locale hint supplémentaire
+      }
     });
   }
 
@@ -74,6 +79,7 @@ export class EntraRedirectService {
       prompt: 'create',
       extraQueryParameters: {
         identity_provider: 'Google',
+        ui_locales: 'fr'
       },
     });
   }
@@ -86,8 +92,9 @@ export class EntraRedirectService {
     await this.safeLoginRedirect({
       scopes: ['openid', 'profile', 'email'],
       prompt: 'select_account', // Force l'utilisateur à sélectionner un compte
-      extraQueryParameters: { 
-        domain_hint: 'consumers' // Force comptes personnels uniquement
+      extraQueryParameters: {
+        domain_hint: 'consumers', // Force comptes personnels uniquement
+        ui_locales: 'fr'
       }
     });
   }
@@ -99,8 +106,9 @@ export class EntraRedirectService {
     await this.safeLoginRedirect({
       scopes: ['openid', 'profile', 'email'],
       prompt: 'select_account',
-      extraQueryParameters: { 
-        identity_provider: 'Google' 
+      extraQueryParameters: {
+        identity_provider: 'Google',
+        ui_locales: 'fr'
       }
     });
   }
@@ -115,37 +123,20 @@ export class EntraRedirectService {
       const result = await msalInstance.handleRedirectPromise(
         EntraRedirectService.HANDLE_REDIRECT_OPTS
       );
-      
+
       if (result) {
-        console.log('✅ Authentication successful:', result);
         const claims = (result as any)?.idTokenClaims as Record<string, unknown> | undefined;
         const keys = Object.keys(claims ?? {});
-        console.log('[EntraRedirectService] idTokenClaims keys:', keys);
-        console.log('[EntraRedirectService] idTokenClaims snapshot:', {
-          email: claims?.['email'],
-          name: claims?.['name'],
-          preferred_username: claims?.['preferred_username'],
-          oid: claims?.['oid'],
-          companyName: (claims as any)?.['companyName'],
-          company_name: (claims as any)?.['company_name'],
-          organization: (claims as any)?.['organization'],
-        });
         return result;
       }
-      
+
       return null;
     } catch (error: unknown) {
-      console.error('❌ Error handling redirect:', error);
       const err = error as { errorCode?: string; errorMessage?: string; message?: string };
       const msg = `${err?.errorMessage ?? ''} ${err?.message ?? ''}`;
 
       // AADSTS16000 : compte IdP (ex. Google) pas encore provisionné dans le tenant External ID — config portail, pas PKCE.
       if (msg.includes('AADSTS16000')) {
-        console.warn(
-          '[Entra] Ce compte Google n’existe pas encore dans le tenant Payzen HR. ' +
-          'Dans le portail : External Identities → fournisseurs d’identité Google + user flow « Sign up and sign in » avec inscription, ' +
-          'et lier l’app SPA. L’utilisateur doit compléter une première inscription dans ce tenant.'
-        );
         await this.router.navigate(['/login'], {
           queryParams: { error: 'idp_user_not_in_tenant' },
         });
@@ -153,9 +144,7 @@ export class EntraRedirectService {
       }
 
       if (err?.errorCode === 'invalid_request') {
-        console.error(
-          'invalid_request : lire le message AADSTS ci-dessus (souvent config tenant / user flow, pas PKCE).'
-        );
+        alert('La connexion a échoué. Vérifiez la configuration Azure (Redirect URI) et les paramètres de votre navigateur (ex. bloqueurs de cookies).');
       }
 
       await this.router.navigate(['/login'], {

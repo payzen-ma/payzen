@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5119/api',
+  apiUrl: 'https://api-test.payzenhr.com/api',
   CALENDARIFIC_API_KEY: 'wH57vFANKLTJzKaSllZOxN0hOMttW3FR',
   entra: {
     clientId: '4d4e0bb5-c180-4513-b8b5-46f6ae4a0b6a',

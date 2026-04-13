@@ -1,33 +1,31 @@
-import { Component, signal, computed, inject, OnInit, effect, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { OvertimeService } from '@app/core/services/overtime.service';
-import { HolidayService } from '@app/core/services/holiday.service';
-import { EmployeeService } from '@app/core/services/employee.service';
-import { AuthService } from '@app/core/services/auth.service';
-import { 
-  Overtime, 
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  CreateOvertimeRequest,
+  Overtime,
+  OvertimeFilters,
   OvertimeStatus,
   OvertimeType,
-  CreateOvertimeRequest, 
-  UpdateOvertimeRequest,
-  OvertimeFilters 
+  UpdateOvertimeRequest
 } from '@app/core/models/overtime.model';
+import { AuthService } from '@app/core/services/auth.service';
+import { EmployeeService } from '@app/core/services/employee.service';
+import { HolidayService } from '@app/core/services/holiday.service';
+import { OvertimeService } from '@app/core/services/overtime.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-overtime',
@@ -39,7 +37,6 @@ import {
     TableModule,
     ButtonModule,
     DialogModule,
-    InputTextModule,
     TextareaModule,
     DatePickerModule,
     SelectModule,
@@ -51,7 +48,7 @@ import {
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './overtime.html',
-  styleUrls: ['./overtime.css']
+  styleUrl: './overtime.css'
 })
 export class OvertimeComponent implements OnInit {
   private readonly overtimeService = inject(OvertimeService);
@@ -76,7 +73,7 @@ export class OvertimeComponent implements OnInit {
   readonly selectedHolidayId = signal<number | null>(null);
   readonly holidayYear = signal<number>(new Date().getFullYear());
   readonly holidayOptions = computed(() => this.holidays().map(h => ({ label: h.nameFr || h.nameEn || h.name || '', value: h.id })));
-  
+
   // Year options for holiday selection
   readonly yearOptions = computed(() => {
     const currentYear = new Date().getFullYear();
@@ -178,7 +175,6 @@ export class OvertimeComponent implements OnInit {
             this.loadOvertimes();
           },
           error: (err) => {
-            console.debug('[Overtime] no employee linked to current user', err);
             this.loadOvertimes();
           }
         });
@@ -194,7 +190,6 @@ export class OvertimeComponent implements OnInit {
       .subscribe({
         next: (list) => this.holidays.set(list || []),
         error: (err) => {
-          console.error('Error loading holidays:', err);
           this.holidays.set([]);
         }
       });
@@ -246,7 +241,7 @@ export class OvertimeComponent implements OnInit {
       this.selectedOvertimeType.set(type);
       const startTimeControl = this.overtimeForm.get('startTime');
       const endTimeControl = this.overtimeForm.get('endTime');
-      
+
       if (type === OvertimeType.Standard) {
         startTimeControl?.setValidators([Validators.required]);
         endTimeControl?.setValidators([Validators.required]);
@@ -254,7 +249,7 @@ export class OvertimeComponent implements OnInit {
         startTimeControl?.clearValidators();
         endTimeControl?.clearValidators();
       }
-      
+
       startTimeControl?.updateValueAndValidity();
       endTimeControl?.updateValueAndValidity();
     });
@@ -282,7 +277,6 @@ export class OvertimeComponent implements OnInit {
           this.isLoading.set(false);
         },
         error: (error) => {
-          console.error('Error loading overtimes:', error);
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('common.error'),
@@ -315,18 +309,18 @@ export class OvertimeComponent implements OnInit {
   openEditDialog(overtime: Overtime): void {
     this.isEditMode.set(true);
     this.selectedOvertime.set(overtime);
-    
+
     // Parse date and time
     const overtimeDate = this.parseToLocalDate(overtime.overtimeDate ?? (overtime as any).OvertimeDate);
-    
+
     this.overtimeForm.patchValue({
       overtimeDate: overtimeDate,
       overtimeType: overtime.overtimeType,
-      startTime: (overtime.startTime ?? (overtime as any).StartTime) ? String(overtime.startTime ?? (overtime as any).StartTime).slice(0,5) : '',
-      endTime: (overtime.endTime ?? (overtime as any).EndTime) ? String(overtime.endTime ?? (overtime as any).EndTime).slice(0,5) : '',
+      startTime: (overtime.startTime ?? (overtime as any).StartTime) ? String(overtime.startTime ?? (overtime as any).StartTime).slice(0, 5) : '',
+      endTime: (overtime.endTime ?? (overtime as any).EndTime) ? String(overtime.endTime ?? (overtime as any).EndTime).slice(0, 5) : '',
       reason: overtime.reason || ''
     });
-    
+
     this.selectedOvertimeType.set(overtime.overtimeType ?? OvertimeType.Standard);
     this.showDialog.set(true);
   }
@@ -351,7 +345,7 @@ export class OvertimeComponent implements OnInit {
 
     const formValue = this.overtimeForm.value;
     const employeeId = this.currentUserId();
-    
+
     if (!employeeId) {
       this.messageService.add({
         severity: 'error',
@@ -400,8 +394,8 @@ export class OvertimeComponent implements OnInit {
       employeeId: employeeId,
       overtimeDate: overtimeDate,
       entryMode: entryModeNumeric,
-      startTime: formValue.overtimeType === OvertimeType.Standard && formValue.startTime ? String(formValue.startTime).slice(0,5) : undefined,
-      endTime: formValue.overtimeType === OvertimeType.Standard && formValue.endTime ? String(formValue.endTime).slice(0,5) : undefined,
+      startTime: formValue.overtimeType === OvertimeType.Standard && formValue.startTime ? String(formValue.startTime).slice(0, 5) : undefined,
+      endTime: formValue.overtimeType === OvertimeType.Standard && formValue.endTime ? String(formValue.endTime).slice(0, 5) : undefined,
       durationInHours: durationInHours,
       standardDayHours: standardDayHours,
       employeeComment: formValue.employeeComment || formValue.reason || undefined
@@ -421,7 +415,6 @@ export class OvertimeComponent implements OnInit {
         },
         error: (error) => {
           // Log detailed error and show API message when available
-          console.error('Error creating overtime:', error);
           const apiMsg = error?.error?.Message || error?.error?.message || error?.message || this.translate.instant('overtime.errors.createFailed');
           this.messageService.add({
             severity: 'error',
@@ -459,7 +452,6 @@ export class OvertimeComponent implements OnInit {
           this.loadOvertimes();
         },
         error: (error) => {
-          console.error('Error updating overtime:', error);
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('common.error'),
@@ -487,7 +479,6 @@ export class OvertimeComponent implements OnInit {
           this.loadOvertimes();
         },
         error: (error) => {
-          console.error('Error submitting overtime:', error);
           const apiMsg = error?.error?.Message || error?.error?.message || error?.message || this.translate.instant('overtime.errors.submitFailed');
           this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: apiMsg });
         }
@@ -519,7 +510,6 @@ export class OvertimeComponent implements OnInit {
               this.loadOvertimes();
             },
             error: (error) => {
-              console.error('Error deleting overtime:', error);
               this.messageService.add({
                 severity: 'error',
                 summary: this.translate.instant('common.error'),
@@ -556,7 +546,6 @@ export class OvertimeComponent implements OnInit {
               this.loadOvertimes();
             },
             error: (error) => {
-              console.error('Error cancelling overtime:', error);
               this.messageService.add({
                 severity: 'error',
                 summary: this.translate.instant('common.error'),

@@ -1,0 +1,292 @@
+/**
+ * PayZen HR Design System
+ * Converted from Figma Design System
+ * https://www.figma.com/design/qyN1xWJHA33vgi7ne4DbeU/Payzen-HR
+ */
+
+@layer theme {
+    :root {
+        /* ============================================
+       PRIMARY COLOR SCALE - Bleu PayZen
+       ============================================ */
+        --primary-50: #ebf5ff;
+        --primary-100: #d6ebff;
+        --primary-200: #aed6ff;
+        --primary-300: #85c2ff;
+        --primary-400: #5cadff;
+        --primary-500: #1a73e8;
+        /* Main brand color */
+        --primary-600: #1557b0;
+        --primary-700: #0f4187;
+        --primary-800: #0a2c5e;
+        --primary-900: #051835;
+        --primary-950: #020c1a;
+
+        /* ============================================
+       NEUTRAL / SURFACE COLORS - Gris
+       ============================================ */
+        --neutral-white: #ffffff;
+        --neutral-50: #f8fafc;
+        --neutral-100: #f1f5f9;
+        --neutral-200: #e2e8f0;
+        --neutral-300: #cbd5e1;
+        --neutral-400: #94a3b8;
+        --neutral-500: #64748b;
+        --neutral-600: #475669;
+        --neutral-700: #344155;
+        --neutral-800: #1e293b;
+
+        /* ============================================
+       SEMANTIC COLORS - Status
+       ============================================ */
+        /* Success - Vert */
+        --success: #16a34a;
+        --success-light: #d1fae5;
+        --success-hover: #15803d;
+        --success-text: #065f46;
+
+        /* Warning - Orange */
+        --warning: #b35109;
+        --warning-light: #fcd44d;
+        --warning-hover: #a84a09;
+        --warning-text: #92400e;
+
+        /* Danger - Rouge */
+        --danger: #dc2626;
+        --danger-light: #fee2e2;
+        --danger-hover: #b91c1c;
+        --danger-text: #991b1b;
+
+        /* Info - Bleu */
+        --info: #3b82f6;
+        --info-light: #dbeafe;
+        --info-hover: #1d4ed8;
+        --info-text: #0369a1;
+
+        /* ============================================
+       TEXT COLORS
+       ============================================ */
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --text-inverse: #ffffff;
+        --text-danger: #dc2626;
+
+        /* ============================================
+       BORDER COLORS
+       ============================================ */
+        --border-subtle: #e5e7eb;
+        --border-medium: #d1d5db;
+        --border-strong: #9ca3af;
+
+        /* ============================================
+       BACKGROUND COLORS
+       ============================================ */
+        --bg-page: #f8fafc;
+        --bg-element: #ffffff;
+        --bg-hover: #f9fafb;
+        --bg-active: #f3f4f6;
+        --bg-muted: #f1f5f9;
+        --bg-disabled: #f3f4f6;
+
+        /* ============================================
+       SPACING SCALE (4px base unit)
+       ============================================ */
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --space-10: 40px;
+        --space-12: 48px;
+
+        /* ============================================
+       BORDER RADIUS
+       ============================================ */
+        --radius-sm: 4px;
+        --radius-md: 6px;
+        --radius-lg: 8px;
+        --radius-xl: 12px;
+        --radius-2xl: 16px;
+        --radius-full: 9999px;
+
+        /* ============================================
+       SHADOWS / ELEVATION
+       ============================================ */
+        --shadow-xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+        --shadow-sm: 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0px 4px 6px 0px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0px 10px 15px 0px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0px 20px 25px 0px rgba(0, 0, 0, 0.1);
+
+        /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+        --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+        /* Display Heading - 4xl */
+        --font-size-4xl: 36px;
+        --font-weight-4xl: 700;
+        /* Bold */
+        --line-height-4xl: 1.2;
+
+        /* Page Title - 3xl */
+        --font-size-3xl: 30px;
+        --font-weight-3xl: 700;
+        /* Bold */
+        --line-height-3xl: 1.2;
+
+        /* Section Title - 2xl */
+        --font-size-2xl: 24px;
+        --font-weight-2xl: 600;
+        /* Semi Bold */
+        --line-height-2xl: 1.3;
+
+        /* Card Heading - xl */
+        --font-size-xl: 20px;
+        --font-weight-xl: 600;
+        /* Semi Bold */
+        --line-height-xl: 1.3;
+
+        /* Subheading - lg */
+        --font-size-lg: 18px;
+        --font-weight-lg: 500;
+        /* Medium */
+        --line-height-lg: 1.4;
+
+        /* Body - base */
+        --font-size-base: 16px;
+        --font-weight-base: 400;
+        /* Regular */
+        --line-height-base: 1.5;
+
+        /* Small body - sm */
+        --font-size-sm: 14px;
+        --font-weight-sm: 400;
+        /* Regular */
+        --line-height-sm: 1.5;
+
+        /* Caption/Badge - xs */
+        --font-size-xs: 12px;
+        --font-weight-xs: 500;
+        /* Medium */
+        --line-height-xs: 1.4;
+
+        /* ============================================
+       CONVENIENT ALIASES (backward compatibility)
+       ============================================ */
+        --primary: var(--primary-500);
+        --primary-hover: var(--primary-600);
+        --primary-light: var(--primary-100);
+        --primary-dark: var(--primary-700);
+    }
+
+    /* ============================================
+     TYPOGRAPHY CLASSES
+     ============================================ */
+    .text-4xl {
+        font-size: var(--font-size-4xl);
+        font-weight: var(--font-weight-4xl);
+        line-height: var(--line-height-4xl);
+    }
+
+    .text-3xl {
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-3xl);
+        line-height: var(--line-height-3xl);
+    }
+
+    .text-2xl {
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-2xl);
+        line-height: var(--line-height-2xl);
+    }
+
+    .text-xl {
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-xl);
+        line-height: var(--line-height-xl);
+    }
+
+    .text-lg {
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-lg);
+        line-height: var(--line-height-lg);
+    }
+
+    .text-base {
+        font-size: var(--font-size-base);
+        font-weight: var(--font-weight-base);
+        line-height: var(--line-height-base);
+    }
+
+    .text-sm {
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-sm);
+        line-height: var(--line-height-sm);
+    }
+
+    .text-xs {
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-xs);
+        line-height: var(--line-height-xs);
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.shadow-xs {
+    box-shadow: var(--shadow-xs);
+}
+
+.shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+    box-shadow: var(--shadow-xl);
+}
+
+/* Semantic color utilities */
+.text-success {
+    color: var(--success);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-info {
+    color: var(--info);
+}
+
+.bg-success-light {
+    background-color: var(--success-light);
+}
+
+.bg-warning-light {
+    background-color: var(--warning-light);
+}
+
+.bg-danger-light {
+    background-color: var(--danger-light);
+}
+
+.bg-info-light {
+    background-color: var(--info-light);
+}

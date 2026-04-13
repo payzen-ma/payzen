@@ -13,12 +13,12 @@ public class LeaveService : ILeaveService
 {
     private static class LeaveLog
     {
-        public const string RequestCreated   = "LeaveRequest_Created";
-        public const string RequestUpdated   = "LeaveRequest_Updated";
-        public const string RequestDeleted   = "LeaveRequest_Deleted";
+        public const string RequestCreated = "LeaveRequest_Created";
+        public const string RequestUpdated = "LeaveRequest_Updated";
+        public const string RequestDeleted = "LeaveRequest_Deleted";
         public const string RequestSubmitted = "LeaveRequest_Submitted";
-        public const string RequestApproved  = "LeaveRequest_Approved";
-        public const string RequestRejected  = "LeaveRequest_Rejected";
+        public const string RequestApproved = "LeaveRequest_Approved";
+        public const string RequestRejected = "LeaveRequest_Rejected";
         public const string RequestCancelled = "LeaveRequest_Cancelled";
         public const string RequestRenounced = "LeaveRequest_Renounced";
     }
@@ -107,7 +107,8 @@ public class LeaveService : ILeaveService
         var lt = await _db.LeaveTypes
             .Include(x => x.Company)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (lt == null) return ServiceResult<LeaveTypeReadDto>.Fail("Type de congé introuvable.");
+        if (lt == null)
+            return ServiceResult<LeaveTypeReadDto>.Fail("Type de congé introuvable.");
 
         // Vérification unicité si LeaveCode change
         if (dto.LeaveCode != null && dto.LeaveCode != lt.LeaveCode)
@@ -128,10 +129,14 @@ public class LeaveService : ILeaveService
             lt.LeaveNameAr = dto.LeaveName.Trim();
             lt.LeaveNameEn = dto.LeaveName.Trim();
         }
-        if (dto.LeaveDescription != null) lt.LeaveDescription = dto.LeaveDescription.Trim();
-        if (dto.Scope != null) lt.Scope = dto.Scope.Value;
-        if (dto.CompanyId != null) lt.CompanyId = dto.CompanyId;
-        if (dto.IsActive != null) lt.IsActive = dto.IsActive.Value;
+        if (dto.LeaveDescription != null)
+            lt.LeaveDescription = dto.LeaveDescription.Trim();
+        if (dto.Scope != null)
+            lt.Scope = dto.Scope.Value;
+        if (dto.CompanyId != null)
+            lt.CompanyId = dto.CompanyId;
+        if (dto.IsActive != null)
+            lt.IsActive = dto.IsActive.Value;
         lt.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         await _db.Entry(lt).Reference(x => x.Company).LoadAsync(ct);
@@ -141,7 +146,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteLeaveTypeAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var lt = await _db.LeaveTypes.FindAsync(new object[] { id }, ct);
-        if (lt == null) return ServiceResult.Fail("Type de congé introuvable.");
+        if (lt == null)
+            return ServiceResult.Fail("Type de congé introuvable.");
 
         // Vérification dépendances
         var hasRequests = await _db.LeaveRequests.AnyAsync(lr => lr.LeaveTypeId == id && lr.DeletedAt == null, ct);
@@ -163,8 +169,10 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<IEnumerable<LeaveTypePolicyReadDto>>> GetPoliciesAsync(int? companyId, int? leaveTypeId, CancellationToken ct = default)
     {
         var q = _db.LeaveTypePolicies.AsNoTracking().Where(p => p.DeletedAt == null);
-        if (companyId.HasValue) q = q.Where(p => p.CompanyId == companyId.Value);
-        if (leaveTypeId.HasValue) q = q.Where(p => p.LeaveTypeId == leaveTypeId.Value);
+        if (companyId.HasValue)
+            q = q.Where(p => p.CompanyId == companyId.Value);
+        if (leaveTypeId.HasValue)
+            q = q.Where(p => p.LeaveTypeId == leaveTypeId.Value);
 
         var raw = await q.OrderBy(p => p.CompanyId).ThenBy(p => p.LeaveTypeId).ToListAsync(ct);
         return ServiceResult<IEnumerable<LeaveTypePolicyReadDto>>.Ok(raw.Select(MapPolicy).ToList());
@@ -217,25 +225,37 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveTypePolicyReadDto>> PatchPolicyAsync(int id, LeaveTypePolicyPatchDto dto, int updatedBy, CancellationToken ct = default)
     {
         var p = await _db.LeaveTypePolicies.FindAsync(new object[] { id }, ct);
-        if (p == null) return ServiceResult<LeaveTypePolicyReadDto>.Fail("Politique introuvable.");
+        if (p == null)
+            return ServiceResult<LeaveTypePolicyReadDto>.Fail("Politique introuvable.");
 
-        if (dto.IsEnabled != null) p.IsEnabled = dto.IsEnabled.Value;
-        if (dto.AccrualMethod != null) p.AccrualMethod = dto.AccrualMethod.Value;
-        if (dto.DaysPerMonthAdult != null) p.DaysPerMonthAdult = dto.DaysPerMonthAdult.Value;
-        if (dto.DaysPerMonthMinor != null) p.DaysPerMonthMinor = dto.DaysPerMonthMinor.Value;
-        if (dto.BonusDaysPerYearAfter5Years != null) p.BonusDaysPerYearAfter5Years = dto.BonusDaysPerYearAfter5Years.Value;
-        if (dto.AnnualCapDays != null) p.AnnualCapDays = dto.AnnualCapDays.Value;
-        if (dto.AllowCarryover != null) p.AllowCarryover = dto.AllowCarryover.Value;
-        if (dto.MaxCarryoverYears != null) p.MaxCarryoverYears = dto.MaxCarryoverYears.Value;
+        if (dto.IsEnabled != null)
+            p.IsEnabled = dto.IsEnabled.Value;
+        if (dto.AccrualMethod != null)
+            p.AccrualMethod = dto.AccrualMethod.Value;
+        if (dto.DaysPerMonthAdult != null)
+            p.DaysPerMonthAdult = dto.DaysPerMonthAdult.Value;
+        if (dto.DaysPerMonthMinor != null)
+            p.DaysPerMonthMinor = dto.DaysPerMonthMinor.Value;
+        if (dto.BonusDaysPerYearAfter5Years != null)
+            p.BonusDaysPerYearAfter5Years = dto.BonusDaysPerYearAfter5Years.Value;
+        if (dto.AnnualCapDays != null)
+            p.AnnualCapDays = dto.AnnualCapDays.Value;
+        if (dto.AllowCarryover != null)
+            p.AllowCarryover = dto.AllowCarryover.Value;
+        if (dto.MaxCarryoverYears != null)
+            p.MaxCarryoverYears = dto.MaxCarryoverYears.Value;
         if (dto.MinConsecutiveDays != null)
         {
             if (dto.MinConsecutiveDays < 0)
                 return ServiceResult<LeaveTypePolicyReadDto>.Fail("MinConsecutiveDays doit être supérieur ou égal à 0.");
             p.MinConsecutiveDays = dto.MinConsecutiveDays.Value;
         }
-        if (dto.RequiresEligibility6Months != null) p.RequiresEligibility6Months = dto.RequiresEligibility6Months.Value;
-        if (dto.RequiresBalance != null) p.RequiresBalance = dto.RequiresBalance.Value;
-        if (dto.UseWorkingCalendar != null) p.UseWorkingCalendar = dto.UseWorkingCalendar.Value;
+        if (dto.RequiresEligibility6Months != null)
+            p.RequiresEligibility6Months = dto.RequiresEligibility6Months.Value;
+        if (dto.RequiresBalance != null)
+            p.RequiresBalance = dto.RequiresBalance.Value;
+        if (dto.UseWorkingCalendar != null)
+            p.UseWorkingCalendar = dto.UseWorkingCalendar.Value;
 
         p.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -245,7 +265,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeletePolicyAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var p = await _db.LeaveTypePolicies.FindAsync(new object[] { id }, ct);
-        if (p == null) return ServiceResult.Fail("Politique introuvable.");
+        if (p == null)
+            return ServiceResult.Fail("Politique introuvable.");
         p.DeletedAt = DateTimeOffset.UtcNow;
         p.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -257,7 +278,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<IEnumerable<LeaveTypeLegalRuleReadDto>>> GetLegalRulesAsync(int? leaveTypeId, CancellationToken ct = default)
     {
         var q = _db.LeaveTypeLegalRules.AsNoTracking().Where(r => r.DeletedAt == null);
-        if (leaveTypeId.HasValue) q = q.Where(r => r.LeaveTypeId == leaveTypeId.Value);
+        if (leaveTypeId.HasValue)
+            q = q.Where(r => r.LeaveTypeId == leaveTypeId.Value);
         var raw = await q.OrderBy(r => r.LeaveTypeId).ThenBy(r => r.EventCaseCode).ToListAsync(ct);
         return ServiceResult<IEnumerable<LeaveTypeLegalRuleReadDto>>.Ok(raw.Select(MapLegalRule).ToList());
     }
@@ -304,7 +326,8 @@ public class LeaveService : ILeaveService
         var r = await _db.LeaveTypeLegalRules
             .Include(x => x.LeaveType)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (r == null) return ServiceResult<LeaveTypeLegalRuleReadDto>.Fail("Règle légale introuvable.");
+        if (r == null)
+            return ServiceResult<LeaveTypeLegalRuleReadDto>.Fail("Règle légale introuvable.");
 
         // Unicité EventCaseCode si changement
         if (dto.EventCaseCode != null && dto.EventCaseCode != r.EventCaseCode)
@@ -315,16 +338,20 @@ public class LeaveService : ILeaveService
             r.EventCaseCode = dto.EventCaseCode.Trim();
         }
 
-        if (dto.Description != null) r.Description = dto.Description.Trim();
+        if (dto.Description != null)
+            r.Description = dto.Description.Trim();
         if (dto.DaysGranted != null)
         {
             if (dto.DaysGranted <= 0)
                 return ServiceResult<LeaveTypeLegalRuleReadDto>.Fail("DaysGranted doit être supérieur à 0.");
             r.DaysGranted = dto.DaysGranted.Value;
         }
-        if (dto.LegalArticle != null) r.LegalArticle = dto.LegalArticle.Trim();
-        if (dto.CanBeDiscontinuous != null) r.CanBeDiscountinuous = dto.CanBeDiscontinuous.Value;
-        if (dto.MustBeUsedWithinDays != null) r.MustBeUsedWithinDays = dto.MustBeUsedWithinDays;
+        if (dto.LegalArticle != null)
+            r.LegalArticle = dto.LegalArticle.Trim();
+        if (dto.CanBeDiscontinuous != null)
+            r.CanBeDiscountinuous = dto.CanBeDiscontinuous.Value;
+        if (dto.MustBeUsedWithinDays != null)
+            r.MustBeUsedWithinDays = dto.MustBeUsedWithinDays;
 
         r.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -336,7 +363,8 @@ public class LeaveService : ILeaveService
         var r = await _db.LeaveTypeLegalRules
             .Include(x => x.LeaveType)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (r == null) return ServiceResult.Fail("Règle légale introuvable.");
+        if (r == null)
+            return ServiceResult.Fail("Règle légale introuvable.");
 
         // Vérification dépendances
         var hasRequests = await _db.LeaveRequests.AnyAsync(lr => lr.LegalRuleId == id && lr.DeletedAt == null, ct);
@@ -360,9 +388,12 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LeaveType)
             .Include(lr => lr.LegalRule)
             .AsQueryable();
-        if (companyId.HasValue) q = q.Where(lr => lr.CompanyId == companyId.Value);
-        if (employeeId.HasValue) q = q.Where(lr => lr.EmployeeId == employeeId.Value);
-        if (status.HasValue) q = q.Where(lr => lr.Status == status.Value);
+        if (companyId.HasValue)
+            q = q.Where(lr => lr.CompanyId == companyId.Value);
+        if (employeeId.HasValue)
+            q = q.Where(lr => lr.EmployeeId == employeeId.Value);
+        if (status.HasValue)
+            q = q.Where(lr => lr.Status == status.Value);
         var raw = await q.OrderByDescending(lr => lr.RequestedAt).ToListAsync(ct);
         return ServiceResult<IEnumerable<LeaveRequestReadDto>>.Ok(raw.Select(MapLeaveRequest).ToList());
     }
@@ -400,7 +431,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LegalRule)
             .Include(lr => lr.Employee)
             .AsQueryable();
-        if (companyId.HasValue) q = q.Where(lr => lr.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(lr => lr.CompanyId == companyId.Value);
         var raw = await q.OrderBy(lr => lr.SubmittedAt).ToListAsync(ct);
         return ServiceResult<IEnumerable<LeaveRequestReadDto>>.Ok(raw.Select(MapLeaveRequest).ToList());
     }
@@ -435,14 +467,16 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> CreateLeaveRequestForOtherEmployeeAsync(int targetEmployeeId, LeaveRequestCreateDto dto, int actorUserId, CancellationToken ct = default)
     {
         var actor = await LoadUserWithRolesAsync(actorUserId, ct);
-        if (actor == null) return ServiceResult.Fail("Utilisateur introuvable.");
+        if (actor == null)
+            return ServiceResult.Fail("Utilisateur introuvable.");
 
         bool isRhOrAdmin = UserIsRhOrAdmin(actor);
 
         var target = await _db.Employees
             .Include(e => e.Contracts)
             .FirstOrDefaultAsync(e => e.Id == targetEmployeeId && e.DeletedAt == null, ct);
-        if (target == null) return ServiceResult.Fail("Employé introuvable.");
+        if (target == null)
+            return ServiceResult.Fail("Employé introuvable.");
 
         if (!isRhOrAdmin)
         {
@@ -457,14 +491,16 @@ public class LeaveService : ILeaveService
 
         var leaveTypeOk = await _db.LeaveTypes.AsNoTracking()
             .AnyAsync(lt => lt.Id == dto.LeaveTypeId && lt.DeletedAt == null, ct);
-        if (!leaveTypeOk) return ServiceResult.Fail("Type de congé non trouvé.");
+        if (!leaveTypeOk)
+            return ServiceResult.Fail("Type de congé non trouvé.");
 
         var policy = await ResolveCreatePolicyAsync(target.CompanyId, dto, ct);
         if (policy == null)
             return ServiceResult.Fail("Aucune politique de congé définie pour ce type de congé dans l'entreprise.");
 
         var eligErr = ValidateEligibility6MonthsIfNeeded(target, policy);
-        if (eligErr != null) return ServiceResult.Fail(eligErr);
+        if (eligErr != null)
+            return ServiceResult.Fail(eligErr);
 
         var core = await CreateLeaveRequestCoreAsync(target, dto, policy, actorUserId, isRhOrAdmin, ct);
         return core.Success ? ServiceResult.Ok() : ServiceResult.Fail(core.Error ?? "Erreur création demande.");
@@ -483,7 +519,8 @@ public class LeaveService : ILeaveService
             return ServiceResult<LeaveRequestReadDto>.Fail("Aucune politique de congé définie pour ce type de congé dans l'entreprise.");
 
         var eligErr = ValidateEligibility6MonthsIfNeeded(employee, policy);
-        if (eligErr != null) return ServiceResult<LeaveRequestReadDto>.Fail(eligErr);
+        if (eligErr != null)
+            return ServiceResult<LeaveRequestReadDto>.Fail(eligErr);
 
         return await CreateLeaveRequestCoreAsync(employee, dto, policy, createdBy, isRhOrAdmin: false, ct);
     }
@@ -501,7 +538,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LegalRule)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Draft)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes en brouillon peuvent être soumises.");
         if (request.StartDate > request.EndDate)
@@ -562,7 +600,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LeaveType)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Submitted)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes soumises peuvent être approuvées.");
 
@@ -605,7 +644,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LegalRule)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Submitted)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes soumises peuvent être rejetées.");
 
@@ -645,7 +685,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LeaveType)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Approved && request.Status != LeaveRequestStatus.Submitted)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes approuvées ou soumises peuvent être annulées.");
 
@@ -686,7 +727,8 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LeaveType)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Approved)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes approuvées peuvent faire l'objet d'une renonciation.");
 
@@ -712,7 +754,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteLeaveRequestAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var request = await _db.LeaveRequests.FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
-        if (request == null) return ServiceResult.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Draft)
             return ServiceResult.Fail("Seules les demandes en brouillon peuvent être supprimées.");
 
@@ -748,7 +791,8 @@ public class LeaveService : ILeaveService
             var byLink = await _db.Employees
                 .Include(e => e.Contracts)
                 .FirstOrDefaultAsync(e => e.Id == empId && e.DeletedAt == null, ct);
-            if (byLink != null) return byLink;
+            if (byLink != null)
+                return byLink;
         }
         return await _db.Employees
             .Include(e => e.Contracts)
@@ -774,7 +818,8 @@ public class LeaveService : ILeaveService
             .Where(p => p.EffectiveTo == null || p.EffectiveTo >= asOfDate)
             .OrderByDescending(p => p.EffectiveFrom ?? new DateOnly(1900, 1, 1))
             .FirstOrDefaultAsync(ct);
-        if (companyPolicy != null) return companyPolicy;
+        if (companyPolicy != null)
+            return companyPolicy;
 
         return await _db.LeaveTypePolicies.AsNoTracking()
             .Where(p => p.DeletedAt == null && p.IsEnabled && p.LeaveTypeId == leaveTypeId && p.CompanyId == null)
@@ -787,9 +832,11 @@ public class LeaveService : ILeaveService
     private static string? ValidateEligibility6MonthsIfNeeded(
         Payzen.Domain.Entities.Employee.Employee employee, LeaveTypePolicy policy)
     {
-        if (!policy.RequiresEligibility6Months) return null;
+        if (!policy.RequiresEligibility6Months)
+            return null;
         var firstContract = employee.Contracts.OrderBy(c => c.StartDate).FirstOrDefault(c => c.DeletedAt == null);
-        if (firstContract == null) return "Aucun contrat actif trouvé pour l'employé.";
+        if (firstContract == null)
+            return "Aucun contrat actif trouvé pour l'employé.";
         var employmentDate = DateOnly.FromDateTime(firstContract.StartDate);
         if (DateOnly.FromDateTime(DateTime.UtcNow) < employmentDate.AddMonths(6))
             return "L'employé doit avoir au moins 6 mois d'ancienneté pour ce type de congé.";
@@ -866,14 +913,16 @@ public class LeaveService : ILeaveService
             .Include(lr => lr.LegalRule)
             .FirstOrDefaultAsync(lr => lr.Id == id && lr.DeletedAt == null, ct);
 
-        if (request == null) return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
+        if (request == null)
+            return ServiceResult<LeaveRequestReadDto>.Fail("Demande introuvable.");
         if (request.Status != LeaveRequestStatus.Draft)
             return ServiceResult<LeaveRequestReadDto>.Fail("Seules les demandes en brouillon peuvent être modifiées.");
 
         if (dto.LeaveTypeId.HasValue && dto.LeaveTypeId.Value != request.LeaveTypeId)
         {
             var ltOk = await _db.LeaveTypes.AnyAsync(x => x.Id == dto.LeaveTypeId.Value && x.DeletedAt == null, ct);
-            if (!ltOk) return ServiceResult<LeaveRequestReadDto>.Fail("Type de congé introuvable.");
+            if (!ltOk)
+                return ServiceResult<LeaveRequestReadDto>.Fail("Type de congé introuvable.");
             request.LeaveTypeId = dto.LeaveTypeId.Value;
             var createDto = new LeaveRequestCreateDto
             {
@@ -884,13 +933,17 @@ public class LeaveService : ILeaveService
                 EndDate = request.EndDate
             };
             var pol = await ResolveCreatePolicyAsync(request.CompanyId, createDto, ct);
-            if (pol == null) return ServiceResult<LeaveRequestReadDto>.Fail("Aucune politique de congé définie pour ce type de congé dans l'entreprise.");
+            if (pol == null)
+                return ServiceResult<LeaveRequestReadDto>.Fail("Aucune politique de congé définie pour ce type de congé dans l'entreprise.");
             request.PolicyId = pol.Id;
         }
 
-        if (dto.LegalRuleId.HasValue) request.LegalRuleId = dto.LegalRuleId;
-        if (dto.StartDate.HasValue) request.StartDate = dto.StartDate.Value;
-        if (dto.EndDate.HasValue) request.EndDate = dto.EndDate.Value;
+        if (dto.LegalRuleId.HasValue)
+            request.LegalRuleId = dto.LegalRuleId;
+        if (dto.StartDate.HasValue)
+            request.StartDate = dto.StartDate.Value;
+        if (dto.EndDate.HasValue)
+            request.EndDate = dto.EndDate.Value;
 
         if (request.StartDate >= request.EndDate)
             return ServiceResult<LeaveRequestReadDto>.Fail("La date de début doit être antérieure à la date de fin.");
@@ -898,8 +951,10 @@ public class LeaveService : ILeaveService
         request.CalendarDays = request.EndDate.DayNumber - request.StartDate.DayNumber + 1;
         request.WorkingDaysDeducted = await _workingDays.CalculateWorkingDaysAsync(request.CompanyId, request.StartDate, request.EndDate, ct);
 
-        if (dto.EmployeeNote != null) request.EmployeeNote = dto.EmployeeNote.Trim();
-        if (dto.ManagerNote != null) request.ManagerNote = dto.ManagerNote;
+        if (dto.EmployeeNote != null)
+            request.EmployeeNote = dto.EmployeeNote.Trim();
+        if (dto.ManagerNote != null)
+            request.ManagerNote = dto.ManagerNote;
 
         request.UpdatedAt = DateTimeOffset.UtcNow;
         request.UpdatedBy = userId;
@@ -932,16 +987,26 @@ public class LeaveService : ILeaveService
         var balance = await _db.LeaveBalances.FirstOrDefaultAsync(b =>
             b.CompanyId == companyId && b.EmployeeId == employeeId && b.LeaveTypeId == leaveTypeId
             && b.Year == year && b.Month == month && b.DeletedAt == null, ct);
-        if (balance != null) return balance;
+        if (balance != null)
+            return balance;
 
         var now = DateTimeOffset.UtcNow;
         var nb = new LeaveBalance
         {
-            CompanyId = companyId, EmployeeId = employeeId, LeaveTypeId = leaveTypeId,
-            Year = year, Month = month,
-            OpeningDays = 0, AccruedDays = 0, UsedDays = 0,
-            CarryInDays = 0, CarryOutDays = 0, ClosingDays = 0,
-            LastRecalculatedAt = now, CreatedAt = now, CreatedBy = userId
+            CompanyId = companyId,
+            EmployeeId = employeeId,
+            LeaveTypeId = leaveTypeId,
+            Year = year,
+            Month = month,
+            OpeningDays = 0,
+            AccruedDays = 0,
+            UsedDays = 0,
+            CarryInDays = 0,
+            CarryOutDays = 0,
+            ClosingDays = 0,
+            LastRecalculatedAt = now,
+            CreatedAt = now,
+            CreatedBy = userId
         };
         nb.CarryoverExpiresOn = nb.GetBalanceExpiresOn();
         _db.LeaveBalances.Add(nb);
@@ -972,7 +1037,8 @@ public class LeaveService : ILeaveService
             ClosingDays = newClosing,
             CarryoverExpiresOn = currentBalance.CarryoverExpiresOn,
             LastRecalculatedAt = currentBalance.LastRecalculatedAt,
-            CreatedAt = now, CreatedBy = userId
+            CreatedAt = now,
+            CreatedBy = userId
         });
     }
 
@@ -1002,11 +1068,16 @@ public class LeaveService : ILeaveService
         int? companyId, int? employeeId, int? year, int? month, int? leaveTypeId, CancellationToken ct = default)
     {
         var q = _db.LeaveBalances.AsNoTracking().Where(lb => lb.DeletedAt == null).AsQueryable();
-        if (companyId.HasValue) q = q.Where(lb => lb.CompanyId == companyId.Value);
-        if (employeeId.HasValue) q = q.Where(lb => lb.EmployeeId == employeeId.Value);
-        if (year.HasValue) q = q.Where(lb => lb.Year == year.Value);
-        if (month.HasValue) q = q.Where(lb => lb.Month == month.Value);
-        if (leaveTypeId.HasValue) q = q.Where(lb => lb.LeaveTypeId == leaveTypeId.Value);
+        if (companyId.HasValue)
+            q = q.Where(lb => lb.CompanyId == companyId.Value);
+        if (employeeId.HasValue)
+            q = q.Where(lb => lb.EmployeeId == employeeId.Value);
+        if (year.HasValue)
+            q = q.Where(lb => lb.Year == year.Value);
+        if (month.HasValue)
+            q = q.Where(lb => lb.Month == month.Value);
+        if (leaveTypeId.HasValue)
+            q = q.Where(lb => lb.LeaveTypeId == leaveTypeId.Value);
 
         var raw = await q
             .OrderBy(b => b.Year)
@@ -1020,7 +1091,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveBalanceReadDto>> GetBalanceByIdAsync(int id, CancellationToken ct = default)
     {
         var lb = await _db.LeaveBalances.FindAsync(new object[] { id }, ct);
-        if (lb == null || lb.DeletedAt != null) return ServiceResult<LeaveBalanceReadDto>.Fail("Solde introuvable.");
+        if (lb == null || lb.DeletedAt != null)
+            return ServiceResult<LeaveBalanceReadDto>.Fail("Solde introuvable.");
         return ServiceResult<LeaveBalanceReadDto>.Ok(MapBalance(lb));
     }
 
@@ -1036,7 +1108,8 @@ public class LeaveService : ILeaveService
 
     public async Task<ServiceResult<IEnumerable<LeaveBalanceReadDto>>> GetBalancesByYearMonthAsync(int employeeId, int year, int month, CancellationToken ct = default)
     {
-        if (month < 1 || month > 12) return ServiceResult<IEnumerable<LeaveBalanceReadDto>>.Fail("Le mois doit être entre 1 et 12.");
+        if (month < 1 || month > 12)
+            return ServiceResult<IEnumerable<LeaveBalanceReadDto>>.Fail("Le mois doit être entre 1 et 12.");
         var raw = await _db.LeaveBalances
             .AsNoTracking()
             .Where(lb => lb.EmployeeId == employeeId && lb.Year == year && lb.Month == month && lb.DeletedAt == null)
@@ -1152,7 +1225,8 @@ public class LeaveService : ILeaveService
         {
             var recalc = await _leaveBalanceRecalc.RecalculateRangeThroughMonthAsync(
                 cid, employeeId, ltid, year, month, userId, ct);
-            if (recalc.Success) recalculatedCount++;
+            if (recalc.Success)
+                recalculatedCount++;
         }
 
         var first = balances[0];
@@ -1172,10 +1246,12 @@ public class LeaveService : ILeaveService
     {
         // Vérification employé et LeaveType
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
-        if (!employeeExists) return ServiceResult<LeaveBalanceReadDto>.Fail("Employé non trouvé.");
+        if (!employeeExists)
+            return ServiceResult<LeaveBalanceReadDto>.Fail("Employé non trouvé.");
 
         var leaveTypeExists = await _db.LeaveTypes.AnyAsync(lt => lt.Id == dto.LeaveTypeId && lt.DeletedAt == null, ct);
-        if (!leaveTypeExists) return ServiceResult<LeaveBalanceReadDto>.Fail("Type de congé non trouvé.");
+        if (!leaveTypeExists)
+            return ServiceResult<LeaveBalanceReadDto>.Fail("Type de congé non trouvé.");
 
         // Unicité : un seul solde actif par (EmployeeId, LeaveTypeId, Year, Month)
         var balanceExists = await _db.LeaveBalances.AnyAsync(b =>
@@ -1211,14 +1287,21 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveBalanceReadDto>> PatchBalanceAsync(int id, LeaveBalancePatchDto dto, int updatedBy, CancellationToken ct = default)
     {
         var lb = await _db.LeaveBalances.FindAsync(new object[] { id }, ct);
-        if (lb == null || lb.DeletedAt != null) return ServiceResult<LeaveBalanceReadDto>.Fail("Solde introuvable.");
+        if (lb == null || lb.DeletedAt != null)
+            return ServiceResult<LeaveBalanceReadDto>.Fail("Solde introuvable.");
 
-        if (dto.OpeningDays != null) lb.OpeningDays = dto.OpeningDays.Value;
-        if (dto.AccruedDays != null) lb.AccruedDays = dto.AccruedDays.Value;
-        if (dto.UsedDays != null) lb.UsedDays = dto.UsedDays.Value;
-        if (dto.CarryInDays != null) lb.CarryInDays = dto.CarryInDays.Value;
-        if (dto.CarryOutDays != null) lb.CarryOutDays = dto.CarryOutDays.Value;
-        if (dto.CarryoverExpiresOn != null) lb.CarryoverExpiresOn = dto.CarryoverExpiresOn;
+        if (dto.OpeningDays != null)
+            lb.OpeningDays = dto.OpeningDays.Value;
+        if (dto.AccruedDays != null)
+            lb.AccruedDays = dto.AccruedDays.Value;
+        if (dto.UsedDays != null)
+            lb.UsedDays = dto.UsedDays.Value;
+        if (dto.CarryInDays != null)
+            lb.CarryInDays = dto.CarryInDays.Value;
+        if (dto.CarryOutDays != null)
+            lb.CarryOutDays = dto.CarryOutDays.Value;
+        if (dto.CarryoverExpiresOn != null)
+            lb.CarryoverExpiresOn = dto.CarryoverExpiresOn;
         if (dto.ClosingDays != null)
             lb.ClosingDays = dto.ClosingDays.Value;
         else
@@ -1234,7 +1317,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteBalanceAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var lb = await _db.LeaveBalances.FindAsync(new object[] { id }, ct);
-        if (lb == null) return ServiceResult.Fail("Solde introuvable.");
+        if (lb == null)
+            return ServiceResult.Fail("Solde introuvable.");
         lb.DeletedAt = DateTimeOffset.UtcNow;
         lb.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -1254,7 +1338,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveCarryOverAgreementReadDto>> GetCarryOverByIdAsync(int id, CancellationToken ct = default)
     {
         var a = await _db.LeaveCarryOverAgreements.FindAsync(new object[] { id }, ct);
-        if (a == null || a.DeletedAt != null) return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Accord introuvable.");
+        if (a == null || a.DeletedAt != null)
+            return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Accord introuvable.");
         return ServiceResult<LeaveCarryOverAgreementReadDto>.Ok(MapCarryOver(a));
     }
 
@@ -1262,12 +1347,14 @@ public class LeaveService : ILeaveService
     {
         // Vérifications
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
-        if (!employeeExists) return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Employé non trouvé.");
+        if (!employeeExists)
+            return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Employé non trouvé.");
 
         var leaveType = await _db.LeaveTypes
             .Include(lt => lt.Policies)
             .FirstOrDefaultAsync(lt => lt.Id == dto.LeaveTypeId && lt.DeletedAt == null, ct);
-        if (leaveType == null) return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Type de congé non trouvé.");
+        if (leaveType == null)
+            return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Type de congé non trouvé.");
 
         if (dto.FromYear >= dto.ToYear)
             return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("FromYear doit être antérieur à ToYear.");
@@ -1303,16 +1390,21 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveCarryOverAgreementReadDto>> PatchCarryOverAgreementAsync(int id, LeaveCarryOverAgreementPatchDto dto, int updatedBy, CancellationToken ct = default)
     {
         var a = await _db.LeaveCarryOverAgreements.FindAsync(new object[] { id }, ct);
-        if (a == null || a.DeletedAt != null) return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Accord introuvable.");
+        if (a == null || a.DeletedAt != null)
+            return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("Accord introuvable.");
 
-        if (dto.FromYear != null) a.FromYear = dto.FromYear.Value;
-        if (dto.ToYear != null) a.ToYear = dto.ToYear.Value;
+        if (dto.FromYear != null)
+            a.FromYear = dto.FromYear.Value;
+        if (dto.ToYear != null)
+            a.ToYear = dto.ToYear.Value;
 
         if (a.FromYear >= a.ToYear)
             return ServiceResult<LeaveCarryOverAgreementReadDto>.Fail("FromYear doit être antérieur à ToYear.");
 
-        if (dto.AgreementDate != null) a.AgreementDate = dto.AgreementDate.Value;
-        if (dto.AgreementDocRef != null) a.AgreementDocRef = dto.AgreementDocRef.Trim();
+        if (dto.AgreementDate != null)
+            a.AgreementDate = dto.AgreementDate.Value;
+        if (dto.AgreementDocRef != null)
+            a.AgreementDocRef = dto.AgreementDocRef.Trim();
 
         a.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -1322,7 +1414,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteCarryOverAgreementAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.LeaveCarryOverAgreements.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult.Fail("Accord introuvable.");
+        if (a == null)
+            return ServiceResult.Fail("Accord introuvable.");
         a.DeletedAt = DateTimeOffset.UtcNow;
         a.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -1343,7 +1436,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveRequestAttachmentReadDto>> GetAttachmentByIdAsync(int id, CancellationToken ct = default)
     {
         var a = await _db.LeaveRequestAttachments.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult<LeaveRequestAttachmentReadDto>.Fail("Pièce jointe introuvable.");
+        if (a == null)
+            return ServiceResult<LeaveRequestAttachmentReadDto>.Fail("Pièce jointe introuvable.");
         return ServiceResult<LeaveRequestAttachmentReadDto>.Ok(MapAttachment(a));
     }
 
@@ -1351,7 +1445,8 @@ public class LeaveService : ILeaveService
     {
         // Vérifier que la LeaveRequest existe
         var leaveRequest = await _db.LeaveRequests.FirstOrDefaultAsync(lr => lr.Id == dto.LeaveRequestId && lr.DeletedAt == null, ct);
-        if (leaveRequest == null) return ServiceResult<LeaveRequestAttachmentReadDto>.Fail("Demande de congé non trouvée.");
+        if (leaveRequest == null)
+            return ServiceResult<LeaveRequestAttachmentReadDto>.Fail("Demande de congé non trouvée.");
 
         var a = new LeaveRequestAttachment
         {
@@ -1369,7 +1464,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<(byte[] content, string fileName, string contentType)>> GetAttachmentDownloadAsync(int attachmentId, CancellationToken ct = default)
     {
         var a = await _db.LeaveRequestAttachments.FindAsync(new object[] { attachmentId }, ct);
-        if (a == null) return ServiceResult<(byte[], string, string)>.Fail("Pièce jointe introuvable.");
+        if (a == null)
+            return ServiceResult<(byte[], string, string)>.Fail("Pièce jointe introuvable.");
         if (string.IsNullOrEmpty(a.FilePath) || !System.IO.File.Exists(a.FilePath))
             return ServiceResult<(byte[], string, string)>.Ok((Array.Empty<byte>(), a.FileName ?? "attachment", a.FileType ?? "application/octet-stream"));
         var bytes = await System.IO.File.ReadAllBytesAsync(a.FilePath, ct);
@@ -1379,12 +1475,16 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteAttachmentAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.LeaveRequestAttachments.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult.Fail("Pièce jointe introuvable.");
+        if (a == null)
+            return ServiceResult.Fail("Pièce jointe introuvable.");
 
         // Suppression du fichier physique si présent
         if (!string.IsNullOrEmpty(a.FilePath) && System.IO.File.Exists(a.FilePath))
         {
-            try { System.IO.File.Delete(a.FilePath); }
+            try
+            {
+                System.IO.File.Delete(a.FilePath);
+            }
             catch { /* log si nécessaire */ }
         }
 
@@ -1408,14 +1508,16 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveRequestExemptionReadDto>> GetExemptionByIdAsync(int id, CancellationToken ct = default)
     {
         var e = await _db.LeaveRequestExemptions.FindAsync(new object[] { id }, ct);
-        if (e == null || e.DeletedAt != null) return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Exemption introuvable.");
+        if (e == null || e.DeletedAt != null)
+            return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Exemption introuvable.");
         return ServiceResult<LeaveRequestExemptionReadDto>.Ok(MapExemption(e));
     }
 
     public async Task<ServiceResult<LeaveRequestExemptionReadDto>> CreateExemptionAsync(LeaveRequestExemptionCreateDto dto, int createdBy, CancellationToken ct = default)
     {
         var leaveRequest = await _db.LeaveRequests.FirstOrDefaultAsync(lr => lr.Id == dto.LeaveRequestId && lr.DeletedAt == null, ct);
-        if (leaveRequest == null) return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Demande de congé non trouvée.");
+        if (leaveRequest == null)
+            return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Demande de congé non trouvée.");
 
         // Validation: ExemptionDate dans la période de la demande
         if (dto.ExemptionDate < leaveRequest.StartDate || dto.ExemptionDate > leaveRequest.EndDate)
@@ -1456,7 +1558,8 @@ public class LeaveService : ILeaveService
         var e = await _db.LeaveRequestExemptions
             .Include(x => x.LeaveRequest)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (e == null) return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Exemption introuvable.");
+        if (e == null)
+            return ServiceResult<LeaveRequestExemptionReadDto>.Fail("Exemption introuvable.");
 
         // Validation date si changement
         if (dto.ExemptionDate != null)
@@ -1466,11 +1569,16 @@ public class LeaveService : ILeaveService
             e.ExemptionDate = dto.ExemptionDate.Value;
         }
 
-        if (dto.ReasonType != null) e.ReasonType = dto.ReasonType.Value;
-        if (dto.CountsAsLeaveDay != null) e.CountsAsLeaveDay = dto.CountsAsLeaveDay.Value;
-        if (dto.HolidayId != null) e.HolidayId = dto.HolidayId;
-        if (dto.EmployeeAbsenceId != null) e.EmployeeAbsenceId = dto.EmployeeAbsenceId;
-        if (dto.Note != null) e.Note = dto.Note.Trim();
+        if (dto.ReasonType != null)
+            e.ReasonType = dto.ReasonType.Value;
+        if (dto.CountsAsLeaveDay != null)
+            e.CountsAsLeaveDay = dto.CountsAsLeaveDay.Value;
+        if (dto.HolidayId != null)
+            e.HolidayId = dto.HolidayId;
+        if (dto.EmployeeAbsenceId != null)
+            e.EmployeeAbsenceId = dto.EmployeeAbsenceId;
+        if (dto.Note != null)
+            e.Note = dto.Note.Trim();
 
         e.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -1480,7 +1588,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult> DeleteExemptionAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var e = await _db.LeaveRequestExemptions.FindAsync(new object[] { id }, ct);
-        if (e == null) return ServiceResult.Fail("Exemption introuvable.");
+        if (e == null)
+            return ServiceResult.Fail("Exemption introuvable.");
         // Soft delete (cohérence avec le reste)
         e.DeletedAt = DateTimeOffset.UtcNow;
         e.DeletedBy = deletedBy;
@@ -1494,8 +1603,10 @@ public class LeaveService : ILeaveService
         int? companyId, int? leaveRequestId, CancellationToken ct = default)
     {
         var q = _db.LeaveAuditLogs.AsQueryable();
-        if (companyId.HasValue) q = q.Where(l => l.CompanyId == companyId.Value);
-        if (leaveRequestId.HasValue) q = q.Where(l => l.LeaveRequestId == leaveRequestId.Value);
+        if (companyId.HasValue)
+            q = q.Where(l => l.CompanyId == companyId.Value);
+        if (leaveRequestId.HasValue)
+            q = q.Where(l => l.LeaveRequestId == leaveRequestId.Value);
         var list = await q.OrderByDescending(l => l.CreatedAt)
             .Take(1000)
             .Select(l => MapAuditLog(l)).ToListAsync(ct);
@@ -1505,7 +1616,8 @@ public class LeaveService : ILeaveService
     public async Task<ServiceResult<LeaveAuditLogReadDto>> GetAuditLogByIdAsync(int id, CancellationToken ct = default)
     {
         var l = await _db.LeaveAuditLogs.FindAsync(new object[] { id }, ct);
-        if (l == null) return ServiceResult<LeaveAuditLogReadDto>.Fail("Log d'audit introuvable.");
+        if (l == null)
+            return ServiceResult<LeaveAuditLogReadDto>.Fail("Log d'audit introuvable.");
         return ServiceResult<LeaveAuditLogReadDto>.Ok(MapAuditLog(l));
     }
 

@@ -1,8 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
+import { Permission } from '../../../models/role.model';
 import { PermissionService } from '../../../services/permission.service';
 import { ConfirmService } from '../../../shared/confirm/confirm.service';
-import { Permission } from '../../../models/role.model';
 import { AddPermissionModalComponent } from './add-permission-modal.component';
 
 @Component({
@@ -47,7 +47,6 @@ export class PermissionsComponent implements OnInit {
       },
       error: (err) => {
         this.addError = "Erreur lors de l'ajout de la permission.";
-        console.error(err);
         this.showNotification(this.extractApiError(err) || 'Erreur lors de l\'ajout de la permission', 'error');
       }
     });
@@ -72,7 +71,6 @@ export class PermissionsComponent implements OnInit {
         this.loadPermissions();
       },
       error: (err) => {
-        console.error('Erreur suppression permission', err);
         this.showNotification(this.extractApiError(err) || 'Erreur lors de la suppression', 'error');
       }
     });
@@ -88,7 +86,6 @@ export class PermissionsComponent implements OnInit {
         this.loadPermissions();
       },
       error: (err) => {
-        console.error('Erreur mise à jour permission', err);
         this.showNotification(this.extractApiError(err) || 'Erreur lors de la mise à jour', 'error');
       }
     });
@@ -128,7 +125,7 @@ export class PermissionsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Erreur lors du chargement des permissions:', error);
+        this.showNotification('Erreur lors du chargement des permissions', 'error');
         this.isLoading = false;
       }
     });

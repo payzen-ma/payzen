@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, forkJoin, of, switchMap, tap, catchError, throwError } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { WorkingCalendar, CreateWorkingCalendarRequest, UpdateWorkingCalendarRequest } from '../models/working-calendar.model';
+import { CreateWorkingCalendarRequest, UpdateWorkingCalendarRequest, WorkingCalendar } from '../models/working-calendar.model';
 
 // Mapping from day names (English) to DayOfWeek numbers (0-6, where 0=Sunday)
 const DAY_NAME_TO_DAYOFWEEK: Record<string, number> = {
@@ -53,12 +53,10 @@ export class WorkingCalendarService {
    * Create a new working calendar entry
    */
   create(request: CreateWorkingCalendarRequest): Observable<WorkingCalendar> {
-    console.debug('[WorkingCalendarService] create() payload:', request);
     return this.http.post<any>(this.apiUrl, request).pipe(
-      tap({ error: (err) => console.error('[WorkingCalendarService] create() error response:', err?.error ?? err) }),
+      tap({ error: (err) => alert(`[WorkingCalendarService] create() error response: ${err?.error?.message ?? err?.message ?? err}`) }),
       map(response => response.value || response),
       catchError(err => {
-        console.error('[WorkingCalendarService] create() caught error:', err?.error ?? err);
         return throwError(() => err);
       })
     );
@@ -68,9 +66,9 @@ export class WorkingCalendarService {
    * Update an existing working calendar entry
    */
   update(id: number, request: UpdateWorkingCalendarRequest): Observable<WorkingCalendar> {
-    console.debug(`[WorkingCalendarService] update() id=${id} payload:`, request);
+    alert(`[WorkingCalendarService] update() id=${id} payload: ${JSON.stringify(request)}`);
     return this.http.put<any>(`${this.apiUrl}/${id}`, request).pipe(
-      tap({ error: (err) => console.error(`[WorkingCalendarService] update() id=${id} error response:`, err?.error ?? err) }),
+      tap({ error: (err) => alert(`[WorkingCalendarService] update() id=${id} error response: ${err?.error?.message ?? err?.message ?? err}`) }),
       map(response => {
         if (!response) {
           return this.getById(id);
@@ -78,7 +76,7 @@ export class WorkingCalendarService {
         return response.value || response;
       }),
       catchError(err => {
-        console.error(`[WorkingCalendarService] update() id=${id} caught error:`, err?.error ?? err);
+        alert(`[WorkingCalendarService] update() id=${id} caught error: ${err?.error?.message ?? err?.message ?? err}`);
         return throwError(() => err);
       })
     );
@@ -100,7 +98,7 @@ export class WorkingCalendarService {
   syncWorkingDaysWithTimes(companyId: number, calendars: any[]): Observable<any[]> {
 
     if (!calendars || calendars.length === 0) {
-      console.warn('[WorkingCalendarService] No calendars to sync');
+      alert('[WorkingCalendarService] No calendars to sync');
       return of([]);
     }
 
@@ -144,20 +142,20 @@ export class WorkingCalendarService {
 
     // If no days selected, return empty array
     if (!selectedDays || selectedDays.length === 0) {
-      console.warn('[WorkingCalendarService] No working days selected');
+      alert('[WorkingCalendarService] No working days selected');
       return of([]);
     }
 
     // Get existing working calendars for this company, then sync
     return this.getByCompanyId(companyId).pipe(
       switchMap(existingCalendars => {
-        
+
         // Calculate start and end times based on standard hours (e.g., 9:00 - 17:00 for 8 hours)
         const startTime = new Date();
         startTime.setHours(9, 0, 0, 0);
         const endTime = new Date();
         endTime.setHours(9 + standardHoursPerDay, 0, 0, 0);
-        
+
         const startTimeSpan = this.dateToTimeSpan(startTime);
         const endTimeSpan = this.dateToTimeSpan(endTime);
 

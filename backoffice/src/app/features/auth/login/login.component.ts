@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { EntraRedirectService } from '../../../services/entra-redirect.service';
 
@@ -17,12 +17,7 @@ export class LoginComponent implements OnInit {
   isLoading = signal(false);
 
   async ngOnInit(): Promise<void> {
-    console.log('[AUTH-FLOW][LOGIN] ngOnInit');
     const qp = this.route.snapshot.queryParamMap;
-    console.log('[AUTH-FLOW][LOGIN] queryParams', {
-      reason: qp.get('reason'),
-      error: qp.get('error'),
-    });
     const reason = qp.get('reason');
     if (reason === 'expired') {
       this.error.set('Votre session a expiré. Veuillez vous reconnecter.');
@@ -42,14 +37,11 @@ export class LoginComponent implements OnInit {
   }
 
   async signIn(): Promise<void> {
-    console.log('[AUTH-FLOW][LOGIN] signIn click');
     this.isLoading.set(true);
 
     try {
-      console.log('[AUTH-FLOW][LOGIN] calling EntraRedirectService.loginWithEntra');
       await this.entra.loginWithEntra();
     } catch {
-      console.error('[AUTH-FLOW][LOGIN] loginWithEntra failed');
       this.isLoading.set(false);
       this.error.set('La redirection vers Microsoft a échoué. Réessayez.');
     }

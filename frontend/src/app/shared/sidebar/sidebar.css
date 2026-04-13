@@ -1,4 +1,13 @@
-:host { display: block; height: 100%; }
+:host {
+  display: block;
+  height: 100%;
+}
+
+:host .sidebar {
+  width: 272px;
+  background: var(--bg-element);
+  border-right: 1px solid var(--border-subtle);
+}
 
 [dir='rtl'] .sidebar-toggle-icon {
   transform: rotate(180deg);
@@ -13,28 +22,28 @@
 :host .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem; /* Reduced from default */
-  margin: 0.125rem 0; /* Reduced margin */
+  padding: 0.5rem 0.75rem;
+  margin: 0.125rem 0;
   border-radius: 0.5rem;
-  color: rgb(71 85 105); /* slate-600 */
-  font-size: 0.8125rem; /* Reduced from 0.875rem (14px to 13px) */
+  color: #475669;
+  font-size: 0.8125rem;
   transition: all 0.15s ease;
   text-decoration: none;
   cursor: pointer;
 }
 
 :host .sidebar-item:hover {
-  background-color: rgba(253, 117, 31, 0.15); /* orange background #fd751f */
-  color: #1800ac; /* blue text */
+  background-color: #f8fbff;
+  color: #0f4187;
 }
 
 :host .sidebar-item:hover i {
-  color: rgb(29 78 216); /* blue-700 icon */
+  color: #1557b0;
 }
 
 :host .sidebar-item.active {
-  background-color: rgb(219 234 254); /* blue-100 */
-  color: rgb(30 64 175); /* blue-800 */
+  background-color: #ebf5ff;
+  color: #0f4187;
   font-weight: 500;
 }
 
@@ -52,28 +61,29 @@
 }
 
 :host .sidebar-item i {
-  font-size: 1rem; /* Reduced from 1.125rem (18px to 16px) */
+  font-size: 1rem;
 }
 
 /* Sidebar Group Label */
 :host app-sidebar-group-label {
-  font-size: 0.6875rem; /* Reduced from 0.75rem (12px to 11px) */
-  padding: 0.25rem 0.75rem; /* Reduced padding */
-  margin-bottom: 0.25rem; /* Reduced margin */
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 /* Brand Section */
-:host .sidebar .flex.items-center.py-6 {
-  padding-top: 1rem; /* Reduced from 1.5rem */
-  padding-bottom: 1rem; /* Reduced from 1.5rem */
+:host .sidebar .flex.items-center.py-4 {
+  min-height: 60px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 /* Navigation Container */
 :host nav {
-  gap: 0.125rem; /* Reduced gap between items */
-  padding-left: 0.5rem; /* Reduced from 0.75rem */
-  padding-right: 0.5rem; /* Reduced from 0.75rem */
-  padding-top: 0.5rem; /* Reduced */
+  gap: 0.125rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
 }
 
 :host nav.px-2 {
@@ -83,8 +93,8 @@
 
 /* Group Separator */
 :host .border-t.border-gray-200 {
-  margin-top: 0.5rem; /* Reduced from 0.5rem */
-  margin-bottom: 0.5rem; /* Reduced from 0.5rem */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Profile Menu Styling */
@@ -105,31 +115,31 @@
 
   .p-menuitem-separator {
     margin: 0;
-    border-color: rgb(243 244 246); /* gray-100 */
+    border-color: rgb(243 244 246);
+    /* gray-100 */
   }
 
-  /* Reduce font sizes in menu items */
   .p-menuitem-text {
-    font-size: 0.8125rem; /* 13px */
+    font-size: 0.8125rem;
   }
 
   .p-menuitem-icon {
-    font-size: 0.875rem; /* 14px */
+    font-size: 0.875rem;
   }
 }
 
 /* User Profile Section */
 :host .mt-auto.border-t {
-  padding: 0.625rem; /* Reduced from 1rem (10px) */
+  padding: 0.625rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 :host .mt-auto.border-t .p-1\.5 {
-  padding: 0.375rem; /* 6px */
+  padding: 0.375rem;
 }
 
-/* Avatar size adjustment */
 :host p-avatar {
-  width: 2rem; /* 32px - slightly smaller */
+  width: 2rem;
   height: 2rem;
 }
 
@@ -139,13 +149,12 @@
   font-size: 0.875rem;
 }
 
-/* Menu Group Label Text */
 :host app-sidebar-group-label span {
-  font-size: 0.6875rem; /* 11px - smaller than default */
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: rgb(100 116 139); /* slate-500 */
+  color: #64748b;
 }
 
 :host .sidebar-group-toggle {
@@ -157,6 +166,14 @@
   background: transparent;
   padding: 0;
   cursor: pointer;
+}
+
+:host .sidebar-toggle-icon,
+:host .p-button.sidebar-toggle-icon {
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
 }
 
 :host .sidebar-group-content {

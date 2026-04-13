@@ -32,10 +32,10 @@ public class IronPdfDocumentService : IDocumentService
         ILeaveBalanceRecalculationService leaveBalanceRecalc,
         ILogger<IronPdfDocumentService> logger)
     {
-        _env                 = env;
-        _db                  = db;
-        _leaveBalanceRecalc  = leaveBalanceRecalc;
-        _logger              = logger;
+        _env = env;
+        _db = db;
+        _leaveBalanceRecalc = leaveBalanceRecalc;
+        _logger = logger;
     }
 
     // ── Bulletin de paie ─────────────────────────────────────────────────────
@@ -52,7 +52,8 @@ public class IronPdfDocumentService : IDocumentService
             && p.Month == month
             && p.PayHalf == normalizedPayHalf
             && p.DeletedAt == null, ct);
-        if (pr == null) return ServiceResult<byte[]>.Fail("Aucun bulletin pour cet employé et cette période.");
+        if (pr == null)
+            return ServiceResult<byte[]>.Fail("Aucun bulletin pour cet employé et cette période.");
         return await GeneratePayslipInternalAsync(pr.Id, half, ct);
     }
 
@@ -143,16 +144,16 @@ public class IronPdfDocumentService : IDocumentService
 
         leaveBalance ??= new LeaveBalance
         {
-            EmployeeId   = payroll.EmployeeId,
-            CompanyId    = payroll.Employee.CompanyId,
-            LeaveTypeId  = annualLeaveType?.Id ?? 0,
-            Year         = payroll.Year,
-            Month        = payroll.Month,
-            CarryInDays  = 0,
-            AccruedDays  = 0,
-            UsedDays     = 0,
+            EmployeeId = payroll.EmployeeId,
+            CompanyId = payroll.Employee.CompanyId,
+            LeaveTypeId = annualLeaveType?.Id ?? 0,
+            Year = payroll.Year,
+            Month = payroll.Month,
+            CarryInDays = 0,
+            AccruedDays = 0,
+            UsedDays = 0,
             CarryOutDays = 0,
-            ClosingDays  = 0
+            ClosingDays = 0
         };
 
         if (leaveBalance.Id != 0)
@@ -225,7 +226,7 @@ public class IronPdfDocumentService : IDocumentService
             .AsNoTracking()
             .Include(r => r.Employee)
             .Where(r => r.CompanyId == companyId
-                     && r.Year  == year
+                     && r.Year == year
                      && r.Month == month
                      && r.Status == PayrollResultStatus.OK
                      && r.Employee.CnssNumber != null)
@@ -236,58 +237,58 @@ public class IronPdfDocumentService : IDocumentService
         if (!results.Any())
             return ServiceResult<byte[]>.Fail($"Aucun salarié CNSS trouvé pour {month:D2}/{year}.");
 
-        const decimal CNSS_RG_SAL   = 0.0448m;
-        const decimal CNSS_AMO_SAL  = 0.0226m;
-        const decimal CNSS_RG_PAT   = 0.0898m;
-        const decimal CNSS_AF_PAT   = 0.0640m;
-        const decimal CNSS_FP_PAT   = 0.0160m;
-        const decimal CNSS_AMO_PAT  = 0.0226m;
+        const decimal CNSS_RG_SAL = 0.0448m;
+        const decimal CNSS_AMO_SAL = 0.0226m;
+        const decimal CNSS_RG_PAT = 0.0898m;
+        const decimal CNSS_AF_PAT = 0.0640m;
+        const decimal CNSS_FP_PAT = 0.0160m;
+        const decimal CNSS_AMO_PAT = 0.0226m;
         const decimal CNSS_AMO_PAT2 = 0.0185m;
 
         var rows = results.Select((r, i) =>
         {
             var baseCnss = r.CnssBase ?? Math.Min(r.TotalBrut ?? 0m, 6_000m);
-            var brut     = r.TotalBrut ?? 0m;
-            var rgSal    = Math.Round(baseCnss * CNSS_RG_SAL,  2);
-            var amoSal   = Math.Round(brut     * CNSS_AMO_SAL, 2);
-            var rgPat    = Math.Round(baseCnss * CNSS_RG_PAT,  2);
-            var afPat    = Math.Round(brut     * CNSS_AF_PAT,  2);
-            var fpPat    = Math.Round(brut     * CNSS_FP_PAT,  2);
-            var amoPat   = Math.Round(brut     * CNSS_AMO_PAT, 2);
-            var amoPat2  = Math.Round(brut     * CNSS_AMO_PAT2,2);
+            var brut = r.TotalBrut ?? 0m;
+            var rgSal = Math.Round(baseCnss * CNSS_RG_SAL, 2);
+            var amoSal = Math.Round(brut * CNSS_AMO_SAL, 2);
+            var rgPat = Math.Round(baseCnss * CNSS_RG_PAT, 2);
+            var afPat = Math.Round(brut * CNSS_AF_PAT, 2);
+            var fpPat = Math.Round(brut * CNSS_FP_PAT, 2);
+            var amoPat = Math.Round(brut * CNSS_AMO_PAT, 2);
+            var amoPat2 = Math.Round(brut * CNSS_AMO_PAT2, 2);
 
             return new EtatCnssFullRow
             {
-                Ordre            = i + 1,
-                NomPrenom        = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
-                NumeroCnss       = r.Employee.CnssNumber!,
-                CIN              = r.Employee.CinNumber ?? string.Empty,
-                NombreJours      = 26,
-                SalaireBrut      = brut,
-                BaseCnss         = baseCnss,
-                RgSalarial       = rgSal,
-                AmoSalarial      = amoSal,
-                RgPatronal       = rgPat,
-                AfPatronal       = afPat,
-                FpPatronal       = fpPat,
-                AmoPatronal      = amoPat,
-                CotisationAmo    = Math.Round(amoSal + amoPat, 2),
+                Ordre = i + 1,
+                NomPrenom = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
+                NumeroCnss = r.Employee.CnssNumber!,
+                CIN = r.Employee.CinNumber ?? string.Empty,
+                NombreJours = 26,
+                SalaireBrut = brut,
+                BaseCnss = baseCnss,
+                RgSalarial = rgSal,
+                AmoSalarial = amoSal,
+                RgPatronal = rgPat,
+                AfPatronal = afPat,
+                FpPatronal = fpPat,
+                AmoPatronal = amoPat,
+                CotisationAmo = Math.Round(amoSal + amoPat, 2),
                 ParticipationAmo = amoPat2
             };
         }).ToList();
 
         var data = new EtatCnssPdfData
         {
-            CompanyName    = company.CompanyName,
-            CompanyCnss    = company.CnssNumber ?? string.Empty,
+            CompanyName = company.CompanyName,
+            CompanyCnss = company.CnssNumber ?? string.Empty,
             CompanyAddress = company.CompanyAddress ?? string.Empty,
-            CompanyIce     = company.IceNumber ?? string.Empty,
-            Month          = month,
-            Year           = year,
-            Rows           = rows
+            CompanyIce = company.IceNumber ?? string.Empty,
+            Month = month,
+            Year = year,
+            Rows = rows
         };
 
-        var html     = BuildEtatCnssPdfHtml(data);
+        var html = BuildEtatCnssPdfHtml(data);
         var pdfBytes = RenderPdf(html, landscape: true);
 
         return ServiceResult<byte[]>.Ok(pdfBytes);
@@ -306,7 +307,7 @@ public class IronPdfDocumentService : IDocumentService
             .AsNoTracking()
             .Include(r => r.Employee)
             .Where(r => r.CompanyId == companyId
-                     && r.Year  == year
+                     && r.Year == year
                      && r.Month == month
                      && r.Status == PayrollResultStatus.OK)
             .OrderBy(r => r.Employee.Matricule)
@@ -318,20 +319,20 @@ public class IronPdfDocumentService : IDocumentService
 
         var data = new EtatIrPdfData
         {
-            CompanyName    = company.CompanyName,
+            CompanyName = company.CompanyName,
             CompanyAddress = company.CompanyAddress ?? string.Empty,
-            Month          = month,
-            Year           = year,
-            Rows           = results.Select(r => new EtatIrFullRow
+            Month = month,
+            Year = year,
+            Rows = results.Select(r => new EtatIrFullRow
             {
-                Matricule    = r.Employee.Matricule ?? r.EmployeeId,
-                NomPrenom    = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
+                Matricule = r.Employee.Matricule ?? r.EmployeeId,
+                NomPrenom = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
                 SalImposable = r.BrutImposable ?? r.TotalBrut ?? 0m,
-                MontantIGR   = r.ImpotRevenu   ?? 0m
+                MontantIGR = r.ImpotRevenu ?? 0m
             }).ToList()
         };
 
-        var html     = BuildEtatIrPdfHtml(data);
+        var html = BuildEtatIrPdfHtml(data);
         var pdfBytes = RenderPdf(html, landscape: true);
 
         return ServiceResult<byte[]>.Ok(pdfBytes);
@@ -371,7 +372,7 @@ public class IronPdfDocumentService : IDocumentService
         int? half)
     {
         var contract = GetContractForPayrollPeriod(payroll.Employee, payroll.Year, payroll.Month);
-        var sb       = new StringBuilder();
+        var sb = new StringBuilder();
 
         // Ancienneté
         string anciennete = "N/A";
@@ -379,14 +380,14 @@ public class IronPdfDocumentService : IDocumentService
         {
             var periodEnd = new DateTime(payroll.Year, payroll.Month,
                 DateTime.DaysInMonth(payroll.Year, payroll.Month));
-            var sen  = periodEnd - contract.StartDate;
-            int yrs  = (int)(sen.TotalDays / 365.25);
+            var sen = periodEnd - contract.StartDate;
+            int yrs = (int)(sen.TotalDays / 365.25);
             int mths = (int)((sen.TotalDays % 365.25) / 30.44);
             anciennete = $"{yrs} ans {mths} mois";
         }
 
-        var primesImposables = payroll.Primes?.Where(p => p.IsTaxable).OrderBy(p => p.Ordre).ToList()  ?? [];
-        var indemnites       = payroll.Primes?.Where(p => !p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? [];
+        var primesImposables = payroll.Primes?.Where(p => p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? [];
+        var indemnites = payroll.Primes?.Where(p => !p.IsTaxable).OrderBy(p => p.Ordre).ToList() ?? [];
 
         string irRate = "";
         if ((payroll.IrTaux ?? 0) > 0)
@@ -398,7 +399,7 @@ public class IronPdfDocumentService : IDocumentService
         string N2(decimal v) => v.ToString("N2", frCulture);
 
         string cimrRate = FormatPercentRate(payroll.Employee.CimrEmployeeRate);
-        string mutRate  = FormatPercentRate(payroll.Employee.PrivateInsuranceRate);
+        string mutRate = FormatPercentRate(payroll.Employee.PrivateInsuranceRate);
         string ancienneteRate = payroll.PrimeAnciennteRate.HasValue
             ? $"{payroll.PrimeAnciennteRate * 100:0.##}%"
             : "";
@@ -409,7 +410,8 @@ public class IronPdfDocumentService : IDocumentService
             - (payroll.HeuresSupp25 ?? 0) - (payroll.HeuresSupp50 ?? 0) - (payroll.HeuresSupp100 ?? 0)
             - (payroll.TotalPrimesImposables ?? 0)
             - (payroll.TotalNiExcedentImposable ?? 0);
-        if (salaireBaseMensuel < 0) salaireBaseMensuel = 0;
+        if (salaireBaseMensuel < 0)
+            salaireBaseMensuel = 0;
         salaireBaseMensuel = Math.Round(salaireBaseMensuel, 2, MidpointRounding.AwayFromZero);
 
         var salairePeriode = ResolveSalaryForPayrollPeriod(payroll.Employee, payroll.Year, payroll.Month);
@@ -426,7 +428,7 @@ public class IronPdfDocumentService : IDocumentService
         var periodFactor = isDemiView ? 0.5m : 1m;
         var salaireBasePeriode = salaireBaseMensuel * periodFactor;
 
-        decimal totalGains   = (payroll.TotalBrut ?? 0) + (payroll.TotalIndemnites ?? 0);
+        decimal totalGains = (payroll.TotalBrut ?? 0) + (payroll.TotalIndemnites ?? 0);
         decimal leaveAvailable = leaveBalance.CarryInDays + leaveBalance.AccruedDays - leaveBalance.UsedDays;
 
         // Logo entreprise en base64
@@ -442,10 +444,15 @@ public class IronPdfDocumentService : IDocumentService
             {
                 try
                 {
-                    var logoBytes  = File.ReadAllBytes(logoPath);
+                    var logoBytes = File.ReadAllBytes(logoPath);
                     var logoBase64 = Convert.ToBase64String(logoBytes);
-                    var ext        = Path.GetExtension(companyLogo.FilePath).ToLowerInvariant();
-                    var mime       = ext switch { ".png" => "image/png", ".gif" => "image/gif", _ => "image/jpeg" };
+                    var ext = Path.GetExtension(companyLogo.FilePath).ToLowerInvariant();
+                    var mime = ext switch
+                    {
+                        ".png" => "image/png",
+                        ".gif" => "image/gif",
+                        _ => "image/jpeg"
+                    };
                     logoHtml = $"<img src='data:{mime};base64,{logoBase64}' alt='Logo' style='max-height:80px;max-width:150px;margin-bottom:8px;'/>";
                 }
                 catch { /* logo non critique */ }
@@ -505,18 +512,18 @@ public class IronPdfDocumentService : IDocumentService
 </div>
 <hr class='sep'/>
 ");
-        string matricule    = payroll.Employee.Matricule?.ToString() ?? payroll.EmployeeId.ToString();
+        string matricule = payroll.Employee.Matricule?.ToString() ?? payroll.EmployeeId.ToString();
         string dateEmbauche = contract?.StartDate != null ? contract.StartDate.ToString("dd/MM/yyyy") : "N/A";
-        string cimrDiv      = !string.IsNullOrWhiteSpace(payroll.Employee.CimrNumber) ? $"<div>CIMR : {payroll.Employee.CimrNumber}</div>" : "";
-        string mutuelleDiv  = !string.IsNullOrWhiteSpace(payroll.Employee.PrivateInsuranceNumber) ? $"<div>Mutuelle : {payroll.Employee.PrivateInsuranceNumber}</div>" : "";
-        string periodLabel  = $"{DateTime.DaysInMonth(payroll.Year, payroll.Month):D2}/{payroll.Month:D2}/{payroll.Year}";
-        var primaryAddress  = payroll.Employee.Addresses?
+        string cimrDiv = !string.IsNullOrWhiteSpace(payroll.Employee.CimrNumber) ? $"<div>CIMR : {payroll.Employee.CimrNumber}</div>" : "";
+        string mutuelleDiv = !string.IsNullOrWhiteSpace(payroll.Employee.PrivateInsuranceNumber) ? $"<div>Mutuelle : {payroll.Employee.PrivateInsuranceNumber}</div>" : "";
+        string periodLabel = $"{DateTime.DaysInMonth(payroll.Year, payroll.Month):D2}/{payroll.Month:D2}/{payroll.Year}";
+        var primaryAddress = payroll.Employee.Addresses?
             .FirstOrDefault(a => a.DeletedAt == null);
-        string adresse      = primaryAddress != null
+        string adresse = primaryAddress != null
             ? $"{primaryAddress.AddressLine1}{(string.IsNullOrEmpty(primaryAddress.AddressLine2) ? "" : ", " + primaryAddress.AddressLine2)}, {primaryAddress.ZipCode} {primaryAddress.City?.CityName ?? ""}".Trim().TrimEnd(',')
             : "N/A";
         string contractTypeName = H(contract?.ContractType?.ContractTypeName ?? "N/A");
-        string paymentMethod    = H(payroll.Employee.Company?.PaymentMethod ?? "N/A");
+        string paymentMethod = H(payroll.Employee.Company?.PaymentMethod ?? "N/A");
 
         sb.Append($@"
 <div class='emp-box'>
@@ -593,11 +600,16 @@ public class IronPdfDocumentService : IDocumentService
             };
         }
         TR(sb, salaireBaseLabel, baseSalaire, tauxSalaire, gainSalaire, "");
-        if ((payroll.HeuresSupp25  ?? 0) > 0) TR(sb, "Heures supplémentaires 25%",  "", "25%",  F(payroll.HeuresSupp25),  "");
-        if ((payroll.HeuresSupp50  ?? 0) > 0) TR(sb, "Heures supplémentaires 50%",  "", "50%",  F(payroll.HeuresSupp50),  "");
-        if ((payroll.HeuresSupp100 ?? 0) > 0) TR(sb, "Heures supplémentaires 100%", "", "100%", F(payroll.HeuresSupp100), "");
-        if ((payroll.Conges        ?? 0) > 0) TR(sb, "Congés payés",       "", "", F(payroll.Conges),      "");
-        if ((payroll.JoursFeries   ?? 0) > 0) TR(sb, "Jours fériés",       "", "", F(payroll.JoursFeries), "");
+        if ((payroll.HeuresSupp25 ?? 0) > 0)
+            TR(sb, "Heures supplémentaires 25%", "", "25%", F(payroll.HeuresSupp25), "");
+        if ((payroll.HeuresSupp50 ?? 0) > 0)
+            TR(sb, "Heures supplémentaires 50%", "", "50%", F(payroll.HeuresSupp50), "");
+        if ((payroll.HeuresSupp100 ?? 0) > 0)
+            TR(sb, "Heures supplémentaires 100%", "", "100%", F(payroll.HeuresSupp100), "");
+        if ((payroll.Conges ?? 0) > 0)
+            TR(sb, "Congés payés", "", "", F(payroll.Conges), "");
+        if ((payroll.JoursFeries ?? 0) > 0)
+            TR(sb, "Jours fériés", "", "", F(payroll.JoursFeries), "");
         if ((payroll.PrimeAnciennete ?? 0) > 0)
         {
             var basePrime = modeHoraire
@@ -624,14 +636,19 @@ public class IronPdfDocumentService : IDocumentService
             var primeAncMontant = payroll.PrimeAnciennete!.Value * periodFactor;
             TR(sb, primeAncLabel, basePrime, ancienneteRate, N2(primeAncMontant), "");
         }
-        foreach (var p in primesImposables) TR(sb, H(p.Label), "", "", p.Montant.ToString("N2"), "");
+        foreach (var p in primesImposables)
+            TR(sb, H(p.Label), "", "", p.Montant.ToString("N2"), "");
         if (!primesImposables.Any())
         {
-            if ((payroll.PrimeImposable1 ?? 0) > 0) TR(sb, "Prime imposable 1", "", "", F(payroll.PrimeImposable1), "");
-            if ((payroll.PrimeImposable2 ?? 0) > 0) TR(sb, "Prime imposable 2", "", "", F(payroll.PrimeImposable2), "");
-            if ((payroll.PrimeImposable3 ?? 0) > 0) TR(sb, "Prime imposable 3", "", "", F(payroll.PrimeImposable3), "");
+            if ((payroll.PrimeImposable1 ?? 0) > 0)
+                TR(sb, "Prime imposable 1", "", "", F(payroll.PrimeImposable1), "");
+            if ((payroll.PrimeImposable2 ?? 0) > 0)
+                TR(sb, "Prime imposable 2", "", "", F(payroll.PrimeImposable2), "");
+            if ((payroll.PrimeImposable3 ?? 0) > 0)
+                TR(sb, "Prime imposable 3", "", "", F(payroll.PrimeImposable3), "");
         }
-        if ((payroll.TotalNiExcedentImposable ?? 0) > 0) TR(sb, "Excédent indemnités (imposable)", "", "", F(payroll.TotalNiExcedentImposable), "");
+        if ((payroll.TotalNiExcedentImposable ?? 0) > 0)
+            TR(sb, "Excédent indemnités (imposable)", "", "", F(payroll.TotalNiExcedentImposable), "");
 
         TRSep(sb);
         TR(sb, "SALAIRE BRUT IMPOSABLE", "", "", N2(payroll.TotalBrut ?? 0), "", bold: true);
@@ -640,36 +657,59 @@ public class IronPdfDocumentService : IDocumentService
         if ((payroll.FraisProfessionnels ?? 0) > 0)
             TR(sb, "Frais professionnels", F(payroll.BrutImposable), "25%", "", F(payroll.FraisProfessionnels));
 
-        foreach (var ind in indemnites) TR(sb, $"{H(ind.Label)} (NI)", "", "", ind.Montant.ToString("N2"), "");
-        if ((payroll.IndemniteRepresentation   ?? 0) > 0) TR(sb, "Indemnité de représentation (NI)", "", "", F(payroll.IndemniteRepresentation), "");
-        if ((payroll.PrimeTransport            ?? 0) > 0) TR(sb, "Prime de transport (NI)",          "", "", F(payroll.PrimeTransport), "");
-        if ((payroll.PrimePanier               ?? 0) > 0) TR(sb, "Prime de panier (NI)",             "", "", F(payroll.PrimePanier), "");
-        if ((payroll.IndemniteDeplacement      ?? 0) > 0) TR(sb, "Indemnité de déplacement (NI)",    "", "", F(payroll.IndemniteDeplacement), "");
-        if ((payroll.IndemniteCaisse           ?? 0) > 0) TR(sb, "Indemnité de caisse (NI)",         "", "", F(payroll.IndemniteCaisse), "");
-        if ((payroll.PrimeSalissure            ?? 0) > 0) TR(sb, "Prime de salissure (NI)",          "", "", F(payroll.PrimeSalissure), "");
-        if ((payroll.GratificationsFamilial    ?? 0) > 0) TR(sb, "Gratifications familiales (NI)",   "", "", F(payroll.GratificationsFamilial), "");
-        if ((payroll.PrimeVoyageMecque         ?? 0) > 0) TR(sb, "Prime de voyage à la Mecque (NI)", "", "", F(payroll.PrimeVoyageMecque), "");
-        if ((payroll.IndemniteLicenciement     ?? 0) > 0) TR(sb, "Indemnité de licenciement (NI)",   "", "", F(payroll.IndemniteLicenciement), "");
-        if ((payroll.IndemniteKilometrique     ?? 0) > 0) TR(sb, "Indemnité kilométrique (NI)",      "", "", F(payroll.IndemniteKilometrique), "");
-        if ((payroll.PrimeTourne               ?? 0) > 0) TR(sb, "Prime de tournée (NI)",            "", "", F(payroll.PrimeTourne), "");
-        if ((payroll.PrimeOutillage            ?? 0) > 0) TR(sb, "Prime d'outillage (NI)",           "", "", F(payroll.PrimeOutillage), "");
-        if ((payroll.AideMedicale              ?? 0) > 0) TR(sb, "Aide médicale (NI)",               "", "", F(payroll.AideMedicale), "");
-        if ((payroll.AutresPrimesNonImposable  ?? 0) > 0) TR(sb, "Autres primes non imposables (NI)", "", "", F(payroll.AutresPrimesNonImposable), "");
+        foreach (var ind in indemnites)
+            TR(sb, $"{H(ind.Label)} (NI)", "", "", ind.Montant.ToString("N2"), "");
+        if ((payroll.IndemniteRepresentation ?? 0) > 0)
+            TR(sb, "Indemnité de représentation (NI)", "", "", F(payroll.IndemniteRepresentation), "");
+        if ((payroll.PrimeTransport ?? 0) > 0)
+            TR(sb, "Prime de transport (NI)", "", "", F(payroll.PrimeTransport), "");
+        if ((payroll.PrimePanier ?? 0) > 0)
+            TR(sb, "Prime de panier (NI)", "", "", F(payroll.PrimePanier), "");
+        if ((payroll.IndemniteDeplacement ?? 0) > 0)
+            TR(sb, "Indemnité de déplacement (NI)", "", "", F(payroll.IndemniteDeplacement), "");
+        if ((payroll.IndemniteCaisse ?? 0) > 0)
+            TR(sb, "Indemnité de caisse (NI)", "", "", F(payroll.IndemniteCaisse), "");
+        if ((payroll.PrimeSalissure ?? 0) > 0)
+            TR(sb, "Prime de salissure (NI)", "", "", F(payroll.PrimeSalissure), "");
+        if ((payroll.GratificationsFamilial ?? 0) > 0)
+            TR(sb, "Gratifications familiales (NI)", "", "", F(payroll.GratificationsFamilial), "");
+        if ((payroll.PrimeVoyageMecque ?? 0) > 0)
+            TR(sb, "Prime de voyage à la Mecque (NI)", "", "", F(payroll.PrimeVoyageMecque), "");
+        if ((payroll.IndemniteLicenciement ?? 0) > 0)
+            TR(sb, "Indemnité de licenciement (NI)", "", "", F(payroll.IndemniteLicenciement), "");
+        if ((payroll.IndemniteKilometrique ?? 0) > 0)
+            TR(sb, "Indemnité kilométrique (NI)", "", "", F(payroll.IndemniteKilometrique), "");
+        if ((payroll.PrimeTourne ?? 0) > 0)
+            TR(sb, "Prime de tournée (NI)", "", "", F(payroll.PrimeTourne), "");
+        if ((payroll.PrimeOutillage ?? 0) > 0)
+            TR(sb, "Prime d'outillage (NI)", "", "", F(payroll.PrimeOutillage), "");
+        if ((payroll.AideMedicale ?? 0) > 0)
+            TR(sb, "Aide médicale (NI)", "", "", F(payroll.AideMedicale), "");
+        if ((payroll.AutresPrimesNonImposable ?? 0) > 0)
+            TR(sb, "Autres primes non imposables (NI)", "", "", F(payroll.AutresPrimesNonImposable), "");
 
         TRSep(sb);
 
-        if ((payroll.CnssPartSalariale     ?? 0) > 0) TR(sb, "CNSS (part salariale)",     F(payroll.CnssBase     ?? payroll.BrutImposable), "4.48%",  "", F(payroll.CnssPartSalariale));
-        if ((payroll.CimrPartSalariale     ?? 0) > 0) TR(sb, "CIMR (part salariale)",     F(payroll.CimrBase     ?? payroll.BrutImposable), cimrRate, "", F(payroll.CimrPartSalariale));
-        if ((payroll.AmoPartSalariale      ?? 0) > 0) TR(sb, "AMO (part salariale)",      F(payroll.AmoBase      ?? payroll.BrutImposable), "2.26%",  "", F(payroll.AmoPartSalariale));
-        if ((payroll.MutuellePartSalariale ?? 0) > 0) TR(sb, "Mutuelle (part salariale)", F(payroll.MutuelleBase ?? payroll.BrutImposable), mutRate,  "", F(payroll.MutuellePartSalariale));
-        if ((payroll.ImpotRevenu           ?? 0) > 0) TR(sb, "Impôt sur le revenu (IR)",  F(payroll.NetImposable),                          irRate,   "", F(payroll.ImpotRevenu));
-        if ((payroll.Arrondi               ?? 0) != 0) TR(sb, "Arrondi",                  "", "", "", F(payroll.Arrondi));
-        if ((payroll.AvanceSurSalaire      ?? 0) > 0) TR(sb, "Avance sur salaire",        "", "", "", F(payroll.AvanceSurSalaire));
-        if ((payroll.InteretSurLogement    ?? 0) > 0) TR(sb, "Intérêt sur logement",      "", "", "", F(payroll.InteretSurLogement));
+        if ((payroll.CnssPartSalariale ?? 0) > 0)
+            TR(sb, "CNSS (part salariale)", F(payroll.CnssBase ?? payroll.BrutImposable), "4.48%", "", F(payroll.CnssPartSalariale));
+        if ((payroll.CimrPartSalariale ?? 0) > 0)
+            TR(sb, "CIMR (part salariale)", F(payroll.CimrBase ?? payroll.BrutImposable), cimrRate, "", F(payroll.CimrPartSalariale));
+        if ((payroll.AmoPartSalariale ?? 0) > 0)
+            TR(sb, "AMO (part salariale)", F(payroll.AmoBase ?? payroll.BrutImposable), "2.26%", "", F(payroll.AmoPartSalariale));
+        if ((payroll.MutuellePartSalariale ?? 0) > 0)
+            TR(sb, "Mutuelle (part salariale)", F(payroll.MutuelleBase ?? payroll.BrutImposable), mutRate, "", F(payroll.MutuellePartSalariale));
+        if ((payroll.ImpotRevenu ?? 0) > 0)
+            TR(sb, "Impôt sur le revenu (IR)", F(payroll.NetImposable), irRate, "", F(payroll.ImpotRevenu));
+        if ((payroll.Arrondi ?? 0) != 0)
+            TR(sb, "Arrondi", "", "", "", F(payroll.Arrondi));
+        if ((payroll.AvanceSurSalaire ?? 0) > 0)
+            TR(sb, "Avance sur salaire", "", "", "", F(payroll.AvanceSurSalaire));
+        if ((payroll.InteretSurLogement ?? 0) > 0)
+            TR(sb, "Intérêt sur logement", "", "", "", F(payroll.InteretSurLogement));
 
         TRSep(sb);
-        TR(sb, "TOTAL GAINS",    "", "", totalGains.ToString("N2"),              "",                          bold: true);
-        TR(sb, "TOTAL RETENUES", "", "", "",                                     F(payroll.TotalRetenues) ?? "0.00", bold: true);
+        TR(sb, "TOTAL GAINS", "", "", totalGains.ToString("N2"), "", bold: true);
+        TR(sb, "TOTAL RETENUES", "", "", "", F(payroll.TotalRetenues) ?? "0.00", bold: true);
         TRSep(sb);
 
         sb.Append($@"
@@ -689,12 +729,12 @@ public class IronPdfDocumentService : IDocumentService
   </thead>
   <tbody>
     <tr>
-      <td>{F(payroll.CnssPartPatronale)      ?? "0.00"}</td>
-      <td>{F(payroll.AmoPartPatronale)       ?? "0.00"}</td>
-      <td>{F(payroll.CimrPartPatronale)      ?? "0.00"}</td>
-      <td>{F(payroll.MutuellePartPatronale)  ?? "0.00"}</td>
-      <td>{F(payroll.BrutImposable)          ?? "0.00"}</td>
-      <td>{F(payroll.NetImposable)           ?? "0.00"}</td>
+      <td>{F(payroll.CnssPartPatronale) ?? "0.00"}</td>
+      <td>{F(payroll.AmoPartPatronale) ?? "0.00"}</td>
+      <td>{F(payroll.CimrPartPatronale) ?? "0.00"}</td>
+      <td>{F(payroll.MutuellePartPatronale) ?? "0.00"}</td>
+      <td>{F(payroll.BrutImposable) ?? "0.00"}</td>
+      <td>{F(payroll.NetImposable) ?? "0.00"}</td>
     </tr>
   </tbody>
   <thead>
@@ -704,12 +744,12 @@ public class IronPdfDocumentService : IDocumentService
   </thead>
   <tbody>
     <tr>
-      <td>{F(payroll.ImpotRevenu)                   ?? "0.00"}</td>
-      <td>{F(payroll.TotalCotisationsSalariales)     ?? "0.00"}</td>
-      <td>{F(payroll.TotalCotisationsPatronales)     ?? "0.00"}</td>
-      <td>{F(payroll.TotalRetenues)                 ?? "0.00"}</td>
-      <td>{F(payroll.AvanceSurSalaire)              ?? "0.00"}</td>
-      <td>{F(payroll.InteretSurLogement)            ?? "0.00"}</td>
+      <td>{F(payroll.ImpotRevenu) ?? "0.00"}</td>
+      <td>{F(payroll.TotalCotisationsSalariales) ?? "0.00"}</td>
+      <td>{F(payroll.TotalCotisationsPatronales) ?? "0.00"}</td>
+      <td>{F(payroll.TotalRetenues) ?? "0.00"}</td>
+      <td>{F(payroll.AvanceSurSalaire) ?? "0.00"}</td>
+      <td>{F(payroll.InteretSurLogement) ?? "0.00"}</td>
     </tr>
   </tbody>
 </table>
@@ -771,20 +811,20 @@ public class IronPdfDocumentService : IDocumentService
             : (int)Math.Ceiling(rows.Count / (double)rowsPerPage);
 
         // ── totaux MOIS (récapitulatif final) ────────────────────────────────
-        decimal totalBrut        = rows.Sum(r => r.SalaireBrut);
-        decimal totalBaseCnss    = rows.Sum(r => r.BaseCnss);
-        decimal totalRgSal       = rows.Sum(r => r.RgSalarial);
-        decimal totalAmoSal      = rows.Sum(r => r.AmoSalarial);
-        decimal totalRgPat       = rows.Sum(r => r.RgPatronal);
-        decimal totalAfPat       = rows.Sum(r => r.AfPatronal);
-        decimal totalFpPat       = rows.Sum(r => r.FpPatronal);
-        decimal totalAmoPat      = rows.Sum(r => r.AmoPatronal);
-        decimal totalCotisAmo    = rows.Sum(r => r.CotisationAmo);
+        decimal totalBrut = rows.Sum(r => r.SalaireBrut);
+        decimal totalBaseCnss = rows.Sum(r => r.BaseCnss);
+        decimal totalRgSal = rows.Sum(r => r.RgSalarial);
+        decimal totalAmoSal = rows.Sum(r => r.AmoSalarial);
+        decimal totalRgPat = rows.Sum(r => r.RgPatronal);
+        decimal totalAfPat = rows.Sum(r => r.AfPatronal);
+        decimal totalFpPat = rows.Sum(r => r.FpPatronal);
+        decimal totalAmoPat = rows.Sum(r => r.AmoPatronal);
+        decimal totalCotisAmo = rows.Sum(r => r.CotisationAmo);
         decimal totalParticipAmo = rows.Sum(r => r.ParticipationAmo);
-        decimal totalPS          = totalRgSal + totalRgPat;
-        decimal totalAmo         = totalCotisAmo + totalParticipAmo;
-        decimal totalAPayer      = totalPS + totalAfPat + totalFpPat;
-        decimal totalGeneral     = totalAPayer + totalAmo;
+        decimal totalPS = totalRgSal + totalRgPat;
+        decimal totalAmo = totalCotisAmo + totalParticipAmo;
+        decimal totalAPayer = totalPS + totalAfPat + totalFpPat;
+        decimal totalGeneral = totalAPayer + totalAmo;
 
         // ── génération tables page par page ───────────────────────────────
         decimal cumulBrut = 0m;
@@ -798,7 +838,8 @@ public class IronPdfDocumentService : IDocumentService
                 .Take(rowsPerPage)
                 .ToList();
 
-            if (pageRows.Count == 0) break;
+            if (pageRows.Count == 0)
+                break;
 
             decimal pageBrut = pageRows.Sum(r => r.SalaireBrut);
             decimal pageBaseCnss = pageRows.Sum(r => r.BaseCnss);
@@ -930,7 +971,7 @@ public class IronPdfDocumentService : IDocumentService
     private static string BuildEtatIrPdfHtml(EtatIrPdfData d)
     {
         decimal totalSalImposable = d.Rows.Sum(r => r.SalImposable);
-        decimal totalIGR          = d.Rows.Sum(r => r.MontantIGR);
+        decimal totalIGR = d.Rows.Sum(r => r.MontantIGR);
 
         var sb = new StringBuilder();
         foreach (var r in d.Rows)
@@ -1004,14 +1045,14 @@ public class IronPdfDocumentService : IDocumentService
     private static byte[] RenderPdf(string html, bool landscape)
     {
         var renderer = new ChromePdfRenderer();
-        renderer.RenderingOptions.PaperSize        = IronPdf.Rendering.PdfPaperSize.A4;
+        renderer.RenderingOptions.PaperSize = IronPdf.Rendering.PdfPaperSize.A4;
         renderer.RenderingOptions.PaperOrientation = landscape
             ? IronPdf.Rendering.PdfPaperOrientation.Landscape
             : IronPdf.Rendering.PdfPaperOrientation.Portrait;
-        renderer.RenderingOptions.MarginTop    = 15;
+        renderer.RenderingOptions.MarginTop = 15;
         renderer.RenderingOptions.MarginBottom = 15;
-        renderer.RenderingOptions.MarginLeft   = 15;
-        renderer.RenderingOptions.MarginRight  = 15;
+        renderer.RenderingOptions.MarginLeft = 15;
+        renderer.RenderingOptions.MarginRight = 15;
         renderer.RenderingOptions.CssMediaType = IronPdf.Rendering.PdfCssMediaType.Print;
 
         var doc = renderer.RenderHtmlAsPdf(html);
@@ -1033,10 +1074,10 @@ public class IronPdfDocumentService : IDocumentService
         sb.Append($@"
     <tr>
       <td class='label-col' style='{b}'>{label}</td>
-      <td class='right-col' style='{b}'>{baseVal  ?? ""}</td>
-      <td class='right-col' style='{b}'>{rate     ?? ""}</td>
-      <td class='right-col' style='{b}'>{gain     ?? ""}</td>
-      <td class='right-col' style='{b}'>{retenue  ?? ""}</td>
+      <td class='right-col' style='{b}'>{baseVal ?? ""}</td>
+      <td class='right-col' style='{b}'>{rate ?? ""}</td>
+      <td class='right-col' style='{b}'>{gain ?? ""}</td>
+      <td class='right-col' style='{b}'>{retenue ?? ""}</td>
     </tr>");
     }
 
@@ -1048,8 +1089,9 @@ public class IronPdfDocumentService : IDocumentService
     private static EmployeeContract? GetContractForPayrollPeriod(Payzen.Domain.Entities.Employee.Employee? employee, int year, int month)
     {
         var contracts = employee?.Contracts;
-        if (contracts == null || contracts.Count == 0) return null;
-        var end   = new DateTime(year, month, DateTime.DaysInMonth(year, month)).Date;
+        if (contracts == null || contracts.Count == 0)
+            return null;
+        var end = new DateTime(year, month, DateTime.DaysInMonth(year, month)).Date;
         var start = new DateTime(year, month, 1).Date;
         return contracts
             .Where(c => c.StartDate.Date <= end && (c.EndDate == null || c.EndDate.Value.Date >= start))
@@ -1061,8 +1103,9 @@ public class IronPdfDocumentService : IDocumentService
     private static EmployeeSalary? ResolveSalaryForPayrollPeriod(Payzen.Domain.Entities.Employee.Employee? employee, int year, int month)
     {
         var list = employee?.Salaries;
-        if (list == null || list.Count == 0) return null;
-        var end   = new DateTime(year, month, DateTime.DaysInMonth(year, month)).Date;
+        if (list == null || list.Count == 0)
+            return null;
+        var end = new DateTime(year, month, DateTime.DaysInMonth(year, month)).Date;
         var start = new DateTime(year, month, 1).Date;
         return list
             .Where(s => s.DeletedAt == null)
@@ -1074,9 +1117,11 @@ public class IronPdfDocumentService : IDocumentService
     /// <summary>Taux affichés sur le PDF : accepte fraction (0,045) ou pourcentage saisi (4,5).</summary>
     private static string FormatPercentRate(decimal? rateNullable)
     {
-        if (!rateNullable.HasValue) return "";
+        if (!rateNullable.HasValue)
+            return "";
         var r = rateNullable.Value;
-        if (r > 1m && r <= 100m) return $"{r:0.##}%";
+        if (r > 1m && r <= 100m)
+            return $"{r:0.##}%";
         return $"{r * 100m:0.##}%";
     }
 
@@ -1097,10 +1142,18 @@ public class IronPdfDocumentService : IDocumentService
 
     private static string GetMonthName(int month) => month switch
     {
-        1  => "Janvier",  2  => "Février",   3  => "Mars",
-        4  => "Avril",    5  => "Mai",        6  => "Juin",
-        7  => "Juillet",  8  => "Août",       9  => "Septembre",
-        10 => "Octobre",  11 => "Novembre",   12 => "Décembre",
-        _  => "Inconnu"
+        1 => "Janvier",
+        2 => "Février",
+        3 => "Mars",
+        4 => "Avril",
+        5 => "Mai",
+        6 => "Juin",
+        7 => "Juillet",
+        8 => "Août",
+        9 => "Septembre",
+        10 => "Octobre",
+        11 => "Novembre",
+        12 => "Décembre",
+        _ => "Inconnu"
     };
 }

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface InviteAdminRequest {
@@ -17,10 +17,10 @@ export interface InviteAdminResponse {
   providedIn: 'root'
 })
 export class InvitationService {
-  private readonly baseUrl = 'http://localhost:5119';
+  private readonly baseUrl = 'https://api-test.payzenhr.com';
   private readonly apiUrl = `${this.baseUrl}/api/invitations`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   inviteAdmin(payload: InviteAdminRequest): Observable<InviteAdminResponse> {
     // Backend accepte PascalCase/CamelCase via JSON binder, on garde camelCase ici.

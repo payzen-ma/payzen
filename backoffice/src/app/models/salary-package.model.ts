@@ -18,16 +18,15 @@ export interface AutoRules {
 
 /**
  * Morocco 2025 Seniority bonus rates (Ancienneté)
- * 
+ *
  * @deprecated This constant will be removed in Phase 4.
  * Use SalaryPackageDataService.getSeniorityRates() instead to get dynamic
  * values from the API with automatic fallback.
- * 
- * Migration: Import SalaryPackageDataService from 
+ *
+ * Migration: Import SalaryPackageDataService from
  * '@app/services/payroll-referentiel' and use:
  * ```
  * this.salaryDataService.getSeniorityRates().subscribe(result => {
- *   console.log(result.value); // Array of { minYears, maxYears, rate }
  * });
  * ```
  */
@@ -51,16 +50,15 @@ export interface CimrConfig {
 
 /**
  * CNSS ceiling for Al Mounassib calculation
- * 
+ *
  * @deprecated This constant will be removed in Phase 4.
  * Use SalaryPackageDataService.getCnssCeiling() instead to get dynamic
  * values from the API with automatic fallback.
- * 
- * Migration: Import SalaryPackageDataService from 
+ *
+ * Migration: Import SalaryPackageDataService from
  * '@app/services/payroll-referentiel' and use:
  * ```
  * this.salaryDataService.getCnssCeiling().subscribe(result => {
- *   console.log(result.value); // 6000 (or current API value)
  * });
  * ```
  */
@@ -68,18 +66,16 @@ export const CNSS_CEILING = 6000; // MAD per month
 
 /**
  * CIMR Al Kamil standard rates (Morocco 2025)
- * 
+ *
  * @deprecated This constant will be removed in Phase 4.
  * Use SalaryPackageDataService to get dynamic CIMR rates from the API.
- * 
- * Migration: Import SalaryPackageDataService from 
+ *
+ * Migration: Import SalaryPackageDataService from
  * '@app/services/payroll-referentiel' and use:
  * ```
  * this.salaryDataService.getCimrEmployeeRate().subscribe(result => {
- *   console.log(result.value); // Employee contribution rate
  * });
  * this.salaryDataService.getCimrEmployerRate().subscribe(result => {
- *   console.log(result.value); // Employer contribution rate
  * });
  * ```
  */
@@ -100,7 +96,7 @@ export const CIMR_AL_KAMIL_RATES = [
 
 /**
  * CIMR Al Mounassib standard rates (Morocco 2025 - for PME)
- * 
+ *
  * @deprecated This constant will be removed in Phase 4.
  * Use SalaryPackageDataService to get dynamic CIMR rates from the API.
  * See CIMR_AL_KAMIL_RATES deprecation note for migration details.

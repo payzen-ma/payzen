@@ -86,23 +86,13 @@ export class AuthService {
    * Connexion via Microsoft Entra (MSAL) — conservé pour une évolution ultérieure du backoffice.
    */
   loginWithEntra(email: string, externalId: string): Observable<LoginResponse> {
-    console.log('[AUTH-FLOW][API] POST /auth/entra-login start', {
-      email,
-      externalIdPreview: `${externalId}`.slice(0, 12),
-      apiUrl: `${this.apiUrl}/entra-login`,
-    });
+
     return this.http.post<Record<string, unknown>>(`${this.apiUrl}/entra-login`, { email, externalId }).pipe(
       map((response) => {
-        console.log('[AUTH-FLOW][API] /auth/entra-login success raw response', response);
         return this.mapPayZenLoginResponse(response);
       }),
       catchError((err) => {
         const msg = err?.error?.Message ?? err?.error?.message ?? err?.message;
-        console.error('[AUTH-FLOW][API] /auth/entra-login failed', {
-          status: err?.status,
-          message: msg,
-          body: err?.error,
-        });
         return throwError(() => new Error(msg || 'Connexion refusée'));
       })
     );
@@ -121,9 +111,7 @@ export class AuthService {
     }
 
     const roles = AuthService.normalizeRoleList(userData);
-    console.log('[AUTH-FLOW][AUTH-SERVICE] mapPayZenLoginResponse roles', roles);
     if (!AuthService.hasAdminPayZenRole(roles)) {
-      console.error('[AUTH-FLOW][AUTH-SERVICE] missing Admin Payzen role');
       throw new Error('Accès refusé. Seuls les administrateurs PayZen peuvent accéder au backoffice.');
     }
 
@@ -143,12 +131,6 @@ export class AuthService {
     };
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSubject.next(user);
-    console.log('[AUTH-FLOW][AUTH-SERVICE] token/user stored', {
-      tokenLength: token.length,
-      userEmail,
-      primaryRole,
-      rolesCount: roles.length,
-    });
 
     return {
       token,
@@ -190,19 +172,10 @@ export class AuthService {
     const token = localStorage.getItem('auth_token');
     const user = this.getCurrentUser();
     if (!token || !user || this.isTokenExpired(token)) {
-      console.log('[AUTH-FLOW][AUTH-SERVICE] isAuthenticated=false', {
-        hasToken: !!token,
-        hasUser: !!user,
-        tokenExpired: token ? this.isTokenExpired(token) : true,
-      });
       return false;
     }
     const roles = user.roles?.length ? user.roles : [user.role];
     const isAdmin = AuthService.hasAdminPayZenRole(roles);
-    console.log('[AUTH-FLOW][AUTH-SERVICE] isAuthenticated role check', {
-      roles,
-      isAdmin,
-    });
     return isAdmin;
   }
 

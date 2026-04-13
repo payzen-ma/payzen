@@ -1,14 +1,13 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { PayrollService } from '@app/core/services/payroll.service';
-import { EmployeeService, Employee } from '@app/core/services/employee.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { UserRole } from '@app/core/models/user.model';
-import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
+import { Employee, EmployeeService } from '@app/core/services/employee.service';
+import { PayrollService } from '@app/core/services/payroll.service';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
+import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-payslip',
@@ -20,8 +19,7 @@ import { ButtonComponent } from '@app/shared/ui/button/button.component';
     SelectComponent,
     ButtonComponent
   ],
-  templateUrl: './payslip.component.html',
-  styleUrls: ['./payslip.component.css']
+  templateUrl: './payslip.component.html'
 })
 export class PayslipComponent implements OnInit {
   private readonly payrollService = inject(PayrollService);
@@ -31,9 +29,9 @@ export class PayslipComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   // ── État UI ──────────────────────────────────────────────────────────────
-  readonly loading        = signal(false);
-  readonly generating     = signal(false);
-  readonly errorMessage   = signal<string | null>(null);
+  readonly loading = signal(false);
+  readonly generating = signal(false);
+  readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
   // ── Rôle courant ─────────────────────────────────────────────────────────
@@ -46,18 +44,18 @@ export class PayslipComponent implements OnInit {
   );
 
   // ── Sélections ───────────────────────────────────────────────────────────
-  readonly selectedMonth    = signal<number>(new Date().getMonth() + 1);
-  readonly selectedYear     = signal<number>(new Date().getFullYear());
+  readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
+  readonly selectedYear = signal<number>(new Date().getFullYear());
   readonly selectedEmployee = signal<number | null>(null);
   // Vue d'affichage : 0 = mensuel, 1 = 1-15, 2 = 16-fin
-  readonly selectedHalf    = signal<number | null>(1);
+  readonly selectedHalf = signal<number | null>(1);
 
   // ── Données ───────────────────────────────────────────────────────────────
   readonly employees = signal<Employee[]>([]);
 
   // ── Options selects ───────────────────────────────────────────────────────
-  readonly monthOptions  = signal<SelectOption[]>([]);
-  readonly yearOptions   = signal<SelectOption[]>([]);
+  readonly monthOptions = signal<SelectOption[]>([]);
+  readonly yearOptions = signal<SelectOption[]>([]);
   readonly employeeOptions = signal<SelectOption[]>([]);
   readonly halfOptions = signal<SelectOption[]>([
     { label: 'Mensuel', value: 0 },
@@ -110,12 +108,12 @@ export class PayslipComponent implements OnInit {
   // ── Init options mois ─────────────────────────────────────────────────────
   private initMonthOptions(): void {
     const months = [
-      'payslip.months.january',   'payslip.months.february',
-      'payslip.months.march',     'payslip.months.april',
-      'payslip.months.may',       'payslip.months.june',
-      'payslip.months.july',      'payslip.months.august',
+      'payslip.months.january', 'payslip.months.february',
+      'payslip.months.march', 'payslip.months.april',
+      'payslip.months.may', 'payslip.months.june',
+      'payslip.months.july', 'payslip.months.august',
       'payslip.months.september', 'payslip.months.october',
-      'payslip.months.november',  'payslip.months.december'
+      'payslip.months.november', 'payslip.months.december'
     ];
     this.monthOptions.set(
       months.map((key, i) => ({
@@ -221,7 +219,7 @@ export class PayslipComponent implements OnInit {
           link.href = url;
 
           const month = this.selectedMonth().toString().padStart(2, '0');
-          const year  = this.selectedYear();
+          const year = this.selectedYear();
           const periodSuffix =
             this.selectedHalf() === 0
               ? 'mensuel'
@@ -252,12 +250,11 @@ export class PayslipComponent implements OnInit {
         error: (err) => {
           this.generating.set(false);
           if (err.status === 404) {
-            if (this.isSimpleEmployee())
-            {
-                this.errorMessage.set(this.translate.instant('payslip.error.notFoundEMP'));
-                return;
+            if (this.isSimpleEmployee()) {
+              this.errorMessage.set(this.translate.instant('payslip.error.notFoundEMP'));
+              return;
             } else {
-                this.errorMessage.set(this.translate.instant('payslip.error.notFound'));
+              this.errorMessage.set(this.translate.instant('payslip.error.notFound'));
             }
           } else if (err.status === 400) {
             this.errorMessage.set(this.translate.instant('payslip.error.payrollError'));

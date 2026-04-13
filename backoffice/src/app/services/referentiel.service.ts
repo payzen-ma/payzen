@@ -1,21 +1,21 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { MaritalStatus, CreateMaritalRequest, UpdateMaritalRequest } from '../models/marital-status.model';
-import { Gender, CreateGenderRequest, UpdateGenderRequest } from '../models/gender.model';
-import { EducationLevel, CreateEducationLevelRequest, UpdateEducationLevelRequest } from '../models/education-level.model';
-import { EmployeeStatus, CreateEmployeeStatusRequest, UpdateEmployeeStatusRequest } from '../models/employee-status.model';
-import { LegalContractType, CreateLegalContractTypeRequest, UpdateLegalContractTypeRequest } from '../models/legal-contract-type.model';
-import { StateEmploymentProgram, CreateStateEmploymentProgramRequest, UpdateStateEmploymentProgramRequest } from '../models/state-employment-program.model';
-import { LeaveType, CreateLeaveTypeRequest, UpdateLeaveTypeRequest, LeaveScope } from '../models/leave-type.model';
-import { LeaveTypeLegalRule, CreateLeaveTypeLegalRuleRequest, UpdateLeaveTypeLegalRuleRequest } from '../models/leave-type-legal-rule.model';
+import { CreateEducationLevelRequest, EducationLevel, UpdateEducationLevelRequest } from '../models/education-level.model';
+import { CreateEmployeeStatusRequest, EmployeeStatus, UpdateEmployeeStatusRequest } from '../models/employee-status.model';
+import { CreateGenderRequest, Gender, UpdateGenderRequest } from '../models/gender.model';
+import { CreateLeaveTypeLegalRuleRequest, LeaveTypeLegalRule, UpdateLeaveTypeLegalRuleRequest } from '../models/leave-type-legal-rule.model';
+import { CreateLeaveTypeRequest, LeaveScope, LeaveType, UpdateLeaveTypeRequest } from '../models/leave-type.model';
+import { CreateLegalContractTypeRequest, LegalContractType, UpdateLegalContractTypeRequest } from '../models/legal-contract-type.model';
+import { CreateMaritalRequest, MaritalStatus, UpdateMaritalRequest } from '../models/marital-status.model';
+import { CreateStateEmploymentProgramRequest, StateEmploymentProgram, UpdateStateEmploymentProgramRequest } from '../models/state-employment-program.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReferentielService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Marital statuses
   getMaritalStatuses(includeInactive = true): Observable<MaritalStatus[]> {
@@ -318,7 +318,7 @@ export class ReferentielService {
         nameFr: d.Name || undefined,
         nameAr: d.NameAr || undefined,
         nameEn: d.NameEn || undefined,
-        
+
         // legal rules
         isIrExempt: d.IsIrExempt,
         isCnssEmployeeExempt: d.IsCnssEmployeeExempt,

@@ -7,10 +7,22 @@ namespace Payzen.Domain.Entities.Payroll.Referentiel;
 /// <summary>Formula-based exemption (e.g., 2 × SMIG)</summary>
 public class RuleFormula : BaseEntity
 {
-    public int RuleId { get; set; }
-    public decimal Multiplier { get; set; }
-    public int ParameterId { get; set; }
-    public CapUnit ResultUnit { get; set; }
+    public int RuleId
+    {
+        get; set;
+    }
+    public decimal Multiplier
+    {
+        get; set;
+    }
+    public int ParameterId
+    {
+        get; set;
+    }
+    public CapUnit ResultUnit
+    {
+        get; set;
+    }
 
     // Navigation
     public virtual ElementRule Rule { get; set; } = null!;

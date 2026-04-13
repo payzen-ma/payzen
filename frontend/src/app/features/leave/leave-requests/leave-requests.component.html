@@ -1,322 +1,276 @@
-<div class="module-page">
+<section class="leave-requests-page leave-requests-page--app">
   <p-toast />
   <p-confirmDialog />
 
-  <!-- Header -->
-  <header class="module-header">
-    <div class="module-header__content">
-      <div class="module-header__icon">
-        <i class="pi pi-calendar"></i>
+  <div class="leave-requests-shell">
+    <header class="payslip-app-header" role="banner">
+      <div class="payslip-app-header__start">
+        <div class="payslip-app-header__icon" aria-hidden="true">
+          <i class="pi pi-calendar-plus"></i>
+        </div>
+        <div class="payslip-app-header__copy">
+          <h1 class="payslip-app-title">{{ 'leave.myRequests' | translate }}</h1>
+          <p class="payslip-app-subtitle">{{ 'leave.subtitle' | translate }}</p>
+        </div>
       </div>
-      <div class="module-header__text">
-        <h1>{{ 'leave.title' | translate }}</h1>
-        <p>{{ 'leave.subtitle' | translate }}</p>
-      </div>
-    </div>
-    <div class="module-header__actions">
-      <button type="button" class="btn btn-primary" (click)="showCreateForm()">
-        <i class="pi pi-plus"></i>
+      <button type="button" class="payslip-app-header__action-btn" (click)="showCreateForm()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
         {{ 'leave.newRequest' | translate }}
       </button>
-    </div>
-  </header>
+    </header>
 
-  <!-- Leave Requests Table -->
-  <section class="module-table-card">
-    <div class="module-table-card__header">
-      <h2>{{ 'leave.myRequests' | translate }}</h2>
-    </div>
+    <section class="leave-requests-app-panel">
+      <h2 class="leave-requests-app-panel__title">{{ 'leave.myRequests' | translate }}</h2>
 
-    <p-table
-        [value]="leaveRequests()"
-        [loading]="loading()"
-        styleClass="p-datatable-sm"
-        [tableStyle]="{'min-width': '50rem'}"
-      >
-      
-      <ng-template pTemplate="header">
-        <tr>
-          <th class="saas-table-header">{{ 'leave.table.leaveType' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.startDate' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.endDate' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.duration' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.workingDaysDeducted' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.reason' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.status' | translate }}</th>
-          <th class="saas-table-header">{{ 'leave.table.createdAt' | translate }}</th>
-          <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
-        </tr>
-      </ng-template>
-      
-      <ng-template pTemplate="body" let-request>
-        <tr class="saas-table-row">
-          <!-- Type de Congé -->
-          <td class="px-6 py-4">
-            <p-tag [value]="request.leaveType?.LeaveName || getLeaveTypeName(request.leaveTypeId) || 'Type non défini'" severity="info"></p-tag>
-          </td>
-          <!-- Date de Début -->
-          <td class="px-6 py-4">{{ formatDisplayDate(request.startDate) }}</td>
-          <!-- Date de Fin -->
-          <td class="px-6 py-4">{{ formatDisplayDate(request.endDate) }}</td>
-          <!-- Durée -->
-          <td class="px-6 py-4"><strong>{{ calculateDuration(request.startDate, request.endDate) }} jour(s)</strong></td>
-          <!-- Jours Ouvrables Déduits -->
-          <td class="px-6 py-4">{{ request.workingDaysDeducted || 0 }} jour(s)</td>
-          <!-- Motif -->
-          <td class="px-6 py-4">
-            <span [title]="request.reason || 'Aucun motif spécifié'">
-              {{ (request.reason && request.reason.trim()) ? 
-                 (request.reason.length > 50 ? (request.reason | slice:0:50) + '...' : request.reason) : 
-                 'Aucun motif spécifié' }}
-            </span>
-          </td>
-          <!-- Statut -->
-          <td class="px-6 py-4">
-            <p-tag 
-              [value]="getStatusLabel(request.status)" 
-              [severity]="getStatusSeverity(request.status)">
-            </p-tag>
-          </td>
-          <!-- Créée le -->
-          <td class="px-6 py-4">{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-          <!-- Actions -->
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-2">
-              <button pButton icon="pi pi-check" [pTooltip]="'leave.submit' | translate" tooltipPosition="top" (click)="submitRequest(request)" severity="success" [text]="true" [rounded]="true" *ngIf="canSubmit(request)"></button>
-              <button pButton icon="pi pi-pencil" [pTooltip]="'common.edit' | translate" tooltipPosition="top" (click)="editRequest(request)" severity="info" [text]="true" [rounded]="true" *ngIf="canEdit(request)"></button>
-              <button pButton icon="pi pi-ban" [pTooltip]="'leave.cancel' | translate" tooltipPosition="top" (click)="cancelRequest(request)" severity="warn" [text]="true" [rounded]="true" *ngIf="canCancel(request)"></button>
-              <button pButton icon="pi pi-trash" [pTooltip]="'common.delete' | translate" tooltipPosition="top" (click)="deleteRequest(request)" severity="danger" [text]="true" [rounded]="true" *ngIf="canDelete(request)"></button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="9" class="text-center py-8">
-            <div class="flex flex-col items-center gap-3">
-              <i class="pi pi-inbox text-4xl text-gray-500"></i>
-              <p class="text-gray-500">{{ 'leave.noData' | translate }}</p>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </section>
+      <div class="leave-requests-app-table-shell">
+        <p-table [value]="leaveRequests()" [loading]="loading()" styleClass="leave-requests-table leave-requests-table--app"
+          [tableStyle]="{ 'min-width': '56rem' }">
 
-  <!-- Create Request Dialog -->
-  <p-dialog 
-    [(visible)]="showCreateDialog" 
-    [modal]="true" 
-    header="Nouvelle Demande de Congé" 
-    [style]="{ width: '50rem' }"
+          <ng-template pTemplate="header">
+            <tr>
+              <th>{{ 'leave.table.leaveType' | translate }}</th>
+              <th>{{ 'leave.table.startDate' | translate }}</th>
+              <th>{{ 'leave.table.endDate' | translate }}</th>
+              <th>{{ 'leave.table.duration' | translate }}</th>
+              <th>{{ 'leave.table.workingDaysDeducted' | translate }}</th>
+              <th>{{ 'leave.table.reason' | translate }}</th>
+              <th>{{ 'leave.table.status' | translate }}</th>
+              <th>{{ 'leave.table.createdAt' | translate }}</th>
+              <th>{{ 'common.actions' | translate }}</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-request>
+            <tr>
+              <td>
+                <p-tag
+                  [value]="request.leaveType?.LeaveName || getLeaveTypeName(request.leaveTypeId) || 'Type non défini'"
+                  severity="info"></p-tag>
+              </td>
+              <td>{{ formatDisplayDate(request.startDate) }}</td>
+              <td>{{ formatDisplayDate(request.endDate) }}</td>
+              <td>
+                <span class="leave-requests-emphasis">{{ calculateDuration(request.startDate, request.endDate) }}
+                  jour(s)</span>
+              </td>
+              <td>{{ request.workingDaysDeducted || 0 }} jour(s)</td>
+              <td>
+                <span class="leave-requests-reason" [title]="request.reason || ('leave.noReasonSpecified' | translate)">
+                  {{ (request.reason && request.reason.trim()) ? (request.reason.length > 50 ? (request.reason |
+                  slice:0:50) + '...' : request.reason) : ('leave.noReasonSpecified' | translate) }}
+                </span>
+              </td>
+              <td>
+                <p-tag [value]="getStatusLabel(request.status)" [severity]="getStatusSeverity(request.status)"></p-tag>
+              </td>
+              <td>{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <div class="leave-requests-actions">
+                  <button pButton icon="pi pi-check" [pTooltip]="'leave.submit' | translate" tooltipPosition="top"
+                    (click)="submitRequest(request)" severity="success" [text]="true" [rounded]="true"
+                    *ngIf="canSubmit(request)"></button>
+                  <button pButton icon="pi pi-pencil" [pTooltip]="'common.edit' | translate" tooltipPosition="top"
+                    (click)="editRequest(request)" severity="info" [text]="true" [rounded]="true"
+                    *ngIf="canEdit(request)"></button>
+                  <button pButton icon="pi pi-ban" [pTooltip]="'leave.cancel' | translate" tooltipPosition="top"
+                    (click)="cancelRequest(request)" severity="warn" [text]="true" [rounded]="true"
+                    *ngIf="canCancel(request)"></button>
+                  <button pButton icon="pi pi-trash" [pTooltip]="'common.delete' | translate" tooltipPosition="top"
+                    (click)="deleteRequest(request)" severity="danger" [text]="true" [rounded]="true"
+                    *ngIf="canDelete(request)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="9" class="leave-requests-empty">
+                <div class="leave-requests-empty__content">
+                  <i class="pi pi-inbox leave-requests-empty__icon" aria-hidden="true"></i>
+                  <p class="leave-requests-empty__title">{{ 'leave.noData' | translate }}</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </section>
+  </div>
+
+  <p-dialog [(visible)]="showCreateDialog" [modal]="true" [closable]="false" [draggable]="false" [resizable]="false"
+    [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }" styleClass="leave-request-dialog"
     (onHide)="hideCreateForm()">
-    
-    <form [formGroup]="createForm" (ngSubmit)="createLeaveRequest()">
-      <div class="form-grid">
-        
-        <!-- Leave Type Selection -->
-        <div class="field">
-          <label for="createLeaveType" class="required">Type de Congé</label>
-          <p-select 
-            id="createLeaveType"
-            formControlName="leaveTypeId"
-            [options]="availableLeaveTypes()"
-            optionLabel="LeaveName"
-            optionValue="Id"
-            placeholder="Sélectionner un type de congé"
-            [style]="{ width: '100%' }"
-            [class]="{'ng-invalid ng-dirty': createForm.get('leaveTypeId')?.invalid && createForm.get('leaveTypeId')?.touched}">
-          </p-select>
-          <small 
-            *ngIf="createForm.get('leaveTypeId')?.invalid && createForm.get('leaveTypeId')?.touched" 
-            class="p-error">
-            Le type de congé est obligatoire
-          </small>
+    <ng-template pTemplate="header">
+      <div class="leave-request-dialog__header">
+        <h2 class="leave-request-dialog__title">{{ 'leave.requests.form.createTitle' | translate }}</h2>
+        <button type="button" class="leave-request-dialog__close" (click)="hideCreateForm()"
+          [attr.aria-label]="'common.close' | translate">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    </ng-template>
+
+    <form class="leave-request-form" [formGroup]="createForm" (ngSubmit)="createLeaveRequest()">
+      <div class="leave-request-dialog__body">
+        <div class="leave-request-form__grid">
+          <div class="leave-request-field">
+            <label for="createLeaveType" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.leaveType' | translate }}</label>
+            <p-select id="createLeaveType" formControlName="leaveTypeId" [options]="availableLeaveTypes()"
+              optionLabel="LeaveName" optionValue="Id" [placeholder]="'leave.requests.form.selectLeaveType' | translate"
+              styleClass="leave-request-control"
+              [class]="{'ng-invalid ng-dirty': createForm.get('leaveTypeId')?.invalid && createForm.get('leaveTypeId')?.touched}">
+            </p-select>
+            <small *ngIf="createForm.get('leaveTypeId')?.invalid && createForm.get('leaveTypeId')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.leaveTypeRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="leave-request-field">
+            <label for="createStartDate" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.startDate' | translate }}</label>
+            <p-datepicker id="createStartDate" formControlName="startDate"
+              [placeholder]="'leave.requests.form.selectDate' | translate" [showIcon]="true" dateFormat="dd/mm/yy"
+              styleClass="leave-request-control"
+              [class]="{'ng-invalid ng-dirty': createForm.get('startDate')?.invalid && createForm.get('startDate')?.touched}">
+            </p-datepicker>
+            <small *ngIf="createForm.get('startDate')?.invalid && createForm.get('startDate')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.startDateRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="leave-request-field">
+            <label for="createEndDate" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.endDate' | translate }}</label>
+            <p-datepicker id="createEndDate" formControlName="endDate"
+              [placeholder]="'leave.requests.form.selectDate' | translate" [showIcon]="true" dateFormat="dd/mm/yy"
+              styleClass="leave-request-control"
+              [class]="{'ng-invalid ng-dirty': createForm.get('endDate')?.invalid && createForm.get('endDate')?.touched}">
+            </p-datepicker>
+            <small *ngIf="createForm.get('endDate')?.invalid && createForm.get('endDate')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.endDateRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="leave-request-field leave-request-field--full">
+            <label for="createReason" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.reason' | translate }}</label>
+            <textarea id="createReason" pTextarea formControlName="reason" rows="5"
+              [placeholder]="'leave.requests.form.reasonPlaceholder' | translate" class="leave-request-textarea"
+              [class]="{'ng-invalid ng-dirty': createForm.get('reason')?.invalid && createForm.get('reason')?.touched}">
+            </textarea>
+            <small *ngIf="createForm.get('reason')?.invalid && createForm.get('reason')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.reasonRequired' | translate }}
+            </small>
+          </div>
         </div>
-
-      <!-- Date Range -->
-      <div class="form-field">
-        <label for="createStartDate" class="form-label required">
-          {{ 'leave.form.startDate' | translate }}
-        </label>
-        <p-datepicker 
-          id="createStartDate"
-          formControlName="startDate"
-          [placeholder]="'leave.form.selectDate' | translate"
-          [showIcon]="true"
-          dateFormat="dd/mm/yy"
-          styleClass="w-full">
-        </p-datepicker>
-        <small 
-          *ngIf="createForm.get('startDate')?.invalid && createForm.get('startDate')?.touched" 
-          class="p-error">
-          {{ 'leave.form.startDateRequired' | translate }}
-        </small>
       </div>
 
-      <div class="form-field">
-        <label for="createEndDate" class="form-label required">
-          {{ 'leave.form.endDate' | translate }}
-        </label>
-        <p-datepicker 
-          id="createEndDate"
-          formControlName="endDate"
-          [placeholder]="'leave.form.selectDate' | translate"
-          [showIcon]="true"
-          dateFormat="dd/mm/yy"
-          styleClass="w-full">
-        </p-datepicker>
-        <small 
-          *ngIf="createForm.get('endDate')?.invalid && createForm.get('endDate')?.touched" 
-          class="p-error">
-          {{ 'leave.form.endDateRequired' | translate }}
-        </small>
-      </div>
-
-        <!-- Reason -->
-        <div class="field">
-          <label for="createReason" class="required">Motif</label>
-          <textarea 
-            id="createReason"
-            pTextarea 
-            formControlName="reason"
-            rows="4"
-            placeholder="Indiquez le motif de votre demande de congé..."
-            [style]="{ width: '100%' }"
-            [class]="{'ng-invalid ng-dirty': createForm.get('reason')?.invalid && createForm.get('reason')?.touched}">
-          </textarea>
-          <small 
-            *ngIf="createForm.get('reason')?.invalid && createForm.get('reason')?.touched" 
-            class="p-error">
-            Le motif est obligatoire
-          </small>
-        </div>
-
-      </div>
-      
-      <div class="dialog-footer">
-        <p-button 
-          label="Annuler" 
-          icon="pi pi-times" 
-          [outlined]="true"
+      <div class="leave-request-dialog__footer">
+        <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--secondary"
           (click)="hideCreateForm()">
-        </p-button>
-        <p-button 
-          label="Créer" 
-          icon="pi pi-check" 
-          type="submit"
+          <i class="pi pi-times" aria-hidden="true"></i>
+          {{ 'leave.requests.form.cancel' | translate }}
+        </button>
+        <button type="submit" class="leave-request-dialog__btn leave-request-dialog__btn--primary"
           [disabled]="createForm.invalid">
-        </p-button>
+          {{ 'leave.requests.form.create' | translate }}
+          <i class="pi pi-check" aria-hidden="true"></i>
+        </button>
       </div>
     </form>
   </p-dialog>
 
-  <!-- Edit Request Dialog -->
-  <p-dialog 
-    [(visible)]="showEditDialog" 
-    [modal]="true" 
-    header="Modifier la Demande de Congé" 
-    [style]="{ width: '50rem' }"
+  <p-dialog [(visible)]="showEditDialog" [modal]="true" [closable]="false" [draggable]="false" [resizable]="false"
+    [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }" styleClass="leave-request-dialog"
     (onHide)="hideEditForm()">
-    
-    <form [formGroup]="editForm" (ngSubmit)="updateLeaveRequest()">
-      <div class="form-grid">
-        
-        <!-- Leave Type Selection -->
-        <div class="field">
-          <label for="editLeaveType" class="required">Type de Congé</label>
-          <p-select 
-            id="editLeaveType"
-            formControlName="leaveTypeId"
-            [options]="availableLeaveTypes()"
-            optionLabel="LeaveName"
-            optionValue="Id"
-            placeholder="Sélectionner un type de congé"
-            [style]="{ width: '100%' }"
-            [class]="{'ng-invalid ng-dirty': editForm.get('leaveTypeId')?.invalid && editForm.get('leaveTypeId')?.touched}">
-          </p-select>
-          <small 
-            *ngIf="editForm.get('leaveTypeId')?.invalid && editForm.get('leaveTypeId')?.touched" 
-            class="p-error">
-            Le type de congé est obligatoire
-          </small>
-        </div>
+    <ng-template pTemplate="header">
+      <div class="leave-request-dialog__header">
+        <h2 class="leave-request-dialog__title">{{ 'leave.requests.form.editTitle' | translate }}</h2>
+        <button type="button" class="leave-request-dialog__close" (click)="hideEditForm()"
+          [attr.aria-label]="'common.close' | translate">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    </ng-template>
 
-        <!-- Date Range -->
-        <div class="field-group">
-          <div class="field">
-            <label for="editStartDate" class="required">Date de Début</label>
-            <p-datepicker 
-              id="editStartDate"
-              formControlName="startDate"
-              [style]="{ width: '100%' }"
-              placeholder="Sélectionner une date"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
+    <form class="leave-request-form" [formGroup]="editForm" (ngSubmit)="updateLeaveRequest()">
+      <div class="leave-request-dialog__body">
+        <div class="leave-request-form__grid">
+          <div class="leave-request-field">
+            <label for="editLeaveType" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.leaveType' | translate }}</label>
+            <p-select id="editLeaveType" formControlName="leaveTypeId" [options]="availableLeaveTypes()"
+              optionLabel="LeaveName" optionValue="Id" [placeholder]="'leave.requests.form.selectLeaveType' | translate"
+              styleClass="leave-request-control"
+              [class]="{'ng-invalid ng-dirty': editForm.get('leaveTypeId')?.invalid && editForm.get('leaveTypeId')?.touched}">
+            </p-select>
+            <small *ngIf="editForm.get('leaveTypeId')?.invalid && editForm.get('leaveTypeId')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.leaveTypeRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="leave-request-field">
+            <label for="editStartDate" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.startDate' | translate }}</label>
+            <p-datepicker id="editStartDate" formControlName="startDate"
+              [placeholder]="'leave.requests.form.selectDate' | translate" [showIcon]="true" dateFormat="dd/mm/yy"
+              styleClass="leave-request-control"
               [class]="{'ng-invalid ng-dirty': editForm.get('startDate')?.invalid && editForm.get('startDate')?.touched}">
             </p-datepicker>
-            <small 
-              *ngIf="editForm.get('startDate')?.invalid && editForm.get('startDate')?.touched" 
-              class="p-error">
-              La date de début est obligatoire
+            <small *ngIf="editForm.get('startDate')?.invalid && editForm.get('startDate')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.startDateRequired' | translate }}
             </small>
           </div>
 
-          <div class="field">
-            <label for="editEndDate" class="required">Date de Fin</label>
-            <p-datepicker 
-              id="editEndDate"
-              formControlName="endDate"
-              [style]="{ width: '100%' }"
-              placeholder="Sélectionner une date"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
+          <div class="leave-request-field">
+            <label for="editEndDate" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.endDate' | translate }}</label>
+            <p-datepicker id="editEndDate" formControlName="endDate"
+              [placeholder]="'leave.requests.form.selectDate' | translate" [showIcon]="true" dateFormat="dd/mm/yy"
+              styleClass="leave-request-control"
               [class]="{'ng-invalid ng-dirty': editForm.get('endDate')?.invalid && editForm.get('endDate')?.touched}">
             </p-datepicker>
-            <small 
-              *ngIf="editForm.get('endDate')?.invalid && editForm.get('endDate')?.touched" 
-              class="p-error">
-              La date de fin est obligatoire
+            <small *ngIf="editForm.get('endDate')?.invalid && editForm.get('endDate')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.endDateRequired' | translate }}
+            </small>
+          </div>
+
+          <div class="leave-request-field leave-request-field--full">
+            <label for="editReason" class="leave-request-label leave-request-label--required">{{
+              'leave.requests.form.reason' | translate }}</label>
+            <textarea id="editReason" pTextarea formControlName="reason" rows="5"
+              [placeholder]="'leave.requests.form.reasonPlaceholder' | translate" class="leave-request-textarea"
+              [class]="{'ng-invalid ng-dirty': editForm.get('reason')?.invalid && editForm.get('reason')?.touched}">
+            </textarea>
+            <small *ngIf="editForm.get('reason')?.invalid && editForm.get('reason')?.touched"
+              class="p-error leave-request-dialog__error">
+              {{ 'leave.requests.form.validation.reasonRequired' | translate }}
             </small>
           </div>
         </div>
-
-        <!-- Reason -->
-        <div class="field">
-          <label for="editReason" class="required">Motif</label>
-          <textarea 
-            id="editReason"
-            pTextarea 
-            formControlName="reason"
-            rows="4"
-            placeholder="Indiquez le motif de votre demande de congé..."
-            [style]="{ width: '100%' }"
-            [class]="{'ng-invalid ng-dirty': editForm.get('reason')?.invalid && editForm.get('reason')?.touched}">
-          </textarea>
-          <small 
-            *ngIf="editForm.get('reason')?.invalid && editForm.get('reason')?.touched" 
-            class="p-error">
-            Le motif est obligatoire
-          </small>
-        </div>
-
       </div>
-      
-      <div class="dialog-footer">
-        <p-button 
-          label="Annuler" 
-          icon="pi pi-times" 
-          [outlined]="true"
+
+      <div class="leave-request-dialog__footer">
+        <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--secondary"
           (click)="hideEditForm()">
-        </p-button>
-        <p-button 
-          label="Modifier" 
-          icon="pi pi-check" 
-          type="submit"
+          <i class="pi pi-times" aria-hidden="true"></i>
+          {{ 'leave.requests.form.cancel' | translate }}
+        </button>
+        <button type="submit" class="leave-request-dialog__btn leave-request-dialog__btn--primary"
           [disabled]="editForm.invalid">
-        </p-button>
+          {{ 'leave.requests.form.update' | translate }}
+          <i class="pi pi-check" aria-hidden="true"></i>
+        </button>
       </div>
     </form>
   </p-dialog>
-</div>
+</section>

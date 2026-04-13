@@ -1,0 +1,132 @@
+/* Parité & diversité — design system PayZen HR (Figma) */
+
+:host {
+    display: block;
+}
+
+.parite-diversite-surface {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6, 24px);
+    width: 100%;
+    background: var(--bg-element, #fff);
+    border: 1px solid var(--border-subtle, #e5e7eb);
+    border-radius: var(--radius-xl, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+    padding: var(--space-5, 20px) var(--space-6, 24px) var(--space-6, 24px);
+}
+
+@media (min-width: 768px) {
+    .parite-diversite-surface {
+        padding: var(--space-6, 24px);
+    }
+}
+
+.parite-diversite-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+    padding-bottom: var(--space-4, 16px);
+    border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+}
+
+.parite-diversite-hero-eyebrow {
+    margin-bottom: 2px;
+}
+
+.parite-diversite-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+    min-width: 0;
+}
+
+.parite-diversite-heading-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3, 12px);
+}
+
+.parite-diversite-title {
+    margin: 0;
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    line-height: 1.15;
+    color: var(--text-primary, #1f2937);
+}
+
+.parite-diversite-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--primary-50, #ebf5ff);
+    border: 1px solid var(--primary-200, #aed6ff);
+    color: var(--primary-700, #0f4187);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.parite-diversite-subtitle {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--text-secondary, #6b7280);
+    max-width: 52rem;
+}
+
+.parite-diversite-kpi {
+    display: grid;
+    width: 100%;
+    box-sizing: border-box;
+    grid-template-columns: 1fr;
+    gap: var(--space-4, 16px);
+}
+
+@media (min-width: 768px) {
+    .parite-diversite-kpi {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.parite-diversite-kpi > app-kpi-card {
+    display: block;
+    min-width: 0;
+    width: 100%;
+}
+
+.parite-diversite-blocks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4, 16px);
+}
+
+@media (min-width: 1280px) {
+    .parite-diversite-blocks {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+.parite-diversite-block {
+    margin: 0;
+    min-width: 0;
+}
+
+.parite-diversite-block__title {
+    margin: 0 0 var(--space-4, 16px);
+    font-size: var(--font-size-lg, 18px);
+    font-weight: var(--font-weight-lg, 600);
+    line-height: 1.25;
+    color: var(--text-primary, #1f2937);
+}
+
+.parite-diversite-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4, 16px);
+}

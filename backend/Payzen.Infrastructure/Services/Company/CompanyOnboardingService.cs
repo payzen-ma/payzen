@@ -33,7 +33,8 @@ public class CompanyOnboardingService : ICompanyOnboardingService
     private async Task SeedWorkingCalendarAsync(int companyId, int userId, CancellationToken ct)
     {
         var exists = await _db.WorkingCalendars.AnyAsync(w => w.CompanyId == companyId, ct);
-        if (exists) return;
+        if (exists)
+            return;
 
         // Lundi (1) → Vendredi (5) = jours travaillés, Samedi (6) + Dimanche (0) = repos
         for (int day = 0; day <= 6; day++)
@@ -41,12 +42,12 @@ public class CompanyOnboardingService : ICompanyOnboardingService
             bool isWorkingDay = day >= 1 && day <= 5;
             _db.WorkingCalendars.Add(new WorkingCalendar
             {
-                CompanyId    = companyId,
-                DayOfWeek    = day,
+                CompanyId = companyId,
+                DayOfWeek = day,
                 IsWorkingDay = isWorkingDay,
-                StartTime    = isWorkingDay ? new TimeSpan(8, 30, 0) : null,
-                EndTime      = isWorkingDay ? new TimeSpan(17, 30, 0) : null,
-                CreatedBy    = userId
+                StartTime = isWorkingDay ? new TimeSpan(8, 30, 0) : null,
+                EndTime = isWorkingDay ? new TimeSpan(17, 30, 0) : null,
+                CreatedBy = userId
             });
         }
     }
@@ -54,7 +55,8 @@ public class CompanyOnboardingService : ICompanyOnboardingService
     private async Task SeedDefaultContractTypesAsync(int companyId, int userId, CancellationToken ct)
     {
         var exists = await _db.ContractTypes.AnyAsync(c => c.CompanyId == companyId, ct);
-        if (exists) return;
+        if (exists)
+            return;
 
         var defaults = new[]
         {
@@ -69,15 +71,16 @@ public class CompanyOnboardingService : ICompanyOnboardingService
             _db.ContractTypes.Add(new ContractType
             {
                 ContractTypeName = name,
-                CompanyId        = companyId,
-                CreatedBy        = userId
+                CompanyId = companyId,
+                CreatedBy = userId
             });
         }
     }
 
     private async Task SeedDepartmentsAsync(int companyId, int userId, CancellationToken ct)
     {
-        if (await _db.Departements.AnyAsync(d => d.CompanyId == companyId, ct)) return;
+        if (await _db.Departements.AnyAsync(d => d.CompanyId == companyId, ct))
+            return;
 
         var defaults = new[]
         {
@@ -93,16 +96,17 @@ public class CompanyOnboardingService : ICompanyOnboardingService
         {
             _db.Departements.Add(new Departement
             {
-                CompanyId       = companyId,
+                CompanyId = companyId,
                 DepartementName = name,
-                CreatedBy       = userId
+                CreatedBy = userId
             });
         }
     }
 
     private async Task SeedJobPositionsAsync(int companyId, int userId, CancellationToken ct)
     {
-        if (await _db.JobPositions.AnyAsync(j => j.CompanyId == companyId, ct)) return;
+        if (await _db.JobPositions.AnyAsync(j => j.CompanyId == companyId, ct))
+            return;
 
         var defaults = new[]
         {
@@ -119,7 +123,7 @@ public class CompanyOnboardingService : ICompanyOnboardingService
             _db.JobPositions.Add(new JobPosition
             {
                 CompanyId = companyId,
-                Name      = name,
+                Name = name,
                 CreatedBy = userId
             });
         }
@@ -127,20 +131,21 @@ public class CompanyOnboardingService : ICompanyOnboardingService
 
     private async Task SeedEmployeeCategoriesAsync(int companyId, int userId, CancellationToken ct)
     {
-        if (await _db.EmployeeCategories.AnyAsync(c => c.CompanyId == companyId, ct)) return;
+        if (await _db.EmployeeCategories.AnyAsync(c => c.CompanyId == companyId, ct))
+            return;
 
         _db.EmployeeCategories.Add(new EmployeeCategory
         {
             CompanyId = companyId,
-            Name      = "Cadre",
-            Mode      = EmployeeCategoryMode.Attendance,
+            Name = "Cadre",
+            Mode = EmployeeCategoryMode.Attendance,
             CreatedBy = userId
         });
         _db.EmployeeCategories.Add(new EmployeeCategory
         {
             CompanyId = companyId,
-            Name      = "Ouvrier",
-            Mode      = EmployeeCategoryMode.Attendance,
+            Name = "Ouvrier",
+            Mode = EmployeeCategoryMode.Attendance,
             CreatedBy = userId
         });
     }

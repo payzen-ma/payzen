@@ -19,7 +19,11 @@ public class EmployeeContractService : IEmployeeContractService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
-    public EmployeeContractService(AppDbContext db, IEmployeeEventLogService eventLog) { _db = db; _eventLog = eventLog; }
+    public EmployeeContractService(AppDbContext db, IEmployeeEventLogService eventLog)
+    {
+        _db = db;
+        _eventLog = eventLog;
+    }
 
     public async Task<ServiceResult<IEnumerable<EmployeeContractReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
@@ -67,7 +71,8 @@ public class EmployeeContractService : IEmployeeContractService
             .Include(x => x.JobPosition)
             .Include(x => x.ContractType)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (c == null) return ServiceResult<EmployeeContractReadDto>.Fail("Contrat introuvable.");
+        if (c == null)
+            return ServiceResult<EmployeeContractReadDto>.Fail("Contrat introuvable.");
 
         var pendingContractLogs = new List<Func<Task>>();
 
@@ -85,7 +90,8 @@ public class EmployeeContractService : IEmployeeContractService
             pendingContractLogs.Add(() => _eventLog.LogSimpleEventAsync(c.EmployeeId, EmployeeEventLogNames.ContractTypeChanged, oldType, newType, updatedBy, ct));
             c.ContractTypeId = dto.ContractTypeId.Value;
         }
-        if (dto.StartDate.HasValue) c.StartDate = dto.StartDate.Value;
+        if (dto.StartDate.HasValue)
+            c.StartDate = dto.StartDate.Value;
         if (dto.EndDate != null)
         {
             if (dto.EndDate.HasValue)
@@ -110,9 +116,12 @@ public class EmployeeContractService : IEmployeeContractService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeContracts.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult.Fail("Contrat introuvable.");
-        c.DeletedAt = DateTimeOffset.UtcNow; c.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (c == null)
+            return ServiceResult.Fail("Contrat introuvable.");
+        c.DeletedAt = DateTimeOffset.UtcNow;
+        c.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     private static EmployeeContractReadDto MapContract(EmployeeContract c) => new()
@@ -140,7 +149,11 @@ public class EmployeeSalaryService : IEmployeeSalaryService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
-    public EmployeeSalaryService(AppDbContext db, IEmployeeEventLogService eventLog) { _db = db; _eventLog = eventLog; }
+    public EmployeeSalaryService(AppDbContext db, IEmployeeEventLogService eventLog)
+    {
+        _db = db;
+        _eventLog = eventLog;
+    }
 
     public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetAllSalariesAsync(CancellationToken ct = default)
     {
@@ -220,7 +233,8 @@ public class EmployeeSalaryService : IEmployeeSalaryService
     public async Task<ServiceResult<EmployeeSalaryReadDto>> UpdateAsync(int id, EmployeeSalaryUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSalaries.FindAsync(new object[] { id }, ct);
-        if (s == null || s.DeletedAt != null) return ServiceResult<EmployeeSalaryReadDto>.Fail("Salaire introuvable.");
+        if (s == null || s.DeletedAt != null)
+            return ServiceResult<EmployeeSalaryReadDto>.Fail("Salaire introuvable.");
 
         var nextEffectiveDate = dto.EffectiveDate ?? s.EffectiveDate;
         if (dto.EndDate.HasValue && dto.EndDate.Value < nextEffectiveDate)
@@ -232,9 +246,12 @@ public class EmployeeSalaryService : IEmployeeSalaryService
                 s.BaseSalary?.ToString("F2"), dto.BaseSalary.Value.ToString("F2"), updatedBy, ct);
             s.BaseSalary = dto.BaseSalary;
         }
-        if (dto.BaseSalaryHourly != null) s.BaseSalaryHourly = dto.BaseSalaryHourly;
-        if (dto.EffectiveDate != null) s.EffectiveDate = dto.EffectiveDate.Value;
-        if (dto.EndDate != null) s.EndDate = dto.EndDate;
+        if (dto.BaseSalaryHourly != null)
+            s.BaseSalaryHourly = dto.BaseSalaryHourly;
+        if (dto.EffectiveDate != null)
+            s.EffectiveDate = dto.EffectiveDate.Value;
+        if (dto.EndDate != null)
+            s.EndDate = dto.EndDate;
         s.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         var updated = await _db.EmployeeSalaries.Include(x => x.Employee).FirstAsync(x => x.Id == id, ct);
@@ -244,15 +261,18 @@ public class EmployeeSalaryService : IEmployeeSalaryService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSalaries.FindAsync(new object[] { id }, ct);
-        if (s == null || s.DeletedAt != null) return ServiceResult.Fail("Salaire introuvable.");
+        if (s == null || s.DeletedAt != null)
+            return ServiceResult.Fail("Salaire introuvable.");
 
         var hasComponents = await _db.EmployeeSalaryComponents
             .AnyAsync(c => c.EmployeeSalaryId == id && c.DeletedAt == null, ct);
         if (hasComponents)
             return ServiceResult.Fail("Impossible de supprimer ce salaire car il contient des composants.");
 
-        s.DeletedAt = DateTimeOffset.UtcNow; s.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        s.DeletedAt = DateTimeOffset.UtcNow;
+        s.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetAllSalaryComponentsAsync(CancellationToken ct = default)
@@ -283,7 +303,8 @@ public class EmployeeSalaryService : IEmployeeSalaryService
     public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetComponentsByEmployeeAsync(int employeeId, CancellationToken ct = default)
     {
         var salaryId = await _db.EmployeeSalaries.Where(s => s.EmployeeId == employeeId && s.DeletedAt == null).OrderByDescending(s => s.EffectiveDate).Select(s => (int?)s.Id).FirstOrDefaultAsync(ct);
-        if (!salaryId.HasValue) return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(Array.Empty<EmployeeSalaryComponentReadDto>());
+        if (!salaryId.HasValue)
+            return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(Array.Empty<EmployeeSalaryComponentReadDto>());
         return await GetComponentsAsync(salaryId.Value, ct);
     }
 
@@ -298,40 +319,51 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("La date de fin doit être après la date d'effet.");
 
         var c = new EmployeeSalaryComponent { EmployeeSalaryId = dto.EmployeeSalaryId, ComponentType = dto.ComponentType, IsTaxable = dto.IsTaxable, IsSocial = true, IsCIMR = false, Amount = dto.Amount, EffectiveDate = dto.EffectiveDate, EndDate = dto.EndDate, CreatedBy = createdBy };
-        _db.EmployeeSalaryComponents.Add(c); await _db.SaveChangesAsync(ct);
+        _db.EmployeeSalaryComponents.Add(c);
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
     }
 
     public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> UpdateComponentAsync(int id, EmployeeSalaryComponentUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeSalaryComponents.FindAsync(new object[] { id }, ct);
-        if (c == null || c.DeletedAt != null) return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Composante introuvable.");
-        if (dto.ComponentType != null) c.ComponentType = dto.ComponentType;
-        if (dto.Amount != null) c.Amount = dto.Amount.Value;
-        if (dto.IsTaxable.HasValue) c.IsTaxable = dto.IsTaxable.Value;
-        if (dto.EffectiveDate.HasValue) c.EffectiveDate = dto.EffectiveDate.Value;
+        if (c == null || c.DeletedAt != null)
+            return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Composante introuvable.");
+        if (dto.ComponentType != null)
+            c.ComponentType = dto.ComponentType;
+        if (dto.Amount != null)
+            c.Amount = dto.Amount.Value;
+        if (dto.IsTaxable.HasValue)
+            c.IsTaxable = dto.IsTaxable.Value;
+        if (dto.EffectiveDate.HasValue)
+            c.EffectiveDate = dto.EffectiveDate.Value;
         if (dto.EndDate.HasValue)
         {
             if (dto.EndDate.Value < c.EffectiveDate)
                 return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("La date de fin doit être après la date d'effet.");
             c.EndDate = dto.EndDate;
         }
-        c.UpdatedBy = updatedBy; await _db.SaveChangesAsync(ct);
+        c.UpdatedBy = updatedBy;
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
     }
 
     public async Task<ServiceResult> DeleteComponentAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeSalaryComponents.FindAsync(new object[] { id }, ct);
-        if (c == null || c.DeletedAt != null) return ServiceResult.Fail("Composante introuvable.");
-        c.DeletedAt = DateTimeOffset.UtcNow; c.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (c == null || c.DeletedAt != null)
+            return ServiceResult.Fail("Composante introuvable.");
+        c.DeletedAt = DateTimeOffset.UtcNow;
+        c.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult<object>> ReviseSalaryComponentAsync(int id, EmployeeSalaryComponentUpdateDto dto, int userId, CancellationToken ct = default)
     {
         var old = await _db.EmployeeSalaryComponents.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (old == null) return ServiceResult<object>.Fail("Composante introuvable.");
+        if (old == null)
+            return ServiceResult<object>.Fail("Composante introuvable.");
         var newEff = dto.EffectiveDate ?? DateTime.UtcNow;
         if (newEff <= old.EffectiveDate)
             return ServiceResult<object>.Fail("La nouvelle date effective doit être supérieure à l'ancienne.");
@@ -355,8 +387,18 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         return ServiceResult<object>.Ok(new
         {
             Message = "Composant révisé avec succès",
-            OldVersion = new { old.Id, old.EndDate },
-            NewVersion = new { neu.Id, neu.Amount, neu.EffectiveDate, neu.EndDate }
+            OldVersion = new
+            {
+                old.Id,
+                old.EndDate
+            },
+            NewVersion = new
+            {
+                neu.Id,
+                neu.Amount,
+                neu.EffectiveDate,
+                neu.EndDate
+            }
         });
     }
 
@@ -394,7 +436,11 @@ public class EmployeeDocumentService : IEmployeeDocumentService
 {
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
-    public EmployeeDocumentService(AppDbContext db, IWebHostEnvironment env) { _db = db; _env = env; }
+    public EmployeeDocumentService(AppDbContext db, IWebHostEnvironment env)
+    {
+        _db = db;
+        _env = env;
+    }
 
     public async Task<ServiceResult<IEnumerable<EmployeeDocumentReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
@@ -436,7 +482,8 @@ public class EmployeeDocumentService : IEmployeeDocumentService
             return ServiceResult<EmployeeDocumentReadDto>.Fail("Employé introuvable.");
 
         var d = new EmployeeDocument { EmployeeId = dto.EmployeeId, Name = dto.Name, FilePath = dto.FilePath, DocumentType = dto.DocumentType, ExpirationDate = dto.ExpirationDate, CreatedBy = createdBy };
-        _db.EmployeeDocuments.Add(d); await _db.SaveChangesAsync(ct);
+        _db.EmployeeDocuments.Add(d);
+        await _db.SaveChangesAsync(ct);
         var created = await _db.EmployeeDocuments
             .Include(x => x.Employee)
             .FirstAsync(x => x.Id == d.Id, ct);
@@ -446,11 +493,16 @@ public class EmployeeDocumentService : IEmployeeDocumentService
     public async Task<ServiceResult<EmployeeDocumentReadDto>> UpdateAsync(int id, EmployeeDocumentUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var d = await _db.EmployeeDocuments.FindAsync(new object[] { id }, ct);
-        if (d == null || d.DeletedAt != null) return ServiceResult<EmployeeDocumentReadDto>.Fail("Document introuvable.");
-        if (dto.Name != null) d.Name = dto.Name;
-        if (dto.FilePath != null) d.FilePath = dto.FilePath;
-        if (dto.ExpirationDate.HasValue) d.ExpirationDate = dto.ExpirationDate;
-        if (dto.DocumentType != null) d.DocumentType = dto.DocumentType;
+        if (d == null || d.DeletedAt != null)
+            return ServiceResult<EmployeeDocumentReadDto>.Fail("Document introuvable.");
+        if (dto.Name != null)
+            d.Name = dto.Name;
+        if (dto.FilePath != null)
+            d.FilePath = dto.FilePath;
+        if (dto.ExpirationDate.HasValue)
+            d.ExpirationDate = dto.ExpirationDate;
+        if (dto.DocumentType != null)
+            d.DocumentType = dto.DocumentType;
         d.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         var updated = await _db.EmployeeDocuments.Include(x => x.Employee).FirstAsync(x => x.Id == id, ct);
@@ -460,9 +512,12 @@ public class EmployeeDocumentService : IEmployeeDocumentService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var d = await _db.EmployeeDocuments.FindAsync(new object[] { id }, ct);
-        if (d == null || d.DeletedAt != null) return ServiceResult.Fail("Document introuvable.");
-        d.DeletedAt = DateTimeOffset.UtcNow; d.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (d == null || d.DeletedAt != null)
+            return ServiceResult.Fail("Document introuvable.");
+        d.DeletedAt = DateTimeOffset.UtcNow;
+        d.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     private static EmployeeDocumentReadDto Map(EmployeeDocument d) => new()
@@ -486,7 +541,11 @@ public class EmployeeAddressService : IEmployeeAddressService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
-    public EmployeeAddressService(AppDbContext db, IEmployeeEventLogService eventLog) { _db = db; _eventLog = eventLog; }
+    public EmployeeAddressService(AppDbContext db, IEmployeeEventLogService eventLog)
+    {
+        _db = db;
+        _eventLog = eventLog;
+    }
 
     public async Task<ServiceResult<IEnumerable<EmployeeAddressReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
@@ -541,7 +600,8 @@ public class EmployeeAddressService : IEmployeeAddressService
             return ServiceResult<EmployeeAddressReadDto>.Fail("La ville ne correspond pas au pays spécifié.");
 
         var a = new EmployeeAddress { EmployeeId = dto.EmployeeId, AddressLine1 = dto.AddressLine1, AddressLine2 = dto.AddressLine2, ZipCode = dto.ZipCode, CityId = dto.CityId, CreatedBy = createdBy };
-        _db.EmployeeAddresses.Add(a); await _db.SaveChangesAsync(ct);
+        _db.EmployeeAddresses.Add(a);
+        await _db.SaveChangesAsync(ct);
         var created = await _db.EmployeeAddresses
             .Include(x => x.Employee)
             .Include(x => x.City).ThenInclude(c => c!.Country)
@@ -556,24 +616,30 @@ public class EmployeeAddressService : IEmployeeAddressService
         var a = await _db.EmployeeAddresses
             .Include(x => x.City).ThenInclude(c => c!.Country)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (a == null || a.DeletedAt != null) return ServiceResult<EmployeeAddressReadDto>.Fail("Adresse introuvable.");
+        if (a == null || a.DeletedAt != null)
+            return ServiceResult<EmployeeAddressReadDto>.Fail("Adresse introuvable.");
 
         var oldAddrStr = $"{a.AddressLine1}, {a.City?.CityName}";
 
-        if (dto.AddressLine1 != null) a.AddressLine1 = dto.AddressLine1;
-        if (dto.AddressLine2 != null) a.AddressLine2 = dto.AddressLine2;
-        if (dto.ZipCode      != null) a.ZipCode      = dto.ZipCode;
+        if (dto.AddressLine1 != null)
+            a.AddressLine1 = dto.AddressLine1;
+        if (dto.AddressLine2 != null)
+            a.AddressLine2 = dto.AddressLine2;
+        if (dto.ZipCode != null)
+            a.ZipCode = dto.ZipCode;
         if (dto.CityId != null)
         {
             var cityExists = await _db.Cities.AnyAsync(c => c.Id == dto.CityId.Value && c.DeletedAt == null, ct);
-            if (!cityExists) return ServiceResult<EmployeeAddressReadDto>.Fail("Ville introuvable.");
+            if (!cityExists)
+                return ServiceResult<EmployeeAddressReadDto>.Fail("Ville introuvable.");
             a.CityId = dto.CityId.Value;
         }
 
         if (dto.CountryId.HasValue)
         {
             var countryExists = await _db.Countries.AnyAsync(c => c.Id == dto.CountryId.Value && c.DeletedAt == null, ct);
-            if (!countryExists) return ServiceResult<EmployeeAddressReadDto>.Fail("Pays introuvable.");
+            if (!countryExists)
+                return ServiceResult<EmployeeAddressReadDto>.Fail("Pays introuvable.");
 
             var currentCityId = dto.CityId ?? a.CityId;
             var city = await _db.Cities.AsNoTracking().FirstOrDefaultAsync(c => c.Id == currentCityId && c.DeletedAt == null, ct);
@@ -595,9 +661,12 @@ public class EmployeeAddressService : IEmployeeAddressService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAddresses.FindAsync(new object[] { id }, ct);
-        if (a == null || a.DeletedAt != null) return ServiceResult.Fail("Adresse introuvable.");
-        a.DeletedAt = DateTimeOffset.UtcNow; a.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (a == null || a.DeletedAt != null)
+            return ServiceResult.Fail("Adresse introuvable.");
+        a.DeletedAt = DateTimeOffset.UtcNow;
+        a.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     private static EmployeeAddressReadDto Map(EmployeeAddress a) => new()
@@ -640,26 +709,32 @@ public class EmployeeFamilyService : IEmployeeFamilyService
     public async Task<ServiceResult<EmployeeChildReadDto>> CreateChildAsync(EmployeeChildCreateDto dto, int createdBy, CancellationToken ct = default)
     {
         var c = new EmployeeChild { EmployeeId = dto.EmployeeId, FirstName = dto.FirstName, LastName = dto.LastName, DateOfBirth = dto.DateOfBirth, GenderId = dto.GenderId, IsDependent = dto.IsDependent, IsStudent = dto.IsStudent, CreatedBy = createdBy };
-        _db.EmployeeChildren.Add(c); await _db.SaveChangesAsync(ct);
+        _db.EmployeeChildren.Add(c);
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeChildReadDto>.Ok(MapChild(c));
     }
 
     public async Task<ServiceResult<EmployeeChildReadDto>> UpdateChildAsync(int id, EmployeeChildUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeChildren.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult<EmployeeChildReadDto>.Fail("Enfant introuvable.");
+        if (c == null)
+            return ServiceResult<EmployeeChildReadDto>.Fail("Enfant introuvable.");
         c.IsDependent = dto.IsDependent;
-        c.IsStudent   = dto.IsStudent;
-        c.UpdatedBy = updatedBy; await _db.SaveChangesAsync(ct);
+        c.IsStudent = dto.IsStudent;
+        c.UpdatedBy = updatedBy;
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeChildReadDto>.Ok(MapChild(c));
     }
 
     public async Task<ServiceResult> DeleteChildAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeChildren.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult.Fail("Enfant introuvable.");
-        c.DeletedAt = DateTimeOffset.UtcNow; c.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (c == null)
+            return ServiceResult.Fail("Enfant introuvable.");
+        c.DeletedAt = DateTimeOffset.UtcNow;
+        c.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult<IEnumerable<EmployeeSpouseReadDto>>> GetSpousesAsync(int employeeId, CancellationToken ct = default)
@@ -671,42 +746,53 @@ public class EmployeeFamilyService : IEmployeeFamilyService
     public async Task<ServiceResult<EmployeeSpouseReadDto>> CreateSpouseAsync(EmployeeSpouseCreateDto dto, int createdBy, CancellationToken ct = default)
     {
         var s = new EmployeeSpouse { EmployeeId = dto.EmployeeId, FirstName = dto.FirstName, LastName = dto.LastName, DateOfBirth = dto.DateOfBirth, GenderId = dto.GenderId, CinNumber = dto.CinNumber, IsDependent = dto.IsDependent, CreatedBy = createdBy };
-        _db.EmployeeSpouses.Add(s); await _db.SaveChangesAsync(ct);
+        _db.EmployeeSpouses.Add(s);
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSpouseReadDto>.Ok(MapSpouse(s));
     }
 
     public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseAsync(int id, EmployeeSpouseUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSpouses.FindAsync(new object[] { id }, ct);
-        if (s == null || s.DeletedAt != null) return ServiceResult<EmployeeSpouseReadDto>.Fail("Conjoint introuvable.");
+        if (s == null || s.DeletedAt != null)
+            return ServiceResult<EmployeeSpouseReadDto>.Fail("Conjoint introuvable.");
         ApplySpouseUpdate(s, dto);
-        s.UpdatedBy = updatedBy; await _db.SaveChangesAsync(ct);
+        s.UpdatedBy = updatedBy;
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSpouseReadDto>.Ok(MapSpouse(s));
     }
 
     public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseByEmployeeAsync(int employeeId, EmployeeSpouseUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(x => x.EmployeeId == employeeId && x.DeletedAt == null, ct);
-        if (s == null) return ServiceResult<EmployeeSpouseReadDto>.Fail("Aucun conjoint trouvé.");
+        if (s == null)
+            return ServiceResult<EmployeeSpouseReadDto>.Fail("Aucun conjoint trouvé.");
         ApplySpouseUpdate(s, dto);
-        s.UpdatedBy = updatedBy; await _db.SaveChangesAsync(ct);
+        s.UpdatedBy = updatedBy;
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSpouseReadDto>.Ok(MapSpouse(s));
     }
 
     public async Task<ServiceResult> DeleteSpouseAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSpouses.FindAsync(new object[] { id }, ct);
-        if (s == null) return ServiceResult.Fail("Conjoint introuvable.");
-        s.DeletedAt = DateTimeOffset.UtcNow; s.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (s == null)
+            return ServiceResult.Fail("Conjoint introuvable.");
+        s.DeletedAt = DateTimeOffset.UtcNow;
+        s.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult> DeleteSpouseByEmployeeAsync(int employeeId, int deletedBy, CancellationToken ct = default)
     {
         var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(x => x.EmployeeId == employeeId && x.DeletedAt == null, ct);
-        if (s == null) return ServiceResult.Fail("Aucun conjoint trouvé.");
-        s.DeletedAt = DateTimeOffset.UtcNow; s.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (s == null)
+            return ServiceResult.Fail("Aucun conjoint trouvé.");
+        s.DeletedAt = DateTimeOffset.UtcNow;
+        s.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     private static void ApplySpouseUpdate(EmployeeSpouse s, EmployeeSpouseUpdateDto dto)
@@ -745,10 +831,14 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
     public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetAllAsync(DateOnly? startDate, DateOnly? endDate, int? employeeId, AttendanceStatus? status, bool includeBreaks = false, CancellationToken ct = default)
     {
         var q = _db.EmployeeAttendances.AsNoTracking().Where(a => a.DeletedAt == null);
-        if (startDate.HasValue) q = q.Where(a => a.WorkDate >= startDate.Value);
-        if (endDate.HasValue) q = q.Where(a => a.WorkDate <= endDate.Value);
-        if (employeeId.HasValue) q = q.Where(a => a.EmployeeId == employeeId.Value);
-        if (status.HasValue) q = q.Where(a => a.Status == status.Value);
+        if (startDate.HasValue)
+            q = q.Where(a => a.WorkDate >= startDate.Value);
+        if (endDate.HasValue)
+            q = q.Where(a => a.WorkDate <= endDate.Value);
+        if (employeeId.HasValue)
+            q = q.Where(a => a.EmployeeId == employeeId.Value);
+        if (status.HasValue)
+            q = q.Where(a => a.Status == status.Value);
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var list = await q.OrderByDescending(a => a.WorkDate).ToListAsync(ct);
@@ -758,8 +848,10 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
     public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetByEmployeeAsync(int employeeId, DateOnly? from, DateOnly? to, bool includeBreaks = false, CancellationToken ct = default)
     {
         var q = _db.EmployeeAttendances.AsNoTracking().Where(a => a.EmployeeId == employeeId && a.DeletedAt == null);
-        if (from.HasValue) q = q.Where(a => a.WorkDate >= from.Value);
-        if (to.HasValue)   q = q.Where(a => a.WorkDate <= to.Value);
+        if (from.HasValue)
+            q = q.Where(a => a.WorkDate >= from.Value);
+        if (to.HasValue)
+            q = q.Where(a => a.WorkDate <= to.Value);
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var list = await q.OrderByDescending(a => a.WorkDate).ToListAsync(ct);
@@ -772,23 +864,28 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var a = await q.FirstOrDefaultAsync(ct);
-        if (a == null) return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, includeBreaks));
     }
 
     public async Task<ServiceResult<EmployeeAttendanceReadDto>> CreateAsync(EmployeeAttendanceCreateDto dto, int createdBy, CancellationToken ct = default)
     {
         var a = new EmployeeAttendance { EmployeeId = dto.EmployeeId, WorkDate = dto.WorkDate, CheckIn = dto.CheckIn, CheckOut = dto.CheckOut, WorkedHours = 0m, Status = AttendanceStatus.Present, Source = dto.Source, CreatedBy = createdBy };
-        _db.EmployeeAttendances.Add(a); await _db.SaveChangesAsync(ct);
+        _db.EmployeeAttendances.Add(a);
+        await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, false));
     }
 
     public async Task<ServiceResult<EmployeeAttendanceReadDto>> UpdateAsync(int id, EmployeeAttendanceUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAttendances.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
-        if (dto.CheckIn.HasValue) a.CheckIn = dto.CheckIn;
-        if (dto.CheckOut.HasValue) a.CheckOut = dto.CheckOut;
+        if (a == null)
+            return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
+        if (dto.CheckIn.HasValue)
+            a.CheckIn = dto.CheckIn;
+        if (dto.CheckOut.HasValue)
+            a.CheckOut = dto.CheckOut;
         a.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, false));
@@ -797,7 +894,8 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
     public async Task<ServiceResult<EmployeeAttendanceReadDto>> PutAsync(int id, EmployeeAttendanceCreateDto dto, int userId, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAttendances.FindAsync(new object[] { id }, ct);
-        if (a == null || a.DeletedAt != null) return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
+        if (a == null || a.DeletedAt != null)
+            return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable.");
         a.CheckIn = dto.CheckIn;
         a.CheckOut = dto.CheckOut;
         a.Source = dto.Source;
@@ -854,10 +952,13 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
             att = await _db.EmployeeAttendances.FirstOrDefaultAsync(a => a.Id == attendanceId.Value && a.EmployeeId == employeeId, ct);
         else
             att = await _db.EmployeeAttendances.OrderByDescending(a => a.WorkDate).FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.WorkDate == date && a.CheckOut == null, ct);
-        if (att == null) return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable ou déjà clôturé.");
+        if (att == null)
+            return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable ou déjà clôturé.");
         att.CheckOut = TimeOnly.FromDateTime(DateTime.UtcNow);
-        if (att.CheckIn.HasValue && att.CheckOut.HasValue) att.WorkedHours = (decimal)(att.CheckOut.Value - att.CheckIn.Value).TotalHours;
-        att.UpdatedBy = userId; att.UpdatedAt = DateTimeOffset.UtcNow;
+        if (att.CheckIn.HasValue && att.CheckOut.HasValue)
+            att.WorkedHours = (decimal)(att.CheckOut.Value - att.CheckIn.Value).TotalHours;
+        att.UpdatedBy = userId;
+        att.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(att, false));
     }
@@ -865,7 +966,8 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAttendances.FindAsync(new object[] { id }, ct);
-        if (a == null) return ServiceResult.Fail("Pointage introuvable.");
+        if (a == null)
+            return ServiceResult.Fail("Pointage introuvable.");
         a.DeletedAt = DateTimeOffset.UtcNow;
         a.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -873,7 +975,7 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
     }
 
     public Task<ServiceResult<TimesheetImportResultDto>> ImportTimesheetAsync(int companyId, int month, int year, IEnumerable<object> rows, int userId, CancellationToken ct = default)
-        
+
     {
         // Import timesheet géré par TimesheetImportController (api/timesheets/import)
         return Task.FromResult(ServiceResult<TimesheetImportResultDto>.Fail(
@@ -1029,10 +1131,14 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
             query = query.Where(a => a.EmployeeId == employeeId.Value);
         }
 
-        if (startDate.HasValue) query = query.Where(a => a.AbsenceDate >= startDate.Value);
-        if (endDate.HasValue) query = query.Where(a => a.AbsenceDate <= endDate.Value);
-        if (durationType.HasValue) query = query.Where(a => a.DurationType == durationType.Value);
-        if (status.HasValue) query = query.Where(a => a.Status == status.Value);
+        if (startDate.HasValue)
+            query = query.Where(a => a.AbsenceDate >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(a => a.AbsenceDate <= endDate.Value);
+        if (durationType.HasValue)
+            query = query.Where(a => a.DurationType == durationType.Value);
+        if (status.HasValue)
+            query = query.Where(a => a.Status == status.Value);
         if (!string.IsNullOrWhiteSpace(absenceType))
         {
             var t = absenceType.Trim();
@@ -1068,7 +1174,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
@@ -1221,17 +1328,25 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> UpdateAsync(int id, EmployeeAbsenceUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Draft)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Seules les absences en brouillon peuvent être modifiées");
 
-        if (dto.AbsenceDate.HasValue) a.AbsenceDate = dto.AbsenceDate.Value;
-        if (dto.DurationType.HasValue) a.DurationType = dto.DurationType.Value;
-        if (dto.IsMorning.HasValue) a.IsMorning = dto.IsMorning.Value;
-        if (dto.StartTime.HasValue) a.StartTime = dto.StartTime;
-        if (dto.EndTime.HasValue) a.EndTime = dto.EndTime;
-        if (dto.AbsenceType != null) a.AbsenceType = dto.AbsenceType.Trim();
-        if (dto.Reason != null) a.Reason = dto.Reason.Trim();
+        if (dto.AbsenceDate.HasValue)
+            a.AbsenceDate = dto.AbsenceDate.Value;
+        if (dto.DurationType.HasValue)
+            a.DurationType = dto.DurationType.Value;
+        if (dto.IsMorning.HasValue)
+            a.IsMorning = dto.IsMorning.Value;
+        if (dto.StartTime.HasValue)
+            a.StartTime = dto.StartTime;
+        if (dto.EndTime.HasValue)
+            a.EndTime = dto.EndTime;
+        if (dto.AbsenceType != null)
+            a.AbsenceType = dto.AbsenceType.Trim();
+        if (dto.Reason != null)
+            a.Reason = dto.Reason.Trim();
         a.UpdatedBy = updatedBy;
         a.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
@@ -1241,7 +1356,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> DecideAsync(int id, EmployeeAbsenceDecisionDto dto, int decidedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (dto.Status != AbsenceStatus.Approved && dto.Status != AbsenceStatus.Rejected && dto.Status != AbsenceStatus.Cancelled)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Le statut doit être Approved, Rejected ou Cancelled");
         if (a.Status != AbsenceStatus.Submitted)
@@ -1258,7 +1374,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> SubmitAsync(int id, int userId, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Draft)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible de soumettre une absence avec le statut {a.Status}");
 
@@ -1276,7 +1393,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> ApproveAsync(int id, int userId, string? comment, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible d'approuver une absence avec le statut {a.Status}");
 
@@ -1291,7 +1409,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> RejectAsync(int id, int userId, string reason, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible de rejeter une absence avec le statut {a.Status}");
 
@@ -1306,7 +1425,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> CancelAsync(int id, EmployeeAbsenceCancellationDto dto, int cancelledBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted && a.Status != AbsenceStatus.Approved)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible d'annuler une absence avec le statut {a.Status}");
 
@@ -1325,7 +1445,8 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var a = await _db.EmployeeAbsences.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        if (a == null) return ServiceResult.Fail("Absence introuvable.");
+        if (a == null)
+            return ServiceResult.Fail("Absence introuvable.");
         if (a.Status == AbsenceStatus.Approved)
             return ServiceResult.Fail("Impossible de supprimer une absence approuvée");
         a.DeletedAt = DateTimeOffset.UtcNow;

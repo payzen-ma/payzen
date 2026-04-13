@@ -69,7 +69,7 @@ export class AbsenceService {
    * Map backend DTO to frontend Absence model
    */
   private mapDtoToAbsence(dto: AbsenceReadDto): Absence {
-    
+
     const durationTypeMap: Record<number, AbsenceDurationType> = {
       1: 'FullDay',
       2: 'HalfDay',
@@ -148,7 +148,7 @@ export class AbsenceService {
   getAbsences(filters?: AbsenceFilters): Observable<AbsencesResponse> {
     let params = new HttpParams();
     const companyId = this.contextService.companyId();
-    
+
     if (companyId) {
       params = params.set('companyId', String(companyId));
     }
@@ -167,10 +167,10 @@ export class AbsenceService {
     return this.http.get<AbsenceReadDto[]>(this.ABSENCE_URL, { params }).pipe(
       map(dtos => {
         const absences = dtos.map(dto => this.mapDtoToAbsence(dto));
-        
+
         // Filter only approved absences for stats calculation
         const approvedAbsences = absences.filter(a => a.status === 'Approved');
-        
+
         // Calculate stats from approved absences only
         const totalAbsences = approvedAbsences.length;
         const totalDays = approvedAbsences.reduce((acc, a) => {
@@ -196,7 +196,6 @@ export class AbsenceService {
         };
       }),
       catchError(err => {
-        console.error('Failed to fetch absences:', err);
         return throwError(() => err);
       })
     );
@@ -291,20 +290,15 @@ export class AbsenceService {
     // If client provided a numeric status, forward it (e.g., 0 = Draft)
     if (normalizeRequest.status !== undefined && normalizeRequest.status !== null) {
       payload.Status = normalizeRequest.status;
-      console.log('[AbsenceService] Sending Status in payload:', payload.Status);
     }
-
-    console.log('[AbsenceService] Final payload being sent to backend:', JSON.stringify(payload, null, 2));
     return this.http.post<Absence>(this.ABSENCE_URL, payload).pipe(
       map(response => {
-        console.log('[AbsenceService] Response from backend after creation:', response);
         return response;
       }),
       catchError(err => {
         if (err?.error?.errors) {
           // Log each field error
           Object.keys(err.error.errors).forEach(key => {
-            console.error(`  - Field '${key}':`, err.error.errors[key]);
           });
         }
         return throwError(() => err);
@@ -337,7 +331,7 @@ export class AbsenceService {
    * Reject an absence request (HR action)
    */
   rejectAbsence(id: number, reason?: string): Observable<void> {
-    return this.http.post<void>(`${this.ABSENCE_URL}/${id}/reject`, { 
+    return this.http.post<void>(`${this.ABSENCE_URL}/${id}/reject`, {
       Reason: reason || ''
     });
   }
@@ -362,7 +356,7 @@ export class AbsenceService {
   getAbsenceStats(filters?: AbsenceFilters): Observable<AbsenceStats> {
     let params = new HttpParams();
     const companyId = this.contextService.companyId();
-    
+
     if (companyId) {
       params = params.set('companyId', String(companyId));
     }

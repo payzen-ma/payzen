@@ -36,7 +36,7 @@ import {
               <option *ngFor="let type of parameterTypes" [value]="type.value">{{ type.label }}</option>
             </select>
           </div>
-          
+
           <!-- Search -->
           <div class="relative">
             <input
@@ -49,7 +49,7 @@ import {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </div>
-          
+
           <!-- Include Inactive Toggle -->
           <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
             <input
@@ -60,7 +60,7 @@ import {
             Inclure les inactifs
           </label>
         </div>
-        
+
         <!-- Add Button -->
         <button
           (click)="onAddParameter()"
@@ -166,7 +166,7 @@ import {
               {{ group.parameters.length }}
             </span>
           </div>
-          
+
           <!-- Parameter Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
@@ -175,7 +175,7 @@ import {
               [class.border-gray-200]="param.isActive"
               [class.border-gray-300]="!param.isActive"
               [class.bg-gray-50]="!param.isActive">
-              
+
               <!-- Card Header -->
               <div class="flex items-start justify-between mb-3">
                 <div>
@@ -187,19 +187,19 @@ import {
                   {{ getStatusLabel(param) }}
                 </span>
               </div>
-              
+
               <!-- Value -->
               <div class="mb-3">
                 <div class="text-2xl font-bold text-primary-600">
                   {{ formatValue(param) }}
                 </div>
               </div>
-              
+
               <!-- Description -->
               <p *ngIf="param.description" class="text-sm text-gray-600 mb-3 line-clamp-2">
                 {{ param.description }}
               </p>
-              
+
               <!-- Effective Period -->
               <div class="text-xs text-gray-500 mb-4 flex items-center gap-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +207,7 @@ import {
                 </svg>
                 {{ formatPeriod(param) }}
               </div>
-              
+
               <!-- Actions -->
               <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
                 <button
@@ -242,17 +242,17 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
   @Output() delete = new EventEmitter<LegalParameterDto>();
   @Output() viewHistory = new EventEmitter<LegalParameterDto>();
   @Output() loaded = new EventEmitter<number>();
-  
+
   // Data
   allParameters: LegalParameterDto[] = [];
   filteredParameters: LegalParameterDto[] = [];
   groupedParameters: { type: LegalParameterType; label: string; parameters: LegalParameterDto[] }[] = [];
-  
+
   // Filters
   filterType = '';
   searchTerm = '';
   includeInactive = false;
-  
+
   // State
   loading = false;
 
@@ -274,11 +274,11 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
     { value: LegalParameterType.IR, label: 'IR' },
     { value: LegalParameterType.OTHER, label: 'Autre' }
   ];
-  
+
   constructor(
     private payrollService: PayrollReferentielService
   ) {}
-  
+
   ngOnInit(): void {
     this.loadParameters();
     this.checkFreshness();
@@ -293,7 +293,6 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
         this.freshnessData = data;
       },
       error: (err) => {
-        console.error('Failed to check parameter freshness:', err);
       }
     });
   }
@@ -339,23 +338,22 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load legal parameters:', err);
         this.loading = false;
       }
     });
   }
-  
+
   /**
    * Apply filters and group parameters
    */
   applyFilters(): void {
     let filtered = [...this.allParameters];
-    
+
     // Filter by type
     if (this.filterType) {
       filtered = filtered.filter(p => getLegalParameterType(p.name) === this.filterType);
     }
-    
+
     // Filter by search term
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
@@ -364,17 +362,17 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
         (p.description && p.description.toLowerCase().includes(term))
       );
     }
-    
+
     this.filteredParameters = filtered;
     this.groupParameters();
   }
-  
+
   /**
    * Group parameters by type for display
    */
   private groupParameters(): void {
     const groups = groupParametersByType(this.filteredParameters);
-    
+
     this.groupedParameters = Array.from(groups.entries())
       .map(([type, params]) => ({
         type,
@@ -395,7 +393,7 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
         return order.indexOf(a.type) - order.indexOf(b.type);
       });
   }
-  
+
   /**
    * Get emoji for parameter type
    */
@@ -411,30 +409,30 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
     };
     return emojis[type] || '📋';
   }
-  
+
   /**
    * Get icon class for parameter type (unused, for future reference)
    */
   getTypeIcon(type: LegalParameterType): string {
     return '';
   }
-  
+
   /**
    * Get status label
    */
   getStatusLabel(param: LegalParameterDto): string {
     if (!param.isActive) return 'Inactif';
-    
+
     const now = new Date();
     const effectiveFrom = new Date(param.effectiveFrom);
     const effectiveTo = param.effectiveTo ? new Date(param.effectiveTo) : null;
-    
+
     if (now < effectiveFrom) return 'Futur';
     if (effectiveTo && now > effectiveTo) return 'Expiré';
-    
+
     return 'Actif';
   }
-  
+
   /**
    * Get status CSS class
    */
@@ -448,34 +446,34 @@ export class LegalParametersListComponent implements OnInit, OnChanges {
       default: return 'bg-gray-100 text-gray-600';
     }
   }
-  
+
   /**
    * Format parameter value for display
    */
   formatValue(param: LegalParameterDto): string {
     return formatParameterValue(param);
   }
-  
+
   /**
    * Format effective period for display
    */
   formatPeriod(param: LegalParameterDto): string {
     return formatEffectivePeriod(param);
   }
-  
+
   // Event handlers
   onAddParameter(): void {
     this.add.emit();
   }
-  
+
   onEditParameter(param: LegalParameterDto): void {
     this.edit.emit(param);
   }
-  
+
   onViewHistory(param: LegalParameterDto): void {
     this.viewHistory.emit(param);
   }
-  
+
   onDeleteParameter(param: LegalParameterDto): void {
     // Emit delete event to parent - parent handles confirmation
     this.delete.emit(param);

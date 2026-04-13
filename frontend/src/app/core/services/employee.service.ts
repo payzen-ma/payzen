@@ -1,11 +1,11 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, startWith, tap } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '@environments/environment';
+import { Injectable, inject } from '@angular/core';
 import { Employee as EmployeeProfileModel, EmployeeSalaryPackageAssignment } from '@app/core/models/employee.model';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { environment } from '@environments/environment';
+import { TranslateService } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
+import { map, startWith, switchMap, tap } from 'rxjs/operators';
 
 // ... [Keep all your existing interfaces: Employee, EmployeeFilters, etc.] ...
 export interface Employee {
@@ -157,7 +157,7 @@ export interface CreateEmployeeRequest {
   phone: string;
   email: string;
   statusId: number;
-  // Rôle utilisé pour envoyer une invitation d’activation (sans mot de passe)
+  // Rôle attribué au compte créé automatiquement pour l'employé
   inviteRoleId?: number | null;
   genderId?: number | null;
   educationLevelId?: number | null;
@@ -326,7 +326,7 @@ export class EmployeeService {
   private readonly contextService = inject(CompanyContextService);
   private readonly translate = inject(TranslateService);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private buildFilterParams(filters?: EmployeeFilters): HttpParams {
     let params = new HttpParams();
@@ -438,7 +438,7 @@ export class EmployeeService {
     // Calculate derived stats client-side since this endpoint doesn't return them
     const total = employees.length;
     const active = employees.filter(e => e.status === 'active').length;
-    
+
     // Extract unique values for filter dropdowns
     const departments = Array.from(new Set(employees.map(e => e.department).filter(Boolean)));
     const statusCandidates = employees.map(e => e.statusRaw ?? e.status).filter(Boolean);
@@ -493,7 +493,7 @@ export class EmployeeService {
   getEmployeeDetails(id: string): Observable<EmployeeProfileModel> {
     return this.http
       .get<EmployeeDetailsResponse>(`${this.EMPLOYEE_URL}/${id}/details`)
-      .pipe(map(response => {      
+      .pipe(map(response => {
         return this.mapEmployeeDetailsResponse(response);
       }));
   }
@@ -505,7 +505,7 @@ export class EmployeeService {
     return this.http.get<any[]>(`${this.EMPLOYEE_URL}/${id}/history`).pipe(
       tap((events: any[]) => {
         events.forEach((event: any, index: number) => {
-          
+
         });
       })
     );
@@ -514,7 +514,7 @@ export class EmployeeService {
   getEmployeeFormData(): Observable<EmployeeFormData> {
     const companyId = this.contextService.companyId();
     let params = new HttpParams();
-    
+
     if (companyId) {
       params = params.set('companyId', String(companyId));
     }
@@ -535,16 +535,16 @@ export class EmployeeService {
     return this.http.get<any[]>(`${environment.apiUrl}/statuses`, { params }).pipe(
       map(items => {
         return (items || []).map(i => {
-            const it: any = i;
-            const label = this.getLocalizedLabel(it);
-            const rawVal = it.Code ?? it.code ?? it.Id ?? it.id ?? '';
-            const value = String(rawVal).toLowerCase();
-            return {
-              id: it.Id ?? it.id,
-              label,
-              value: value
-            } as LookupOption & { value: string };
-            });
+          const it: any = i;
+          const label = this.getLocalizedLabel(it);
+          const rawVal = it.Code ?? it.code ?? it.Id ?? it.id ?? '';
+          const value = String(rawVal).toLowerCase();
+          return {
+            id: it.Id ?? it.id,
+            label,
+            value: value
+          } as LookupOption & { value: string };
+        });
       })
     );
   }
@@ -710,16 +710,16 @@ export class EmployeeService {
    * Données statiques — pas d'appel réseau.
    */
   static readonly NON_IMPOSABLE_LIST: NonImposableOption[] = [
-    { code: 'TRANSPORT',      label: 'Prime de transport' },
-    { code: 'KILOMETRIQUE',   label: 'Indemnité kilométrique' },
-    { code: 'TOURNEE',        label: 'Indemnité de tournée' },
+    { code: 'TRANSPORT', label: 'Prime de transport' },
+    { code: 'KILOMETRIQUE', label: 'Indemnité kilométrique' },
+    { code: 'TOURNEE', label: 'Indemnité de tournée' },
     { code: 'REPRESENTATION', label: 'Indemnité de représentation' },
-    { code: 'PANIER',         label: 'Prime de panier' },
-    { code: 'CAISSE',         label: 'Indemnité de caisse' },
-    { code: 'SALISSURE',      label: 'Indemnité de salissure' },
-    { code: 'LAIT',           label: 'Indemnité de lait' },
-    { code: 'OUTILLAGE',      label: "Prime d'outillage" },
-    { code: 'AIDE_MEDICALE',  label: 'Aide médicale' },
+    { code: 'PANIER', label: 'Prime de panier' },
+    { code: 'CAISSE', label: 'Indemnité de caisse' },
+    { code: 'SALISSURE', label: 'Indemnité de salissure' },
+    { code: 'LAIT', label: 'Indemnité de lait' },
+    { code: 'OUTILLAGE', label: "Prime d'outillage" },
+    { code: 'AIDE_MEDICALE', label: 'Aide médicale' },
     { code: 'GRATIF_SOCIALE', label: 'Gratification sociale' },
   ];
 
@@ -798,7 +798,7 @@ export class EmployeeService {
         const lowerQuery = query.toLowerCase();
         return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
       }));
-    
+
     return this.http.get<DepartementResponseItem[]>(`${environment.apiUrl}/departements/company/${companyId}`)
       .pipe(map(items => {
         const allItems = (items || []).map((item: any) => ({
@@ -826,7 +826,7 @@ export class EmployeeService {
         const lowerQuery = query.toLowerCase();
         return uniqueItems.filter(item => item.label.toLowerCase().includes(lowerQuery));
       }));
-    
+
     return this.http.get<JobPositionResponseItem[]>(`${environment.apiUrl}/job-positions/by-company/${companyId}`)
       .pipe(map(items => {
         const allItems = (items || []).map((item: any) => ({
@@ -1054,11 +1054,11 @@ export class EmployeeService {
         employee.contractType || employee.ContractType || employee.ContractTypeName || employee.contractTypeName
       ),
       manager: employee.manager || employee.Manager || undefined,
-        userId: employee.userId ?? employee.UserId ?? employee.user_id ?? employee.User_Id ?? undefined,
-        // Preserve any role information the backend might include so callers can derive display roles
-        roleName: employee.roleName ?? employee.RoleName ?? employee.RoleName ?? undefined,
-        role: employee.role ?? employee.Role ?? undefined,
-        roles: employee.roles ?? employee.Roles ?? undefined
+      userId: employee.userId ?? employee.UserId ?? employee.user_id ?? employee.User_Id ?? undefined,
+      // Preserve any role information the backend might include so callers can derive display roles
+      roleName: employee.roleName ?? employee.RoleName ?? employee.RoleName ?? undefined,
+      role: employee.role ?? employee.Role ?? undefined,
+      roles: employee.roles ?? employee.Roles ?? undefined
     };
   }
 
@@ -1102,11 +1102,11 @@ export class EmployeeService {
       amount: c.amount,
       isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true)
     }));
-    
-    
-    
+
+
+
     const addressPayload = payload.address || (payload as any).Address;
-    
+
     const cityName = addressPayload?.cityName || addressPayload?.CityName || '';
     const countryName = addressPayload?.countryName || addressPayload?.CountryName || '';
     const cityIdFromAddr = addressPayload?.cityId ?? addressPayload?.CityId;
@@ -1114,7 +1114,7 @@ export class EmployeeService {
     const addressLine1 = addressPayload?.addressLine1 || addressPayload?.AddressLine1 || '';
     const addressLine2 = addressPayload?.addressLine2 || addressPayload?.AddressLine2 || '';
     const zipCode = addressPayload?.zipCode || addressPayload?.ZipCode || '';
-    
+
 
 
     const cnssValue = this.toStringValue(payload.cnss ?? (payload as any).Cnss ?? (payload as any).CNSS);
@@ -1150,7 +1150,7 @@ export class EmployeeService {
       manager: payload.managerName ?? '',
       contractType: this.mapContractType(payload.contractTypeName),
       contractTypeId: payload.contractTypeId ?? (payload as any).ContractTypeId ?? undefined,
-      
+
       endDate: undefined,
       probationPeriod: payload.probationPeriod ?? '',
       exitReason: undefined,
@@ -1209,19 +1209,19 @@ export class EmployeeService {
           },
           modifiedBy: modifiedBy
             ? {
-                name: modifiedBy.name ?? modifiedBy.Name ?? '',
-                role: modifiedBy.role ?? modifiedBy.Role ?? ''
-              }
+              name: modifiedBy.name ?? modifiedBy.Name ?? '',
+              role: modifiedBy.role ?? modifiedBy.Role ?? ''
+            }
             : (event.CreatorFullName
-                ? { name: event.CreatorFullName, role: 'Admin' }
-                : undefined),
+              ? { name: event.CreatorFullName, role: 'Admin' }
+              : undefined),
           timestamp: event.timestamp ?? event.Timestamp ?? event.createdAt ?? event.CreatedAt
         };
 
         return mappedEvent;
       })
     };
-      return detail;
+    return detail;
   }
 
   private mapEmployeeStatus(status?: string): Employee['status'] {

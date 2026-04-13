@@ -5,33 +5,42 @@
 
 .hr-dashboard-page {
   min-height: 100%;
+  background: var(--bg-page, #f8fafc);
 }
 
 /* ========================================
    TYPOGRAPHY ADJUSTMENTS
    ======================================== */
 :host h1 {
-  font-size: 1.75rem; /* 28px - augmenté */
+  font-size: 1.75rem;
+  /* 28px - augmenté */
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: rgb(75 85 99); /* gray-600 - same as sidebar */
+  color: rgb(75 85 99);
+  /* gray-600 - same as sidebar */
 }
 
 :host h2 {
-  font-size: 1.25rem; /* 20px - augmenté */
+  font-size: 1.25rem;
+  /* 20px - augmenté */
   font-weight: 600;
-  color: rgb(75 85 99); /* gray-600 */
+  color: rgb(75 85 99);
+  /* gray-600 */
 }
 
 :host h3 {
-  font-size: 1rem; /* 16px - augmenté */
+  font-size: 1rem;
+  /* 16px - augmenté */
   font-weight: 600;
-  color: rgb(75 85 99); /* gray-600 */
+  color: rgb(75 85 99);
+  /* gray-600 */
 }
 
 :host p {
-  font-size: 0.875rem; /* 14px - augmenté de 13px */
-  color: rgb(75 85 99); /* gray-600 */
+  font-size: 0.875rem;
+  /* 14px - augmenté de 13px */
+  color: rgb(75 85 99);
+  /* gray-600 */
 }
 
 /* ========================================
@@ -42,6 +51,7 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .hr-dashboard-controls {
@@ -64,24 +74,29 @@
 }
 
 .hr-month-picker__label {
-  color: rgb(75 85 99); /* gray-600 - same as sidebar */
-  font-size: 0.75rem; /* 12px - augmenté */
+  color: rgb(75 85 99);
+  /* gray-600 - same as sidebar */
+  font-size: 0.75rem;
+  /* 12px - augmenté */
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .hr-filter-picker__label {
-  color: rgb(75 85 99); /* gray-600 - same as sidebar */
-  font-size: 0.75rem; /* 12px - augmenté */
+  color: rgb(75 85 99);
+  /* gray-600 - same as sidebar */
+  font-size: 0.75rem;
+  /* 12px - augmenté */
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 :host ::ng-deep .hr-month-picker__select {
-  min-width: 11rem;
-  font-size: 0.875rem; /* 14px - augmenté */
+  min-width: 10rem;
+  font-size: 0.875rem;
+  /* 14px - augmenté */
 }
 
 :host ::ng-deep .hr-month-picker__select .p-select-label {
@@ -103,8 +118,9 @@
 }
 
 :host ::ng-deep .hr-filter-picker__multi {
-  min-width: 12rem;
-  font-size: 0.875rem; /* 14px - augmenté */
+  min-width: 11.75rem;
+  font-size: 0.875rem;
+  /* 14px - augmenté */
 }
 
 :host ::ng-deep .hr-filter-picker__multi .p-multiselect-label {
@@ -127,8 +143,9 @@
 }
 
 :host ::ng-deep .hr-filter-picker__select {
-  min-width: 8.5rem;
-  font-size: 0.875rem; /* 14px - augmenté */
+  min-width: 8.8rem;
+  font-size: 0.875rem;
+  /* 14px - augmenté */
 }
 
 :host ::ng-deep .hr-filter-picker__select .p-select-label {
@@ -146,6 +163,29 @@
 }
 
 :host ::ng-deep .hr-filter-picker__select .p-select-dropdown-icon {
+  color: #1800ac;
+}
+
+/* Select « type de contrat » — onglet Mouvements RH */
+:host ::ng-deep .hr-mouvements-contract-filter {
+  min-width: 13rem;
+  font-size: 0.875rem;
+}
+
+:host ::ng-deep .hr-mouvements-contract-filter .p-select-label {
+  color: rgb(75 85 99);
+}
+
+:host ::ng-deep .hr-mouvements-contract-filter:not(.p-disabled):hover {
+  border-color: rgba(253, 117, 31, 0.5);
+}
+
+:host ::ng-deep .hr-mouvements-contract-filter:not(.p-disabled).p-focus {
+  border-color: #1800ac;
+  box-shadow: 0 0 0 0.2rem rgba(24, 0, 172, 0.15);
+}
+
+:host ::ng-deep .hr-mouvements-contract-filter .p-select-dropdown-icon {
   color: #1800ac;
 }
 
@@ -216,7 +256,8 @@
 
 /* Checkboxes dans multiselect - style minimaliste */
 :host ::ng-deep .p-multiselect-option .p-checkbox {
-  display: none; /* Masquer les checkboxes */
+  display: none;
+  /* Masquer les checkboxes */
 }
 
 :host ::ng-deep .p-checkbox .p-checkbox-box {
@@ -259,9 +300,11 @@
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   border-radius: 999px;
-  color: rgb(75 85 99); /* gray-600 */
+  color: rgb(75 85 99);
+  /* gray-600 */
   display: inline-flex;
-  font-size: 0.75rem; /* 12px - augmenté */
+  font-size: 0.75rem;
+  /* 12px - augmenté */
   font-weight: 600;
   letter-spacing: 0.025em;
   line-height: 1;
@@ -294,16 +337,19 @@
 
 .hr-tab-item {
   border-radius: 0.5rem;
-  color: rgb(75 85 99); /* gray-600 - same as sidebar */
-  font-size: 0.875rem; /* 14px - augmenté */
+  color: rgb(75 85 99);
+  /* gray-600 - same as sidebar */
+  font-size: 0.875rem;
+  /* 14px - augmenté */
   font-weight: 600;
   padding: 0.625rem 0.875rem;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .hr-tab-item[aria-selected='true'] {
-  background: #eff6ff;
+  background: #dbeafe;
   color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.12);
 }
 
 .hr-tab-item:hover {
@@ -315,8 +361,10 @@
    ======================================== */
 :host ::ng-deep .dashboard-table-header {
   background: #f8fafc;
-  color: rgb(75 85 99); /* gray-600 */
-  font-size: 0.75rem; /* 12px - augmenté */
+  color: rgb(75 85 99);
+  /* gray-600 */
+  font-size: 0.75rem;
+  /* 12px - augmenté */
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -326,12 +374,14 @@
 
 :host ::ng-deep .dashboard-table-cell {
   border-bottom: 1px solid #f1f5f9;
-  color: rgb(75 85 99); /* gray-600 */
-  font-size: 0.875rem; /* 14px - augmenté */
+  color: rgb(75 85 99);
+  /* gray-600 */
+  font-size: 0.875rem;
+  /* 14px - augmenté */
   padding: 0.75rem 1rem;
   vertical-align: top;
 }
 
-:host ::ng-deep .p-datatable-tbody > tr:last-child > .dashboard-table-cell {
+:host ::ng-deep .p-datatable-tbody>tr:last-child>.dashboard-table-cell {
   border-bottom: none;
 }

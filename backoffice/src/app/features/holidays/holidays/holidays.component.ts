@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { HOLIDAY_TRANSLATIONS, normalizeHolidayName } from '../../../i18n/holidays-translations';
+import { Country } from '../../../models/company.model';
+import { HolidayCreateDto, HolidayReadDto, HolidayScope, HolidayUpdateDto } from '../../../models/holiday.model';
+import { CompanyService } from '../../../services/company.service';
 import { HolidayService } from '../../../services/holiday.service';
-import { HolidayReadDto, HolidayCreateDto, HolidayUpdateDto, HolidayScope } from '../../../models/holiday.model';
 import { ConfirmService } from '../../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../../shared/modal/modal.component';
-import { Country } from '../../../models/company.model';
-import { CompanyService } from '../../../services/company.service';
-import { environment } from '../../../../environments/environment';
-import { firstValueFrom } from 'rxjs';
-import { HOLIDAY_TRANSLATIONS, normalizeHolidayName } from '../../../i18n/holidays-translations';
 
 @Component({
   selector: 'app-holidays',
@@ -43,7 +43,7 @@ export class HolidaysComponent implements OnInit {
     private holidayService: HolidayService,
     private companyService: CompanyService,
     private confirmService: ConfirmService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCountries();
@@ -55,8 +55,7 @@ export class HolidaysComponent implements OnInit {
     this.companyService.getFormData().subscribe({
       next: (data) => {
         this.countries = data.countries;
-      },
-      error: (err) => console.error('Failed to load countries', err)
+      }
     });
   }
 
@@ -64,12 +63,11 @@ export class HolidaysComponent implements OnInit {
     this.holidayService.getHolidayTypes().subscribe({
       next: (types) => {
         // Use API types if available, otherwise fallback to defaults
-        this.holidayTypes = types.length > 0 
-          ? types 
+        this.holidayTypes = types.length > 0
+          ? types
           : ['National', 'Religieux', 'Légal', 'Culturel', 'Autre'];
       },
       error: (err) => {
-        console.error('Failed to load holiday types', err);
         // Fallback to default types
         this.holidayTypes = ['National', 'Religieux', 'Légal', 'Culturel', 'Autre'];
       }
@@ -84,7 +82,6 @@ export class HolidaysComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load holidays', err);
         this.loading = false;
       }
     });
@@ -169,7 +166,6 @@ export class HolidaysComponent implements OnInit {
           this.refresh();
         },
         error: (err) => {
-          console.error('Failed to create holiday', err);
           alert('Erreur lors de la création du jour férié');
         }
       });
@@ -199,7 +195,6 @@ export class HolidaysComponent implements OnInit {
           this.refresh();
         },
         error: (err) => {
-          console.error('Failed to update holiday', err);
           alert('Erreur lors de la mise à jour du jour férié');
         }
       });
@@ -214,7 +209,6 @@ export class HolidaysComponent implements OnInit {
         this.holidayService.deleteHoliday(id).subscribe({
           next: () => this.refresh(),
           error: (err) => {
-            console.error('Failed to delete holiday', err);
             alert('Erreur lors de la suppression du jour férié');
           }
         });
@@ -224,10 +218,10 @@ export class HolidaysComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric' 
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
     });
   }
 
@@ -244,10 +238,8 @@ export class HolidaysComponent implements OnInit {
         if ((!list || list.length === 0) && this.autoImportOnYearChange) {
           // use API key only from Angular environment or cached value (no prompting)
           const envKey = environment.CALENDARIFIC_API_KEY || (import.meta as any)?.env?.VITE_CALENDARIFIC_API_KEY;
-          console.log('Auto-import: using env key?', !!envKey, 'cached key?', !!this.calendarificApiKey);
           const apiKey = this.calendarificApiKey || envKey;
           if (!apiKey) {
-            console.warn('No Calendarific API key found in env or cache; skipping auto-import.');
             return;
           }
 
@@ -261,11 +253,9 @@ export class HolidaysComponent implements OnInit {
             const c = this.countries[0];
             countryCode = c.code;
             this.selectedCountryId = c.id;
-            console.log('Auto-import: no country selected, falling back to', c.code);
           }
 
           if (!countryCode) {
-            console.warn('No country available; skipping auto-import for year', year);
             return;
           }
 
@@ -275,7 +265,6 @@ export class HolidaysComponent implements OnInit {
             // Prompt the user to supply a proper country code when auto-import would otherwise use an invalid code
             const promptValue = window.prompt(`Le code pays trouvé ("${codeToUse}") n'est pas un code ISO-3166 alpha-2. Entrez le code pays à utiliser (ex: MA) :`, codeToUse || 'MA');
             if (!promptValue) {
-              console.warn('Auto-import cancelled by user due to invalid country code');
               return;
             }
             codeToUse = promptValue.trim();
@@ -285,7 +274,6 @@ export class HolidaysComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load holidays', err);
         this.loading = false;
       }
     });
@@ -294,13 +282,10 @@ export class HolidaysComponent implements OnInit {
   private async performImport(apiKey: string, countryCode: string, year: number): Promise<void> {
     this.loading = true;
     return new Promise((resolve) => {
-      console.log('performImport: calling fetchExternalHolidays', { apiKeyProvided: !!apiKey, countryCode, year });
       this.holidayService.fetchExternalHolidays(apiKey, countryCode, year).subscribe({
         next: async (items) => {
-          console.log('performImport: fetched external items count=', items?.length, 'items=', items);
           if (!items || items.length === 0) {
             this.loading = false;
-            console.warn('performImport: external API returned zero items for', countryCode, year);
             alert('Aucun jour férié trouvé par l\'API externe.');
             resolve();
             return;
@@ -311,7 +296,6 @@ export class HolidaysComponent implements OnInit {
             if (Array.isArray(it.type)) return it.type.some((t: string) => t.toLowerCase().includes('national'));
             return false;
           });
-          console.log('performImport: national items count=', national.length, 'nationalItems=', national);
 
           const countryId = this.selectedCountryId ?? this.countries.find(x => (x.code || '').toUpperCase() === countryCode.toUpperCase())?.id;
           if (!countryId) {
@@ -377,23 +361,18 @@ export class HolidaysComponent implements OnInit {
                 isActive: true
               };
 
-              console.log('performImport: creating holiday DTO=', dto);
               const res = await firstValueFrom(this.holidayService.createHoliday(dto).pipe());
-              console.log('performImport: createHoliday response=', res);
               created++;
             } catch (err: any) {
-              console.warn('Import item failed or already exists', (err as any)?.message ?? err, err);
             }
           }
 
           this.loading = false;
           this.refresh();
-          console.log('performImport: created count=', created);
           alert(`${created} jours fériés importés.`);
           resolve();
         },
         error: (err) => {
-          console.error('Failed to fetch external holidays', err);
           this.loading = false;
           alert('Échec de la récupération depuis Calendarific: ' + (err?.message || err));
           resolve();

@@ -52,3 +52,6 @@ Thumbs.db
 
 docs/
 STYLING_GUIDE.md
+
+src/environments/environment.ts
+src/environments/environment.prod.ts

@@ -54,7 +54,7 @@ export class CabinetDashboard implements OnInit, OnDestroy {
   readonly companies = signal<Company[]>([]);
   readonly isLoading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
-  
+
   // Filter Signals
   readonly globalFilter = signal<string>('');
   readonly statusFilter = signal<string | null>(null);
@@ -62,7 +62,7 @@ export class CabinetDashboard implements OnInit, OnDestroy {
 
   // KPI Signals
   readonly totalCompanies = computed(() => this.companies().length);
-  readonly activeCompanies = computed(() => 
+  readonly activeCompanies = computed(() =>
     this.companies().filter(c => !c.status || c.status === 'active').length
   );
   readonly syncIssues = signal<number>(0); // Placeholder for now
@@ -99,7 +99,7 @@ export class CabinetDashboard implements OnInit, OnDestroy {
   loadPortfolio(): void {
     this.isLoading.set(true);
     this.error.set(null);
-    
+
     this.companyService.getManagedCompanies().subscribe({
       next: (companies) => {
         // Mocking some data fields that might be missing from the API for now
@@ -125,7 +125,6 @@ export class CabinetDashboard implements OnInit, OnDestroy {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load portfolio', err);
         this.error.set('Unable to load portfolio. Please try again later.');
         this.isLoading.set(false);
       }
@@ -157,7 +156,7 @@ export class CabinetDashboard implements OnInit, OnDestroy {
         return 'info';
     }
   }
-  
+
   getValidationSeverity(status: string): "success" | "info" | "warn" | "danger" | "secondary" | "contrast" | undefined {
     switch (status) {
       case 'validated':

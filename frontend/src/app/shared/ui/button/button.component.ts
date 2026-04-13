@@ -41,14 +41,15 @@ export class ButtonComponent {
     const base = 'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants: Record<string, string> = {
-      primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 shadow-sm',
-      secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-indigo-500 shadow-sm',
+      primary:
+        'bg-[color:var(--primary-500)] text-white hover:bg-[color:var(--primary-600)] focus:ring-[color:var(--primary-300)] shadow-sm',
+      secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-[color:var(--primary-300)] shadow-sm',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm',
       ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-400'
     };
 
     const sizes: Record<string, string> = {
-      sm: 'px-3 py-1.5 text-sm',
+      sm: 'px-3 py-2 text-[13px] rounded-md',
       md: 'px-4 py-2 text-base',
       lg: 'px-6 py-3 text-lg'
     };

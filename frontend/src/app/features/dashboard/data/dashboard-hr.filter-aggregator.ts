@@ -411,8 +411,9 @@ export function aggregateDashboardFromRaw(
       const list = filteredEmployees.filter(employee => classifyHierarchy(employee.position) === level);
       if (list.length === 0) return null;
       const f = list.filter(employee => resolveGenderBucket(employee.genderCode) === 'F').length;
+      const levelLabel = level === 'Employes' ? 'Employés' : level;
       return {
-        label: `${level} (${list.length})`,
+        label: `${levelLabel} (${list.length})`,
         rightLabel: `${Math.round((f * 100) / list.length)}% F`,
         percent: Math.round((f * 100) / list.length),
         color: HIERARCHY_COLORS[index % HIERARCHY_COLORS.length]
@@ -488,7 +489,9 @@ export function aggregateDashboardFromRaw(
         values: effectifValues,
         datasetLabel: 'Effectif',
         color: '#2563eb',
-        highlightLast: true
+        highlightLast: false,
+        ySuggestedMax: 90,
+        yTickStep: 10
       },
       repartitionDepartement: {
         centerLabel: String(totalEmployees),
@@ -503,53 +506,59 @@ export function aggregateDashboardFromRaw(
       meta: {
         eyebrow: '',
         title: 'Mouvements RH',
-        badge: 'ENTREES / SORTIES',
-        subtitle: `Historique des entrees et sorties - ${monthLong} - ${entries.length} entrees - ${exits.length} sorties`,
+        badge: 'Entrées / sorties',
+        subtitle: `Historique des entrées et sorties — ${monthLong} — ${entries.length} entrées — ${exits.length} sorties`,
         icon: 'pi pi-refresh'
       },
       summary: [
-        { label: 'Entrees ce mois', value: `+${entries.length}`, subLabel: 'Nouveaux contrats', accent: 'success' },
-        { label: 'Sorties ce mois', value: `-${exits.length}`, subLabel: 'Fins de contrats', accent: 'danger' },
-        { label: 'Solde net', value: `${entries.length - exits.length >= 0 ? '+' : ''}${entries.length - exits.length}`, subLabel: `Taux de retention: ${formatPct(retention)}`, accent: entries.length - exits.length >= 0 ? 'success' : 'danger' }
+        { label: 'Entrées ce mois', value: `+${entries.length}`, subLabel: 'Nouveaux contrats', accent: 'success' },
+        { label: 'Sorties ce mois', value: `-${exits.length}`, subLabel: 'Fins de contrat', accent: 'danger' },
+        { label: 'Solde net', value: `${entries.length - exits.length >= 0 ? '+' : ''}${entries.length - exits.length}`, subLabel: `Taux de rétention : ${formatPct(retention)}`, accent: entries.length - exits.length >= 0 ? 'success' : 'danger' }
       ],
       history: movementRows
     },
     masseSalariale: {
       meta: {
         eyebrow: '',
-        title: 'Masse Salariale',
-        badge: 'PAIE',
-        subtitle: `Analyse des couts salariaux - Charges patronales incluses - ${monthLong}`,
+        title: 'Masse salariale',
+        badge: 'Paie',
+        subtitle: `Analyse des coûts salariaux — charges patronales incluses — ${monthLong}`,
         icon: 'pi pi-wallet'
       },
       kpis: [
         { label: 'Brut total', value: formatK(gross), subLabel: 'MAD' },
         { label: 'Net total verse', value: formatK(gross * 0.772), subLabel: 'MAD apres retenues' },
         { label: 'Charges patronales', value: formatK(gross * 0.216), subLabel: 'CNSS + AMO employeur' },
-        { label: 'Cout total employeur', value: formatK(gross * 1.216), subLabel: 'MAD / mois' }
+        { label: 'Coût total employeur', value: formatK(gross * 1.216), subLabel: 'MAD / mois' }
       ],
-      masseBrute12Mois: {
-        labels: month12.map(toMonthLabelShort),
-        values: monthlyGross.map(value => round1(value / 1000)),
-        datasetLabel: 'Masse salariale brute',
-        color: '#14b8a6',
-        highlightLast: true,
-        suffix: 'K MAD'
-      },
+      masseBrute12Mois: (() => {
+        const values = monthlyGross.map(value => round1(value / 1000));
+        const maxK = values.length ? Math.max(...values) : 1;
+        return {
+          labels: month12.map(toMonthLabelShort),
+          values,
+          datasetLabel: 'Masse salariale brute',
+          color: '#14b8a6',
+          highlightLast: false,
+          suffix: 'K MAD',
+          ySuggestedMax: Math.max(100, Math.ceil(maxK / 20) * 20),
+          yTickStep: 20
+        };
+      })(),
       repartitionDepartement: salaryByDepartment
     },
     pariteDiversite: {
       meta: {
         eyebrow: '',
-        title: 'Parite & Diversite',
-        badge: 'EQUITE',
-        subtitle: `Indicateurs d'equilibre Femmes / Hommes - ${monthLong}`,
+        title: 'Parité & diversité',
+        badge: 'Équité',
+        subtitle: `Indicateurs d’équilibre femmes / hommes — ${monthLong}`,
         icon: 'pi pi-balance-scale'
       },
       kpis: [
-        { label: 'Effectif femmes', value: String(femaleCount), subLabel: `${formatPct((femaleCount * 100) / knownGender)} de l'effectif`, accent: 'purple' },
-        { label: 'Effectif hommes', value: String(maleCount), subLabel: `${formatPct((maleCount * 100) / knownGender)} de l'effectif`, accent: 'blue' },
-        { label: 'Ecart salarial moyen', value: 'N/A', subLabel: 'Calcule sur subset filtre', accent: 'danger' }
+        { label: 'Effectif femmes', value: String(femaleCount), subLabel: `${formatPct((femaleCount * 100) / knownGender)} de l’effectif`, accent: 'purple' },
+        { label: 'Effectif hommes', value: String(maleCount), subLabel: `${formatPct((maleCount * 100) / knownGender)} de l’effectif`, accent: 'blue' },
+        { label: 'Écart salarial moyen', value: 'N/A', subLabel: 'Calculé sur le sous-ensemble filtré', accent: 'danger' }
       ],
       pariteDepartement: parityDept,
       pariteNiveauHierarchique: parityHierarchy
@@ -557,16 +566,16 @@ export function aggregateDashboardFromRaw(
     conformiteSociale: {
       meta: {
         eyebrow: '',
-        title: 'Conformite Sociale',
-        badge: 'CNSS - AMO - IR',
-        subtitle: `Etat des declarations et cotisations - ${monthLong}`,
+        title: 'Conformité sociale',
+        badge: 'CNSS — AMO — IR',
+        subtitle: `État des déclarations et cotisations — ${monthLong}`,
         icon: 'pi pi-check-circle'
       },
       kpis: [
-        { label: 'CNSS salariale', value: formatK(cnssSalariale), subLabel: 'MAD - Taux 4.29%' },
-        { label: 'CNSS patronale', value: formatK(cnssPatronale), subLabel: 'MAD - Taux 21.09%' },
-        { label: 'AMO (salariale)', value: formatK(amoSalariale), subLabel: 'MAD - Taux 2.26%' },
-        { label: 'IR retenu a la source', value: formatK(ir), subLabel: 'MAD - Estimation' }
+        { label: 'CNSS salariale', value: formatK(cnssSalariale), subLabel: 'MAD — taux 4,29 %' },
+        { label: 'CNSS patronale', value: formatK(cnssPatronale), subLabel: 'MAD — taux 21,09 %' },
+        { label: 'AMO (salariale)', value: formatK(amoSalariale), subLabel: 'MAD — taux 2,26 %' },
+        { label: 'IR retenu à la source', value: formatK(ir), subLabel: 'MAD — estimation' }
       ],
       declarations
     }

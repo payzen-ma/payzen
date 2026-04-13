@@ -1,4 +1,4 @@
-import { Component, signal, DestroyRef, inject } from '@angular/core';
+import { Component, signal, DestroyRef, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
@@ -34,6 +34,7 @@ export class MainLayout {
   isSidebarOpen = signal(false);
   searchQuery = signal('');
   readonly isTablet = signal(false);
+  readonly isMobileView = signal(false);
   private readonly destroyRef = inject(DestroyRef);
 
   // Menu items - Using PrimeIcons (pi pi-*)
@@ -68,9 +69,11 @@ export class MainLayout {
   constructor(private router: Router) {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       const mql = window.matchMedia('(min-width: 768px) and (max-width: 1023px)');
+      const mqlMobile = window.matchMedia('(max-width: 767px)');
 
       const update = () => {
         this.isTablet.set(mql.matches);
+        this.isMobileView.set(mqlMobile.matches);
         // Ensure the temporary mobile drawer state doesn't apply on tablet.
         if (mql.matches) {
           this.isSidebarOpen.set(false);
@@ -82,13 +85,22 @@ export class MainLayout {
       const listener = () => update();
       if (typeof mql.addEventListener === 'function') {
         mql.addEventListener('change', listener);
-        this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener));
+        mqlMobile.addEventListener('change', listener);
+        this.destroyRef.onDestroy(() => {
+          mql.removeEventListener('change', listener);
+          mqlMobile.removeEventListener('change', listener);
+        });
       } else {
         // Safari < 14
         // eslint-disable-next-line deprecation/deprecation
         mql.addListener(listener);
         // eslint-disable-next-line deprecation/deprecation
-        this.destroyRef.onDestroy(() => mql.removeListener(listener));
+        mqlMobile.addListener(listener);
+        // eslint-disable-next-line deprecation/deprecation
+        this.destroyRef.onDestroy(() => {
+          mql.removeListener(listener);
+          mqlMobile.removeListener(listener);
+        });
       }
     }
   }

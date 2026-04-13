@@ -86,12 +86,12 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     { id: 'phone', key: 'phone', label: 'company.info.phone' },
     { id: 'address', key: 'address', label: 'company.info.address', fullWidth: true },
     { id: 'city', key: 'city', label: 'company.info.city', type: 'autocomplete' },
-    
+
   ];
 
   ngOnInit() {
     this.loadCompanyData();
-    
+
     // Subscribe to context changes to reload data
     this.contextSub = this.contextService.contextChanged$.subscribe(() => {
       this.loadCompanyData();
@@ -161,7 +161,6 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
         this.loadLogoPreview();
       },
       error: (err) => {
-        console.error('Error loading company data:', err);
         this.showToast(
           'error',
           this.translate.instant('common.error'),
@@ -205,7 +204,7 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
 
   updateField(field: keyof Company, value: string) {
     this.loading.set(true);
-    
+
     const currentCompany = this.company();
     if (!currentCompany) {
       this.loading.set(false);
@@ -236,7 +235,6 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Update failed:', err);
         // Revert optimistic update on error
         this.company.set(previous);
         this.showToast(

@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { BarChartConfig } from '../../../state/dashboard-hr.models';
 
@@ -8,7 +8,7 @@ import { BarChartConfig } from '../../../state/dashboard-hr.models';
   standalone: true,
   imports: [CommonModule, ChartModule],
   template: `
-    <div class="h-56 md:h-64 lg:h-72">
+    <div class="h-[220px] md:h-[240px] lg:h-[255px]">
       <p-chart type="bar" [data]="data()" [options]="options()" class="block h-full w-full"></p-chart>
     </div>
   `,
@@ -35,7 +35,7 @@ export class BarChartComponent {
           label: cfg.datasetLabel,
           data: cfg.values,
           borderRadius: 6,
-          maxBarThickness: 26,
+          maxBarThickness: 20,
           backgroundColor: colors
         }
       ]
@@ -80,6 +80,7 @@ export class BarChartComponent {
         },
         y: {
           beginAtZero: true,
+          suggestedMax: cfg.ySuggestedMax,
           grid: {
             color: '#f1f5f9'
           },
@@ -88,7 +89,8 @@ export class BarChartComponent {
           },
           ticks: {
             color: '#6b7280',
-            font: { size: 11 }
+            font: { size: 11 },
+            ...(cfg.yTickStep != null ? { stepSize: cfg.yTickStep } : {})
           }
         }
       }

@@ -8,10 +8,10 @@ import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Language }
 export class LanguageService {
   // Signal to track current language
   currentLanguage = signal<Language>(DEFAULT_LANGUAGE);
-  
+
   // Signal to track RTL state
   isRTL = signal<boolean>(false);
-  
+
   // Available languages
   readonly availableLanguages = AVAILABLE_LANGUAGES;
 
@@ -27,7 +27,7 @@ export class LanguageService {
   private initializeLanguage(): void {
     const savedLanguage = this.getStoredLanguage();
     const languageToUse = savedLanguage || this.getBrowserLanguage() || DEFAULT_LANGUAGE;
-    
+
     this.setLanguage(languageToUse);
   }
 
@@ -72,14 +72,14 @@ export class LanguageService {
     this.translate.use(lang);
     this.currentLanguage.set(lang);
     localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    
+
     // Update HTML lang attribute for accessibility
     document.documentElement.lang = lang;
-    
+
     // Set RTL direction for Arabic
     const isRtl = lang === 'ar';
     this.isRTL.set(isRtl);
-    
+
     if (isRtl) {
       document.documentElement.dir = 'rtl';
       document.body.classList.add('rtl');

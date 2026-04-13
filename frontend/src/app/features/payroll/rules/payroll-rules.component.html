@@ -1,0 +1,116 @@
+<section class="payslip-page payslip-page--my-payslip">
+  <div class="payslip-shell payslip-shell--my-payslip">
+    <!-- Header -->
+    <header class="payslip-app-header" role="banner" style="margin-bottom: 2rem;">
+      <div class="payslip-app-header__start">
+        <div class="payslip-app-header__icon" aria-hidden="true">
+          <i class="pi pi-sliders-h"></i>
+        </div>
+        <div class="payslip-app-header__copy">
+          <h1 class="payslip-app-title">
+            {{ ('nav.payrollRules' | translate) === 'nav.payrollRules' ? 'Règles de Paie' : ('nav.payrollRules' | translate) }}
+          </h1>
+          <p class="payslip-app-subtitle">
+            Consultez les règles globales standard et définissez vos propres règles métier.
+          </p>
+        </div>
+      </div>
+    </header>
+
+  <!-- Variables Globales / Constantes -->
+  <section class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-(--text-primary)">Constantes du Système</h2>
+    </div>
+    
+    <p-card styleClass="p-0 border-none shadow-sm rounded-xl overflow-hidden mb-6">
+      <div class="bg-white overflow-x-auto">
+        <table class="min-w-full text-sm text-left">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th scope="col" class="px-6 py-3 font-semibold text-gray-700">Nom de la constante</th>
+              <th scope="col" class="px-6 py-3 font-semibold text-gray-700">Valeur appliquée</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            @for (constant of constants(); track constant.name) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-3 font-mono text-blue-700">{{ constant.name }}</td>
+                <td class="px-6 py-3 font-medium text-gray-900">{{ constant.value }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </p-card>
+  </section>
+
+  <!-- Règles Globales (Valables pour tout le monde) -->
+  <section class="mb-10">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-(--text-primary)">Moteur de Règles Standard (Payzen DSL)</h2>
+      <p-button 
+        label="Définir une nouvelle règle" 
+        icon="pi pi-plus" 
+        (onClick)="startNewRule()"
+        [outlined]="true"
+        severity="info">
+      </p-button>
+    </div>
+
+    <p-card styleClass="p-0 border-none shadow-sm rounded-xl overflow-hidden mb-6">
+      <p-accordion [multiple]="true">
+        @for (rule of globalRules(); track rule.id) {
+          <p-accordion-panel [value]="rule.id">
+            <p-accordion-header>{{ rule.title }}</p-accordion-header>
+            <p-accordion-content>
+              <p class="text-sm text-(--text-secondary) mb-3">
+                {{ rule.description }}
+              </p>
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto shadow-inner">
+                {{ rule.code }}
+              </div>
+            </p-accordion-content>
+          </p-accordion-panel>
+        }
+      </p-accordion>
+    </p-card>
+  </section>
+
+  <!-- Section Inline: Espace pour écrire ses propres règles -->
+  @if (isCreatingNewRule()) {
+    <section id="new-rule-section" class="mb-10 animate-fade-in">
+      <h2 class="text-xl font-semibold text-(--text-primary) mb-4">Créer une règle personnalisée</h2>
+      
+      <p-card styleClass="border-none shadow-lg rounded-xl overflow-hidden p-fluid">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
+          
+          <div class="col-span-1 md:col-span-2">
+            <label class="block text-sm font-medium text-(--text-primary) mb-2">Titre de la règle <span class="text-red-500">*</span></label>
+            <input pInputText [(ngModel)]="newRuleName" placeholder="Ex: Prime d'assiduité 2026" class="w-full" />
+          </div>
+
+          <div class="col-span-1 md:col-span-2">
+            <label class="block text-sm font-medium text-(--text-primary) mb-2">Explication de la règle en langage naturel <span class="text-red-500">*</span></label>
+            <div class="p-1 rounded bg-white border border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+              <textarea pInputTextarea [(ngModel)]="newRuleDescription" rows="8" 
+                        placeholder="Veuillez décrire la règle avec vos propres mots de manière claire. Exemple : Si le collaborateur a plus de 2 ans d'ancienneté, appliquer une prime de présence de 500 MAD par mois..." 
+                        class="w-full text-sm border-none bg-transparent resize-y focus:outline-none focus:ring-0"></textarea>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><i class="pi pi-info-circle"></i> Cette règle sera automatiquement comprise par Payzen IA pour définir sa formule mathématique associée (Payzen DSL).</p>
+          </div>
+
+        </div>
+
+        <ng-template pTemplate="footer">
+          <div class="flex justify-end gap-3 mt-4">
+            <p-button label="Annuler" icon="pi pi-times" [outlined]="true" severity="secondary" (onClick)="cancelNewRule()"></p-button>
+            <p-button label="Sauvegarder" icon="pi pi-check" severity="success" (onClick)="saveNewRule()"></p-button>
+          </div>
+        </ng-template>
+      </p-card>
+    </section>
+  }
+  <p-toast></p-toast>
+  </div>
+</section>

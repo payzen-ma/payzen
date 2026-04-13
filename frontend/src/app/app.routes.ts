@@ -296,6 +296,14 @@ export const routes: Routes = [
         title: 'Bulletins de Paie - PayZen'
       },
 
+      // Payroll - Règles de Paie
+      {
+        path: 'payroll/rules',
+        loadComponent: () => import('./features/payroll/rules/payroll-rules.component').then(m => m.PayrollRulesComponent),
+        canActivate: [rhGuard],
+        title: 'Règles de Paie - PayZen'
+      },
+
       // Payroll - Import de pointage (heures de travail)
       {
         path: 'payroll/pointage-import',
@@ -463,6 +471,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/bulletin/bulletin.component').then(m => m.BulletinComponent),
         data: { expertMode: true },
         title: 'Bulletins de Paie - PayZen'
+      },
+
+      // Payroll - Règles de Paie (Expert Mode)
+      {
+        path: 'payroll/rules',
+        loadComponent: () => import('./features/payroll/rules/payroll-rules.component').then(m => m.PayrollRulesComponent),
+        data: { expertMode: true },
+        title: 'Règles de Paie - PayZen'
       },
 
       // Payroll - Fiche de Paie (Expert Mode)

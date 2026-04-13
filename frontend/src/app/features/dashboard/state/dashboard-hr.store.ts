@@ -11,8 +11,8 @@ const DASHBOARD_TABS: DashboardTab[] = [
   { id: 'vue-globale', label: 'Vue Globale RH', icon: 'pi pi-home' },
   { id: 'mouvements-rh', label: 'Mouvements RH', icon: 'pi pi-refresh' },
   { id: 'masse-salariale', label: 'Masse Salariale', icon: 'pi pi-wallet' },
-  { id: 'parite-diversite', label: 'Parite & Diversite', icon: 'pi pi-users' },
-  { id: 'conformite-sociale', label: 'Conformite Sociale', icon: 'pi pi-check-circle' }
+  { id: 'parite-diversite', label: 'Parité & diversité', icon: 'pi pi-users' },
+  { id: 'conformite-sociale', label: 'Conformité sociale', icon: 'pi pi-check-circle' }
 ];
 
 function isDashboardTabId(value: string): value is DashboardTabId {

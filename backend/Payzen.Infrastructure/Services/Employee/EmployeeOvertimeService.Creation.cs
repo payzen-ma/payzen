@@ -373,10 +373,14 @@ public partial class EmployeeOvertimeService
     {
         if (!crossesMidnight)
         {
-            if (start >= nightStart) return true;
-            if (end <= nightEnd) return true;
-            if (start < nightEnd && end > nightEnd) return true;
-            if (start < nightStart && end > nightStart) return true;
+            if (start >= nightStart)
+                return true;
+            if (end <= nightEnd)
+                return true;
+            if (start < nightEnd && end > nightEnd)
+                return true;
+            if (start < nightStart && end > nightStart)
+                return true;
             return false;
         }
         return true;

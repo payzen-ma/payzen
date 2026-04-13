@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -21,9 +23,9 @@ public class EmailService : IEmailService
     {
         var appBaseUrl = _config["Email:InvitationAppBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
         var acceptUrl = $"{appBaseUrl}/auth/accept-invite?token={invitationToken}";
-        
+
         var subject = $"Invitation à rejoindre {companyName} sur Payzen HR";
-        
+
         var body = $@"
             <html>
             <body>
@@ -36,7 +38,7 @@ public class EmailService : IEmailService
             </body>
             </html>
         ";
-        
+
         var useMock = _config.GetValue<bool?>("Email:UseMock") ?? true;
         if (useMock)
         {
@@ -49,12 +51,94 @@ public class EmailService : IEmailService
             return;
         }
 
-        // TODO: Implémenter SMTP / provider réel ici.
-        _logger.LogInformation(
-            "Email provider non implémenté. Activez Email:UseMock=true en attendant. To={ToEmail}, AcceptUrl={AcceptUrl}",
-            toEmail,
-            acceptUrl);
+        await SendEmailAsync(toEmail, subject, body, ct);
+    }
 
-        await Task.CompletedTask;
+    public async Task SendWelcomeCredentialsEmailAsync(
+        string toEmail,
+        string companyName,
+        string login,
+        string temporaryPassword,
+        string loginUrl,
+        CancellationToken ct = default)
+    {
+        var safeLoginUrl = string.IsNullOrWhiteSpace(loginUrl)
+            ? (_config["Email:InvitationAppBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200") + "/login"
+            : loginUrl;
+
+        var subject = $"Bienvenue sur Payzen HR - Vos identifiants";
+
+        var body = $@"
+            <html>
+            <body>
+                <h2>Bienvenue sur Payzen HR</h2>
+                <p>Votre compte a été créé pour rejoindre <strong>{companyName}</strong>.</p>
+                <p>Voici vos identifiants de connexion :</p>
+                <ul>
+                    <li><strong>Login :</strong> {login}</li>
+                    <li><strong>Mot de passe temporaire :</strong> {temporaryPassword}</li>
+                </ul>
+                <p><a href=""{safeLoginUrl}"">Cliquez ici pour vous connecter</a></p>
+                <p>Pour des raisons de sécurité, changez votre mot de passe dès la première connexion.</p>
+            </body>
+            </html>
+        ";
+
+        var useMock = _config.GetValue<bool?>("Email:UseMock") ?? true;
+        if (useMock)
+        {
+            _logger.LogWarning(
+                "EMAIL MOCK ACTIVE - Welcome credentials non envoyées réellement. To={ToEmail}, Login={Login}, LoginUrl={LoginUrl}, BodyLength={BodyLength}",
+                toEmail,
+                login,
+                safeLoginUrl,
+                body.Length);
+            return;
+        }
+
+        await SendEmailAsync(toEmail, subject, body, ct);
+    }
+
+    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken ct)
+    {
+        var host = _config["Email:SmtpHost"];
+        var username = _config["Email:SmtpUsername"];
+        var password = _config["Email:SmtpPassword"];
+        var from = _config["Email:From"];
+        var port = _config.GetValue<int?>("Email:SmtpPort") ?? 587;
+        var enableSsl = _config.GetValue<bool?>("Email:SmtpEnableSsl") ?? true;
+
+        if (string.IsNullOrWhiteSpace(host)
+            || string.IsNullOrWhiteSpace(username)
+            || string.IsNullOrWhiteSpace(password))
+        {
+            throw new InvalidOperationException("Configuration SMTP incomplète (Email:SmtpHost, Email:SmtpUsername, Email:SmtpPassword).");
+        }
+
+        var sender = string.IsNullOrWhiteSpace(from) ? username : from;
+
+        using var message = new MailMessage();
+        message.From = new MailAddress(sender, "Payzen HR");
+        message.To.Add(new MailAddress(toEmail));
+        message.Subject = subject;
+        message.Body = htmlBody;
+        message.IsBodyHtml = true;
+
+        using var smtp = new SmtpClient(host, port)
+        {
+            EnableSsl = enableSsl,
+            Credentials = new NetworkCredential(username, password)
+        };
+
+        try
+        {
+            await smtp.SendMailAsync(message, ct);
+            _logger.LogInformation("Email envoyé avec succès. To={ToEmail}, Subject={Subject}", toEmail, subject);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Échec envoi email SMTP. To={ToEmail}, Host={Host}, Port={Port}", toEmail, host, port);
+            throw;
+        }
     }
 }

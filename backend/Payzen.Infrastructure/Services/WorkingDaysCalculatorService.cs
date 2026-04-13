@@ -33,8 +33,8 @@ public class WorkingDaysCalculatorService : IWorkingDaysCalculator
         while (current <= endDate)
         {
             var dow = current.DayOfWeek;
-            var isWeekend  = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
-            var isHoliday  = holidaySet.Contains(current);
+            var isWeekend = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
+            var isHoliday = holidaySet.Contains(current);
 
             if (!isWeekend && !isHoliday)
             {
@@ -45,9 +45,6 @@ public class WorkingDaysCalculatorService : IWorkingDaysCalculator
             }
             current = current.AddDays(1);
         }
-        
-        Console.WriteLine($"---------------------------WorkingDays is : {workingDays}");
-
         return workingDays;
     }
 }

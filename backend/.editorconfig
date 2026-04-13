@@ -1,0 +1,73 @@
+# EditorConfig pour tout le monolithe Payzen
+# Place ce fichier à la racine du repo (là où est payzen.sln)
+
+root = true
+
+# ========================================
+# Règles globales
+# ========================================
+
+[*]
+# Utiliser des espaces, taille 4
+indent_style = space
+indent_size = 4
+
+# Fin de ligne LF
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# ========================================
+# Fichiers C#
+# ========================================
+[*.cs]
+
+# Toujours mettre des accolades sur une nouvelle ligne
+csharp_new_line_before_open_brace = all
+
+# Indentation des blocs
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+
+# Objets anonymes et initialisateurs multi-lignes
+csharp_preserve_single_line_blocks = false
+csharp_preserve_single_line_statements = true
+dotnet_style_object_initializer = true:suggestion
+
+# Espacement
+csharp_space_after_comma = true
+csharp_space_before_comma = false
+csharp_space_after_dot = false
+
+# Style de nommage
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_prefix
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.underscore_prefix.required_prefix = _
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+
+# ========================================
+# Alignement et lisibilité
+# ========================================
+csharp_align_multiline_parameters = true
+csharp_align_multiline_arguments = true
+csharp_align_multiline_assignment = true
+
+# ========================================
+# Suppression de warnings inutiles
+# ========================================
+dotnet_diagnostic.IDE0055.severity = suggestion  # Formatting
+dotnet_diagnostic.IDE0060.severity = silent     # Paramètres inutilisés
+
+# ========================================
+# Fichiers JSON et config
+# ========================================
+[*.json]
+indent_style = space
+indent_size = 2

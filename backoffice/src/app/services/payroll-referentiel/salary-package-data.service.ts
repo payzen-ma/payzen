@@ -46,7 +46,6 @@ export interface PayrollDataResult<T> {
  * @example
  * // Get SMIG value with automatic fallback
  * this.salaryDataService.getSmig().subscribe(result => {
- *   console.log(`SMIG: ${result.value} (from ${result.source})`);
  * });
  */
 @Injectable({
@@ -88,7 +87,6 @@ export class SalaryPackageDataService {
         throw new Error('SMIG parameter not found');
       }),
       catchError(err => {
-        console.warn('Failed to fetch SMIG from API, using fallback:', err);
         return of({
           value: LEGACY_SMIG_2025,
           source: 'fallback' as const,
@@ -127,7 +125,6 @@ export class SalaryPackageDataService {
         throw new Error('CNSS ceiling parameter not found');
       }),
       catchError(err => {
-        console.warn('Failed to fetch CNSS ceiling from API, using fallback:', err);
         return of({
           value: LEGACY_CNSS_CEILING,
           source: 'fallback' as const,
@@ -164,7 +161,6 @@ export class SalaryPackageDataService {
         throw new Error('CIMR employee rate parameter not found');
       }),
       catchError(err => {
-        console.warn('Failed to fetch CIMR employee rate from API, using fallback:', err);
         return of({
           value: LEGACY_CIMR_EMPLOYEE_RATE,
           source: 'fallback' as const,
@@ -201,7 +197,6 @@ export class SalaryPackageDataService {
         throw new Error('CIMR employer rate parameter not found');
       }),
       catchError(err => {
-        console.warn('Failed to fetch CIMR employer rate from API, using fallback:', err);
         return of({
           value: LEGACY_CIMR_EMPLOYER_RATE,
           source: 'fallback' as const,
@@ -239,7 +234,6 @@ export class SalaryPackageDataService {
         };
       }),
       catchError(err => {
-        console.warn('Failed to fetch parameters from API:', err);
         return of({
           value: new Map<string, LegalParameterDto>(),
           source: 'fallback' as const,
@@ -270,7 +264,6 @@ export class SalaryPackageDataService {
         throw new Error(`Parameter ${name} not found`);
       }),
       catchError(err => {
-        console.warn(`Failed to fetch parameter ${name} from API, using fallback:`, err);
         return of({
           value: fallbackValue,
           source: 'fallback' as const,

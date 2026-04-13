@@ -1,15 +1,15 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Gender, CreateGenderRequest, UpdateGenderRequest } from '../models/gender.model';
+import { CreateGenderRequest, Gender, UpdateGenderRequest } from '../models/gender.model';
 
 @Injectable({ providedIn: 'root' })
 export class GenderService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/genders`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private fromDto(dto: any): Gender {
     return {

@@ -1,18 +1,19 @@
-import { Component, signal, input, computed, output, effect, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { UserRole } from '@app/core/models/user.model';
+import { AuthService } from '@app/core/services/auth.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { TranslateModule } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
-import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
-import { TranslateModule } from '@ngx-translate/core';
+import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
-import { SidebarGroupComponent } from './sidebar-group/sidebar-group.component';
 import { SidebarGroupLabelComponent } from './sidebar-group/sidebar-group-label.component';
-import { AuthService } from '@app/core/services/auth.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { UserRole } from '@app/core/models/user.model';
+import { SidebarGroupComponent } from './sidebar-group/sidebar-group.component';
+import { IconifyComponent } from '../ui/iconify/iconify.component';
 
 interface BadgeConfig {
   count: number;
@@ -44,15 +45,16 @@ interface MenuItemConfig extends MenuItem {
     TranslateModule,
     TooltipModule,
     SidebarGroupComponent,
-    SidebarGroupLabelComponent
+    SidebarGroupLabelComponent,
+    IconifyComponent
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
   // === Inputs ===
-  readonly Width = input<number>(240);
-  readonly CollapsedWidth = input<number>(70);
+  readonly Width = input<number>(272);
+  readonly CollapsedWidth = input<number>(72);
   readonly Collapsible = input<boolean>(false);
   readonly Collapsed = input<boolean>(false);
   readonly CollapsedChange = output<boolean>();
@@ -108,7 +110,7 @@ export class Sidebar {
     if (!user) return '';
     return user.username || user.email;
   });
-  
+
   readonly userRoleLabel = computed(() => {
     const role = this.currentUser()?.role;
     const roleLabels: Record<string, string> = {
@@ -194,9 +196,9 @@ export class Sidebar {
       groupe: 'expert-overview',
       itemBadge: null
     },
-    { 
-      label: 'nav.dashboard', 
-      icon: 'pi pi-home', 
+    {
+      label: 'nav.dashboard',
+      icon: 'pi pi-home',
       routerLink: '/dashboard',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER, UserRole.EMPLOYEE, UserRole.CEO],
       modes: ['expert-client', 'standard'],
@@ -214,9 +216,9 @@ export class Sidebar {
       groupe: 'overview',
       itemBadge: null
     },
-    { 
-      label: 'nav.compliance', 
-      icon: 'pi pi-shield', 
+    {
+      label: 'nav.compliance',
+      icon: 'pi pi-shield',
       routerLink: '/compliance',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
@@ -225,9 +227,9 @@ export class Sidebar {
       itemBadge: null,
       notImplemented: true
     },
-    { 
-      label: 'nav.hrIndicators', 
-      icon: 'pi pi-chart-line', 
+    {
+      label: 'nav.hrIndicators',
+      icon: 'pi pi-chart-line',
       routerLink: '/hr-indicators',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
@@ -240,14 +242,24 @@ export class Sidebar {
     // ─────────────────────────────────────────────────────────────
     // PAIE
     // ─────────────────────────────────────────────────────────────
-    { 
-      label: 'nav.payroll', 
-      icon: 'pi pi-wallet', 
+    {
+      label: 'nav.payroll',
+      icon: 'pi pi-wallet',
       routerLink: '/payroll/bulletin',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
       groupe: 'payroll',
+    },
+    {
+      label: 'Règles de Paie',
+      icon: 'pi pi-sliders-v',
+      routerLink: '/payroll/rules',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null
     },
     {
       label: 'nav.payslips',
@@ -305,9 +317,9 @@ export class Sidebar {
     // ─────────────────────────────────────────────────────────────
     // COLLABORATEURS
     // ─────────────────────────────────────────────────────────────
-    { 
-      label: 'nav.employees', 
-      icon: 'pi pi-users', 
+    {
+      label: 'nav.employees',
+      icon: 'pi pi-users',
       routerLink: '/employees',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH, UserRole.MANAGER],
       modes: ['expert-all', 'standard'],
@@ -486,9 +498,9 @@ export class Sidebar {
     // ─────────────────────────────────────────────────────────────
     // ADMINISTRATION
     // ─────────────────────────────────────────────────────────────
-    { 
-      label: 'nav.reports', 
-      icon: 'pi pi-chart-bar', 
+    {
+      label: 'nav.reports',
+      icon: 'pi pi-chart-bar',
       routerLink: '/reports',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
       modes: ['expert-all', 'standard'],
@@ -530,9 +542,9 @@ export class Sidebar {
       itemBadge: null,
       notImplemented: true
     },
-    { 
-      label: 'nav.settings', 
-      icon: 'pi pi-cog', 
+    {
+      label: 'nav.settings',
+      icon: 'pi pi-cog',
       routerLink: '/company',
       requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN],
       modes: ['expert-all', 'standard'],
@@ -559,14 +571,14 @@ export class Sidebar {
     const prefix = this.routePrefix();
     const isExpert = this.isExpertMode();
     const isClientView = this.isClientView();
-    
+
     // Use context role if available, fallback to user role
     // This ensures the role matches the selected membership context
     const contextRole = (this.contextService.role() ?? '').toLowerCase();
     const userRole = (user?.role ?? '').toLowerCase();
     const userRoles = Array.isArray(user?.roles) ? user.roles.map(r => String(r).toLowerCase()) : [];
     const effectiveRoles = [contextRole, userRole, ...userRoles].filter(Boolean);
-    
+
     // Determine current mode
     let currentMode: 'expert' | 'standard' | 'expert-client' | 'expert-all' = 'standard';
     if (isExpert) {
@@ -675,7 +687,7 @@ export class Sidebar {
   readonly groupedMenuItems = computed(() => {
     const items = this.menuItems();
     const grouped = new Map<string, MenuItemConfig[]>();
-    
+
     // Group items by their groupe property
     items.forEach(item => {
       const groupKey = item.groupe || 'ungrouped';
@@ -717,24 +729,27 @@ export class Sidebar {
       event.stopPropagation();
       return false;
     }
-    
+
     const isExpert = this.isExpertMode();
     const hasClient = this.isClientView();
-    
+
     // In expert mode, lock all sidebar navigation while no client context is selected.
     if (isExpert && !hasClient) {
       event.preventDefault();
       event.stopPropagation();
-      
+
       // Store the intended route
       this.pendingNavigationRoute.set(item.routerLink || null);
-      
+
       // Show the company selection dialog
       this.showCompanyRequiredDialog.set(true);
-      
+
       return false;
     }
-    
+
+    // Ask the layout to close the temporary mobile drawer after navigation.
+    this.closeSidebar();
+
     return true;
   }
 
@@ -792,7 +807,7 @@ export class Sidebar {
         label: 'contextSelection.switchWorkspace',
         icon: 'pi pi-sync',
         command: () => this.switchWorkspace()
-      // (HR leave for employees is available in my-space as 'nav.leave')
+        // (HR leave for employees is available in my-space as 'nav.leave')
       });
     }
 

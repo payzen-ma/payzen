@@ -1,18 +1,17 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
-import { Role, Permission, RoleCreateRequest, RoleUpdateRequest } from '../models/role.model';
+import { map } from 'rxjs/operators';
+import { Role, RoleCreateRequest, RoleUpdateRequest } from '../models/role.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RoleService {
-  private baseUrl = 'http://localhost:5119';
+  private baseUrl = 'https://api-test.payzenhr.com';
   private apiUrl = `${this.baseUrl}/api/roles`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Transform API response from PascalCase to camelCase
@@ -28,8 +27,8 @@ export class RoleService {
       description: data.Description ?? data.description ?? '',
       permissions: data.Permissions ?? data.permissions ?? [],
       userCount: (typeof userCountFromField === 'number') ? userCountFromField
-                : (typeof computedUserCount === 'number') ? computedUserCount
-                : 0,
+        : (typeof computedUserCount === 'number') ? computedUserCount
+          : 0,
       createdAt: data.CreatedAt ?? data.createdAt ?? null
     };
   }
@@ -92,7 +91,6 @@ export class RoleService {
     // API expects RolePermissionsBulkAssignDto at POST /api/roles-permissions/bulk-assign
     const url = `${this.baseUrl}/api/roles-permissions/bulk-assign`;
     const payload: any = { RoleId: roleId, PermissionIds: permissionIds };
-    console.debug('[RoleService] assignPermissions payload:', payload);
     return this.http.post<any>(url, payload);
   }
 

@@ -14,7 +14,7 @@ namespace Payzen.Infrastructure.Services.Auth;
 public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
-    private readonly IJwtService  _jwt;
+    private readonly IJwtService _jwt;
     private readonly ILogger<AuthService> _logger;
     private readonly HashSet<string> _adminAllowedDomains;
     private readonly HashSet<string> _adminAllowedEmails;
@@ -95,7 +95,8 @@ public class AuthService : IAuthService
         if (user == null)
         {
             var baseUsername = email.Split('@')[0];
-            if (baseUsername.Length < 3) baseUsername = baseUsername.PadRight(3, 'u');
+            if (baseUsername.Length < 3)
+                baseUsername = baseUsername.PadRight(3, 'u');
 
             var usernameCandidate = baseUsername;
             var suffix = 1;
@@ -111,13 +112,13 @@ public class AuthService : IAuthService
 
             user = new Users
             {
-                Username   = usernameCandidate,
-                Email      = email,
-                IsActive   = true,
+                Username = usernameCandidate,
+                Email = email,
+                IsActive = true,
                 EmployeeId = isEmployeeEligible ? employee!.Id : null,
                 ExternalId = externalId,
-                Source     = source,
-                CreatedBy  = 1
+                Source = source,
+                CreatedBy = 1
             };
 
             _db.Users.Add(user);
@@ -345,10 +346,10 @@ public class AuthService : IAuthService
 
         var user = new Users
         {
-            Username     = dto.Username,
-            Email        = dto.Email,
-            IsActive     = dto.IsActive,
-            CreatedBy    = createdBy
+            Username = dto.Username,
+            Email = dto.Email,
+            IsActive = dto.IsActive,
+            CreatedBy = createdBy
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
@@ -358,21 +359,22 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<UserReadDto>> UpdateUserAsync(int id, UserUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.DeletedAt == null, ct);
-        if (user == null) return ServiceResult<UserReadDto>.Fail("Utilisateur introuvable.");
+        if (user == null)
+            return ServiceResult<UserReadDto>.Fail("Utilisateur introuvable.");
 
         // Vérifie que l'email est unique parmi les utilisateurs actifs (sauf pour l'utilisateur en cours de modification)
         if (dto.Email != null && await _db.Users.AnyAsync(u => u.Email ==
             dto.Email && u.Id != id && u.DeletedAt == null, ct))
             return ServiceResult<UserReadDto>.Fail("Un utilisateur avec cet email existe déjà.");
-        
+
         // Vérifie que le username est unique parmi les utilisateurs actifs (sauf pour l'utilisateur en cours de modification)
         if (dto.Username != null && await _db.Users.AnyAsync(u => u.Username ==
             dto.Username && u.Id != id && u.DeletedAt == null, ct))
             return ServiceResult<UserReadDto>.Fail("Un utilisateur avec ce nom d'utilisateur existe déjà.");
-        
+
         user.Email = dto.Email ?? user.Email;
-        user.Username  = dto.Username ?? user.Username;
-        user.IsActive  = dto.IsActive ?? user.IsActive;
+        user.Username = dto.Username ?? user.Username;
+        user.IsActive = dto.IsActive ?? user.IsActive;
         user.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<UserReadDto>.Ok(MapUser(user));
@@ -381,10 +383,13 @@ public class AuthService : IAuthService
     public async Task<ServiceResult> DeleteUserAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.DeletedAt == null, ct);
-        if (user == null) return ServiceResult.Fail("Utilisateur introuvable.");
-        if(user.Id == id) return ServiceResult.Fail("Vous ne pouvez pas supprimer votre propre compte.");
+        if (user == null)
+            return ServiceResult.Fail("Utilisateur introuvable.");
+        if (user.Id == id)
+            return ServiceResult.Fail("Vous ne pouvez pas supprimer votre propre compte.");
         var hasRoles = await _db.UsersRoles.AnyAsync(ur => ur.UserId == id && ur.DeletedAt == null, ct);
-        if (hasRoles) return ServiceResult.Fail("Impossible de supprimer un utilisateur avec des rôles assignés. Révoquez d'abord les rôles.");
+        if (hasRoles)
+            return ServiceResult.Fail("Impossible de supprimer un utilisateur avec des rôles assignés. Révoquez d'abord les rôles.");
         user.DeletedAt = DateTimeOffset.UtcNow;
         user.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -405,13 +410,14 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<RoleSummaryDto>> GetRoleSummaryAsync(int roleId, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult<RoleSummaryDto>.Fail("Rôle introuvable.");
+        if (role == null)
+            return ServiceResult<RoleSummaryDto>.Fail("Rôle introuvable.");
 
         var userCount = await _db.UsersRoles.CountAsync(ur => ur.RoleId == roleId && ur.DeletedAt == null, ct);
         return ServiceResult<RoleSummaryDto>.Ok(new RoleSummaryDto
         {
-            Id        = role.Id,
-            Name      = role.Name,
+            Id = role.Id,
+            Name = role.Name,
             UserCount = userCount
         });
     }
@@ -430,8 +436,9 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<RoleReadDto>> UpdateRoleAsync(int id, RoleUpdateDto dto, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult<RoleReadDto>.Fail("Rôle introuvable.");
-        role.Name        = dto.Name        ?? role.Name;
+        if (role == null)
+            return ServiceResult<RoleReadDto>.Fail("Rôle introuvable.");
+        role.Name = dto.Name ?? role.Name;
         role.Description = dto.Description ?? role.Description;
         await _db.SaveChangesAsync(ct);
         return ServiceResult<RoleReadDto>.Ok(MapRole(role));
@@ -440,7 +447,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult> DeleteRoleAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult.Fail("Rôle introuvable.");
+        if (role == null)
+            return ServiceResult.Fail("Rôle introuvable.");
         role.DeletedAt = DateTimeOffset.UtcNow;
         role.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
@@ -465,11 +473,11 @@ public class AuthService : IAuthService
 
         var perm = new Permissions
         {
-            Name        = dto.Name,
+            Name = dto.Name,
             Description = dto.Description,
-            Resource    = dto.Resource,
-            Action      = dto.Action,
-            CreatedBy   = createdBy
+            Resource = dto.Resource,
+            Action = dto.Action,
+            CreatedBy = createdBy
         };
         _db.Permissions.Add(perm);
         await _db.SaveChangesAsync(ct);
@@ -479,10 +487,11 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<PermissionReadDto>> UpdatePermissionAsync(int id, PermissionUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var perm = await _db.Permissions.FirstOrDefaultAsync(p => p.Id == id && p.DeletedAt == null, ct);
-        if (perm == null) return ServiceResult<PermissionReadDto>.Fail("Permission introuvable.");
+        if (perm == null)
+            return ServiceResult<PermissionReadDto>.Fail("Permission introuvable.");
         if (dto.Name != null && await _db.Permissions.AnyAsync(p => p.Name == dto.Name && p.Id != id && p.DeletedAt == null, ct))
             return ServiceResult<PermissionReadDto>.Fail("Une permission avec ce nom existe déjà.");
-        perm.Name        = dto.Name        ?? perm.Name;
+        perm.Name = dto.Name ?? perm.Name;
         perm.Description = dto.Description ?? perm.Description;
         perm.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
@@ -492,7 +501,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult> DeletePermissionAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var perm = await _db.Permissions.FirstOrDefaultAsync(p => p.Id == id && p.DeletedAt == null, ct);
-        if (perm == null) return ServiceResult.Fail("Permission introuvable.");
+        if (perm == null)
+            return ServiceResult.Fail("Permission introuvable.");
         perm.DeletedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
@@ -503,7 +513,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<IEnumerable<RolePermissionSimpleDto>>> GetPermissionsForRoleAsync(int roleId, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult<IEnumerable<RolePermissionSimpleDto>>.Fail("Role introuvable.");
+        if (role == null)
+            return ServiceResult<IEnumerable<RolePermissionSimpleDto>>.Fail("Role introuvable.");
 
         var perms = await _db.RolesPermissions
             .Where(rp => rp.RoleId == roleId && rp.DeletedAt == null)
@@ -514,7 +525,7 @@ public class AuthService : IAuthService
                 PermissionId = rp.PermissionId,
                 PermissionName = rp.Permission.Name,
                 PermissionDescription = rp.Permission.Description
-                
+
             })
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<RolePermissionSimpleDto>>.Ok(perms);
@@ -523,10 +534,12 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<RolePermissionReadDto>> AssignPermissionToRoleAsync(RolePermissionAssignDto dto, int createdBy, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == dto.RoleId && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult<RolePermissionReadDto>.Fail("Rôle introuvable.");
+        if (role == null)
+            return ServiceResult<RolePermissionReadDto>.Fail("Rôle introuvable.");
 
         var perm = await _db.Permissions.FirstOrDefaultAsync(p => p.Id == dto.PermissionId && p.DeletedAt == null, ct);
-        if (perm == null) return ServiceResult<RolePermissionReadDto>.Fail("Permission introuvable.");
+        if (perm == null)
+            return ServiceResult<RolePermissionReadDto>.Fail("Permission introuvable.");
 
         if (await _db.RolesPermissions.AnyAsync(rp => rp.RoleId == dto.RoleId && rp.PermissionId == dto.PermissionId && rp.DeletedAt == null, ct))
             return ServiceResult<RolePermissionReadDto>.Fail("Cette permission est déjà assignée à ce rôle.");
@@ -540,13 +553,13 @@ public class AuthService : IAuthService
 
         return ServiceResult<RolePermissionReadDto>.Ok(new RolePermissionReadDto
         {
-            Id                  = rp.Id,
-            RoleId              = rp.RoleId,
-            PermissionId        = rp.PermissionId,
-            RoleName            = rp.Role.Name,
-            PermissionName      = rp.Permission.Name,
+            Id = rp.Id,
+            RoleId = rp.RoleId,
+            PermissionId = rp.PermissionId,
+            RoleName = rp.Role.Name,
+            PermissionName = rp.Permission.Name,
             PermissionDescription = rp.Permission.Description,
-            CreatedAt           = rp.CreatedAt.DateTime
+            CreatedAt = rp.CreatedAt.DateTime
         });
     }
 
@@ -617,7 +630,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult> RevokePermissionFromRoleAsync(int roleId, int permissionId, CancellationToken ct = default)
     {
         var rp = await _db.RolesPermissions.FirstOrDefaultAsync(r => r.RoleId == roleId && r.PermissionId == permissionId && r.DeletedAt == null, ct);
-        if (rp == null) return ServiceResult.Fail("Association introuvable.");
+        if (rp == null)
+            return ServiceResult.Fail("Association introuvable.");
         rp.DeletedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
@@ -628,7 +642,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult<RoleUsersDto>> GetUsersInRoleAsync(int roleId, CancellationToken ct = default)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.DeletedAt == null, ct);
-        if (role == null) return ServiceResult<RoleUsersDto>.Fail("Rôle introuvable.");
+        if (role == null)
+            return ServiceResult<RoleUsersDto>.Fail("Rôle introuvable.");
 
         var users = await _db.UsersRoles
             .Where(ur => ur.RoleId == roleId && ur.DeletedAt == null)
@@ -665,14 +680,14 @@ public class AuthService : IAuthService
 
         return ServiceResult<UserRoleReadDto>.Ok(new UserRoleReadDto
         {
-            Id              = ur.Id,
-            UserId          = ur.UserId,
-            RoleId          = ur.RoleId,
-            Username        = ur.User.Username,
-            UserEmail       = ur.User.Email,
-            RoleName        = ur.Role.Name,
+            Id = ur.Id,
+            UserId = ur.UserId,
+            RoleId = ur.RoleId,
+            Username = ur.User.Username,
+            UserEmail = ur.User.Email,
+            RoleName = ur.Role.Name,
             RoleDescription = ur.Role.Description,
-            CreatedAt       = ur.CreatedAt.DateTime
+            CreatedAt = ur.CreatedAt.DateTime
         });
     }
 
@@ -685,7 +700,9 @@ public class AuthService : IAuthService
 
         var toAdd = dto.RoleIds.Except(existing).Select(rid => new UsersRoles
         {
-            UserId = dto.UserId, RoleId = rid, CreatedBy = createdBy
+            UserId = dto.UserId,
+            RoleId = rid,
+            CreatedBy = createdBy
         });
         _db.UsersRoles.AddRange(toAdd);
         await _db.SaveChangesAsync(ct);
@@ -695,7 +712,8 @@ public class AuthService : IAuthService
     public async Task<ServiceResult> RevokeRoleFromUserAsync(int userId, int roleId, CancellationToken ct = default)
     {
         var ur = await _db.UsersRoles.FirstOrDefaultAsync(u => u.UserId == userId && u.RoleId == roleId && u.DeletedAt == null, ct);
-        if (ur == null) return ServiceResult.Fail("Association introuvable.");
+        if (ur == null)
+            return ServiceResult.Fail("Association introuvable.");
         ur.DeletedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
@@ -774,19 +792,19 @@ public class AuthService : IAuthService
             await _db.SaveChangesAsync(ct);
 
             // 6. Logs après SaveChanges (DB cohérente avant de logger)
-           /* if (user.EmployeeId.HasValue)
-            {
-                var logTasks = currentRoles
-                    .Where(ur => ur.Role != null)
-                    .Select(ur => _employeeEventLogService.LogEventAsync(
-                        user.EmployeeId.Value, "Role_Removed",
-                        ur.Role.Name, ur.Role.Id, null, null, updatedBy))
-                    .Append(_employeeEventLogService.LogEventAsync(
-                        user.EmployeeId.Value, "Role_Assigned",
-                        null, null, role.Name, role.Id, updatedBy));
+            /* if (user.EmployeeId.HasValue)
+             {
+                 var logTasks = currentRoles
+                     .Where(ur => ur.Role != null)
+                     .Select(ur => _employeeEventLogService.LogEventAsync(
+                         user.EmployeeId.Value, "Role_Removed",
+                         ur.Role.Name, ur.Role.Id, null, null, updatedBy))
+                     .Append(_employeeEventLogService.LogEventAsync(
+                         user.EmployeeId.Value, "Role_Assigned",
+                         null, null, role.Name, role.Id, updatedBy));
 
-                await Task.WhenAll(logTasks);
-            }*/ // Log is not implented yet
+                 await Task.WhenAll(logTasks);
+             }*/ // Log is not implented yet
 
             await tx.CommitAsync(ct);
             return ServiceResult.Ok();
@@ -838,29 +856,29 @@ public class AuthService : IAuthService
 
     private static UserReadDto MapUser(Users u) => new()
     {
-        Id        = u.Id,
-        Username  = u.Username,
-        Email     = u.Email,
-        IsActive  = u.IsActive,
+        Id = u.Id,
+        Username = u.Username,
+        Email = u.Email,
+        IsActive = u.IsActive,
         CreatedAt = u.CreatedAt.DateTime
     };
 
     private static RoleReadDto MapRole(Roles r) => new()
     {
-        Id          = r.Id,
-        Name        = r.Name,
+        Id = r.Id,
+        Name = r.Name,
         Description = r.Description,
-        CreatedAt   = r.CreatedAt.DateTime
+        CreatedAt = r.CreatedAt.DateTime
     };
 
     private static PermissionReadDto MapPermission(Permissions p) => new()
     {
-        Id          = p.Id,
-        Name        = p.Name,
+        Id = p.Id,
+        Name = p.Name,
         Description = p.Description,
-        Resource    = p.Resource,
-        Action      = p.Action,
-        CreatedAt   = p.CreatedAt.DateTime
+        Resource = p.Resource,
+        Action = p.Action,
+        CreatedAt = p.CreatedAt.DateTime
     };
 
     private bool IsPayZenStaffEmail(string email)

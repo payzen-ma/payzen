@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Hosting;
 using System.Globalization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Payzen.Application.Common;
-using Payzen.Application.DTOs.Auth;
 using Payzen.Application.DTOs.Dashboard;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.Interfaces;
@@ -10,7 +10,6 @@ using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Employee;
 using Payzen.Domain.Enums;
 using Payzen.Infrastructure.Persistence;
-using Microsoft.Extensions.Logging;
 
 namespace Payzen.Infrastructure.Services.Employee;
 
@@ -21,31 +20,40 @@ public class EmployeeService : IEmployeeService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
-    private readonly IInvitationService _invitationService;
+    private readonly IIdentityProvisioningService _identityProvisioningService;
+    private readonly IEmailService _emailService;
     private readonly ILogger<EmployeeService> _logger;
-    private readonly EmployeeContractService   _contracts;
-    private readonly EmployeeSalaryService     _salaries;
-    private readonly EmployeeDocumentService   _documents;
-    private readonly EmployeeAddressService    _addresses;
-    private readonly EmployeeFamilyService     _family;
-    private readonly EmployeeAbsenceService    _absences;
-    private readonly EmployeeOvertimeService   _overtimes;
+    private readonly EmployeeContractService _contracts;
+    private readonly EmployeeSalaryService _salaries;
+    private readonly EmployeeDocumentService _documents;
+    private readonly EmployeeAddressService _addresses;
+    private readonly EmployeeFamilyService _family;
+    private readonly EmployeeAbsenceService _absences;
+    private readonly EmployeeOvertimeService _overtimes;
     private readonly EmployeeAttendanceService _attendances;
 
-    public EmployeeService(AppDbContext db, IWebHostEnvironment env, IEmployeeEventLogService eventLog, IInvitationService invitationService, ILeaveBalanceRecalculationService leaveBalanceRecalculation, ILogger<EmployeeService> logger)
+    public EmployeeService(
+        AppDbContext db,
+        IWebHostEnvironment env,
+        IEmployeeEventLogService eventLog,
+        IIdentityProvisioningService identityProvisioningService,
+        IEmailService emailService,
+        ILeaveBalanceRecalculationService leaveBalanceRecalculation,
+        ILogger<EmployeeService> logger)
     {
-        _db          = db;
-        _eventLog    = eventLog;
-        _invitationService = invitationService;
+        _db = db;
+        _eventLog = eventLog;
+        _identityProvisioningService = identityProvisioningService;
+        _emailService = emailService;
         _ = leaveBalanceRecalculation;
-        _logger      = logger;
-        _contracts   = new EmployeeContractService(db, eventLog);
-        _salaries    = new EmployeeSalaryService(db, eventLog);
-        _documents   = new EmployeeDocumentService(db, env);
-        _addresses   = new EmployeeAddressService(db, eventLog);
-        _family      = new EmployeeFamilyService(db);
-        _absences    = new EmployeeAbsenceService(db);
-        _overtimes   = new EmployeeOvertimeService(db);
+        _logger = logger;
+        _contracts = new EmployeeContractService(db, eventLog);
+        _salaries = new EmployeeSalaryService(db, eventLog);
+        _documents = new EmployeeDocumentService(db, env);
+        _addresses = new EmployeeAddressService(db, eventLog);
+        _family = new EmployeeFamilyService(db);
+        _absences = new EmployeeAbsenceService(db);
+        _overtimes = new EmployeeOvertimeService(db);
         _attendances = new EmployeeAttendanceService(db);
     }
 
@@ -54,7 +62,8 @@ public class EmployeeService : IEmployeeService
     public async Task<ServiceResult<DashboardResponseDto>> GetAllAsync(int? companyId, CancellationToken ct = default)
     {
         var q = _db.Employees.AsQueryable();
-        if (companyId.HasValue) q = q.Where(e => e.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(e => e.CompanyId == companyId.Value);
         q = q.Where(e => e.DeletedAt == null);
 
         var employees = await q
@@ -174,7 +183,8 @@ public class EmployeeService : IEmployeeService
                 .ThenInclude(c => c!.Country)
             .FirstOrDefaultAsync(ct);
 
-        if (e == null) return ServiceResult<EmployeeDetailDto>.Fail("Employé introuvable.");
+        if (e == null)
+            return ServiceResult<EmployeeDetailDto>.Fail("Employé introuvable.");
 
         var primaryAddr = e.Addresses
             .Where(a => a.DeletedAt == null)
@@ -217,9 +227,13 @@ public class EmployeeService : IEmployeeService
 
         return ServiceResult<EmployeeDetailDto>.Ok(new EmployeeDetailDto
         {
-            Id = e.Id, FirstName = e.FirstName, LastName = e.LastName,
-            CinNumber = e.CinNumber, DateOfBirth = e.DateOfBirth,
-            Email = e.Email, Phone = e.Phone,
+            Id = e.Id,
+            FirstName = e.FirstName,
+            LastName = e.LastName,
+            CinNumber = e.CinNumber,
+            DateOfBirth = e.DateOfBirth,
+            Email = e.Email,
+            Phone = e.Phone,
             CompanyId = e.CompanyId,
             CountryPhoneCode = primaryAddr?.City?.Country?.CountryPhoneCode,
             departments = e.Departement?.DepartementName,
@@ -254,7 +268,8 @@ public class EmployeeService : IEmployeeService
                     CountryId = primaryAddr.City?.CountryId,
                     CountryName = primaryAddr.City?.Country?.CountryName ?? string.Empty
                 },
-            cnss = e.CnssNumber, cimr = e.CimrNumber,
+            cnss = e.CnssNumber,
+            cimr = e.CimrNumber,
             cimrEmployeeRate = e.CimrEmployeeRate,
             cimrCompanyRate = e.CimrCompanyRate,
             hasPrivateInsurance = e.HasPrivateInsurance,
@@ -313,7 +328,8 @@ public class EmployeeService : IEmployeeService
     private async Task<Dictionary<int, (string Name, string Role)>> LoadEmployeeLogModifiersAsync(IReadOnlyCollection<int> userIds, CancellationToken ct)
     {
         var dict = new Dictionary<int, (string Name, string Role)>();
-        if (userIds.Count == 0) return dict;
+        if (userIds.Count == 0)
+            return dict;
 
         var users = await _db.Users.AsNoTracking()
             .Where(u => userIds.Contains(u.Id))
@@ -327,7 +343,8 @@ public class EmployeeService : IEmployeeService
             var name = u.Employee != null
                 ? $"{u.Employee.FirstName} {u.Employee.LastName}".Trim()
                 : "Système";
-            if (string.IsNullOrWhiteSpace(name)) name = "Système";
+            if (string.IsNullOrWhiteSpace(name))
+                name = "Système";
 
             var roleName = u.UsersRoles?
                 .Where(ur => ur.DeletedAt == null)
@@ -340,10 +357,28 @@ public class EmployeeService : IEmployeeService
         return dict;
     }
 
+    private async Task<string> GenerateUniqueUsernameAsync(string email, CancellationToken ct)
+    {
+        var baseUsername = email.Split('@')[0].Trim();
+        if (baseUsername.Length < 3)
+            baseUsername = baseUsername.PadRight(3, 'u');
+
+        var usernameCandidate = baseUsername;
+        var suffix = 1;
+        while (await _db.Users.AnyAsync(u => u.Username == usernameCandidate && u.DeletedAt == null, ct))
+        {
+            usernameCandidate = $"{baseUsername}{suffix}";
+            suffix++;
+        }
+
+        return usernameCandidate;
+    }
+
     public async Task<ServiceResult<EmployeeReadDto>> GetCurrentAsync(int userId, CancellationToken ct = default)
     {
         var user = await _db.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId, ct);
-        if (user?.Employee == null) return ServiceResult<EmployeeReadDto>.Fail("Employé introuvable pour cet utilisateur.");
+        if (user?.Employee == null)
+            return ServiceResult<EmployeeReadDto>.Fail("Employé introuvable pour cet utilisateur.");
         return ServiceResult<EmployeeReadDto>.Ok(MapToRead(user.Employee));
     }
 
@@ -353,9 +388,13 @@ public class EmployeeService : IEmployeeService
     public async Task<ServiceResult<object>> GetSummaryAsync(int? companyId, CancellationToken ct = default)
     {
         var q = _db.Employees.AsQueryable();
-        if (companyId.HasValue) q = q.Where(e => e.CompanyId == companyId.Value);
+        if (companyId.HasValue)
+            q = q.Where(e => e.CompanyId == companyId.Value);
         var total = await q.CountAsync(ct);
-        return ServiceResult<object>.Ok(new { totalEmployees = total });
+        return ServiceResult<object>.Ok(new
+        {
+            totalEmployees = total
+        });
     }
 
     public async Task<ServiceResult<IEnumerable<object>>> GetHistoryAsync(int employeeId, CancellationToken ct = default)
@@ -522,24 +561,70 @@ public class EmployeeService : IEmployeeService
         });
     }
 
-    // Crée un nouvel employé, aprés la création du employé, on doit crée un utilisateur lié à l'employé, envoyer un email d'invitation à l'employé pour qu'il active son compte et login.
+    // Crée un employé puis, par défaut, crée aussi son compte (Entra + DB) et envoie un email de bienvenue avec identifiants.
     public async Task<ServiceResult<EmployeeReadDto>> CreateAsync(EmployeeCreateDto dto, int createdBy, CancellationToken ct = default)
     {
+        var normalizedPhone = $"{dto.CountryPhoneCode.Trim()}{dto.Phone.Trim()}";
         var syncContract = dto.JobPositionId is > 0 && dto.ContractTypeId is > 0 && dto.StartDate.HasValue;
         var partialContract = (dto.JobPositionId is > 0 || dto.ContractTypeId is > 0 || dto.StartDate.HasValue) && !syncContract;
-       
+
         if (partialContract)
             return ServiceResult<EmployeeReadDto>.Fail("Pour enregistrer le contrat, le poste, le type de contrat et la date de début sont requis.");
 
         var wantMonthly = dto.Salary is > 0;
         var wantHourly = dto.SalaryHourly.HasValue && dto.SalaryHourly.Value > 0;
-        
+
         if ((wantMonthly || wantHourly) && !syncContract)
             return ServiceResult<EmployeeReadDto>.Fail("Pour enregistrer le salaire, renseignez le contrat (poste, type de contrat et date de début).");
 
         var companyId = dto.CompanyId ?? 0;
         if (syncContract && companyId < 1)
             return ServiceResult<EmployeeReadDto>.Fail("L'ID de la société est requis pour créer un contrat.");
+
+        var shouldCreateUserAccount = dto.CreateUserAccount;
+        var roleIdForNewUser = dto.InviteRoleId.GetValueOrDefault();
+        if (shouldCreateUserAccount)
+        {
+            if (companyId < 1)
+                return ServiceResult<EmployeeReadDto>.Fail("L'ID de la société est requis pour créer le compte utilisateur.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return ServiceResult<EmployeeReadDto>.Fail("L'email de l'employé est requis pour créer son compte utilisateur.");
+
+            if (roleIdForNewUser <= 0)
+                return ServiceResult<EmployeeReadDto>.Fail("Le rôle utilisateur est requis pour créer le compte employé.");
+        }
+
+        ProvisionedIdentityResult? provisionedIdentity = null;
+        string? companyNameForWelcomeEmail = null;
+        if (shouldCreateUserAccount)
+        {
+            var userExists = await _db.Users.AnyAsync(u => u.Email == dto.Email && u.DeletedAt == null, ct);
+            if (userExists)
+                return ServiceResult<EmployeeReadDto>.Fail("Un utilisateur avec cet email existe déjà.");
+
+            var roleExists = await _db.Roles.AnyAsync(r => r.Id == roleIdForNewUser && r.DeletedAt == null, ct);
+            if (!roleExists)
+                return ServiceResult<EmployeeReadDto>.Fail("Le rôle sélectionné pour le compte utilisateur est introuvable.");
+
+            companyNameForWelcomeEmail = await _db.Companies
+                .Where(c => c.Id == companyId && c.DeletedAt == null)
+                .Select(c => c.CompanyName)
+                .FirstOrDefaultAsync(ct);
+
+            if (string.IsNullOrWhiteSpace(companyNameForWelcomeEmail))
+                return ServiceResult<EmployeeReadDto>.Fail("Société introuvable pour la création du compte utilisateur.");
+
+            var provisioning = await _identityProvisioningService.ProvisionEmployeeAccountAsync(
+                dto.Email,
+                dto.FirstName,
+                dto.LastName,
+                ct);
+            if (!provisioning.Success || provisioning.Data == null)
+                return ServiceResult<EmployeeReadDto>.Fail(provisioning.Error ?? "La création du compte Entra a échoué.");
+
+            provisionedIdentity = provisioning.Data;
+        }
 
         var annualLeaveOpening = dto.AnnualLeave.HasValue && dto.AnnualLeave.Value > 0m ? dto.AnnualLeave.Value : 0m;
         var annualLeaveOpeningEffectiveMonth = annualLeaveOpening > 0m
@@ -548,26 +633,26 @@ public class EmployeeService : IEmployeeService
 
         var e = new Domain.Entities.Employee.Employee
         {
-            FirstName        = dto.FirstName,
-            LastName         = dto.LastName,
-            CinNumber        = dto.CinNumber,
-            DateOfBirth      = dto.DateOfBirth,
-            Email            = dto.Email,
-            Phone            = dto.Phone,
-            CompanyId        = companyId,
-            DepartementId    = dto.DepartementId,
-            ManagerId        = dto.ManagerId,
-            StatusId         = dto.StatusId,
-            GenderId         = dto.GenderId,
-            NationalityId    = dto.NationalityId,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            CinNumber = dto.CinNumber,
+            DateOfBirth = dto.DateOfBirth,
+            Email = dto.Email,
+            Phone = normalizedPhone,
+            CompanyId = companyId,
+            DepartementId = dto.DepartementId,
+            ManagerId = dto.ManagerId,
+            StatusId = dto.StatusId,
+            GenderId = dto.GenderId,
+            NationalityId = dto.NationalityId,
             EducationLevelId = dto.EducationLevelId,
-            MaritalStatusId  = dto.MaritalStatusId,
-            CnssNumber       = dto.CnssNumber,
-            CimrNumber       = dto.CimrNumber,
-            CategoryId       = dto.CategoryId,
+            MaritalStatusId = dto.MaritalStatusId,
+            CnssNumber = dto.CnssNumber,
+            CimrNumber = dto.CimrNumber,
+            CategoryId = dto.CategoryId,
             AnnualLeaveOpeningDays = annualLeaveOpening,
             AnnualLeaveOpeningEffectiveFrom = annualLeaveOpeningEffectiveMonth,
-            CreatedBy        = createdBy
+            CreatedBy = createdBy
         };
 
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
@@ -576,6 +661,32 @@ public class EmployeeService : IEmployeeService
             _db.Employees.Add(e);
             await _db.SaveChangesAsync(ct);
             var id = e.Id;
+
+            if (shouldCreateUserAccount && provisionedIdentity != null)
+            {
+                var username = await GenerateUniqueUsernameAsync(dto.Email, ct);
+                var user = new Users
+                {
+                    Username = username,
+                    Email = dto.Email,
+                    IsActive = true,
+                    EmployeeId = id,
+                    ExternalId = provisionedIdentity.ExternalId,
+                    Source = "entra",
+                    CreatedBy = createdBy
+                };
+
+                _db.Users.Add(user);
+                await _db.SaveChangesAsync(ct);
+
+                _db.UsersRoles.Add(new UsersRoles
+                {
+                    UserId = user.Id,
+                    RoleId = roleIdForNewUser,
+                    CreatedBy = createdBy
+                });
+                await _db.SaveChangesAsync(ct);
+            }
 
             var hasAddressHints = !string.IsNullOrWhiteSpace(dto.AddressLine1)
                 || !string.IsNullOrWhiteSpace(dto.AddressLine2)
@@ -663,26 +774,15 @@ public class EmployeeService : IEmployeeService
 
             await transaction.CommitAsync(ct);
 
-            // Option 2: invitation automatique si le front indique un rôle
-            _logger.LogInformation(
-                "Employee created id={EmployeeId} InviteRoleId={InviteRoleId} CompanyId={CompanyId} Email={Email}",
-                id,
-                dto.InviteRoleId,
-                companyId,
-                dto.Email);
-            if (dto.InviteRoleId.HasValue
-                && dto.InviteRoleId.Value > 0
-                && companyId > 0
-                && !string.IsNullOrWhiteSpace(dto.Email))
+            if (shouldCreateUserAccount && provisionedIdentity != null && !string.IsNullOrWhiteSpace(companyNameForWelcomeEmail))
             {
-                // Envoi invitation employee (pas de mot de passe)
-                await _invitationService.CreateEmployeeInvitationAsync(new InviteEmployeeDto
-                {
-                    Email = dto.Email,
-                    CompanyId = companyId,
-                    RoleId = dto.InviteRoleId.Value,
-                    EmployeeId = id
-                }, ct);
+                await _emailService.SendWelcomeCredentialsEmailAsync(
+                    dto.Email,
+                    companyNameForWelcomeEmail,
+                    provisionedIdentity.Login,
+                    provisionedIdentity.TemporaryPassword,
+                    provisionedIdentity.LoginUrl,
+                    ct);
             }
         }
         catch (Exception ex)
@@ -715,25 +815,26 @@ public class EmployeeService : IEmployeeService
             .Include(emp => emp.Manager)
             .Include(emp => emp.Category)
             .FirstOrDefaultAsync(emp => emp.Id == id, ct);
-        if (e == null) return ServiceResult<EmployeeReadDto>.Fail("Employé introuvable.");
+        if (e == null)
+            return ServiceResult<EmployeeReadDto>.Fail("Employé introuvable.");
 
         var pendingEmployeeLogs = new List<Func<Task>>();
 
-        if (dto.FirstName     != null && dto.FirstName     != e.FirstName)
+        if (dto.FirstName != null && dto.FirstName != e.FirstName)
         {
             var prev = e.FirstName;
             var next = dto.FirstName;
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.FirstNameChanged, prev, next, updatedBy, ct));
             e.FirstName = dto.FirstName;
         }
-        if (dto.LastName      != null && dto.LastName      != e.LastName)
+        if (dto.LastName != null && dto.LastName != e.LastName)
         {
             var prev = e.LastName;
             var next = dto.LastName;
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.LastNameChanged, prev, next, updatedBy, ct));
             e.LastName = dto.LastName;
         }
-        if (dto.CinNumber     != null && dto.CinNumber     != e.CinNumber)
+        if (dto.CinNumber != null && dto.CinNumber != e.CinNumber)
         {
             var prev = e.CinNumber;
             var next = dto.CinNumber;
@@ -747,19 +848,40 @@ public class EmployeeService : IEmployeeService
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.DateOfBirthChanged, prev, next, updatedBy, ct));
             e.DateOfBirth = dto.DateOfBirth.Value;
         }
-        if (dto.Email         != null && dto.Email         != e.Email)
+        if (dto.Email != null && dto.Email != e.Email)
         {
             var prev = e.Email;
             var next = dto.Email;
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.EmailChanged, prev, next, updatedBy, ct));
             e.Email = dto.Email;
         }
-        if (dto.Phone         != null && dto.Phone         != e.Phone)
+        if (dto.Phone != null || dto.CountryPhoneCode != null)
         {
-            var prev = e.Phone;
-            var next = dto.Phone;
-            pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.PhoneChanged, prev, next, updatedBy, ct));
-            e.Phone = dto.Phone;
+            var currentPhone = e.Phone?.Trim() ?? string.Empty;
+
+            var localPhone = dto.Phone?.Trim();
+            if (string.IsNullOrWhiteSpace(localPhone))
+            {
+                localPhone = ExtractLocalPhone(currentPhone);
+            }
+
+            var countryCode = dto.CountryPhoneCode?.Trim();
+            if (string.IsNullOrWhiteSpace(countryCode))
+            {
+                countryCode = ExtractCountryPhoneCode(currentPhone);
+            }
+
+            if (string.IsNullOrWhiteSpace(localPhone) || string.IsNullOrWhiteSpace(countryCode))
+                return ServiceResult<EmployeeReadDto>.Fail("Le numéro de téléphone et l'indicatif pays sont requis.");
+
+            var normalizedPhone = $"{countryCode}{localPhone}";
+            if (normalizedPhone != e.Phone)
+            {
+                var prev = e.Phone;
+                var next = normalizedPhone;
+                pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.PhoneChanged, prev, next, updatedBy, ct));
+                e.Phone = normalizedPhone;
+            }
         }
         if (dto.CnssNumber != null)
         {
@@ -799,13 +921,13 @@ public class EmployeeService : IEmployeeService
         if (dto.DepartementId != null && dto.DepartementId != e.DepartementId)
         {
             var oldName = e.Departement?.DepartementName;
-            var newDep  = dto.DepartementId.HasValue
+            var newDep = dto.DepartementId.HasValue
                 ? await _db.Departements.AsNoTracking().Where(d => d.Id == dto.DepartementId.Value).Select(d => d.DepartementName).FirstOrDefaultAsync(ct)
                 : null;
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.DepartmentChanged, oldName, newDep, updatedBy, ct));
             e.DepartementId = dto.DepartementId;
         }
-        if (dto.ManagerId     != null && dto.ManagerId     != e.ManagerId)
+        if (dto.ManagerId != null && dto.ManagerId != e.ManagerId)
         {
             var oldMgr = e.Manager != null ? $"{e.Manager.FirstName} {e.Manager.LastName}".Trim() : null;
             var newMgr = dto.ManagerId.HasValue
@@ -814,7 +936,7 @@ public class EmployeeService : IEmployeeService
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.ManagerChanged, oldMgr, newMgr, updatedBy, ct));
             e.ManagerId = dto.ManagerId;
         }
-        if (dto.StatusId      != null && dto.StatusId      != e.StatusId)
+        if (dto.StatusId != null && dto.StatusId != e.StatusId)
         {
             var oldStatus = e.Status?.Code;
             var newStatus = dto.StatusId.HasValue
@@ -823,7 +945,7 @@ public class EmployeeService : IEmployeeService
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.StatusChanged, oldStatus, newStatus, updatedBy, ct));
             e.StatusId = dto.StatusId;
         }
-        if (dto.GenderId      != null && dto.GenderId      != e.GenderId)
+        if (dto.GenderId != null && dto.GenderId != e.GenderId)
         {
             var oldGender = e.Gender?.Code;
             var newGender = dto.GenderId.HasValue
@@ -859,7 +981,8 @@ public class EmployeeService : IEmployeeService
             pendingEmployeeLogs.Add(() => _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.MaritalStatusChanged, oldMs, newMs, updatedBy, ct));
             e.MaritalStatusId = dto.MaritalStatusId;
         }
-        if (dto.CategoryId    != null) e.CategoryId    = dto.CategoryId;
+        if (dto.CategoryId != null)
+            e.CategoryId = dto.CategoryId;
         if (dto.AnnualLeave.HasValue)
         {
             e.AnnualLeaveOpeningDays = dto.AnnualLeave.Value < 0m ? 0m : dto.AnnualLeave.Value;
@@ -945,9 +1068,12 @@ public class EmployeeService : IEmployeeService
             if (activeContract != null)
             {
                 var contractPatch = new EmployeeContractUpdateDto();
-                if (dto.JobPositionId is > 0) contractPatch.JobPositionId = dto.JobPositionId;
-                if (dto.ContractTypeId is > 0) contractPatch.ContractTypeId = dto.ContractTypeId;
-                if (dto.ContractStartDate.HasValue) contractPatch.StartDate = dto.ContractStartDate;
+                if (dto.JobPositionId is > 0)
+                    contractPatch.JobPositionId = dto.JobPositionId;
+                if (dto.ContractTypeId is > 0)
+                    contractPatch.ContractTypeId = dto.ContractTypeId;
+                if (dto.ContractStartDate.HasValue)
+                    contractPatch.StartDate = dto.ContractStartDate;
 
                 if (contractPatch.JobPositionId != null || contractPatch.ContractTypeId != null || contractPatch.StartDate != null)
                 {
@@ -989,9 +1115,12 @@ public class EmployeeService : IEmployeeService
             if (activeSal != null)
             {
                 var salPatch = new EmployeeSalaryUpdateDto();
-                if (wantMonthly) salPatch.BaseSalary = dto.Salary!.Value;
-                if (wantHourly) salPatch.BaseSalaryHourly = dto.SalaryHourly;
-                if (wantSalaryDate) salPatch.EffectiveDate = dto.SalaryEffectiveDate;
+                if (wantMonthly)
+                    salPatch.BaseSalary = dto.Salary!.Value;
+                if (wantHourly)
+                    salPatch.BaseSalaryHourly = dto.SalaryHourly;
+                if (wantSalaryDate)
+                    salPatch.EffectiveDate = dto.SalaryEffectiveDate;
                 if (salPatch.BaseSalary != null || salPatch.BaseSalaryHourly != null || salPatch.EffectiveDate != null)
                 {
                     var salRes = await _salaries.UpdateAsync(activeSal.Id, salPatch, updatedBy, ct);
@@ -1034,12 +1163,15 @@ public class EmployeeService : IEmployeeService
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var e = await _db.Employees.FindAsync(new object[] { id }, ct);
-        if (e == null) return ServiceResult.Fail("Employé introuvable.");
-        e.DeletedAt = DateTimeOffset.UtcNow; e.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (e == null)
+            return ServiceResult.Fail("Employé introuvable.");
+        e.DeletedAt = DateTimeOffset.UtcNow;
+        e.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<SageImportResultDto>> ImportFromSageAsync( Stream csvStream, int? companyId, int userId, int? month, int? year, bool preview, CancellationToken ct = default)
+    public async Task<ServiceResult<SageImportResultDto>> ImportFromSageAsync(Stream csvStream, int? companyId, int userId, int? month, int? year, bool preview, CancellationToken ct = default)
     {
         var user = await _db.Users.AsNoTracking()
             .Include(u => u.Employee)
@@ -1346,10 +1478,14 @@ public class EmployeeService : IEmployeeService
     public async Task<ServiceResult<EmployeeCategoryReadDto>> UpdateCategoryAsync(int id, EmployeeCategoryUpdateDto dto, int updatedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeCategories.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult<EmployeeCategoryReadDto>.Fail("Catégorie introuvable.");
-        if (dto.Name != null) c.Name = dto.Name;
-        if (dto.Mode.HasValue) c.Mode = dto.Mode.Value;
-        if (dto.PayrollPeriodicity != null) c.PayrollPeriodicity = dto.PayrollPeriodicity;
+        if (c == null)
+            return ServiceResult<EmployeeCategoryReadDto>.Fail("Catégorie introuvable.");
+        if (dto.Name != null)
+            c.Name = dto.Name;
+        if (dto.Mode.HasValue)
+            c.Mode = dto.Mode.Value;
+        if (dto.PayrollPeriodicity != null)
+            c.PayrollPeriodicity = dto.PayrollPeriodicity;
         c.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
 
@@ -1375,45 +1511,73 @@ public class EmployeeService : IEmployeeService
     public async Task<ServiceResult> DeleteCategoryAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var c = await _db.EmployeeCategories.FindAsync(new object[] { id }, ct);
-        if (c == null) return ServiceResult.Fail("Catégorie introuvable.");
-        c.DeletedAt = DateTimeOffset.UtcNow; c.DeletedBy = deletedBy;
-        await _db.SaveChangesAsync(ct); return ServiceResult.Ok();
+        if (c == null)
+            return ServiceResult.Fail("Catégorie introuvable.");
+        c.DeletedAt = DateTimeOffset.UtcNow;
+        c.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     // ── Mapper ───────────────────────────────────────────────────────────────
 
+    private static string? ExtractCountryPhoneCode(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone) || !phone.StartsWith('+'))
+            return null;
+
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        if (digits.Length <= 9)
+            return null;
+
+        var countryDigits = digits[..^9];
+        return string.IsNullOrWhiteSpace(countryDigits) ? null : $"+{countryDigits}";
+    }
+
+    private static string? ExtractLocalPhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return null;
+
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        if (digits.Length < 9)
+            return null;
+
+        return digits[^9..];
+    }
+
     private static EmployeeReadDto MapToRead(Domain.Entities.Employee.Employee e) => new()
     {
-        Id              = e.Id,
-        Matricule       = e.Matricule,
-        FirstName       = e.FirstName,
-        LastName        = e.LastName,
-        CinNumber       = e.CinNumber,
-        DateOfBirth     = e.DateOfBirth,
-        Email           = e.Email,
-        Phone           = e.Phone,
-        CompanyId       = e.CompanyId,
-        CompanyName     = e.Company?.CompanyName ?? string.Empty,
-        DepartementId   = e.DepartementId,
+        Id = e.Id,
+        Matricule = e.Matricule,
+        FirstName = e.FirstName,
+        LastName = e.LastName,
+        CinNumber = e.CinNumber,
+        DateOfBirth = e.DateOfBirth,
+        Email = e.Email,
+        Phone = e.Phone,
+        CompanyId = e.CompanyId,
+        CompanyName = e.Company?.CompanyName ?? string.Empty,
+        DepartementId = e.DepartementId,
         DepartementName = e.Departement?.DepartementName,
-        ManagerId       = e.ManagerId,
-        ManagerName     = e.Manager != null ? $"{e.Manager.FirstName} {e.Manager.LastName}".Trim() : null,
-        StatusId        = e.StatusId,
-        StatusName      = e.Status?.Code ?? string.Empty,
-        GenderId        = e.GenderId,
-        NationalityId   = e.NationalityId,
+        ManagerId = e.ManagerId,
+        ManagerName = e.Manager != null ? $"{e.Manager.FirstName} {e.Manager.LastName}".Trim() : null,
+        StatusId = e.StatusId,
+        StatusName = e.Status?.Code ?? string.Empty,
+        GenderId = e.GenderId,
+        NationalityId = e.NationalityId,
         EducationLevelId = e.EducationLevelId,
         MaritalStatusId = e.MaritalStatusId,
-        CategoryId      = e.CategoryId,
-        CategoryName    = e.Category?.Name,
-        CnssNumber      = e.CnssNumber,
-        CimrNumber      = e.CimrNumber,
+        CategoryId = e.CategoryId,
+        CategoryName = e.Category?.Name,
+        CnssNumber = e.CnssNumber,
+        CimrNumber = e.CimrNumber,
         CimrEmployeeRate = e.CimrEmployeeRate?.ToString("F2", CultureInfo.InvariantCulture),
-        CimrCompanyRate  = e.CimrCompanyRate?.ToString("F2", CultureInfo.InvariantCulture),
+        CimrCompanyRate = e.CimrCompanyRate?.ToString("F2", CultureInfo.InvariantCulture),
         HasPrivateInsurance = e.HasPrivateInsurance,
-        DisableAmo      = e.DisableAmo,
+        DisableAmo = e.DisableAmo,
         PrivateInsuranceNumber = e.PrivateInsuranceNumber,
-        PrivateInsuranceRate   = e.PrivateInsuranceRate,
-        CreatedAt       = e.CreatedAt.DateTime
+        PrivateInsuranceRate = e.PrivateInsuranceRate,
+        CreatedAt = e.CreatedAt.DateTime
     };
 }

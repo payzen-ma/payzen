@@ -46,7 +46,7 @@ export class DepartmentTabComponent implements OnInit {
   loading = signal(false);
   dialogVisible = signal(false);
   submitLoading = signal(false);
-  
+
   // Form
   departmentForm!: FormGroup;
   isEditMode = false;
@@ -82,7 +82,6 @@ export class DepartmentTabComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading departments', err);
         this.loading.set(false);
         this.messageService.add({
           severity: 'error',
@@ -140,9 +139,9 @@ export class DepartmentTabComponent implements OnInit {
         this.submitLoading.set(false);
         this.dialogVisible.set(false);
         this.loadDepartments();
-        this.messageService.add({ 
-          severity: 'success', 
-          summary: this.translate.instant('common.success'), 
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('common.success'),
           detail: this.isEditMode
             ? this.translate.instant('company.departments.messages.updateSuccess')
             : this.translate.instant('company.departments.messages.createSuccess')
@@ -184,7 +183,7 @@ export class DepartmentTabComponent implements OnInit {
 
   private handleError(err: HttpErrorResponse) {
     let detail = this.translate.instant('common.error');
-    
+
     if (err.status === 409) {
       detail = this.translate.instant('company.departments.messages.alreadyExists');
     } else if (err.status === 400) {

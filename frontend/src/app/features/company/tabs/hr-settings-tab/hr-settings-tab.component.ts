@@ -1,24 +1,22 @@
-import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Company, HRParameters } from '@app/core/models/company.model';
+import { CompanyService } from '@app/core/services/company.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { WorkingCalendarService } from '@app/core/services/working-calendar.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { SelectModule } from 'primeng/select';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextModule } from 'primeng/inputtext';
+import { PopoverModule } from 'primeng/popover';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { PopoverModule } from 'primeng/popover';
-import { MessageService } from 'primeng/api';
-import { forkJoin } from 'rxjs';
-import { CompanyService } from '@app/core/services/company.service';
-import { WorkingCalendarService } from '@app/core/services/working-calendar.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { Company, HRParameters } from '@app/core/models/company.model';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-hr-settings-tab',
@@ -153,7 +151,7 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.initForm();
     this.loadCompanyData();
-    
+
     // Subscribe to context changes
     this.contextSub = this.contextService.contextChanged$.subscribe(() => {
       this.loadCompanyData();
@@ -191,17 +189,17 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
 
   private loadCompanyData() {
     this.loading.set(true);
-    
+
     // Load company data first to get company ID
     this.companyService.getCompany().subscribe({
       next: (data) => {
         this.company.set(data);
-        
+
         // Now load working calendar for this company to extract working days
         const companyId = Number(data.id);
         this.workingCalendarService.getByCompanyId(companyId).subscribe({
           next: (calendars) => {
-            
+
             // Enrich calendars with hour properties for ngModel binding
             const enrichedCalendars = calendars.map(cal => {
               // Ensure startTime/endTime strings exist so updates include them even if user didn't edit hours
@@ -215,22 +213,21 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
                 endTimeHour: (cal.endTime ? parseInt(cal.endTime.split(':')[0], 10) : 17)
               };
             });
-            
+
             // Store the enriched calendars for display in template
             this.workingCalendars.set(enrichedCalendars);
-            
+
             // Extract working days from calendar entries
             const workingDays = enrichedCalendars
               .filter(wc => wc.isWorkingDay)
               .map(wc => this.dayOfWeekToName(wc.dayOfWeek))
               .sort();
-            
+
             // Patch form with company data including extracted working days
             this.patchFormWithCompanyData(data, workingDays);
             this.loading.set(false);
           },
           error: (err) => {
-            console.warn('[HrSettingsTab] Error loading working calendar (will use HR params defaults):', err);
             // If working calendar fails, just use HR params
             this.patchFormWithCompanyData(data, []);
             this.loading.set(false);
@@ -238,7 +235,6 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        console.error('[HrSettingsTab] Error loading company data:', err);
         this.loading.set(false);
       }
     });
@@ -259,14 +255,14 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
 
   private patchFormWithCompanyData(data: Company, loadedWorkingDays: string[] = []) {
     if (!data.hrParameters) return;
-    
+
     const hr = data.hrParameters as any;
     // Use loaded working days from WorkingCalendars, fall back to HR params, then default
-    const workingDays = loadedWorkingDays.length > 0 
-      ? loadedWorkingDays 
+    const workingDays = loadedWorkingDays.length > 0
+      ? loadedWorkingDays
       : (hr.workingDays ?? this.defaultValues.workingDays);
-    
-    
+
+
     this.hrForm.patchValue({
       workingDays: workingDays,
       standardHoursPerDay: hr.standardHoursPerDay ?? this.defaultValues.standardHoursPerDay,
@@ -337,8 +333,6 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
     this.hrForm.markAllAsTouched();
 
     if (this.hrForm.invalid) {
-      console.warn('[HrSettingsTab] ❌ Form validation failed. Invalid fields detected.');
-      console.warn('[HrSettingsTab] Invalid form controls:', Object.keys(this.hrForm.controls).filter(key => this.hrForm.get(key)?.invalid));
       this.showToast(
         'error',
         this.translate.instant('common.error'),
@@ -350,7 +344,6 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
 
     const currentCompany = this.company();
     if (!currentCompany) {
-      console.error('[HrSettingsTab] ❌ No company data available. Cannot save.');
       return;
     }
 
@@ -418,15 +411,15 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
       normalizedCalendarsToSync
     );
 
-    const hrParamsUpdate$ = this.companyService.updateCompany({ 
+    const hrParamsUpdate$ = this.companyService.updateCompany({
       id: currentCompany.id,
-      hrParameters: updatedHrParams 
+      hrParameters: updatedHrParams
     });
 
     // Execute both operations in parallel using forkJoin
     forkJoin([workingCalendarSync$, hrParamsUpdate$]).subscribe({
       next: ([calendarResult, companyResult]) => {
-        
+
         this.company.set(companyResult);
         this.formSubmitted = false;
         this.hrForm.markAsPristine();
@@ -438,13 +431,6 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('[HrSettingsTab] ❌ ERROR in dual save flow:', error);
-        console.error('[HrSettingsTab] Error details:', {
-          status: error.status,
-          message: error.message,
-          responseBody: error.error,
-          full: error
-        });
         this.showToast(
           'error',
           this.translate.instant('common.error'),
@@ -457,7 +443,7 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
 
   onCancel() {
     if (!this.hrForm.dirty) return;
-    
+
     this.resetFormToCompanyData();
     this.showToast(
       'info',
@@ -471,10 +457,10 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
     const updatedDays = currentDays.includes(dayValue)
       ? currentDays.filter((day: string) => day !== dayValue)
       : [...currentDays, dayValue];
-    
+
     this.hrForm.patchValue({ workingDays: updatedDays });
     this.hrForm.get('workingDays')?.markAsTouched();
-    
+
     // Update the corresponding calendar entry's isWorkingDay property
     const dayOfWeek = this.dayNameToDayOfWeek(dayValue);
     const updatedCalendars = this.workingCalendars().map(cal => {
@@ -487,9 +473,9 @@ export class HrSettingsTabComponent implements OnInit, OnDestroy {
   }
 
   private showToast(severity: 'success' | 'error' | 'info', summary: string, detail: string) {
-    this.messageService.add({ 
-      severity, 
-      summary, 
+    this.messageService.add({
+      severity,
+      summary,
       detail,
       life: severity === 'error' ? 5000 : 4000
     });

@@ -91,7 +91,6 @@ export class CeoDashboardComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to fetch CEO dashboard data', err);
         this.isLoading.set(false);
       }
     });

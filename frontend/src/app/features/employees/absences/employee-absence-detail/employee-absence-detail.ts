@@ -1,19 +1,19 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Absence, AbsenceDurationType, AbsenceType, UpdateAbsenceRequest } from '@app/core/models/absence.model';
+import { AbsenceService } from '@app/core/services/absence.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { EmployeeService } from '@app/core/services/employee.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
-import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { AbsenceService } from '@app/core/services/absence.service';
-import { EmployeeService } from '@app/core/services/employee.service';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { Absence, AbsenceType, AbsenceDurationType, UpdateAbsenceRequest } from '@app/core/models/absence.model';
 
 @Component({
   selector: 'app-employee-absence-detail',
@@ -44,7 +44,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
   employeeName = signal<string>('');
   absences = signal<Absence[]>([]);
   isLoading = signal(false);
-  
+
   readonly routePrefix = signal('/app');
 
   stats = signal({
@@ -88,13 +88,13 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
       next: (employee) => {
         this.employeeName.set(`${employee.firstName} ${employee.lastName}`);
       },
-      error: (err) => console.error('Failed to load employee info', err)
+      error: (err) => alert('Failed to load employee info')
     });
   }
 
   loadAbsences(employeeId: number) {
     this.isLoading.set(true);
-    
+
     this.absenceService.getEmployeeAbsences(String(employeeId)).subscribe({
       next: (response) => {
         this.absences.set(response.absences);
@@ -102,7 +102,6 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load absences', err);
         this.isLoading.set(false);
       }
     });
@@ -118,7 +117,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.loadAbsences(this.employeeId());
       },
       error: (err) => {
-        console.error('Failed to submit absence', err);
+        alert('Failed to submit absence');
       }
     });
   }
@@ -130,7 +129,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.loadAbsences(this.employeeId());
       },
       error: (err) => {
-        console.error('Failed to approve absence', err);
+        alert('Failed to approve absence');
       }
     });
   }
@@ -156,7 +155,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.loadAbsences(this.employeeId());
       },
       error: (err) => {
-        console.error('Failed to reject absence', err);
+        alert('Failed to reject absence');
       }
     });
   }
@@ -189,7 +188,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.cancelDelete();
         this.loadAbsences(this.employeeId());
       },
-      error: (err) => console.error('Failed to delete absence', err)
+      error: (err) => alert('Failed to delete absence')
     });
   }
 
@@ -259,7 +258,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
         this.cancelEdit();
         this.loadAbsences(this.employeeId());
       },
-      error: (err) => console.error('Failed to update absence', err)
+      error: (err) => alert('Failed to update absence')
     });
   }
 
@@ -326,7 +325,7 @@ export class EmployeeAbsenceDetailComponent implements OnInit {
       const durationMinutes = endMinutes - startMinutes;
       const hours = Math.floor(durationMinutes / 60);
       const minutes = durationMinutes % 60;
-      
+
       if (minutes > 0) {
         return `${hours}h ${minutes}min`;
       }

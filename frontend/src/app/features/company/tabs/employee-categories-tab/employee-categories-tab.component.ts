@@ -65,7 +65,6 @@ export class EmployeeCategoriesTabComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load categories', err);
         this.messageService.add({
           severity: 'error',
           summary: this.translate.instant('common.error'),
@@ -93,7 +92,6 @@ export class EmployeeCategoriesTabComponent implements OnInit {
   openEditDialog(category: EmployeeCategory): void {
     this.isEditing.set(true);
     this.editingId.set(category.id);
-    console.debug('Opening edit dialog for category', category);
     this.showDialog.set(true);
     // Patch values after dialog is visible to ensure the native select reflects the new value
     setTimeout(() => {
@@ -152,7 +150,6 @@ export class EmployeeCategoriesTabComponent implements OnInit {
           this.closeDialog();
         },
         error: (err) => {
-          console.error('Failed to update category', err);
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('common.error'),
@@ -172,7 +169,6 @@ export class EmployeeCategoriesTabComponent implements OnInit {
           this.closeDialog();
         },
         error: (err) => {
-          console.error('Failed to create category', err);
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('common.error'),
@@ -198,7 +194,6 @@ export class EmployeeCategoriesTabComponent implements OnInit {
         this.loadCategories();
       },
       error: (err) => {
-        console.error('Failed to delete category', err);
         this.messageService.add({
           severity: 'error',
           summary: this.translate.instant('common.error'),

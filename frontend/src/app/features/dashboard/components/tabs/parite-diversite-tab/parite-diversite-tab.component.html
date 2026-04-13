@@ -1,35 +1,43 @@
-<section class="space-y-6">
-  <app-section-header
-    [eyebrow]="data().meta.eyebrow ?? ''"
-    [title]="data().meta.title"
-    [subtitle]="data().meta.subtitle"
-    [badge]="data().meta.badge ?? ''"
-    [icon]="data().meta.icon ?? 'pi pi-balance-scale'"
-  />
+<article class="parite-diversite-surface">
+  <header class="parite-diversite-hero">
+    @if (data().meta.eyebrow) {
+    <p class="hero-eyebrow parite-diversite-hero-eyebrow">{{ data().meta.eyebrow }}</p>
+    }
 
-  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div class="parite-diversite-heading">
+      <div class="parite-diversite-heading-line">
+        <h1 class="hero-title parite-diversite-title">{{ data().meta.title }}</h1>
+        @if (data().meta.badge) {
+        <span class="parite-diversite-badge">{{ data().meta.badge }}</span>
+        }
+      </div>
+      <p class="hero-subtitle parite-diversite-subtitle">{{ data().meta.subtitle }}</p>
+    </div>
+  </header>
+
+  <div class="parite-diversite-kpi">
     @for (metric of data().kpis; track metric.label) {
-      <app-kpi-card [metric]="metric" />
+    <app-kpi-card [metric]="metric" />
     }
   </div>
 
-  <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 class="text-2xl font-semibold text-gray-900">Parite par departement</h3>
-      <div class="mt-4 space-y-4">
+  <div class="parite-diversite-blocks">
+    <article class="card-section parite-diversite-block">
+      <h2 class="parite-diversite-block__title">Parité par département</h2>
+      <div class="parite-diversite-progress-list">
         @for (row of data().pariteDepartement; track row.label) {
-          <app-progress-row [row]="row" />
+        <app-progress-row [row]="row" />
         }
       </div>
     </article>
 
-    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 class="text-2xl font-semibold text-gray-900">Parite par niveau hierarchique</h3>
-      <div class="mt-4 space-y-4">
+    <article class="card-section parite-diversite-block">
+      <h2 class="parite-diversite-block__title">Parité par niveau hiérarchique</h2>
+      <div class="parite-diversite-progress-list">
         @for (row of data().pariteNiveauHierarchique; track row.label) {
-          <app-progress-row [row]="row" />
+        <app-progress-row [row]="row" />
         }
       </div>
     </article>
   </div>
-</section>
+</article>

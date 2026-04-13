@@ -1,14 +1,13 @@
-import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '@environments/environment';
-import { AuthService } from '@app/core/services/auth.service';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { AttendanceBreakService } from '@app/core/services/attendance-break.service';
+import { AuthService } from '@app/core/services/auth.service';
+import { environment } from '@environments/environment';
+import { TranslateModule } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
 
 interface AttendanceRecord {
   id?: string;
@@ -24,10 +23,9 @@ interface AttendanceRecord {
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, TranslateModule, ButtonModule, CardModule, ToastModule],
+  imports: [CommonModule, TranslateModule, ButtonModule, ToastModule],
   providers: [MessageService],
   templateUrl: './attendance.html',
-  styleUrls: ['./attendance.css']
 })
 export class AttendancePage implements OnInit {
   // timer id for live elapsed display
@@ -161,13 +159,13 @@ export class AttendancePage implements OnInit {
           start: b.breakStart.slice(0, 5),
           end: b.breakEnd ? b.breakEnd.slice(0, 5) : '',
           type: b.breakType,
-          duration: b.breakStart && b.breakEnd ? 
-            this.formatBreakDuration(b.breakStart.slice(0, 5), b.breakEnd.slice(0, 5)) : 
+          duration: b.breakStart && b.breakEnd ?
+            this.formatBreakDuration(b.breakStart.slice(0, 5), b.breakEnd.slice(0, 5)) :
             undefined
         }));
         this.todayAttendance.update(curr => curr ? { ...curr, breaks: mapped } : curr);
       },
-      error: (err) => console.error('Failed to load breaks', err)
+      error: (err) => alert('Failed to load breaks for attendance')
     });
   }
 
@@ -189,8 +187,8 @@ export class AttendancePage implements OnInit {
           this.todayAttendance.set({
             id: String(first.id ?? first.Id ?? ''),
             date: first.workDate ?? first.WorkDate ?? today,
-            timeIn: first.checkIn ? String(first.checkIn).slice(0,5) : null,
-            timeOut: first.checkOut ? String(first.checkOut).slice(0,5) : null,
+            timeIn: first.checkIn ? String(first.checkIn).slice(0, 5) : null,
+            timeOut: first.checkOut ? String(first.checkOut).slice(0, 5) : null,
             status: this.mapStatus(first.status),
             duration: this.formatWorkedHours(first.workedHours),
             breaks: []
@@ -206,8 +204,7 @@ export class AttendancePage implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load today attendance', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || err.message || 'Failed to load attendance' });
+        alert('Failed to load today attendance');
         this.todayAttendance.set(null);
       }
     });
@@ -224,8 +221,8 @@ export class AttendancePage implements OnInit {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 30);
-    const startDate = start.toISOString().slice(0,10);
-    const endDate = end.toISOString().slice(0,10);
+    const startDate = start.toISOString().slice(0, 10);
+    const endDate = end.toISOString().slice(0, 10);
 
     const url = `${environment.apiUrl}/employee-attendance/employee/${employeeId}?startDate=${startDate}&endDate=${endDate}`;
     this.http.get<any[]>(url).subscribe({
@@ -233,8 +230,8 @@ export class AttendancePage implements OnInit {
         const mapped = (res || []).map(r => ({
           id: String(r.id ?? r.Id ?? ''),
           date: r.workDate ?? r.WorkDate,
-          timeIn: r.checkIn ? String(r.checkIn).slice(0,5) : null,
-          timeOut: r.checkOut ? String(r.checkOut).slice(0,5) : null,
+          timeIn: r.checkIn ? String(r.checkIn).slice(0, 5) : null,
+          timeOut: r.checkOut ? String(r.checkOut).slice(0, 5) : null,
           status: this.mapStatus(r.status),
           duration: this.formatWorkedHours(r.workedHours),
           breakMinutesApplied: r.breakMinutesApplied ?? r.BreakMinutesApplied ?? undefined
@@ -242,8 +239,7 @@ export class AttendancePage implements OnInit {
         this.attendanceHistory.set(mapped);
       },
       error: (err) => {
-        console.error('Failed to load attendance history', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || err.message || 'Failed to load attendance history' });
+        alert('Failed to load attendance history');
         this.attendanceHistory.set([]);
       }
     });
@@ -267,8 +263,8 @@ export class AttendancePage implements OnInit {
 
     // optimistic update: show current time immediately and start timer
     const now = new Date();
-    const optimisticTimeIn = now.toTimeString().slice(0,5);
-    const optimisticDate = now.toISOString().slice(0,10);
+    const optimisticTimeIn = now.toTimeString().slice(0, 5);
+    const optimisticDate = now.toISOString().slice(0, 10);
     const previous = this.todayAttendance();
     this.todayAttendance.set({
       id: previous?.id ?? '',
@@ -288,8 +284,8 @@ export class AttendancePage implements OnInit {
         this.todayAttendance.set({
           id: String(res.id ?? res.Id ?? ''),
           date: res.workDate ?? res.WorkDate ?? optimisticDate,
-          timeIn: res.checkIn ? String(res.checkIn).slice(0,5) : optimisticTimeIn,
-          timeOut: res.checkOut ? String(res.checkOut).slice(0,5) : null,
+          timeIn: res.checkIn ? String(res.checkIn).slice(0, 5) : optimisticTimeIn,
+          timeOut: res.checkOut ? String(res.checkOut).slice(0, 5) : null,
           status: this.mapStatus(res.status),
           duration: this.formatWorkedHours(res.workedHours),
           breaks: []
@@ -301,7 +297,6 @@ export class AttendancePage implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Check-in failed', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || err.message || 'Check-in failed' });
         // revert optimistic update
         if (previous) this.todayAttendance.set(previous); else this.todayAttendance.set(null);
@@ -337,9 +332,9 @@ export class AttendancePage implements OnInit {
       next: (res) => {
         this.todayAttendance.update(current => ({
           id: current?.id ?? String(res.id ?? res.Id ?? ''),
-          date: current?.date ?? new Date().toISOString().slice(0,10),
-          timeIn: current?.timeIn ?? (res.checkIn ? String(res.checkIn).slice(0,5) : null),
-          timeOut: res.checkOut ? String(res.checkOut).slice(0,5) : current?.timeOut ?? null,
+          date: current?.date ?? new Date().toISOString().slice(0, 10),
+          timeIn: current?.timeIn ?? (res.checkIn ? String(res.checkIn).slice(0, 5) : null),
+          timeOut: res.checkOut ? String(res.checkOut).slice(0, 5) : current?.timeOut ?? null,
           status: (res.status ?? 'present').toString().toLowerCase() as any,
           duration: this.formatWorkedHours(res.workedHours) ?? current?.duration
         }));
@@ -367,7 +362,6 @@ export class AttendancePage implements OnInit {
               this.loadTodayAttendance();
             },
             error: (err) => {
-              console.error('Failed to end open break at checkout', err);
               this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Failed to close open break automatically' });
               // still reload to keep UI in sync
               this.loadTodayAttendance();
@@ -379,7 +373,6 @@ export class AttendancePage implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Check-out failed', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || err.message || 'Check-out failed' });
         this.isLoading.set(false);
       }
@@ -410,11 +403,11 @@ export class AttendancePage implements OnInit {
 
     const now = new Date();
     const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
-    
+
     // Optimistic update
     const breaks = today.breaks ?? [];
     const optimisticBreak = { start: startTime.slice(0, 5), end: '', type: 'Manual' };
-    this.todayAttendance.update(curr => 
+    this.todayAttendance.update(curr =>
       curr ? { ...curr, breaks: [...breaks, optimisticBreak] } : curr
     );
 
@@ -432,25 +425,24 @@ export class AttendancePage implements OnInit {
           type: res.breakType
         };
         const updatedBreaks = [...breaks, newBreak];
-        this.todayAttendance.update(curr => 
+        this.todayAttendance.update(curr =>
           curr ? { ...curr, breaks: updatedBreaks } : curr
         );
-        this.messageService.add({ 
-          severity: 'success', 
-          summary: 'Success', 
-          detail: 'Break started successfully' 
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Break started successfully'
         });
       },
       error: (err) => {
-        console.error('Failed to start break', err);
         // Revert optimistic update
-        this.todayAttendance.update(curr => 
+        this.todayAttendance.update(curr =>
           curr ? { ...curr, breaks } : curr
         );
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: 'Error', 
-          detail: err?.error || 'Failed to start break' 
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error || 'Failed to start break'
         });
       }
     });
@@ -466,16 +458,16 @@ export class AttendancePage implements OnInit {
 
     const now = new Date();
     const endTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
-    
+
     // Optimistic update
     const optimisticEndTime = endTime.slice(0, 5);
-    const optimisticBreak = { 
-      ...lastBreak, 
+    const optimisticBreak = {
+      ...lastBreak,
       end: optimisticEndTime,
       duration: this.formatBreakDuration(lastBreak.start, optimisticEndTime)
     };
     const optimisticBreaks = [...breaks.slice(0, -1), optimisticBreak];
-    this.todayAttendance.update(curr => 
+    this.todayAttendance.update(curr =>
       curr ? { ...curr, breaks: optimisticBreaks } : curr
     );
 
@@ -489,18 +481,18 @@ export class AttendancePage implements OnInit {
           end: res.breakEnd ? res.breakEnd.slice(0, 5) : optimisticEndTime,
           type: res.breakType,
           duration: this.formatBreakDuration(
-            res.breakStart.slice(0, 5), 
+            res.breakStart.slice(0, 5),
             res.breakEnd ? res.breakEnd.slice(0, 5) : optimisticEndTime
           )
         };
         const updatedBreaks = [...breaks.slice(0, -1), savedBreak];
-        this.todayAttendance.update(curr => 
+        this.todayAttendance.update(curr =>
           curr ? { ...curr, breaks: updatedBreaks } : curr
         );
-        this.messageService.add({ 
-          severity: 'success', 
-          summary: 'Success', 
-          detail: 'Break ended successfully' 
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Break ended successfully'
         });
         // Reload to get updated worked hours
         this.loadTodayAttendance();
@@ -508,13 +500,13 @@ export class AttendancePage implements OnInit {
       error: (err) => {
         console.error('Failed to end break', err);
         // Revert optimistic update
-        this.todayAttendance.update(curr => 
+        this.todayAttendance.update(curr =>
           curr ? { ...curr, breaks } : curr
         );
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: 'Error', 
-          detail: err?.error || 'Failed to end break' 
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error || 'Failed to end break'
         });
       }
     });

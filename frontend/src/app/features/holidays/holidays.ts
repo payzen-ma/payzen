@@ -138,7 +138,7 @@ export class HolidaysComponent {
   loadHolidays(): void {
     this.isLoading.set(true);
     const companyId = this.companyContext.companyId();
-    
+
     if (!companyId) {
       this.messageService.add({
         severity: 'error',
@@ -170,7 +170,6 @@ export class HolidaysComponent {
         this.isLoading.set(false);
       },
       error: (error) => {
-        console.error('Error loading holidays:', error);
         this.messageService.add({
           severity: 'error',
           summary: this.translate.instant('common.error'),
@@ -190,7 +189,7 @@ export class HolidaysComponent {
         this.holidayTypes.set(types);
       },
       error: (error) => {
-        console.error('Error loading holiday types:', error);
+        alert('Error loading holiday types:');
       }
     });
   }
@@ -218,9 +217,9 @@ export class HolidaysComponent {
   openEditDialog(holiday: Holiday): void {
     this.isEditMode.set(true);
     this.selectedHoliday.set(holiday);
-    
+
     const holidayDate = holiday.holidayDate ? new Date(holiday.holidayDate) : null;
-    
+
     this.holidayForm.patchValue({
       nameFr: holiday.nameFr,
       nameAr: holiday.nameAr,
@@ -236,7 +235,7 @@ export class HolidaysComponent {
       affectAttendance: holiday.affectAttendance,
       isActive: holiday.isActive
     });
-    
+
     this.showDialog = true;
   }
 
@@ -275,7 +274,7 @@ export class HolidaysComponent {
    */
   private createHoliday(holidayDate: string, formValue: any): void {
     const companyId = this.companyContext.companyId();
-    
+
     if (!companyId) {
       this.messageService.add({
         severity: 'error',
@@ -316,7 +315,6 @@ export class HolidaysComponent {
         this.loadHolidays();
       },
       error: (error) => {
-        console.error('Error creating holiday:', error);
         this.messageService.add({
           severity: 'error',
           summary: this.translate.instant('common.error'),
@@ -361,7 +359,6 @@ export class HolidaysComponent {
         this.loadHolidays();
       },
       error: (error) => {
-        console.error('Error updating holiday:', error);
         this.messageService.add({
           severity: 'error',
           summary: this.translate.instant('common.error'),
@@ -389,7 +386,6 @@ export class HolidaysComponent {
             this.loadHolidays();
           },
           error: (error) => {
-            console.error('Error deleting holiday:', error);
             this.messageService.add({
               severity: 'error',
               summary: this.translate.instant('common.error'),
@@ -427,7 +423,7 @@ export class HolidaysComponent {
    */
   getHolidayName(holiday: Holiday): string {
     const currentLang = this.translate.currentLang || 'en';
-    
+
     switch (currentLang) {
       case 'fr':
         return holiday.nameFr;

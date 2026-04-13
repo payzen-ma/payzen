@@ -147,7 +147,6 @@ export class PayrollReferentielComponent {
           this.payrollService.deleteLegalParameter(param.id).subscribe({
             next: () => this.refreshCurrentList(),
             error: (err) => {
-              console.error('Failed to delete legal parameter:', err);
               const msg = err?.error?.message ?? err?.error?.Message ?? 'Erreur lors de la suppression du paramètre.';
               alert(msg);
             }
@@ -155,7 +154,6 @@ export class PayrollReferentielComponent {
         }
       },
       error: (err) => {
-        console.error('Failed to check legal parameter usage:', err);
         alert('Impossible de vérifier l\'utilisation du paramètre.');
       }
     });
@@ -176,7 +174,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to update legal parameter:', err);
           alert('Erreur lors de la mise à jour du paramètre.');
         }
       });
@@ -188,7 +185,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to create legal parameter:', err);
           alert('Erreur lors de la création du paramètre.');
         }
       });
@@ -221,7 +217,6 @@ export class PayrollReferentielComponent {
         this.refreshCurrentList();
       },
       error: (err: any) => {
-        console.error('Failed to delete element:', err);
         alert('Erreur lors de la suppression de l\'élément.');
       }
     });
@@ -236,7 +231,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to update element:', err);
           alert('Erreur lors de la mise à jour de l\'élément.');
         }
       });
@@ -248,7 +242,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to create element:', err);
           alert('Erreur lors de la création de l\'élément.');
         }
       });
@@ -297,7 +290,6 @@ export class PayrollReferentielComponent {
         this.refreshCurrentList();
       },
       error: (err: any) => {
-        console.error('Failed to delete rule:', err);
         alert('Erreur lors de la suppression de la règle.');
       }
     });
@@ -312,7 +304,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to update rule:', err);
           const msg = this.extractErrorMessage(err) || 'Erreur lors de la mise à jour de la règle.';
           this.ruleWizardRef?.setError(msg);
         }
@@ -325,7 +316,6 @@ export class PayrollReferentielComponent {
           this.refreshCurrentList();
         },
         error: (err: any) => {
-          console.error('Failed to create rule:', err);
           const msg = this.extractErrorMessage(err) || 'Erreur lors de la création de la règle.';
           this.ruleWizardRef?.setError(msg);
         }

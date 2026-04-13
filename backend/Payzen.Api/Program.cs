@@ -1,3 +1,4 @@
+using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Payzen.Application.Validators.Company;
@@ -14,7 +16,6 @@ using Payzen.Infrastructure;
 using Payzen.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Infrastructure.Seeding;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 // ===== AUTHENTICATION =====
@@ -129,22 +130,22 @@ builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidIssuer              = builder.Configuration["JwtSettings:Issuer"],
-            ValidateAudience         = true,
-            ValidAudience            = builder.Configuration["JwtSettings:Audience"],
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey         = new SymmetricSecurityKey(keyBytes),
-            ValidateLifetime         = true,
-            ClockSkew                = TimeSpan.Zero,
-            NameClaimType            = "unique_name",
-            RoleClaimType            = "role"
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            NameClaimType = "unique_name",
+            RoleClaimType = "role"
         };
     });
 
@@ -163,7 +164,12 @@ builder.Services.AddCors(options =>
                 "https://localhost:4200",
                 "http://localhost:4201",
                 "https://localhost:4201",
-                "http://localhost:55879")
+                "http://localhost:55879",
+                "https://app-demo.payzenhr.com",
+                "https://app-test.payzenhr.com",
+                "https://admin-test.payzenhr.com",
+                "https://app.payzenhr.com",
+                "https://admin.payzen.ma")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -198,7 +204,7 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        context.Response.StatusCode  = 500;
+        context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
 
         var error = context.Features.Get<IExceptionHandlerFeature>();
@@ -242,13 +248,15 @@ app.UseStatusCodePages(async statusContext =>
             403 => "Accès refusé.",
             404 => "Ressource introuvable.",
             405 => "Méthode non autorisée.",
-            _   => $"Erreur HTTP {response.StatusCode}."
+            _ => $"Erreur HTTP {response.StatusCode}."
         };
-        await response.WriteAsJsonAsync(new { Message = message });
+        await response.WriteAsJsonAsync(new
+        {
+            Message = message
+        });
     }
 });
 
-// 3. Seed idempotent
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -262,8 +270,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Erreur lors du seed. Arrêt.");
-        throw;
+        logger.LogWarning(ex, "Seed ignoré (DB non disponible). L'API continue.");
     }
 }
 
@@ -271,7 +278,29 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.MapGet("/api/health", async (AppDbContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        return Results.Ok(new
+        {
+            status = "API is running",
+            database = canConnect ? "connected" : "unreachable",
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Ok(new
+        {
+            status = "API is running",
+            database = "error",
+            innerError = ex.InnerException?.Message,
+            timestamp = DateTime.UtcNow
+        });
+    }
+});
 app.Run();
 
 // ── Filtre de validation global ────────────────────────────────────────────────
@@ -290,10 +319,12 @@ public class ValidationActionFilter : IActionFilter
             context.Result = new BadRequestObjectResult(new
             {
                 Message = "Données invalides.",
-                Errors  = errors
+                Errors = errors
             });
         }
     }
 
-    public void OnActionExecuted(ActionExecutedContext context) { }
+    public void OnActionExecuted(ActionExecutedContext context)
+    {
+    }
 }

@@ -294,13 +294,11 @@ export class ElementRulesListComponent implements OnInit, OnChanges {
             this.loading = false;
           },
           error: (err: any) => {
-            console.error('Failed to load elements and rules:', err);
             this.loading = false;
           }
         });
       },
       error: (err: any) => {
-        console.error('Failed to load elements:', err);
         this.loading = false;
       }
     });

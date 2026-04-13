@@ -1,30 +1,30 @@
-import { Component, inject, computed, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, NavigationEnd } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
-import { BadgeModule } from 'primeng/badge';
-import { TagModule } from 'primeng/tag';
-import { LanguageSwitcher } from '../language-switcher/language-switcher';
-import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { CompanyService } from '@app/core/services/company.service';
+import { NavigationEnd, Router } from '@angular/router';
 import { Company } from '@app/core/models/company.model';
 import { CompanyMembership } from '@app/core/models/membership.model';
 import { AuthService } from '@app/core/services/auth.service';
+import { CompanyService } from '@app/core/services/company.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { filter } from 'rxjs/operators';
+import { LanguageSwitcher } from '../language-switcher/language-switcher';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    TranslateModule, 
-    ButtonModule, 
-    TooltipModule, 
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    ButtonModule,
+    TooltipModule,
     Select,
     BadgeModule,
     TagModule,
@@ -51,13 +51,13 @@ export class Header implements OnInit {
     const membership = this.contextService.memberships().find((m: CompanyMembership) => m.companyId === cabId);
     return membership?.companyName ?? null;
   });
-  
+
   readonly companyId = this.contextService.companyId;
 
   // === Companies for dropdown ===
   readonly clientCompanies = signal<Company[]>([]);
   readonly isLoadingCompanies = signal<boolean>(false);
-  
+
   // === Track current route for context ===
   readonly currentRoute = signal<string>('');
 
@@ -68,7 +68,7 @@ export class Header implements OnInit {
         this.loadCompanies();
       }
     });
-    
+
     // Track navigation to maintain context
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -76,7 +76,7 @@ export class Header implements OnInit {
       this.currentRoute.set(event.urlAfterRedirects);
     });
   }
-  
+
   // Computed: All selectable options (Portfolio + Client Companies OR Memberships)
   readonly companyOptions = computed(() => {
     // If Expert Mode: Show Portfolio + Managed Companies
@@ -89,7 +89,7 @@ export class Header implements OnInit {
       // removed so experts manage clients from this selector only.
       return this.clientCompanies();
     }
-    
+
     // If Standard Mode: Show Memberships as Company objects
     const memberships = this.contextService.memberships();
     if (memberships.length > 1) {
@@ -113,36 +113,15 @@ export class Header implements OnInit {
   });
 
   // === Computed: Should show client indicator? ===
-  readonly showClientIndicator = computed(() => 
+  readonly showClientIndicator = computed(() =>
     this.isExpertMode() && this.isClientView()
   );
 
   // === Computed: Should show company selector? ===
   readonly showCompanySelector = computed(() => {
-    // Hide selector on the select-context page or on dashboard immediately
-    const route = this.currentRoute();
-    if (route && route.startsWith('/select-context')) return false;
-    // Keep selector visible on `/app` when in expert mode (client view uses /app routes),
-    // but hide it for standard users on `/app` routes.
-    if (route && route.startsWith('/app') && !this.isExpertMode()) return false;
-
-    // If user has multiple memberships, show selector in standard mode
-    if (this.contextService.memberships().length > 1) return true;
-
-    // In expert mode, hide the selector when the selected company is the expert's own portfolio (cabinet)
-    if (this.isExpertMode()) {
-      const selected = this.selectedCompany();
-      const cabinetId = this.contextService.currentContext()?.cabinetId;
-      const expertCompanyId = this.auth?.currentUser?.() ? this.auth.currentUser()?.companyId : undefined;
-      if (!selected) return true; // no selection yet -> show
-      // compare as strings to avoid type mismatches
-      const selId = String(selected.id ?? '');
-      const cabId = cabinetId !== undefined && cabinetId !== null ? String(cabinetId) : '';
-      const expId = expertCompanyId !== undefined && expertCompanyId !== null ? String(expertCompanyId) : '';
-      return selId !== cabId && selId !== expId;
-    }
-
-    return false;
+    // Show the selector only in expert mode. This prevents the PrimeNG
+    // `p-select` label (company name) from appearing for standard/company users.
+    return this.isExpertMode();
   });
 
   ngOnInit(): void {
@@ -182,7 +161,7 @@ export class Header implements OnInit {
     // Handle Expert Mode Switching
     if (this.isExpertMode()) {
       const cabinetId = this.contextService.currentContext()?.cabinetId;
-      
+
       // Check if selecting portfolio/cabinet
       if (company.id === cabinetId) {
         // Switch back to portfolio view

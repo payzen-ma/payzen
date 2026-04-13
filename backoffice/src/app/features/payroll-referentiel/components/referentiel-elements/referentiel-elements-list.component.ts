@@ -1,18 +1,18 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PayrollReferentielService } from '../../../../services/payroll-referentiel/payroll-referentiel.service';
-import { LookupCacheService } from '../../../../services/payroll-referentiel/lookup-cache.service';
 import {
-  ReferentielElementListDto,
   ElementCategoryDto,
-  PaymentFrequency,
   ElementStatus,
-  getPaymentFrequencyLabel,
-  getElementStatusBadge,
+  getConvergenceStatusClass,
   getConvergenceStatusText,
-  getConvergenceStatusClass
+  getElementStatusBadge,
+  getPaymentFrequencyLabel,
+  PaymentFrequency,
+  ReferentielElementListDto
 } from '../../../../models/payroll-referentiel';
+import { LookupCacheService } from '../../../../services/payroll-referentiel/lookup-cache.service';
+import { PayrollReferentielService } from '../../../../services/payroll-referentiel/payroll-referentiel.service';
 
 /**
  * Referential Elements List Component
@@ -30,7 +30,7 @@ import {
           <h2 class="text-lg font-semibold text-gray-900">Éléments du Référentiel</h2>
           <p class="text-sm text-gray-500">Composantes de rémunération (Transport, Panier, Primes, etc.)</p>
         </div>
-        <button 
+        <button
           (click)="onAdd()"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +47,7 @@ import {
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-            <input 
+            <input
               type="text"
               [(ngModel)]="searchTerm"
               (ngModelChange)="applyFilters()"
@@ -56,7 +56,7 @@ import {
           </div>
         </div>
 
-        <select 
+        <select
           [(ngModel)]="filterCategory"
           (ngModelChange)="applyFilters()"
           class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -64,7 +64,7 @@ import {
           <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
         </select>
 
-        <select 
+        <select
           [(ngModel)]="filterConvergence"
           (ngModelChange)="applyFilters()"
           class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
@@ -74,8 +74,8 @@ import {
         </select>
 
         <label class="flex items-center gap-2 text-sm text-gray-600">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             [(ngModel)]="includeInactive"
             (ngModelChange)="loadElements()"
             class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500">
@@ -114,7 +114,7 @@ import {
           </div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun élément trouvé</h3>
           <p class="text-sm text-gray-500 max-w-md">
-            {{ allElements.length === 0 
+            {{ allElements.length === 0
                ? 'Créez un élément pour définir les composantes de rémunération.'
                : 'Aucun élément ne correspond à vos critères de recherche.' }}
           </p>
@@ -184,7 +184,7 @@ import {
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button 
+                  <button
                     (click)="onAddRule(element)"
                     class="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
                     title="Ajouter une règle">
@@ -192,7 +192,7 @@ import {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     (click)="onEdit(element)"
                     class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     title="Modifier">
@@ -200,7 +200,7 @@ import {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     (click)="onDelete(element)"
                     class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                     title="Supprimer">
@@ -229,7 +229,7 @@ export class ReferentielElementsListComponent implements OnInit, OnChanges {
   allElements: ReferentielElementListDto[] = [];
   filteredElements: ReferentielElementListDto[] = [];
   categories: ElementCategoryDto[] = [];
-  
+
   loading = false;
   searchTerm = '';
   filterCategory = '';
@@ -239,7 +239,7 @@ export class ReferentielElementsListComponent implements OnInit, OnChanges {
   constructor(
     private payrollService: PayrollReferentielService,
     private lookupCache: LookupCacheService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCategories();
@@ -255,7 +255,7 @@ export class ReferentielElementsListComponent implements OnInit, OnChanges {
   private loadCategories(): void {
     this.lookupCache.getCategories().subscribe({
       next: (cats) => this.categories = cats,
-      error: (err) => console.error('Failed to load categories:', err)
+      error: (err) => alert('Erreur lors du chargement des catégories d\'éléments.')
     });
   }
 
@@ -271,7 +271,6 @@ export class ReferentielElementsListComponent implements OnInit, OnChanges {
         this.loading = false;
       },
       error: (err: any) => {
-        console.error('Failed to load elements:', err);
         this.loading = false;
       }
     });
