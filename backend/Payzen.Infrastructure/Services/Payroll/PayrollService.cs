@@ -34,6 +34,13 @@ public class PayrollService : IPayrollService
     public async Task<ServiceResult<PayrollResultReadDto>> CalculateAsync(
         PayrollSimulateRequestDto dto, int userId, CancellationToken ct = default)
     {
+        // Verification Snapshotting
+        var isApproved = await _db.PayrollResults.AnyAsync(pr => 
+            pr.DeletedAt == null && pr.EmployeeId == dto.EmployeeId && pr.Month == dto.PayMonth && pr.Year == dto.PayYear && pr.PayHalf == dto.PayHalf && pr.Status == PayrollResultStatus.Approved, ct);
+        
+        if (isApproved)
+            return ServiceResult<PayrollResultReadDto>.Fail("La paie de ce mois est verrouillée (Approuvée) et ne peut plus être recalculée.");
+
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
         if (data == null) return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
 
@@ -360,6 +367,13 @@ public class PayrollService : IPayrollService
     public async Task<ServiceResult<PayrollResultReadDto>> RecalculateForEmployeeAsync(
         int employeeId, int month, int year, int? payHalf, int userId, CancellationToken ct = default)
     {
+        // Verification Snapshotting
+        var isApproved = await _db.PayrollResults.AnyAsync(pr => 
+            pr.DeletedAt == null && pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf && pr.Status == PayrollResultStatus.Approved, ct);
+        
+        if (isApproved)
+            return ServiceResult<PayrollResultReadDto>.Fail("La paie de ce mois est verrouillée (Approuvée) et ne peut plus être recalculée.");
+
         // Supprimer le résultat existant s'il existe
         var existing = await _db.PayrollResults
             .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf, ct);
@@ -377,8 +391,28 @@ public class PayrollService : IPayrollService
     {
         var pr = await _db.PayrollResults.FindAsync(new object[] { id }, ct);
         if (pr == null) return ServiceResult.Fail("Résultat introuvable.");
+        if (pr.Status == PayrollResultStatus.Approved) return ServiceResult.Fail("La paie est verrouillée, suppression interdite.");
         pr.DeletedAt = DateTimeOffset.UtcNow;
         pr.DeletedBy = deletedBy;
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> ApprovePeriodAsync(int companyId, int month, int year, int? payHalf, int userId, CancellationToken ct = default)
+    {
+        var results = await _db.PayrollResults
+            .Where(pr => pr.DeletedAt == null && pr.CompanyId == companyId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf && pr.Status != PayrollResultStatus.Approved)
+            .ToListAsync(ct);
+            
+        if (results.Count == 0)
+            return ServiceResult.Fail("Aucun bulletin à verrouiller (ou déjà tous verrouillés) pour cette période.");
+
+        var now = DateTimeOffset.UtcNow;
+        foreach(var pr in results)
+        {
+            pr.Status = PayrollResultStatus.Approved;
+        }
+
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
     }

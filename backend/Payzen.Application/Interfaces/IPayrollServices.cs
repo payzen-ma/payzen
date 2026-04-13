@@ -27,4 +27,5 @@ public interface IPayrollService
     Task<ServiceResult<PayrollBulletinDetailDto>> GetBulletinDetailAsync(int id, CancellationToken ct = default);
     Task<ServiceResult<PayrollResultReadDto>> RecalculateForEmployeeAsync(int employeeId, int month, int year, int? payHalf, int userId, CancellationToken ct = default);
     Task<ServiceResult> DeleteResultAsync(int id, int deletedBy, CancellationToken ct = default);
+    Task<ServiceResult> ApprovePeriodAsync(int companyId, int month, int year, int? payHalf, int userId, CancellationToken ct = default);
 }

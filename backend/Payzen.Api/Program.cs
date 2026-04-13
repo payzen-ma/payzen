@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Payzen.Application.Validators.Company;
 using Payzen.Infrastructure;
 using Payzen.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Payzen.Infrastructure.Seeding;
 using System.Text;
 
@@ -253,10 +254,11 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
-        logger.LogInformation("Démarrage du seed...");
+        logger.LogInformation("Démarrage de la migration de la base de données et du seed...");
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
         await DbSeeder.SeedAsync(db);
-        logger.LogInformation("Seed terminé.");
+        logger.LogInformation("Seed et migrations terminés.");
     }
     catch (Exception ex)
     {

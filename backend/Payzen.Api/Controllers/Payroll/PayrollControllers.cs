@@ -174,6 +174,21 @@ public class PayrollController : ControllerBase
         var r = await _svc.DeleteResultAsync(id, User.GetUserId());
         return r.Success ? Ok(new { message = "Résultat de paie supprimé avec succès." }) : BadRequest(new { error = r.Error });
     }
+    /// <summary>Verrouille les bulletins d'une période pour interdire tout futur recalcul</summary>
+    [HttpPost("approve")]
+    public async Task<ActionResult> Approve(
+        [FromQuery] int companyId,
+        [FromQuery] int month,
+        [FromQuery] int year,
+        [FromQuery] int? half)
+    {
+        int? payHalf;
+        try { payHalf = NormalizePayHalf(half); }
+        catch (ArgumentOutOfRangeException ex) { return BadRequest(new { error = ex.Message }); }
+
+        var r = await _svc.ApprovePeriodAsync(companyId, month, year, payHalf, User.GetUserId());
+        return r.Success ? Ok(new { message = "La période a été verrouillée avec succès." }) : BadRequest(new { error = r.Error });
+    }
 }
 
 // ── Salary Preview ────────────────────────────────────────────────────────────

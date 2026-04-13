@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,6 +10,7 @@ namespace Payzen.Domain.Enums
         Processing = 1,
         OK = 2,
         Error = 3,
-        ManualReviewRequired = 4
+        ManualReviewRequired = 4,
+        Approved = 5
     }
 }
