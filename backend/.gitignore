@@ -55,3 +55,7 @@ nunit-*.xml
 /.vs
 /Payzen.Api/appsettings.json
 /Payzen.Api/appsettings.Development.json
+
+# Never commit build output
+publish/
+publish.zip
