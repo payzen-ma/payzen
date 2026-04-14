@@ -51,6 +51,7 @@ export interface EmployeesResponse {
 export interface EmployeeStats {
   total: number;
   active: number;
+  onLeave: number;
 }
 
 // ... [Keep other interfaces: LookupOption, EmployeeFormData, etc.] ...

@@ -540,7 +540,7 @@
     }
   },
   "common": {
-    "Showing" : "عرض",
+    "Showing": "عرض",
     "system": "النظام",
     "custom": "مخصص",
     "readOnly": "للقراءة فقط",
@@ -1236,7 +1236,6 @@
       }
     }
   },
-
   "employees": {
     "title": "إدارة الموظفين",
     "subtitle": "إدارة معلومات ووثائق موظفيك",
@@ -1247,7 +1246,7 @@
     "department": "القسم",
     "searchPlaceholder": "ابحث بالاسم أو المنصب...",
     "searchFieldLabel": "بحث عن موظف",
-    "importSage": "استيراد Sage",
+    "importSage": "استيراد",
     "filter": {
       "department": "القسم",
       "status": "الحالة",
@@ -2005,9 +2004,9 @@
       "DEPARTEMENT_UPDATED": "تم تحديث القسم",
       "DEPARTEMENT_DELETED": "تم حذف القسم"
     },
-      "PASSWORD_RESET": "إعادة تعيين كلمة المرور",
-      "USER_ROLE_ASSIGNED": "تم تعيين دور المستخدم",
-      "USER_ROLE_REVOKED": "تم سحب دور المستخدم",
+    "PASSWORD_RESET": "إعادة تعيين كلمة المرور",
+    "USER_ROLE_ASSIGNED": "تم تعيين دور المستخدم",
+    "USER_ROLE_REVOKED": "تم سحب دور المستخدم",
     "justNow": "الآن",
     "activeFilters": "الفلاتر النشطة",
     "clearAll": "مسح الكل",
@@ -2028,7 +2027,6 @@
     "unknownEvent": "حدث غير معروف",
     "unknownUser": "مستخدم غير معروف"
   },
-
   "permissions": {
     "title": "إدارة الصلاحيات",
     "subtitle": "إدارة الصلاحيات والأدوار وتعيينات المستخدمين",
@@ -2119,7 +2117,6 @@
       "apply": "تطبيق"
     }
   },
-
   "absences": {
     "accessDenied": {
       "title": "تم رفض الوصول",
@@ -2255,7 +2252,6 @@
       "declare": "تصريح"
     }
   },
-
   "overtime": {
     "title": "الساعات الإضافية",
     "subtitle": "صرّح وأدر ساعاتك الإضافية",
@@ -2364,7 +2360,6 @@
       "declare": "تصريح"
     }
   },
-
   "holidays": {
     "title": "العطل الرسمية",
     "subtitle": "إدارة العطل الرسمية لشركتك",
@@ -2459,7 +2454,6 @@
       "description": "ابدأ بإنشاء أول عطلة."
     }
   },
-
   "workingCalendar": {
     "title": "تقويم العمل",
     "description": "حدد أيام وساعات العمل لشركتك",
@@ -2486,14 +2480,12 @@
       "invalidTimeRange": "يجب أن يكون وقت الانتهاء بعد وقت البدء لـ {{day}}"
     }
   },
-
   "validation": {
     "required": "هذا الحقل مطلوب",
     "email": "يرجى إدخال بريد إلكتروني صحيح",
     "minLength": "الحد الأدنى {{min}} حرفاً مطلوب",
     "maxLength": "الحد الأقصى {{max}} حرفاً مطلوب"
   },
-
   "leave": {
     "title": "إعدادات الإجازات",
     "subtitle": "إدارة طلبات إجازتي وتتبع حالتها",
@@ -2883,7 +2875,10 @@
         "submitFailed": "تعذر إرسال طلب الإجازة",
         "deleteFailed": "تعذر حذف طلب الإجازة"
       },
-      "accessDenied" : { "title": " تم رفض الوصول", "message": "أنت غير مصرح لك بالوصول إلى هذه الصفحة." }
+      "accessDenied": {
+        "title": " تم رفض الوصول",
+        "message": "أنت غير مصرح لك بالوصول إلى هذه الصفحة."
+      }
     }
   },
   "TIMESHEET": {

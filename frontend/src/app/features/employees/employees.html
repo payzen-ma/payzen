@@ -13,8 +13,8 @@
         </div>
       </div>
       <div class="employees-app-header__actions">
-        <button pButton type="button" [label]="'employees.importSage' | translate" class="btn btn-secondary employees-btn-import"
-          icon="pi pi-upload" (click)="openImportDialog()"
+        <button pButton type="button" [label]="'employees.importSage' | translate"
+          class="btn btn-secondary employees-btn-import" icon="pi pi-upload" (click)="openImportDialog()"
           title="{{ 'employees.importSage' | translate }}"></button>
         <button pButton type="button" [label]="'employees.addEmployee' | translate" class="btn btn-primary"
           icon="pi pi-user-plus" (click)="addEmployee()"></button>
@@ -55,34 +55,36 @@
       <div class="app-filters app-filters--surface">
         <div class="app-filters__row">
           <div class="app-filters__item app-filters__item--search">
-            <label class="app-filters__label" for="employees-search-input">{{ 'employees.searchFieldLabel' | translate }}</label>
+            <label class="app-filters__label" for="employees-search-input">{{ 'employees.searchFieldLabel' | translate
+              }}</label>
             <p-iconfield iconPosition="left" class="w-full app-filter-search">
               <p-inputicon class="pi pi-search app-filter-search__icon"></p-inputicon>
               <input id="employees-search-input" pInputText type="text" class="w-full app-filter-search__input"
-                [(ngModel)]="searchQueryModel"
-                [placeholder]="'employees.searchPlaceholder' | translate"
+                [(ngModel)]="searchQueryModel" [placeholder]="'employees.searchPlaceholder' | translate"
                 [attr.aria-label]="'employees.searchFieldLabel' | translate" />
             </p-iconfield>
           </div>
 
           <div class="app-filters__item app-filters__item--md">
-            <label class="app-filters__label" for="employees-dept-select">{{ 'employees.filter.department' | translate }}</label>
-            <p-select inputId="employees-dept-select" [options]="departments()" [(ngModel)]="selectedDepartmentModel" optionLabel="label"
-              optionValue="value" [placeholder]="'employees.filter.allDepartments' | translate" class="w-full input" />
+            <label class="app-filters__label" for="employees-dept-select">{{ 'employees.filter.department' | translate
+              }}</label>
+            <p-select inputId="employees-dept-select" [options]="departments()" [(ngModel)]="selectedDepartmentModel"
+              optionLabel="label" optionValue="value" [placeholder]="'employees.filter.allDepartments' | translate"
+              class="w-full" />
           </div>
 
           <div class="app-filters__item app-filters__item--sm">
-            <label class="app-filters__label" for="employees-status-select">{{ 'employees.filter.status' | translate }}</label>
-            <p-select inputId="employees-status-select" [options]="statuses()" [(ngModel)]="selectedStatusModel" optionLabel="label" optionValue="value"
-              [placeholder]="'employees.filter.allStatuses' | translate" class="input w-full" />
+            <label class="app-filters__label" for="employees-status-select">{{ 'employees.filter.status' | translate
+              }}</label>
+            <p-select inputId="employees-status-select" [options]="statuses()" [(ngModel)]="selectedStatusModel"
+              optionLabel="label" optionValue="value" [placeholder]="'employees.filter.allStatuses' | translate"
+              class="w-full" />
           </div>
 
           <div class="app-filters__actions">
             <button pButton type="button" [label]="'common.clear' | translate" (click)="clearFilters()"
-              [disabled]="disableClearButton"
-              class="app-filter-clear"
-              [class.app-filter-clear--disabled]="disableClearButton"
-              title="{{ 'common.clear' | translate }}"></button>
+              [disabled]="disableClearButton" class="app-filter-clear"
+              [class.app-filter-clear--disabled]="disableClearButton" title="{{ 'common.clear' | translate }}"></button>
           </div>
         </div>
       </div>
@@ -163,7 +165,8 @@
                     @if (employee.manager) {
                     <a [routerLink]="[]"
                       class="text-xs text-(--text-secondary) hover:text-(--primary) hover:underline truncate block"
-                      (click)="$event.stopPropagation()">{{ 'employees.manager' | translate }}: {{ employee.manager }}</a>
+                      (click)="$event.stopPropagation()">{{ 'employees.manager' | translate }}: {{ employee.manager
+                      }}</a>
                     }
                   </div>
                 </div>
@@ -220,8 +223,8 @@
               <td colspan="7" class="p-0 border-none">
                 <app-empty-state [title]="'employees.noEmployees' | translate"
                   [description]="'employees.noEmployeesDesc' | translate" icon="pi pi-users">
-                  <button pButton type="button" [label]="'employees.addEmployee' | translate" class="btn btn-primary mt-4"
-                    icon="pi pi-user-plus" (click)="addEmployee()"></button>
+                  <button pButton type="button" [label]="'employees.addEmployee' | translate"
+                    class="btn btn-primary mt-4" icon="pi pi-user-plus" (click)="addEmployee()"></button>
                 </app-empty-state>
               </td>
             </tr>

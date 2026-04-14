@@ -38,7 +38,8 @@ public class AuthServiceTests : IDisposable
             .Build();
 
         var jwtService = new JwtService(config, _db);
-        _svc = new AuthService(_db, jwtService);
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<AuthService>.Instance;
+        _svc = new AuthService(_db, jwtService, logger, config);
 
         // Seed minimal RBAC requis par LoginWithEntraAsync (rôles de fallback)
         _db.Roles.AddRange(

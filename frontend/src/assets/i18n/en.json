@@ -1295,7 +1295,7 @@
     "department": "Department",
     "searchPlaceholder": "Search by name or position...",
     "searchFieldLabel": "Search employee",
-    "importSage": "Import Sage",
+    "importSage": "Import",
     "filter": {
       "department": "Department",
       "status": "Status",
@@ -2755,7 +2755,7 @@
     "messages": {
       "submitSuccess": "Leave request submitted successfully",
       "createSuccess": "Leave type created successfully",
-      "updateSuccess": "Leave type updated successfully", 
+      "updateSuccess": "Leave type updated successfully",
       "deleteSuccess": "Leave type deleted successfully",
       "policyCreateSuccess": "Leave policy created successfully",
       "policyUpdateSuccess": "Leave policy updated successfully",

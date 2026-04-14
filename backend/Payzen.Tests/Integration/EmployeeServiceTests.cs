@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.AspNetCore.Hosting;
 using Moq;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.Interfaces;
@@ -32,9 +32,11 @@ public class EmployeeServiceTests : IDisposable
         var env = new Mock<IWebHostEnvironment>().Object;
         var eventLog = new Mock<IEmployeeEventLogService>().Object;
         var invitationService = new Mock<IInvitationService>().Object;
+        var identityProv = new Mock<IIdentityProvisioningService>().Object;
+        var emailService = new Mock<IEmailService>().Object;
         var leaveRecalc = new Mock<ILeaveBalanceRecalculationService>().Object;
         var logger = new Mock<Microsoft.Extensions.Logging.ILogger<EmployeeService>>().Object;
-        _svc = new EmployeeService(_db, env, eventLog, invitationService, leaveRecalc, logger);
+        _svc = new EmployeeService(_db, env, eventLog, identityProv, emailService, leaveRecalc, logger);
 
         // Données référentielles minimales
         _db.Companies.Add(new Company
@@ -86,7 +88,8 @@ public class EmployeeServiceTests : IDisposable
             CompanyId = CompanyId,
             GenderId = 1,
             StatusId = 1,
-            DateOfBirth = new DateOnly(1990, 5, 15)
+            DateOfBirth = new DateOnly(1990, 5, 15),
+            CountryPhoneCode = "+212"
         };
 
         var result = await _svc.CreateAsync(dto, UserId);
@@ -109,7 +112,8 @@ public class EmployeeServiceTests : IDisposable
             CompanyId = CompanyId,
             GenderId = 1,
             StatusId = 1,
-            DateOfBirth = new DateOnly(1988, 3, 20)
+            DateOfBirth = new DateOnly(1988, 3, 20),
+            CountryPhoneCode = "+212"
         };
         var created = await _svc.CreateAsync(dto, UserId);
         var id = created.Data!.Id;
@@ -142,7 +146,8 @@ public class EmployeeServiceTests : IDisposable
             CompanyId = CompanyId,
             GenderId = 1,
             StatusId = 1,
-            DateOfBirth = new DateOnly(1985, 7, 10)
+            DateOfBirth = new DateOnly(1985, 7, 10),
+            CountryPhoneCode = "+212"
         };
         var created = await _svc.CreateAsync(dto, UserId);
         var id = created.Data!.Id;
@@ -170,7 +175,8 @@ public class EmployeeServiceTests : IDisposable
                 CompanyId = CompanyId,
                 GenderId = 1,
                 StatusId = 1,
-                DateOfBirth = new DateOnly(1990, 1, 1)
+                DateOfBirth = new DateOnly(1990, 1, 1),
+                CountryPhoneCode = "+212"
             }, UserId);
         }
 

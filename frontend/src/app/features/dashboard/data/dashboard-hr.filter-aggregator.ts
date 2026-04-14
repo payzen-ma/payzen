@@ -6,7 +6,7 @@ import {
   ProgressRowModel,
   StatusPill
 } from '../state/dashboard-hr.models';
-import { DashboardHrRawContract, DashboardHrRawData, DashboardHrRawEmployee, DashboardHrRawSalary } from './dashboard-hr-raw.models';
+import { DashboardHrRawContract, DashboardHrRawData, DashboardHrRawSalary } from './dashboard-hr-raw.models';
 
 const DEPARTMENT_COLORS = ['#2563eb', '#22c55e', '#f97316', '#6366f1', '#7c3aed', '#0ea5e9'];
 const HIERARCHY_COLORS = ['#ef4444', '#f97316', '#22c55e', '#14b8a6', '#6366f1'];
@@ -21,6 +21,47 @@ interface EnrichedEmployee {
   genderCode: string;
   position: string;
   contractType: string;
+}
+
+function normalizeStatusToken(value: string): string {
+  return (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function isActiveOrOnLeaveStatus(statusCode: string): boolean {
+  const normalized = normalizeStatusToken(statusCode);
+
+  if (!normalized) {
+    return false;
+  }
+
+  // Reject inactive-like statuses first to avoid false positives like "inactif" containing "actif".
+  if (
+    normalized.includes('inactive') ||
+    normalized.includes('inactif') ||
+    normalized.includes('resign') ||
+    normalized.includes('terminated') ||
+    normalized.includes('departed') ||
+    normalized.includes('left') ||
+    normalized.includes('suspended') ||
+    normalized.includes('retired') ||
+    normalized.includes('archive')
+  ) {
+    return false;
+  }
+
+  return (
+    normalized === 'active' ||
+    normalized === 'actif' ||
+    normalized === 'enabled' ||
+    normalized.startsWith('active') ||
+    normalized.startsWith('actif') ||
+    normalized === 'onleave' ||
+    normalized === 'onconge' ||
+    normalized === 'statusleave' ||
+    normalized.includes('onleave') ||
+    normalized.includes('conge') ||
+    normalized.includes('leave')
+  );
 }
 
 function isAllTimeMonth(month: string): boolean {
@@ -222,6 +263,10 @@ function applyFilters(employees: EnrichedEmployee[], filters: DashboardFilterSta
   const includesBothParity = filters.parity.includes('F') && filters.parity.includes('H');
 
   return employees.filter(employee => {
+    if (!isActiveOrOnLeaveStatus(employee.statusCode)) {
+      return false;
+    }
+
     if (filters.departments.length > 0 && !filters.departments.includes(employee.department)) {
       return false;
     }
@@ -319,11 +364,11 @@ export function aggregateDashboardFromRaw(
   const turnover = totalEmployees > 0 ? (inactiveCount * 100) / totalEmployees : 0;
   const compareTurnover = compareRaw
     ? (() => {
-        const count = compareFiltered.length;
-        if (count === 0) return 0;
-        const inactive = compareFiltered.filter(employee => inactiveStatuses.some(token => employee.statusCode.toLowerCase().includes(token))).length;
-        return (inactive * 100) / count;
-      })()
+      const count = compareFiltered.length;
+      if (count === 0) return 0;
+      const inactive = compareFiltered.filter(employee => inactiveStatuses.some(token => employee.statusCode.toLowerCase().includes(token))).length;
+      return (inactive * 100) / count;
+    })()
     : null;
 
   const timelineBaseMonth = isAllTimeMonth(filters.month) ? raw.meta.month : filters.month;

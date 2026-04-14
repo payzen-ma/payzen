@@ -98,7 +98,7 @@
       "notFound": "Aucune fiche de paie trouvée pour cette période. Assurez-vous que la paie a été calculée.",
       "payrollError": "La fiche de paie est en erreur. Veuillez recalculer la paie.",
       "generic": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
-      "notFoundEMP" : "Aucune fiche de paie trouvée pour cette période. Contactez votre département RH."
+      "notFoundEMP": "Aucune fiche de paie trouvée pour cette période. Contactez votre département RH."
     },
     "months": {
       "january": "Janvier",
@@ -367,15 +367,15 @@
     "selectCompanyFirst": "Veuillez d'abord sélectionner une entreprise",
     "selectCompanyRequired": "Sélection d'entreprise requise",
     "selectCompanyMessage": "Vous devez sélectionner une entreprise pour accéder à cette section.",
-      "status": "Statut",
-      "admin": "Administrateur",
-      "user": "Utilisateur",
-      "manager": "Manager",
-      "hr": "RH",
-      "employee": "Employé",
-      "cabinet": "Cabinet",
-      "adminPayzen": "Admin PayZen",
-      "viewer": "Observateur",
+    "status": "Statut",
+    "admin": "Administrateur",
+    "user": "Utilisateur",
+    "manager": "Manager",
+    "hr": "RH",
+    "employee": "Employé",
+    "cabinet": "Cabinet",
+    "adminPayzen": "Admin PayZen",
+    "viewer": "Observateur",
     "modeLabel": "Expert Cabinet",
     "modeDescription": "Vous êtes actuellement en mode Expert",
     "dashboard": {
@@ -391,8 +391,7 @@
       "editClient": "Modifier le client",
       "viewingAsExpert": "Vous consultez cette entreprise en tant qu'Expert",
       "viewingClient": "Vos Clients"
-    }
-    ,
+    },
     "client": {
       "adminUser": "Administrateur invité",
       "adminDescription": "Saisissez le futur administrateur : il recevra une invitation par e-mail pour activer son accès via Microsoft Entra (sans mot de passe Payzen)."
@@ -493,7 +492,7 @@
     }
   },
   "auth": {
-    "password" : "Mot de passe",
+    "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "login": {
       "welcome": "Bienvenue",
@@ -565,9 +564,9 @@
   },
   "common": {
     "submit": "Soumettre",
-  "Showing" : "Affichage de",
-  "system": "Système",
-  "custom": "Personnalisé",
+    "Showing": "Affichage de",
+    "system": "Système",
+    "custom": "Personnalisé",
     "readOnly": "Lecture seule",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -630,7 +629,7 @@
     "lastUpdated": "Dernière mise à jour :",
     "confirmDelete": "Confirmer la suppression",
     "showing": "Affichage de",
-    "goBack" : "Retour vers le tableau de bord",
+    "goBack": "Retour vers le tableau de bord",
     "table": {
       "showing": "Affichage de {first} à {last} sur {total}"
     },
@@ -730,8 +729,7 @@
         "logoUpdateError": "Failed to update logo",
         "fieldUpdated": "Field updated successfully",
         "fieldUpdateError": "Failed to update field"
-      }
-      ,
+      },
       "createCity": "Créer une ville",
       "cityPlaceholder": "Tapez pour rechercher ou créer une ville"
     },
@@ -938,8 +936,7 @@
         "notImplementedTitle": "Not implemented",
         "notImplemented": "This action is not implemented yet.",
         "userRemoved": "User {{name}} was removed",
-        "removeUserError": "Failed to remove user"
-      ,
+        "removeUserError": "Failed to remove user",
         "footerInfo": "L'utilisateur recevra ses identifiants par e-mail"
       }
     },
@@ -1038,7 +1035,6 @@
       "emptyTitle": "Aucun département pour le moment",
       "emptyDescription": "Commencez par créer votre premier département pour organiser la structure de votre équipe.",
       "footerInfo": "Les champs obligatoires sont marqués d'un *",
-
       "table": {
         "name": "Nom du département",
         "description": "Gérer et organiser la structure de votre entreprise",
@@ -1319,7 +1315,7 @@
     "department": "Département",
     "searchPlaceholder": "Rechercher par nom ou poste...",
     "searchFieldLabel": "Rechercher un salarié",
-    "importSage": "Importer Sage",
+    "importSage": "Importer",
     "filter": {
       "department": "Département",
       "status": "Statut",
@@ -1490,7 +1486,6 @@
         "isDependent": "À charge",
         "isStudent": "Étudiant"
       },
-
       "noChanges": "Aucun changement à enregistrer",
       "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
       "saveSuccess": "Modifications enregistrées",
@@ -1521,13 +1516,13 @@
         "employee_created": "Employé créé",
         "Address_Created": "Adresse ajoutée",
         "Contract_Created": "Contrat créé",
-        "ROLE_ASSIGNED":"Rôle Attribué",
+        "ROLE_ASSIGNED": "Rôle Attribué",
         "Role_Assigned": "Rôle attribué",
         "role_assigned": "Rôle attribué",
         "Role_Revoked": "Rôle révoqué",
         "role_revoked": "Rôle révoqué",
         "ROLE_REVOKED": "Rôle révoqué",
-        "ROLE_REMOVED":"Rôle Retiré"
+        "ROLE_REMOVED": "Rôle Retiré"
       },
       "titles": {
         "general_update": "Modification",
@@ -1553,7 +1548,7 @@
         "employee_created": "Employé créé",
         "Address_Created": "Adresse ajoutée",
         "Contract_Created": "Contrat créé",
-        "ROLE_ASSIGNED":"Rôle Attribué",
+        "ROLE_ASSIGNED": "Rôle Attribué",
         "Role_Assigned": "Rôle attribué",
         "role_assigned": "Rôle attribué",
         "ROLE_REVOKED": "Rôle révoqué",
@@ -1566,7 +1561,7 @@
       "ariaLabel": "Historique de l'employé"
     },
     "create": {
-        "eyebrow": "Nouveau collaborateur",
+      "eyebrow": "Nouveau collaborateur",
       "title": "Créer un salarié",
       "subtitle": "Renseignez l'identité, le contrat et les contacts avant l'onboarding.",
       "submit": "Créer le salarié",
@@ -2162,8 +2157,7 @@
       "apply": "Appliquer"
     }
   },
-  "accessDenied" :
-  {
+  "accessDenied": {
     "title": "Accès refusé",
     "message": "Vous n'êtes pas autorisé à accéder à cette page."
   },
@@ -2243,7 +2237,7 @@
       "totalDays": "Total Jours"
     },
     "types": {
-      "ANNUAL_LEAVE" : "Congé Annuel",
+      "ANNUAL_LEAVE": "Congé Annuel",
       "sick": "Maladie",
       "maternity": "Maternité",
       "paternity": "Paternité",
@@ -2366,7 +2360,7 @@
       "approved": "Heures supplémentaires approuvées avec succès",
       "rejected": "Heures supplémentaires rejetées",
       "submitSuccess": "Heures supplémentaires soumises avec succès",
-       "submitError": "Échec de la soumission des heures supplémentaires"
+      "submitError": "Échec de la soumission des heures supplémentaires"
     },
     "declareFor": "Déclarer des heures supplémentaires pour {{name}}",
     "declare": "Déclarer",
@@ -2549,28 +2543,27 @@
       "all": "Tous"
     },
     "type": "Type de Congé",
-    "tabs": 
-      {
-        "types": "Types de Congé",
-        "policies": "Politiques de Congé"
-      },
+    "tabs": {
+      "types": "Types de Congé",
+      "policies": "Politiques de Congé"
+    },
     "allTypes": "Tous les types",
     "noReason": "Aucun motif",
     "noReasonSpecified": "Aucun motif spécifié",
     "dateTo": "au",
     "newRequest": "Nouvelle demande de congé",
     "myRequests": "Mes Demandes de Congé",
-      "actions": {
-        "submit": "Soumettre"
-      },
-      "confirmations": {
-        "submit": {
-          "title": "Confirmation",
-          "message": "Êtes-vous sûr de vouloir soumettre cette demande de congé ?",
-          "submitButton": "Soumettre",
-          "cancelButton": "Annuler"
-        }
-      },
+    "actions": {
+      "submit": "Soumettre"
+    },
+    "confirmations": {
+      "submit": {
+        "title": "Confirmation",
+        "message": "Êtes-vous sûr de vouloir soumettre cette demande de congé ?",
+        "submitButton": "Soumettre",
+        "cancelButton": "Annuler"
+      }
+    },
     "editRequest": "Modifier la Demande",
     "addRequest": "Nouvelle Demande de Congé",
     "submit": "Soumettre",
@@ -2702,7 +2695,7 @@
       "stats": {
         "total": "Total",
         "global": "Global",
-        "company": "Entreprise", 
+        "company": "Entreprise",
         "active": "Actifs",
         "inactive": "Inactifs"
       }

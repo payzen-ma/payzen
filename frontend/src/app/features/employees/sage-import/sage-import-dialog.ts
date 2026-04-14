@@ -1,20 +1,20 @@
-import { Component, EventEmitter, Input, Output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DialogModule } from 'primeng/dialog';
+import {
+  EmployeeService,
+  SageImportCreatedItem,
+  SageImportError,
+  SageImportResult
+} from '@app/core/services/employee.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { MessageService } from 'primeng/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import {
-  EmployeeService,
-  SageImportResult,
-  SageImportCreatedItem,
-  SageImportError
-} from '@app/core/services/employee.service';
+import { ToastModule } from 'primeng/toast';
 
 type ImportStep = 'upload' | 'importing' | 'results';
 
@@ -33,7 +33,8 @@ type ImportStep = 'upload' | 'importing' | 'results';
     TranslateModule
   ],
   providers: [MessageService],
-  templateUrl: './sage-import-dialog.html'
+  templateUrl: './sage-import-dialog.html',
+  styleUrls: ['./sage-import-dialog.component.css']
 })
 export class SageImportDialogComponent {
   @Input() visible = false;

@@ -61,7 +61,8 @@ export class EmployeesPage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly stats = signal<EmployeeStats>({
     total: 0,
-    active: 0
+    active: 0,
+    onLeave: 0
   });
 
   // Sage import dialog
@@ -108,22 +109,28 @@ export class EmployeesPage implements OnInit {
     icon: string;
     iconWrapClass: string;
   }> = [
-    {
-      label: 'employees.stats.total',
-      accessor: (stats: EmployeeStats) => stats.total,
-      icon: 'pi pi-users',
-      iconWrapClass: 'employees-kpi-icon employees-kpi-icon--total'
-    },
-    {
-      label: 'employees.stats.active',
-      accessor: (stats: EmployeeStats) => stats.active,
-      icon: 'pi pi-check-circle',
-      iconWrapClass: 'employees-kpi-icon employees-kpi-icon--active'
-    }
-  ];
+      {
+        label: 'employees.stats.total',
+        accessor: (stats: EmployeeStats) => stats.total,
+        icon: 'pi pi-users',
+        iconWrapClass: 'employees-kpi-icon employees-kpi-icon--total'
+      },
+      {
+        label: 'employees.stats.active',
+        accessor: (stats: EmployeeStats) => stats.active,
+        icon: 'pi pi-check-circle',
+        iconWrapClass: 'employees-kpi-icon employees-kpi-icon--active'
+      },
+      {
+        label: 'employees.stats.onLeave',
+        accessor: (stats: EmployeeStats) => stats.onLeave,
+        icon: 'pi pi-calendar',
+        iconWrapClass: 'employees-kpi-icon employees-kpi-icon--on-leave'
+      }
+    ];
 
   readonly filteredEmployees = computed(() => {
-    let result = this.employees();
+    let result = this.employees().filter(emp => this.shouldDisplayEmployeeInList(emp));
 
     // Filter by search query
     if (this.searchQuery()) {
@@ -156,10 +163,12 @@ export class EmployeesPage implements OnInit {
   readonly displayedStats = computed<EmployeeStats>(() => {
     const list = this.filteredEmployees();
     const active = list.filter(emp => this.isEmployeeActive(emp)).length;
+    const onLeave = list.filter(emp => this.isEmployeeOnLeave(emp)).length;
 
     return {
       total: list.length,
-      active
+      active,
+      onLeave
     };
   });
 
@@ -200,9 +209,10 @@ export class EmployeesPage implements OnInit {
     this.employeeService.getStatuses(true).subscribe({
       next: (items) => {
         const opts = (items || []).map(i => ({ label: i.label, value: (i as any).value ?? String(i.id) }));
+        const visibleStatusOptions = opts.filter(o => this.isVisibleStatusOption(o));
         this.statuses.set([
           { label: this.t('employees.filter.allStatuses'), value: null },
-          ...opts
+          ...visibleStatusOptions
         ]);
         // debug current employees and how they'll map
         // If employees are already loaded, populate their statusName from the referential labels
@@ -219,7 +229,7 @@ export class EmployeesPage implements OnInit {
             if (norm === 'inactive') candidates.add('inact');
 
             let match: any = null;
-            for (const o of opts) {
+            for (const o of visibleStatusOptions) {
               const anyO = o as any;
               const val = this.normalizeStatusCode(anyO.value ?? anyO.id ?? anyO.label ?? '');
               const lbl = this.normalizeStatusCode(o.label ?? '');
@@ -296,7 +306,11 @@ export class EmployeesPage implements OnInit {
           return emp;
         });
         this.employees.set(enriched);
-        this.stats.set({ total: response.total, active: response.active });
+        this.stats.set({
+          total: response.total,
+          active: response.active,
+          onLeave: enriched.filter(emp => this.isEmployeeOnLeave(emp)).length
+        });
         this.departments.set([
           { label: this.t('employees.filter.allDepartments'), value: null },
           ...this.buildDepartmentOptions(response.departments)
@@ -365,12 +379,16 @@ export class EmployeesPage implements OnInit {
 
       // Guard against false positives like "inactive" / "inactif".
       if (
-        normalized === 'inactive' ||
-        normalized === 'inactif' ||
-        normalized === 'onleave' ||
-        normalized === 'conge' ||
-        normalized === 'suspended' ||
-        normalized === 'retired'
+        normalized.includes('inactive') ||
+        normalized.includes('inactif') ||
+        normalized.includes('onleave') ||
+        normalized.includes('conge') ||
+        normalized.includes('suspended') ||
+        normalized.includes('retired') ||
+        normalized.includes('resign') ||
+        normalized.includes('terminated') ||
+        normalized.includes('left') ||
+        normalized.includes('depart')
       ) {
         continue;
       }
@@ -378,17 +396,85 @@ export class EmployeesPage implements OnInit {
       if (
         normalized === 'active' ||
         normalized === 'actif' ||
-        normalized === 'enabled'
+        normalized === 'enabled' ||
+        normalized.startsWith('active') ||
+        normalized.startsWith('actif')
       ) {
-        return true;
-      }
-
-      if (/(^|\W)active($|\W)|(^|\W)actif($|\W)/.test(raw)) {
         return true;
       }
     }
 
     return false;
+  }
+
+  private isEmployeeOnLeave(employee: Employee): boolean {
+    const rawValues = [
+      (employee as any).statusRaw,
+      employee.status,
+      employee.statusName
+    ]
+      .filter(v => v !== undefined && v !== null)
+      .map(v => String(v).toLowerCase().trim());
+
+    for (const raw of rawValues) {
+      const normalized = this.normalizeStatusCode(raw);
+
+      if (!normalized) {
+        continue;
+      }
+
+      if (
+        normalized === 'onleave' ||
+        normalized === 'conge' ||
+        normalized === 'leave' ||
+        normalized === 'statusleave' ||
+        normalized.includes('onleave') ||
+        normalized.includes('conge')
+      ) {
+        return true;
+      }
+
+      if (/(^|\W)(on\s*leave|cong[eé]|leave)($|\W)/.test(raw)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private shouldDisplayEmployeeInList(employee: Employee): boolean {
+    return this.isEmployeeActive(employee) || this.isEmployeeOnLeave(employee);
+  }
+
+  private isVisibleStatusOption(option: { label: string; value: string | null }): boolean {
+    const normalizedValue = this.normalizeStatusCode(option.value ?? '');
+    const normalizedLabel = this.normalizeStatusCode(option.label ?? '');
+    const combined = `${normalizedValue} ${normalizedLabel}`;
+
+    // Exclude inactive-like statuses first, because "inactif" contains "actif".
+    if (
+      combined.includes('inactive') ||
+      combined.includes('inactif') ||
+      combined.includes('disabled') ||
+      combined.includes('resigned') ||
+      combined.includes('retired') ||
+      combined.includes('suspended')
+    ) {
+      return false;
+    }
+
+    return (
+      normalizedValue === 'active' ||
+      normalizedLabel === 'active' ||
+      normalizedValue === 'actif' ||
+      normalizedLabel === 'actif' ||
+      normalizedValue === 'enabled' ||
+      normalizedLabel === 'enabled' ||
+      combined.includes('onleave') ||
+      combined.includes('conge') ||
+      combined.includes('leave') ||
+      combined.includes('statusleave')
+    );
   }
 
   getEmployeeStatusLabel(employee: Employee): string {

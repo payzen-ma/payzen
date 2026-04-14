@@ -1,0 +1,639 @@
+/* ── SAGE IMPORT DIALOG ────────────────────────────────────────────────────── */
+
+.sage-import-dialog {
+    --dialog-width: 680px;
+}
+
+/* PrimeNG Dialog Header Override - ensures close button works */
+:host ::ng-deep .sage-import-dialog .p-dialog-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: var(--spacing-lg) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Ensure close button is clickable */
+:host ::ng-deep .sage-import-dialog .p-dialog-close-button {
+    position: relative !important;
+    z-index: 10 !important;
+    cursor: pointer !important;
+    background: none !important;
+    border: none !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--text-secondary) !important;
+    transition: all 150ms ease !important;
+}
+
+:host ::ng-deep .sage-import-dialog .p-dialog-close-button:hover {
+    color: var(--color-error) !important;
+    background: var(--bg-error-subtle) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+/* Header wrapper - doesn't interfere with close button */
+.header-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    flex: 1;
+    width: 100%;
+    pointer-events: auto;
+}
+
+.header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+.header-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    flex: 1;
+    min-width: 0;
+}
+
+.icon-badge {
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+    color: var(--primary-700);
+    border-radius: var(--radius-md);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    pointer-events: auto;
+    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.12);
+}
+
+.title-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.dialog-close-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-default);
+    color: var(--color-blue-700);
+    cursor: pointer;
+    transition: all 150ms ease;
+    flex-shrink: 0;
+}
+
+.dialog-close-button:hover {
+    color: var(--color-error);
+    border-color: var(--color-error);
+    background: var(--bg-error-subtle);
+}
+
+.dialog-close-button i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.dialog-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.dialog-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 4px 0 0 0;
+}
+
+.filters-section {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+    width: 100%;
+    pointer-events: auto;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    max-width: 120px;
+    pointer-events: auto;
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    pointer-events: auto;
+}
+
+.filter-input {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 6px 8px;
+    font-size: 13px;
+    background: white;
+    pointer-events: auto;
+}
+
+.btn-analyze {
+    margin-left: auto !important;
+}
+
+.sage-import-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.sage-import-header__icon {
+    background: var(--primary-100);
+    color: var(--color-blue-700);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-md);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.sage-import-header__filters {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.sage-import-header__filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.sage-import-header__filter-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.sage-import-header__filter-select {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 6px 8px;
+    font-size: 14px;
+}
+
+.sage-import-header__analyze-btn {
+    margin-left: auto;
+}
+
+.sage-import-header__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.sage-import-header__subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+}
+
+/* ══════ STEP 1: UPLOAD ══════════════════════════════════════════ */
+
+.sage-import-content {
+    padding: var(--spacing-md);
+}
+
+.sage-import-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+    .sage-import-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Left column: Instructions */
+.sage-import-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.sage-import-info__box {
+    background: var(--bg-info-subtle);
+    border-left: 4px solid var(--color-info);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.sage-import-info__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-info);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.sage-import-info__code {
+    font-family: monospace;
+    font-size: 12px;
+    background: white;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    margin: var(--spacing-sm) 0;
+}
+
+.sage-import-info__list {
+    list-style: disc;
+    padding-left: 20px;
+    margin: var(--spacing-sm) 0;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.sage-import-info__list li {
+    margin: 4px 0;
+}
+
+.sage-import-info__download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--spacing-sm);
+    font-size: 14px;
+    color: var(--color-info);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.sage-import-info__download-btn:hover {
+    text-decoration: underline;
+}
+
+.sage-import-info__tip {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Right column: Dropzone */
+.sage-import-dropzone-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.sage-import-dropzone {
+    border: 2px dashed var(--border-subtle);
+    border-radius: var(--radius-lg);
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-default);
+}
+
+.sage-import-dropzone:hover {
+    border-color: var(--color-info);
+}
+
+.sage-import-dropzone--dragging {
+    border-color: var(--primary-600);
+    background: var(--primary-50);
+}
+
+.sage-import-dropzone__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.sage-import-dropzone__icon {
+    width: 40px;
+    height: 40px;
+    color: var(--text-tertiary);
+}
+
+.sage-import-dropzone__text {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.sage-import-dropzone__hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.sage-import-dropzone__highlight {
+    color: var(--primary-700);
+    font-weight: 600;
+}
+
+.sage-import-dropzone__file-selected {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    width: 100%;
+    max-width: 300px;
+}
+
+.sage-import-dropzone__file-icon {
+    background: var(--primary-100);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-700);
+    font-size: 20px;
+}
+
+.sage-import-dropzone__file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sage-import-dropzone__filename {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.sage-import-dropzone__filesize {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 4px 0 0 0;
+}
+
+.sage-import-dropzone__remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.sage-import-dropzone__remove-btn:hover {
+    color: var(--color-error);
+}
+
+.sage-import-file-input {
+    display: none;
+}
+
+.sage-import-file-meta {
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+}
+
+.sage-import-error {
+    font-size: 14px;
+    color: var(--text-error);
+}
+
+/* ══════ STEP 2: IMPORTING ══════════════════════════════════════════ */
+
+.sage-import-importing {
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.sage-import-spinner {
+    width: 64px;
+    height: 64px;
+    background: var(--primary-100);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--primary-700);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.sage-import-importing__message {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.sage-import-importing__submessage {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: var(--spacing-sm) 0 0 0;
+}
+
+/* ══════ STEP 3: RESULTS ══════════════════════════════════════════ */
+
+.sage-import-results {
+    padding: var(--spacing-md);
+}
+
+.sage-import-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.sage-import-stat-card {
+    background: var(--bg-element);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    text-align: center;
+}
+
+.sage-import-stat-card__value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.sage-import-stat-card__label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+}
+
+.sage-import-stat-card--success {
+    background: var(--primary-50);
+    border-color: var(--primary-100);
+}
+
+.sage-import-stat-card--success .sage-import-stat-card__value {
+    color: var(--primary-700);
+}
+
+.sage-import-stat-card--success .sage-import-stat-card__label {
+    color: var(--primary-700);
+}
+
+.sage-import-stat-card--error {
+    background: var(--bg-error-subtle);
+    border-color: var(--border-error);
+}
+
+.sage-import-stat-card--error .sage-import-stat-card__value {
+    color: var(--color-error);
+}
+
+.sage-import-stat-card--error .sage-import-stat-card__label {
+    color: var(--text-error);
+}
+
+.sage-import-section {
+    margin-bottom: var(--spacing-md);
+}
+
+.sage-import-section__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sage-import-section__icon {
+    font-size: 14px;
+}
+
+.sage-import-table {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.sage-import-table__wrapper {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.sage-import-table__header,
+.sage-import-table__row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.sage-import-table__header {
+    background: var(--bg-element);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    position: sticky;
+    top: 0;
+}
+
+.sage-import-table__row {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.sage-import-table__row:hover {
+    background: var(--bg-element);
+}
+
+.sage-import-success-banner {
+    margin-top: var(--spacing-md);
+    background: var(--primary-50);
+    border: 1px solid var(--primary-100);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-size: 14px;
+    color: var(--primary-700);
+}
+
+.sage-import-success-banner__icon {
+    font-size: 16px;
+}
+
+.sage-import-success-banner__message {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ══════ FOOTER ══════════════════════════════════════════════────── */
+
+.sage-import-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-md);
+}
+
+.sage-import-footer--space-between {
+    justify-content: space-between;
+}

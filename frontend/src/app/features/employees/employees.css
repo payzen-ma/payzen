@@ -66,7 +66,7 @@
 /* KPI */
 .employees-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -129,7 +129,69 @@
     color: var(--success);
 }
 
+.employees-kpi-icon--on-leave {
+    background: var(--warning-light, #fcd44d);
+    color: var(--warning, #b35109);
+}
+
+@media (max-width: 1200px) {
+    .employees-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 /* Filtres : styles globaux (.app-filters*) dans components.css */
+
+/* Employee filters - exact visual match with Figma node 3383:4533 */
+.employees-page--figma .app-filters .app-filter-search .app-filter-search__input.p-inputtext,
+.employees-page--figma .app-filters .app-filter-search .p-inputtext {
+    min-height: 40px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+}
+
+.employees-page--figma .app-filters .app-filter-search .app-filter-search__input.p-inputtext::placeholder,
+.employees-page--figma .app-filters .app-filter-search .p-inputtext::placeholder {
+    color: var(--text-secondary, #6b7280);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+}
+
+:host ::ng-deep .employees-page--figma .app-filters .p-select {
+    min-height: 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: none;
+    background: #ffffff;
+}
+
+:host ::ng-deep .employees-page--figma .app-filters .p-select .p-select-label {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    color: var(--text-secondary, #6b7280);
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+:host ::ng-deep .employees-page--figma .app-filters .p-select .p-select-dropdown {
+    color: #94a3b8;
+}
+
+.employees-page--figma .app-filters .app-filters__item--md,
+.employees-page--figma .app-filters .app-filters__item--sm {
+    min-width: 240px;
+}
 
 /* Tableau + pagination en bas de la zone */
 .employees-table-panel {
@@ -179,7 +241,7 @@
     box-shadow: none;
 }
 
-:host ::ng-deep .employees-table-panel .p-datatable-thead > tr > th {
+:host ::ng-deep .employees-table-panel .p-datatable-thead>tr>th {
     box-shadow: none;
 }
 
