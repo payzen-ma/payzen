@@ -4,6 +4,272 @@
    is in src/styles.css (global). Matches overtime-management.
    ============================================ */
 
+.hr-leave-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hr-leave-page .page-header {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hr-leave-page .module-header__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hr-leave-page .module-header__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--primary-50, #ebf5ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-600, #1557b0);
+}
+
+.hr-leave-page .module-header__icon i {
+  font-size: 1rem;
+}
+
+.hr-leave-page .page-title {
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.hr-leave-page .page-subtitle {
+  font-size: 14px;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  color: var(--surface-500, #64748b);
+  margin: .3rem 0 0;
+}
+
+.hr-leave-page .bulletin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.hr-leave-page .bulletin-stat-card {
+  background: var(--background-element, #fff);
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 16px;
+}
+
+.hr-leave-page .bulletin-stat-card .stat-label {
+  font-size: 11px;
+  color: #6a7282;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.hr-leave-page .bulletin-stat-card .bulletin-stat-value {
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary, #1f2937);
+  font-weight: 600;
+}
+
+.hr-leave-page .bulletin-stat-card .stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hr-leave-page .bulletin-stat-card .stat-card-icon i {
+  font-size: 1rem;
+}
+
+.hr-leave-card {
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 16px;
+}
+
+.hr-leave-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.hr-leave-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.hr-leave-tab {
+  border: 0;
+  background: transparent;
+  color: var(--surface-600, #475669);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hr-leave-tab.is-active {
+  background: var(--primary-50, #ebf5ff);
+  color: var(--primary-600, #1557b0);
+}
+
+.hr-leave-tab__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-600, #1557b0);
+  background: #dbeafe;
+}
+
+.hr-leave-search {
+  width: 100%;
+  max-width: 340px;
+}
+
+:host ::ng-deep .hr-leave-search.p-iconfield {
+  display: block;
+  position: relative;
+}
+
+:host ::ng-deep .hr-leave-search .p-inputicon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  color: var(--surface-400, #94a3b8);
+}
+
+:host ::ng-deep .hr-leave-search .p-inputtext {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  padding-left: 2.5rem;
+}
+
+:host ::ng-deep .hr-leave-actions .p-button {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--surface-600, #475669);
+}
+
+:host ::ng-deep .hr-leave-actions .p-button .p-button-icon {
+  color: var(--surface-600, #475669);
+}
+
+:host ::ng-deep .hr-leave-actions .hr-leave-action-btn--danger.p-button .p-button-icon {
+  color: #ef4444;
+}
+
+:host ::ng-deep .hr-leave-actions .p-button:hover {
+  background: transparent;
+  color: var(--text-primary, #1f2937);
+}
+
+:host ::ng-deep .hr-leave-table .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+:host ::ng-deep .hr-leave-table .p-datatable-tbody > tr > td {
+  border-color: #f1f5f9;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+:host ::ng-deep .hr-leave-card .p-datatable-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+:host ::ng-deep .hr-leave-employees .p-paginator {
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+@media (max-width: 860px) {
+  .hr-leave-page {
+    padding: 16px;
+  }
+
+  .hr-leave-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hr-leave-search {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .hr-leave-page .bulletin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hr-leave-page .bulletin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hr-leave-page .page-title {
+    font-size: 30px;
+  }
+}
+
 /* Modal Styles (app-dialog) - Clean Design with Icon Badge */
 :host ::ng-deep .p-dialog-mask.p-component-overlay {
   background: rgba(15, 23, 42, 0.4) !important;
@@ -205,6 +471,228 @@
   background: #f9fafb !important;
   border-color: #9ca3af !important;
   color: #111827 !important;
+}
+
+/* Grant leave dialog - Figma 3383:8238 / 8245 / 8291 */
+
+
+/* Supprimer l'outline rose/bleu natif du dialog et de son contenu au clic */
+:host ::ng-deep .grant-leave-dialog.p-dialog,
+:host ::ng-deep .grant-leave-dialog .p-dialog,
+:host ::ng-deep .p-dialog.grant-leave-dialog,
+:host ::ng-deep .grant-leave-dialog .p-dialog-content,
+:host ::ng-deep .grant-leave-dialog .p-dialog-content:focus,
+:host ::ng-deep .grant-leave-dialog .p-dialog-content:focus-visible,
+:host ::ng-deep .grant-leave-dialog .approval-dialog,
+:host ::ng-deep .grant-leave-dialog .approval-dialog:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ombre correcte uniquement sur le dialog lui-même */
+:host ::ng-deep .p-dialog.grant-leave-dialog {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-dialog-header::before {
+  content: none;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-dialog-header {
+  border-bottom: 1px solid #E5E7EB;
+  background: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 16px 20px 17px 20px !important;
+
+}
+
+:host ::ng-deep .grant-leave-dialog .p-dialog-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 30px;
+  letter-spacing: 0;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-dialog-content {
+  padding: 20px !important;
+  background: #ffffff !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .form-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.1;
+  color: #344155 !important;
+  margin-bottom: 6px;
+}
+
+:host ::ng-deep .grant-leave-dialog .form-field {
+  margin-bottom: 16px;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-select,
+:host ::ng-deep .grant-leave-dialog .p-inputtext,
+:host ::ng-deep .grant-leave-dialog .p-textarea,
+:host ::ng-deep .grant-leave-dialog .p-inputtextarea {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.1 !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+
+/* contour focus propre */
+:host ::ng-deep .grant-leave-dialog .p-select:focus-within:not(.ng-invalid),
+:host ::ng-deep .grant-leave-dialog .p-inputtext:focus,
+:host ::ng-deep .grant-leave-dialog .p-textarea:focus,
+:host ::ng-deep .grant-leave-dialog .p-inputtextarea:focus,
+:host ::ng-deep .grant-leave-dialog textarea:focus {
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15) !important;
+  outline: none !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-select .p-select-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-inputtext::placeholder,
+:host ::ng-deep .grant-leave-dialog .p-textarea::placeholder,
+:host ::ng-deep .grant-leave-dialog .p-inputtextarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1;
+}
+
+/* Datepicker wrapper : PAS d'overflow:hidden pour que le panneau calendrier reste visible */
+:host ::ng-deep .grant-leave-dialog .p-datepicker {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+:host ::ng-deep .grant-leave-dialog .ng-invalid .p-datepicker,
+:host ::ng-deep .grant-leave-dialog .ng-invalid.p-datepicker {
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-datepicker input.p-datepicker-input {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px 0 0 8px !important;
+  background: transparent !important;
+  flex: 1;
+  min-width: 0;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-datepicker-trigger {
+  border: 0 !important;
+  background: transparent !important;
+  color: #344155 !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .p-datepicker:focus-within {
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.15) !important;
+}
+
+/* textarea */
+:host ::ng-deep .grant-leave-dialog textarea.p-inputtextarea,
+:host ::ng-deep .grant-leave-dialog textarea[pTextarea] {
+  min-height: 132px;
+  resize: vertical;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  padding: 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  width: 100%;
+}
+
+/* annuler rouge ng-invalid sur textarea */
+:host ::ng-deep .grant-leave-dialog textarea.ng-invalid,
+:host ::ng-deep .grant-leave-dialog textarea.ng-invalid.ng-untouched {
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+/* (redondant — couvert par les règles ci-dessus) */
+
+/* espace entre champs + retirer le <br> visuel */
+:host ::ng-deep .grant-leave-dialog .form-field {
+  margin-bottom: 16px;
+}
+:host ::ng-deep .grant-leave-dialog .approval-dialog br {
+  display: none;
+}
+
+:host ::ng-deep .app-dialog.grant-leave-dialog .p-dialog-footer {
+  background: #f9fafb !important;
+  border-top: 1px solid #e5e7eb !important;
+  padding: 17px 20px 16px 20px !important;
+  display: block !important;
+}
+
+:host ::ng-deep .app-dialog.grant-leave-dialog .p-button {
+  border-radius: 6px !important;
+  padding: 12px 16px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+:host ::ng-deep .app-dialog.grant-leave-dialog .p-button.p-button-primary {
+  background: #1f6feb !important;
+  border-color: #1f6feb !important;
+  color: #fff !important;
+}
+
+:host ::ng-deep .app-dialog.grant-leave-dialog .p-button.p-button-primary:hover {
+  background: #1557b0 !important;
+  border-color: #1557b0 !important;
+}
+
+:host ::ng-deep .app-dialog.grant-leave-dialog .p-button.p-button-secondary {
+  background: #fff !important;
+  border: 1px solid #d1d5db !important;
+  color: #1f2937 !important;
+}
+
+:host ::ng-deep .grant-leave-dialog .dialog-footer {
+  width: 100%;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 :host ::ng-deep .app-dialog .p-dialog-footer {

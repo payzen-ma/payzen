@@ -8,8 +8,8 @@
 const ENV_URLS = {
   'test.payzenhr.com': 'https://app-test.payzenhr.com',
   'demo.payzenhr.com': 'https://app-test.payzenhr.com',
-  'payzenhr.com': 'https://app.payzenhr.com',
-  'www.payzenhr.com': 'https://app.payzenhr.com',
+  'payzenhr.com': 'https://app-test.payzenhr.com',
+  'www.payzenhr.com': 'https://app-test.payzenhr.com',
   'localhost': 'http://localhost:4200'
 };
 

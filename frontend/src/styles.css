@@ -416,6 +416,16 @@
     @apply rounded-lg shadow-lg;
   }
 
+  /* Supprimer l'outline focus natif sur tous les dialogs */
+  .p-dialog:focus,
+  .p-dialog:focus-visible,
+  .p-dialog-content:focus,
+  .p-dialog-content:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+
   .app-dialog .p-dialog-header,
   .app-dialog .p-dialog-footer {
     @apply px-6 py-4;

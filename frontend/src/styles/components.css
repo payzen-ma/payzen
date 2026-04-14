@@ -711,7 +711,7 @@
     line-height: 1;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
-    
+
 }
 
 .leave-request-dialog__close .pi {
@@ -1799,6 +1799,7 @@
 }
 
 @media (max-width: 860px) {
+
     .bulletin-shell,
     .bulletin-shell--app {
         gap: 16px;
@@ -1977,10 +1978,7 @@ td.overtime-empty-cell {
     width: 100%;
     max-width: 100%;
     overflow-x: visible;
-    background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--primary-light) 45%, white) 0%, transparent 42%),
-        radial-gradient(circle at top right, color-mix(in srgb, var(--info-light) 35%, white) 0%, transparent 36%),
-        var(--bg-page);
+    background: transparent;
     color: var(--text-primary);
 }
 
@@ -2978,7 +2976,7 @@ td.overtime-empty-cell {
     max-width: 600px;
 }
 
-.payroll-exports-period__fields > * {
+.payroll-exports-period__fields>* {
     flex: 1 1 220px;
     min-width: 0;
 }
@@ -4075,28 +4073,368 @@ td.overtime-empty-cell {
 }
 
 /* ── EMPLOYEE CREATE PAGE ──────────────────────────────────────────────── */
-.employee-create-shell {
-    gap: 20px;
+.employee-create-page {
+    background: var(--bg-page);
+    min-height: 100%;
+    padding: 0.5rem;
+    color: var(--text-primary);
 }
 
-.employee-create-hero {
-    padding: 20px 24px;
+.employee-create-shell {
+    max-width: 1172px;
+    margin: 0 auto;
 }
 
 .employee-create-form-card {
-    padding: 24px;
+    background: var(--bg-element);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: none;
 }
 
-@media (max-width: 860px) {
-    .employee-create-hero {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+/* Employee Create page header (Figma) */
+.employee-create-header {
+    padding: 16px 24px;
+}
+
+.employee-create-header-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.employee-create-header .back-btn {
+    border-radius: 8px;
+    padding: 8px 12px;
+    height: 40px;
+    min-width: 40px;
+    background: var(--bg-element);
+    border: 1px solid var(--border-color-subtle);
+    color: var(--primary);
+    box-shadow: none;
+}
+
+.employee-create-header-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.employee-page-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.96px;
+}
+
+.employee-page-desc {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.25;
+}
+
+.employee-create-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-section {
+    padding: 24px;
+    border-top: 1px solid var(--border-color-subtle);
+}
+
+.form-section--first {
+    border-top: 0;
+}
+
+.section-header {
+    margin-bottom: 16px;
+}
+
+.section-eyebrow {
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.section-description {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.25;
+}
+
+.form-grid {
+    display: grid;
+    column-gap: 16px;
+    row-gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
+.field-span-2 {
+    grid-column: span 2;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field-label {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.field-error {
+    font-size: 0.75rem;
+    color: var(--danger);
+}
+
+.input {
+    width: 100%;
+    border-radius: var(--Radius-md, 6px);
+    border: 1px solid var(--Border-Medium, #D1D5DB);
+    background: var(--Background-Element, #FFF);
+    box-shadow: 0 1px 2px 0 rgba(18, 18, 23, 0.05);
+}
+
+.phone-code {
+    min-width: 4.5rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--rads-md);
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+    font-weight: 600;
+    text-align: center;
+}
+
+.alert {
+    border-radius: var(--rads-lg);
+    padding: 1rem 1.25rem;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success);
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger);
+}
+
+.inline-loading {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem 0;
+}
+
+.phone-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.phone-code-select {
+    min-width: 7rem;
+}
+
+.phone-select-option,
+.phone-select-selected {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.country-label {
+    font-weight: 500;
+}
+
+.country-code {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.country-placeholder {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.toast-message {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem 0.5rem;
+    min-width: 16rem;
+}
+
+.toast-icon {
+    font-size: 1.25rem;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.toast-detail {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.phone-combo {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 8px;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color-subtle);
+    background: #f9fafb;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+}
+
+.action-cancel {
+    background: transparent;
+    border: 0;
+    color: var(--text-primary);
+    box-shadow: none;
+    padding: 0.5rem 0.75rem;
+}
+
+.action-submit {
+    min-width: 126px;
+}
+
+.employee-create-page .fc-field {
+    width: 100%;
+}
+
+.employee-create-page .fc-label-row {
+    margin-bottom: 6px;
+}
+
+.employee-create-page .fc-label {
+    font-weight: 500;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.employee-create-page .fc-hint {
+    font-size: 0.6875rem;
+}
+
+.employee-create-page .fc-input,
+.employee-create-page .fc-select .p-select,
+.employee-create-page .fc-select .p-autocomplete .p-autocomplete-input {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    /* Disable border/box-shadow transitions on initial render to avoid brief flash */
+    transition: none;
+    box-shadow: none;
+    outline: none;
+}
+
+.employee-create-page input.fc-input.p-inputtext {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    background: #fff;
+}
+
+.employee-create-page .fc-input {
+    height: 48px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.employee-create-page .fc-select .p-select {
+    height: 48px;
+    min-height: 48px;
+    box-shadow: none;
+}
+
+.employee-create-page .fc-select .p-select .p-select-label {
+    padding-left: 12px;
+    padding-right: 12px;
+    line-height: 48px;
+    font-size: 0.9375rem;
+}
+
+.employee-create-page .fc-input:hover:not(:focus):not(:disabled),
+.employee-create-page .fc-select .p-select:not(.p-disabled):hover,
+.employee-create-page .fc-select .p-autocomplete .p-autocomplete-input:hover:not(:disabled) {
+    border-color: #cbd5e1;
+}
+
+.employee-create-page input.fc-input.p-inputtext:hover:not(:focus):not(:disabled) {
+    border-color: #cbd5e1 !important;
+}
+
+.employee-create-page .fc-input:focus,
+.employee-create-page .fc-select .p-select:not(.p-disabled).p-focus {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12);
+}
+
+.employee-create-page input.fc-input.p-inputtext:focus {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12) !important;
+}
+
+.employee-create-page .fc-select .p-autocomplete .p-autocomplete-input:focus {
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12);
+}
+
+@media (max-width: 640px) {
+    .employee-create-page {
+        padding: 0.25rem;
+    }
+
+    .form-section {
         padding: 16px;
     }
 
-    .employee-create-form-card {
-        padding: 16px;
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+    }
+
+    .field-span-2 {
+        grid-column: auto;
+    }
+
+    .phone-combo {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        padding: 0.75rem;
     }
 }
 

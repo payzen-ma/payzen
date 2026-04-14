@@ -1,0 +1,488 @@
+/* ============================================
+   Overtime Management
+   Réutilise les classes globales de hr-leave-page.
+   ============================================ */
+
+/* Annule le max-width: 1280px de .salary-page */
+.overtime-management-page {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.overtime-management-page .page-header {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Même taille de titre que hr-leave */
+.overtime-management-page .page-title {
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.overtime-management-page .page-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--surface-500, #64748b);
+  margin: 0.3rem 0 0;
+  line-height: 1.25;
+}
+
+/* KPI grid pleine largeur */
+.overtime-management-page .bulletin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+/* Icône header — couleur identique à hr-leave */
+.overtime-management-page .module-header__icon {
+  background: var(--primary-50, #ebf5ff);
+  color: var(--primary-600, #1557b0);
+}
+
+.overtime-management-page .module-header__icon i {
+  font-size: 1rem;
+}
+
+/* ─── Toolbar ─── */
+/* hr-leave-toolbar est un style local au composant hr-leave,
+   il faut le redéfinir ici car Angular scoped CSS ne traverse pas les composants */
+.hr-leave-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: nowrap;
+}
+
+.hr-leave-tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* 6 tabs → padding compact */
+.hr-leave-tab {
+  border: 0;
+  background: transparent;
+  color: var(--surface-600, #475669);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hr-leave-tab.is-active {
+  background: var(--primary-50, #ebf5ff);
+  color: var(--primary-600, #1557b0);
+}
+
+.hr-leave-tab__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary-600, #1557b0);
+  background: #dbeafe;
+}
+
+/* Barre de recherche dans le toolbar */
+.hr-leave-search {
+  flex-shrink: 0;
+  width: 220px;
+  max-width: 260px;
+}
+
+:host ::ng-deep .hr-leave-search.p-iconfield {
+  display: block;
+  position: relative;
+}
+
+:host ::ng-deep .hr-leave-search .p-inputicon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  color: var(--surface-400, #94a3b8);
+}
+
+:host ::ng-deep .hr-leave-search .p-inputtext {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  padding-left: 2.5rem;
+}
+
+/* Header section employees */
+.module-table-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 12px;
+}
+
+.module-table-card__header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Surface card identique à hr-leave */
+.hr-leave-card {
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 16px;
+  background: #fff;
+}
+
+/* Tables */
+:host ::ng-deep .hr-leave-table .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 10px 16px !important;
+}
+
+:host ::ng-deep .hr-leave-table .p-datatable-tbody > tr > td {
+  border-color: #f1f5f9;
+  color: #1f2937;
+  font-size: 14px;
+  padding: 12px 16px !important;
+}
+
+:host ::ng-deep .hr-leave-table .p-datatable-tbody > tr:hover > td {
+  background: #f8fafc !important;
+}
+
+:host ::ng-deep .hr-leave-card .p-datatable-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+:host ::ng-deep .hr-leave-employees .p-paginator {
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+/* Actions icon buttons */
+:host ::ng-deep .hr-leave-actions .p-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+/* ─── Declare Dialog ─── */
+:host ::ng-deep .overtime-declare-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .overtime-declare-dialog .p-dialog-content {
+  padding: 0 !important;
+  background: #fff !important;
+}
+
+:host ::ng-deep .overtime-declare-dialog:focus,
+:host ::ng-deep .overtime-declare-dialog .p-dialog-content:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Header — Figma 3383:8953 */
+.overtime-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 17px 20px;
+  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+  background: var(--background-page, #f8fafc);
+}
+
+.overtime-dialog-header__title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+  color: var(--text-primary, #1f2937);
+  white-space: nowrap;
+}
+
+.overtime-dialog-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+  font-size: 14px;
+}
+
+.overtime-dialog-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Body — Figma 3383:8960 */
+.overtime-dialog-body {
+  padding: 20px;
+  background: #fff;
+}
+
+.overtime-declare-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Champ formulaire */
+.overtime-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overtime-form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--surface-700, #344155);
+  letter-spacing: -0.56px;
+  line-height: 1.1;
+}
+
+.overtime-form-label--optional {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* Employé pré-sélectionné */
+.overtime-employee-display {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--surface-900, #0f172a);
+  min-height: 38px;
+}
+
+/* p-select dans le dialog */
+:host ::ng-deep .overtime-declare-dialog .p-select {
+  width: 100%;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+}
+
+:host ::ng-deep .overtime-declare-dialog .p-select .p-select-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--surface-900, #0f172a);
+  padding: 12px;
+}
+
+/* Input time stylisé comme dans Figma */
+.overtime-time-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.overtime-time-input-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.overtime-time-input-wrapper.is-invalid {
+  border-color: #ef4444;
+}
+
+.overtime-time-input {
+  flex: 1;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--surface-700, #344155);
+  background: transparent;
+  min-width: 0;
+}
+
+.overtime-time-input.p-invalid {
+  border: none !important;
+}
+
+.overtime-time-input__icon {
+  padding: 0 12px 0 4px;
+  color: #9ca3af;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Textarea Reason — Figma 3383:8999 (h: 132px) */
+.overtime-textarea {
+  width: 100%;
+  min-height: 132px;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--surface-900, #0f172a);
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+
+.overtime-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.overtime-textarea::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* Footer — Figma 3383:9006 */
+.overtime-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 17px 20px 16px;
+  background: var(--background-page, #f8fafc);
+  border-top: 1px solid var(--border-subtle, #e5e7eb);
+}
+
+/* Bouton Cancel — style Figma: blanc, border #d1d5db, radius 9px */
+:host ::ng-deep .overtime-dialog-footer .p-button.p-button-secondary.p-button-outlined {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: var(--text-primary, #1f2937);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 13px;
+}
+
+:host ::ng-deep .overtime-dialog-footer .p-button.p-button-secondary.p-button-outlined:hover {
+  background: #f9fafb;
+}
+
+/* Bouton Declare — style Figma: bleu primary, radius 6px */
+:host ::ng-deep .overtime-dialog-footer .p-button:not(.p-button-secondary) {
+  background: var(--primary-500, #1a73e8);
+  border-color: var(--primary-500, #1a73e8);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px;
+}
+
+:host ::ng-deep .overtime-dialog-footer .p-button:not(.p-button-secondary):hover {
+  background: #1557b0;
+  border-color: #1557b0;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .hr-leave-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .hr-leave-search {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .module-table-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 860px) {
+  .overtime-management-page {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .overtime-management-page .bulletin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .overtime-management-page .bulletin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overtime-management-page .page-title {
+    font-size: 30px;
+  }
+}

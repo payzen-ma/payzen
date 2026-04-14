@@ -50,7 +50,6 @@ import { map } from 'rxjs/operators';
     SelectFieldComponent
   ],
   templateUrl: './employee-create.html',
-  styleUrl: './employee-create.css',
   providers: [MessageService]
 })
 export class EmployeeCreatePage implements OnInit {

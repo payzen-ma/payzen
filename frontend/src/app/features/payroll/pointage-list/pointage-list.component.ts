@@ -32,97 +32,94 @@ export class PointageListComponent {
   private readonly router = inject(Router);
   private readonly contextService = inject(CompanyContextService);
 
-  // État
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly timesheets = signal<EmployeeAttendance[]>([]);
 
-  // Filtres
   readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
   readonly selectedYear = signal<number>(new Date().getFullYear());
   readonly selectedEmployeeId = signal<number | null>(null);
 
   readonly months = Array.from({ length: 12 }, (_, i) => i + 1);
   readonly years = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i);
-  readonly monthsNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  readonly monthsNames = [
+    'Janvier','Février','Mars','Avril','Mai','Juin',
+    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+  ];
 
-  // expose Math to the template (Angular template can't access global Math directly)
-  readonly Math = Math;
-
-  // Available employees derived from loaded timesheets
   readonly employees = computed(() => {
     const map = new Map<number, { id: number; name: string; matricule?: string | number }>();
     (this.timesheets() || []).forEach(t => {
       if (!map.has(t.employeeId)) {
-        map.set(t.employeeId, { id: t.employeeId, name: t.employeeName || `Employé #${t.employeeId}`, matricule: t.matricule });
+        map.set(t.employeeId, {
+          id: t.employeeId,
+          name: t.employeeName || `Employé #${t.employeeId}`,
+          matricule: t.matricule
+        });
       }
     });
     return Array.from(map.values()).sort((a, b) => String(a.name).localeCompare(String(b.name)));
   });
 
-  // Search query used to filter the displayed rows (not the select)
-  readonly employeeSearch = signal<string>('');
-
-  setEmployeeSearch(q: string): void {
-    this.employeeSearch.set(q);
-    this.firstPage.set(1);
-    this.secondPage.set(1);
-  }
-
-  // Flat list used for the simplified table view (applies employee filter)
   readonly displayRows = computed(() => {
     const list = this.timesheets() || [];
     const sel = this.selectedEmployeeId();
-    let filtered = sel != null ? list.filter(r => r.employeeId === sel) : list;
-    const q = (this.employeeSearch() || '').trim().toLowerCase();
-    if (q) {
-      filtered = filtered.filter(r => {
-        const name = String(r.employeeName || '').toLowerCase();
-        const matricule = String(r.matricule || '').toLowerCase();
-        const id = String(r.employeeId || '').toLowerCase();
-        const date = String(r.workDate || '').toLowerCase();
-        return name.includes(q) || matricule.includes(q) || id === q || date.includes(q);
-      });
-    }
-    // sort descending by date
-    return filtered.slice().sort((a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime());
+    const filtered = sel != null ? list.filter(r => r.employeeId === sel) : list;
+    return filtered.slice().sort(
+      (a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime()
+    );
   });
 
-  // Pagination & split by half-month
+  // Pagination unique
   readonly pageSize = signal<number>(10);
-  readonly firstPage = signal<number>(1);
-  readonly secondPage = signal<number>(1);
+  readonly currentPage = signal<number>(1);
 
-  readonly firstHalfAll = computed(() => this.displayRows().filter(r => new Date(r.workDate).getDate() <= 15));
-  readonly secondHalfAll = computed(() => this.displayRows().filter(r => new Date(r.workDate).getDate() >= 16));
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.displayRows().length / this.pageSize()))
+  );
 
-  readonly firstTotalPages = computed(() => Math.max(1, Math.ceil(this.firstHalfAll().length / this.pageSize())));
-  readonly secondTotalPages = computed(() => Math.max(1, Math.ceil(this.secondHalfAll().length / this.pageSize())));
-
-  readonly firstPages = computed(() => Array.from({ length: this.firstTotalPages() }, (_, i) => i + 1));
-  readonly secondPages = computed(() => Array.from({ length: this.secondTotalPages() }, (_, i) => i + 1));
-
-  readonly firstPageRows = computed(() => {
-    const p = this.firstPage();
+  readonly pagedRows = computed(() => {
+    const p = this.currentPage();
     const size = this.pageSize();
     const start = (p - 1) * size;
-    return this.firstHalfAll().slice(start, start + size);
+    return this.displayRows().slice(start, start + size);
   });
 
-  readonly secondPageRows = computed(() => {
-    const p = this.secondPage();
-    const size = this.pageSize();
-    const start = (p - 1) * size;
-    return this.secondHalfAll().slice(start, start + size);
+  readonly visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const delta = 2;
+    const range: number[] = [];
+    const start = Math.max(1, current - delta);
+    const end = Math.min(total, current + delta);
+    for (let i = start; i <= end; i++) {
+      range.push(i);
+    }
+    return range;
   });
 
-  setFirstPage(p: number) { this.firstPage.set(p); }
-  setSecondPage(p: number) { this.secondPage.set(p); }
-  prevFirst() { if (this.firstPage() > 1) this.firstPage.set(this.firstPage() - 1); }
-  nextFirst() { if (this.firstPage() < this.firstTotalPages()) this.firstPage.set(this.firstPage() + 1); }
-  prevSecond() { if (this.secondPage() > 1) this.secondPage.set(this.secondPage() - 1); }
-  nextSecond() { if (this.secondPage() < this.secondTotalPages()) this.secondPage.set(this.secondPage() + 1); }
-  setPageSize(size: number) { this.pageSize.set(Number(size)); this.firstPage.set(1); this.secondPage.set(1); }
+  setPage(p: number): void {
+    const clamped = Math.max(1, Math.min(this.totalPages(), p));
+    this.currentPage.set(clamped);
+  }
+
+  prevPage(): void { this.setPage(this.currentPage() - 1); }
+  nextPage(): void { this.setPage(this.currentPage() + 1); }
+
+  setPageSize(size: number): void {
+    this.pageSize.set(Number(size));
+    this.currentPage.set(1);
+  }
+
+  setSelectedEmployee(id: number | null): void {
+    this.selectedEmployeeId.set(id);
+    this.currentPage.set(1);
+  }
+
+  clearFilters(): void {
+    this.selectedEmployeeId.set(null);
+    this.currentPage.set(1);
+  }
 
   constructor() {
     this.loadTimesheets();
@@ -147,6 +144,7 @@ export class PointageListComponent {
     this.http.get<EmployeeAttendance[]>(url).subscribe({
       next: (data) => {
         this.timesheets.set(data);
+        this.currentPage.set(1);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -161,60 +159,20 @@ export class PointageListComponent {
   }
 
   onFilterChange(): void {
-    this.firstPage.set(1);
-    this.secondPage.set(1);
+    this.currentPage.set(1);
     this.loadTimesheets();
   }
 
-  setSelectedEmployee(id: number | null): void {
-    this.selectedEmployeeId.set(id);
-    this.firstPage.set(1);
-    this.secondPage.set(1);
-  }
-
   goToImport(): void {
-    this.router.navigate(['/payroll/pointage-import']);
-  }
-
-  getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      Present: 'Présent',
-      Absent: 'Absent',
-      Holiday: 'Férié',
-      Leave: 'Congé'
-    };
-    return labels[status] || status;
-  }
-
-  getSourceLabel(source: string): string {
-    const labels: Record<string, string> = {
-      System: 'Système',
-      Manual: 'Manuel'
-    };
-    return labels[source] || source;
-  }
-
-  getStatusClass(status: string): string {
-    const classes: Record<string, string> = {
-      Present: 'bg-success text-white',
-      Absent: 'bg-danger text-white',
-      Holiday: 'bg-secondary text-white',
-      Leave: 'bg-warning text-dark'
-    };
-    return classes[status] || '';
+    this.router.navigate(['/app/payroll/pointage-import']);
   }
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
-      weekday: 'short',
       day: '2-digit',
-      month: '2-digit'
+      month: 'long',
+      year: 'numeric'
     });
-  }
-
-  formatTime(timeStr: string | null): string {
-    if (!timeStr) return '--:--';
-    return timeStr.substring(0, 5); // HH:mm
   }
 }

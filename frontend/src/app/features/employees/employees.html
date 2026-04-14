@@ -21,6 +21,15 @@
       </div>
     </header>
 
+    <!-- Mobile-only action bar: duplicated so actions are in-document flow on narrow viewports -->
+    <div class="employees-app-header__actions employees-app-header__actions--mobile">
+      <button pButton type="button" [label]="'employees.importSage' | translate"
+        class="btn btn-secondary employees-btn-import" icon="pi pi-upload" (click)="openImportDialog()"
+        title="{{ 'employees.importSage' | translate }}"></button>
+      <button pButton type="button" [label]="'employees.addEmployee' | translate" class="btn btn-primary"
+        icon="pi pi-user-plus" (click)="addEmployee()"></button>
+    </div>
+
     <div class="employees-main">
       @if (error()) {
       <div class="payslip-alert payslip-alert--error">

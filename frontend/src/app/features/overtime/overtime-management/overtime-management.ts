@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -42,6 +44,8 @@ import { TooltipModule } from 'primeng/tooltip';
     ButtonModule,
     DialogModule,
     InputTextModule,
+    IconFieldModule,
+    InputIconModule,
     TextareaModule,
     DatePickerModule,
     SelectModule,
@@ -55,7 +59,8 @@ import { TooltipModule } from 'primeng/tooltip';
     TranslateModule
   ],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './overtime-management.html'
+  templateUrl: './overtime-management.html',
+  styleUrl: './overtime-management.css'
 })
 export class OvertimeManagementComponent implements OnInit {
   private readonly overtimeService = inject(OvertimeService);

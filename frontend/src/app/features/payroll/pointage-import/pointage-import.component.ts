@@ -15,7 +15,8 @@ type PeriodMode = 'monthly' | 'bi_monthly';
   selector: 'app-pointage-import',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule],
-  templateUrl: './pointage-import.component.html'
+  templateUrl: './pointage-import.component.html',
+  styleUrl: './pointage-import.component.scss'
 })
 export class PointageImportComponent {
   private readonly http = inject(HttpClient);
@@ -40,6 +41,10 @@ export class PointageImportComponent {
 
   readonly months = Array.from({ length: 12 }, (_, i) => i + 1);
   readonly years = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i);
+  readonly monthsNames = [
+    'Janvier','Février','Mars','Avril','Mai','Juin',
+    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+  ];
 
   // Résumé (pour l'instant purement frontend, à brancher sur l'API plus tard)
   readonly totalLines = signal<number>(0);
@@ -99,20 +104,6 @@ export class PointageImportComponent {
       return;
     }
 
-    // 🔍 DEBUG: Vérifier le token et ses claims
-    const token = this.authService.getToken();
-    
-    if (token) {
-      // Décoder le token pour voir les claims
-      try {
-        const payload = this.decodeJwtToken(token);
-      } catch (e) {
-        console.error('Erreur lors du décodage du token:', e);
-      }
-    } else {
-      console.warn('⚠️ Aucun token trouvé !');
-    }
-
     this.errorMessage.set(null);
     this.isImporting.set(true);
     this.step.set('importing');
@@ -151,14 +142,6 @@ export class PointageImportComponent {
         this.step.set('results');
       },
       error: (err) => {
-        console.error('❌ Erreur lors de l\'import:', err);
-        console.error('Détails de l\'erreur:', {
-          status: err?.status,
-          statusText: err?.statusText,
-          error: err?.error,
-          message: err?.message
-        });
-        
         const msg =
           err?.error?.Message ||
           err?.error?.message ||
@@ -202,7 +185,7 @@ export class PointageImportComponent {
 
   // Naviguer vers la liste des pointages
   goToTimesheetList(): void {
-    this.router.navigate(['/payroll/pointages']);
+    this.router.navigate(['/app/payroll/pointages']);
   }
 }
 

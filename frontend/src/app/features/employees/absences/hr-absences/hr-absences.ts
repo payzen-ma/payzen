@@ -18,6 +18,8 @@ import { TabsModule } from 'primeng/tabs';
 import { BadgeModule } from 'primeng/badge';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AbsenceService } from '@app/core/services/absence.service';
 import { EmployeeService } from '@app/core/services/employee.service';
@@ -59,7 +61,9 @@ interface GrantAbsenceRequest extends CreateAbsenceRequest {
     TabsModule,
     BadgeModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    IconFieldModule,
+    InputIconModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './hr-absences.html',

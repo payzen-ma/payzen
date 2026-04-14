@@ -23,9 +23,8 @@ import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { TabsModule } from 'primeng/tabs';
-import { BadgeModule } from 'primeng/badge';
-import { CheckboxModule } from 'primeng/checkbox';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 // Translation
@@ -59,9 +58,8 @@ import { Employee } from '../../../core/models';
     ConfirmDialogModule,
     ToastModule,
     TooltipModule,
-    TabsModule,
-    BadgeModule,
-    CheckboxModule,
+    IconFieldModule,
+    InputIconModule,
     TranslateModule,
     MatFormFieldModule,
     MatDatepickerModule,
@@ -94,6 +92,7 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
   selectedStatus = signal<LeaveRequestStatus | null>(null);
   selectedLeaveType = signal<number | null>(null);
   employeeTableSearch = signal<string>('');
+  requestSearch = signal<string>('');
 
   filteredEmployeesForTable = computed(() => {
     const list = this.employees();
@@ -306,6 +305,13 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(r => r.leaveTypeId === selectedLeaveType);
     }
 
+    const query = this.requestSearch().toLowerCase().trim();
+    if (query) {
+      filtered = filtered.filter(r =>
+        this.getEmployeeName(r.employeeId).toLowerCase().includes(query)
+      );
+    }
+
     this.filteredRequests.set(filtered);
   }
 
@@ -449,6 +455,8 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       endDate: null,
       reason: ''
     });
+    this.grantLeaveForm.markAsUntouched();
+    this.grantLeaveForm.markAsPristine();
     this.showGrantLeaveDialog.set(true);
   }
 
@@ -463,12 +471,16 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
         endDate: null,
         reason: ''
       });
+      this.grantLeaveForm.markAsUntouched();
+      this.grantLeaveForm.markAsPristine();
       this.showGrantLeaveDialog.set(true);
     }
   }
 
   hideGrantLeaveForm(): void {
     this.showGrantLeaveDialog.set(false);
+    this.grantLeaveForm.markAsUntouched();
+    this.grantLeaveForm.markAsPristine();
   }
 
   grantLeave(): void {

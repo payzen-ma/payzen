@@ -5,8 +5,10 @@
 
     <header class="payslip-hero bulletin-hero">
       <div class="module-header__content">
+        <div class="module-header__icon" aria-hidden="true">
+          <i class="pi pi-calendar"></i>
+        </div>
         <div class="module-header__text">
-          <p class="payslip-eyebrow">Absences</p>
           <h1 class="page-title">{{ 'absences.hrTitle' | translate }}</h1>
           <p class="page-subtitle">{{ 'absences.hrSubtitle' | translate }}</p>
         </div>
@@ -52,20 +54,133 @@
       </div>
     </section>
 
-    <section class="payslip-card bulletin-card surface">
+    <section class="payslip-card bulletin-card surface hr-absences-card hr-absences-card--requests">
+      <div class="hr-absences-toolbar">
+        <div class="hr-absences-tabs" role="tablist" aria-label="Absence status filters">
+          <button type="button" class="hr-absences-tab" [class.is-active]="activeTabValue === 'all'"
+            (click)="setActiveTab('all')">
+            <i class="pi pi-sort-alt"></i>
+            <span>{{ 'absences.status.all' | translate }}</span>
+          </button>
+          <button type="button" class="hr-absences-tab" [class.is-active]="activeTabValue === 'submitted'"
+            (click)="setActiveTab('submitted')">
+            <i class="pi pi-clock"></i>
+            <span>{{ 'absences.status.submitted' | translate }}</span>
+          </button>
+          <button type="button" class="hr-absences-tab" [class.is-active]="activeTabValue === 'approved'"
+            (click)="setActiveTab('approved')">
+            <i class="pi pi-check-circle"></i>
+            <span>{{ 'absences.status.approved' | translate }}</span>
+          </button>
+          <button type="button" class="hr-absences-tab" [class.is-active]="activeTabValue === 'rejected'"
+            (click)="setActiveTab('rejected')">
+            <i class="pi pi-times-circle"></i>
+            <span>{{ 'absences.status.rejected' | translate }}</span>
+          </button>
+          <button type="button" class="hr-absences-tab" [class.is-active]="activeTabValue === 'cancelled'"
+            (click)="setActiveTab('cancelled')">
+            <i class="pi pi-ban"></i>
+            <span>{{ 'absences.status.cancelled' | translate }}</span>
+          </button>
+        </div>
+
+        <p-iconfield iconPosition="left" class="hr-absences-search">
+          <p-inputicon class="pi pi-search"></p-inputicon>
+          <input pInputText type="text" [ngModel]="submittedEmployeeFilter()"
+            (ngModelChange)="submittedEmployeeFilter.set($event)"
+            [placeholder]="'absences.filters.searchEmployee' | translate" class="w-full" />
+        </p-iconfield>
+      </div>
+
+      <p-table [value]="filteredSubmittedAbsences()" styleClass="p-datatable-sm overtime-table hr-absences-table"
+        [tableStyle]="{'min-width': '70rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="saas-table-header">{{ 'absences.table.employee' | translate }}</th>
+            <th class="saas-table-header">{{ 'absences.table.date' | translate }}</th>
+            <th class="saas-table-header">{{ 'absences.table.type' | translate }}</th>
+            <th class="saas-table-header">{{ 'absences.table.duration' | translate }}</th>
+            <th class="saas-table-header">{{ 'absences.table.reason' | translate }}</th>
+            <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-absence>
+          <tr class="saas-table-row">
+            <td class="px-6 py-4" [attr.data-label]="'absences.table.employee' | translate">
+              <span class="font-medium">{{ absence.employeeName }}</span>
+            </td>
+            <td class="px-6 py-4" [attr.data-label]="'absences.table.date' | translate">{{ absence.absenceDate | date:
+              'dd/MM/yyyy' }}</td>
+            <td class="px-6 py-4" [attr.data-label]="'absences.table.type' | translate">
+              {{ getAbsenceTypeLabel(absence.absenceType) | translate }}
+            </td>
+            <td class="px-6 py-4" [attr.data-label]="'absences.table.duration' | translate">
+              @if (absence.durationType === 'FullDay') {
+              <span>{{ 'absences.durations.fullDay' | translate }}</span>
+              }
+              @if (absence.durationType === 'HalfDay') {
+              <span>{{ 'absences.durations.halfDay' | translate }} - {{ absence.isMorning ? ('absences.morning' |
+                translate) : ('absences.afternoon' | translate) }}</span>
+              }
+              @if (absence.durationType === 'Hourly') {
+              <span>{{ formatTime(absence.startTime) }} - {{ formatTime(absence.endTime) }}</span>
+              }
+            </td>
+            <td class="px-6 py-4" [attr.data-label]="'absences.table.reason' | translate">
+              <span class="text-sm text-(--text-secondary)">{{ absence.reason || '-' }}</span>
+            </td>
+            <td class="px-6 py-4" [attr.data-label]="'common.actions' | translate">
+              <div class="flex items-center gap-2 hr-absences-actions">
+                <button pButton icon="pi pi-check"
+                  [pTooltip]="(absence.status === 'Approved' ? ('absences.status.approved' | translate) : ('absences.approve' | translate))"
+                  tooltipPosition="top" (click)="absence.status !== 'Approved' && approveAbsence(absence.id)"
+                  severity="success" [text]="true" [rounded]="true" [disabled]="absence.status === 'Approved'"
+                  [class.opacity-30]="absence.status === 'Approved'"
+                  [class.cursor-not-allowed]="absence.status === 'Approved'"></button>
+                <button pButton icon="pi pi-times"
+                  [pTooltip]="(absence.status === 'Rejected' || absence.status === 'Cancelled') ? ('absences.status.rejected' | translate) : ('absences.reject' | translate)"
+                  tooltipPosition="top"
+                  (click)="(absence.status !== 'Rejected' && absence.status !== 'Cancelled') && rejectAbsence(absence.id); $event.stopPropagation()"
+                  severity="danger" [text]="true" [rounded]="true"
+                  [disabled]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
+                  [class.opacity-30]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
+                  [class.cursor-not-allowed]="absence.status === 'Rejected' || absence.status === 'Cancelled'"></button>
+                <button pButton icon="pi pi-eye" [pTooltip]="'absences.viewEmployee' | translate" tooltipPosition="top"
+                  (click)="viewEmployeeAbsences(absence.employeeId)" severity="info" [text]="true"
+                  [rounded]="true"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr class="saas-table-row">
+            <td class="px-6 py-4">-</td>
+            <td class="px-6 py-4">-</td>
+            <td class="px-6 py-4">-</td>
+            <td class="px-6 py-4">-</td>
+            <td class="px-6 py-4">-</td>
+            <td class="px-6 py-4">-</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+
+    <section class="payslip-card bulletin-card surface hr-absences-card hr-absences-card--employees">
       <div class="payslip-card__header bulletin-card__header">
         <div>
-          <p class="payslip-eyebrow">Equipe</p>
           <h2 class="payslip-card__title">{{ 'absences.hr.employees' | translate }}</h2>
         </div>
-        <span class="p-input-icon-left w-64">
-          <i class="pi pi-search"></i>
+        <p-iconfield iconPosition="left" class="w-64 hr-absences-search">
+          <p-inputicon class="pi pi-search"></p-inputicon>
           <input pInputText type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
             [placeholder]="'absences.searchEmployee' | translate" class="w-full" />
-        </span>
+        </p-iconfield>
       </div>
-      <p-table [value]="filteredAllEmployees()" [loading]="isLoading()" styleClass="p-datatable-sm overtime-table"
-        [tableStyle]="{'min-width': '50rem'}" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,25,50]">
+      <p-table [value]="filteredAllEmployees()" [loading]="isLoading()"
+        styleClass="p-datatable-sm overtime-table hr-absences-table" [tableStyle]="{'min-width': '50rem'}"
+        [paginator]="true" [rows]="4" [rowsPerPageOptions]="[4,10,25,50]">
         <ng-template pTemplate="header">
           <tr>
             <th class="saas-table-header">{{ 'employees.name' | translate }}</th>
@@ -82,13 +197,12 @@
             <td class="px-6 py-4" [attr.data-label]="'employees.department' | translate">{{ emp.department || '-' }}
             </td>
             <td class="px-6 py-4" [attr.data-label]="'common.actions' | translate">
-              <div class="flex items-center gap-2 hr-absences-actions">
+              <div class="flex items-center gap-2 hr-absences-actions hr-absences-actions--minimal">
                 <button pButton icon="pi pi-eye" [pTooltip]="'absences.viewDetails' | translate" tooltipPosition="top"
-                  (click)="viewEmployeeAbsences(emp.id); $event.stopPropagation()" severity="info" [text]="true"
-                  [rounded]="true"></button>
+                  (click)="viewEmployeeAbsences(emp.id); $event.stopPropagation()" [text]="true"></button>
                 <button pButton icon="pi pi-plus" [pTooltip]="'absences.hrGrant' | translate" tooltipPosition="top"
                   (click)="openGrantDialog(emp.id, (emp.firstName + ' ' + emp.lastName)); $event.stopPropagation()"
-                  severity="success" [text]="true" [rounded]="true"></button>
+                  [text]="true"></button>
               </div>
             </td>
           </tr>
@@ -104,128 +218,6 @@
           </tr>
         </ng-template>
       </p-table>
-    </section>
-
-    <section class="payslip-card bulletin-card surface">
-      <div class="payslip-card__header bulletin-card__header">
-        <div>
-          <p class="payslip-eyebrow">Demandes</p>
-          <h2 class="payslip-card__title">{{ 'absences.hrTitle' | translate }}</h2>
-        </div>
-      </div>
-      <!-- Tabs -->
-      <p-tabs [value]="activeTabValue" (onTabChange)="onTabChange($event)" class="mb-6">
-        <p-tablist>
-          <p-tab value="submitted" class="flex items-center gap-2" (click)="setActiveTab('submitted')">
-            <i class="pi pi-clock"></i>
-            <span>{{ 'absences.status.submitted' | translate }}</span>
-            <p-badge [value]="submittedCount()" severity="warn" *ngIf="submittedCount() > 0">
-            </p-badge>
-          </p-tab>
-          <p-tab value="approved" class="flex items-center gap-2" (click)="setActiveTab('approved')">
-            <i class="pi pi-check"></i>
-            <span>{{ 'absences.status.approved' | translate }}</span>
-          </p-tab>
-          <p-tab value="rejected" class="flex items-center gap-2" (click)="setActiveTab('rejected')">
-            <i class="pi pi-times"></i>
-            <span>{{ 'absences.status.rejected' | translate }}</span>
-          </p-tab>
-          <p-tab value="cancelled" class="flex items-center gap-2" (click)="setActiveTab('cancelled')">
-            <i class="pi pi-ban"></i>
-            <span>{{ 'absences.status.cancelled' | translate }}</span>
-            <p-badge [value]="cancelledCount()" severity="danger" *ngIf="cancelledCount() > 0">
-            </p-badge>
-          </p-tab>
-          <p-tab value="all" class="flex items-center gap-2" (click)="setActiveTab('all')">
-            <i class="pi pi-list"></i>
-            <span>{{ 'absences.status.all' | translate }}</span>
-          </p-tab>
-        </p-tablist>
-
-        <!-- Filters -->
-        <div class="flex flex-wrap items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg hr-absences-filters">
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ 'absences.table.employee' | translate }}:</label>
-            <input type="text" pInputText [ngModel]="submittedEmployeeFilter()"
-              (ngModelChange)="submittedEmployeeFilter.set($event)"
-              [placeholder]="'absences.filters.searchEmployee' | translate" class="w-48" />
-          </div>
-
-
-
-
-        </div>
-
-        <!-- Table -->
-        <p-table [value]="filteredSubmittedAbsences()" styleClass="p-datatable-sm overtime-table"
-          [tableStyle]="{'min-width': '70rem'}">
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="saas-table-header">{{ 'absences.table.employee' | translate }}</th>
-              <th class="saas-table-header">{{ 'absences.table.date' | translate }}</th>
-              <th class="saas-table-header">{{ 'absences.table.type' | translate }}</th>
-              <th class="saas-table-header">{{ 'absences.table.duration' | translate }}</th>
-              <th class="saas-table-header">{{ 'absences.table.reason' | translate }}</th>
-              <th class="saas-table-header">{{ 'common.actions' | translate }}</th>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="body" let-absence>
-            <tr class="saas-table-row">
-              <td class="px-6 py-4" [attr.data-label]="'absences.table.employee' | translate">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="flex items-center justify-center w-10 h-10 rounded-full bg-(--primary)/10 text-(--primary) font-semibold">
-                    {{ getEmployeeInitials(absence.employeeName || 'N/A') }}
-                  </div>
-                  <span class="font-medium">{{ absence.employeeName }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4" [attr.data-label]="'absences.table.date' | translate">{{ absence.absenceDate | date:
-                'dd/MM/yyyy' }}</td>
-              <td class="px-6 py-4" [attr.data-label]="'absences.table.type' | translate">
-                <p-tag [value]="getAbsenceTypeLabel(absence.absenceType) | translate" severity="info"></p-tag>
-              </td>
-              <td class="px-6 py-4" [attr.data-label]="'absences.table.duration' | translate">
-                @if (absence.durationType === 'FullDay') {
-                <span>{{ 'absences.durations.fullDay' | translate }}</span>
-                }
-                @if (absence.durationType === 'HalfDay') {
-                <span>{{ 'absences.durations.halfDay' | translate }} - {{ absence.isMorning ? ('absences.morning' |
-                  translate) : ('absences.afternoon' | translate) }}</span>
-                }
-                @if (absence.durationType === 'Hourly') {
-                <span>{{ formatTime(absence.startTime) }} - {{ formatTime(absence.endTime) }}</span>
-                }
-              </td>
-              <td class="px-6 py-4" [attr.data-label]="'absences.table.reason' | translate">
-                <span class="text-sm text-(--text-secondary)">{{ absence.reason || '-' }}</span>
-              </td>
-              <td class="px-6 py-4" [attr.data-label]="'common.actions' | translate">
-                <div class="flex items-center gap-2 hr-absences-actions">
-                  <button pButton icon="pi pi-check"
-                    [pTooltip]="(absence.status === 'Approved' ? ('absences.status.approved' | translate) : ('absences.approve' | translate))"
-                    tooltipPosition="top" (click)="absence.status !== 'Approved' && approveAbsence(absence.id)"
-                    severity="success" [text]="true" [rounded]="true" [disabled]="absence.status === 'Approved'"
-                    [class.opacity-30]="absence.status === 'Approved'"
-                    [class.cursor-not-allowed]="absence.status === 'Approved'"></button>
-                  <button pButton icon="pi pi-times"
-                    [pTooltip]="(absence.status === 'Rejected' || absence.status === 'Cancelled') ? ('absences.status.rejected' | translate) : ('absences.reject' | translate)"
-                    tooltipPosition="top"
-                    (click)="(absence.status !== 'Rejected' && absence.status !== 'Cancelled') && rejectAbsence(absence.id); $event.stopPropagation()"
-                    severity="danger" [text]="true" [rounded]="true"
-                    [disabled]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
-                    [class.opacity-30]="absence.status === 'Rejected' || absence.status === 'Cancelled'"
-                    [class.cursor-not-allowed]="absence.status === 'Rejected' || absence.status === 'Cancelled'"></button>
-                  <button pButton icon="pi pi-eye" [pTooltip]="'absences.viewEmployee' | translate"
-                    tooltipPosition="top" (click)="viewEmployeeAbsences(absence.employeeId)" severity="info"
-                    [text]="true" [rounded]="true"></button>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </p-tabs>
     </section>
   </div>
 

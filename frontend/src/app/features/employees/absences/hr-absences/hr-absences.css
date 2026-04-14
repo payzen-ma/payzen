@@ -4,6 +4,247 @@
    is in src/styles.css (global). Matches overtime-management.
    ============================================ */
 
+/* Figma node 3383:7342 - page-level alignment */
+.hr-absences-page .bulletin-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  gap: 24px;
+  padding: 24px;
+}
+
+.hr-absences-page .bulletin-hero {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.hr-absences-page .module-header__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hr-absences-page .module-header__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--primary-50, #ebf5ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-600, #1557b0);
+}
+
+.hr-absences-page .module-header__icon i {
+  font-size: 1rem;
+}
+
+.hr-absences-page .page-title {
+  font-size: 38px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.hr-absences-page .page-subtitle {
+  font-size: 14px;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+
+.hr-absences-page .bulletin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.hr-absences-page .bulletin-stat-card {
+  background: var(--background-element, #fff);
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 16px;
+}
+
+.hr-absences-page .bulletin-stat-card .stat-label {
+  font-size: 11px;
+  color: #6a7282;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.hr-absences-page .bulletin-stat-card .bulletin-stat-value {
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary, #1f2937);
+  font-weight: 600;
+}
+
+.hr-absences-page .bulletin-stat-card .stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hr-absences-page .bulletin-stat-card .stat-card-icon i {
+  font-size: 1rem;
+}
+
+.hr-absences-card {
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 16px;
+}
+
+.hr-absences-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.hr-absences-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.hr-absences-tab {
+  border: 0;
+  background: transparent;
+  color: var(--surface-600, #475669);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hr-absences-tab.is-active {
+  background: var(--primary-50, #ebf5ff);
+  color: var(--primary-600, #1557b0);
+}
+
+.hr-absences-search {
+  width: 100%;
+  max-width: 340px;
+}
+
+:host ::ng-deep .hr-absences-search.p-iconfield {
+  display: block;
+  position: relative;
+}
+
+:host ::ng-deep .hr-absences-search .p-inputicon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+:host ::ng-deep .hr-absences-search .p-inputtext {
+  height: 40px;
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  padding-left: 2.5rem;
+}
+
+:host ::ng-deep .hr-absences-search .pi {
+  color: var(--surface-400, #94a3b8);
+}
+
+:host ::ng-deep .hr-absences-table .p-datatable-thead>tr>th {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+:host ::ng-deep .hr-absences-table .p-datatable-tbody>tr>td {
+  border-color: #f1f5f9;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+:host ::ng-deep .hr-absences-card .p-datatable-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+:host ::ng-deep .hr-absences-card--employees .p-paginator {
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+:host ::ng-deep .hr-absences-actions--minimal .p-button,
+:host ::ng-deep .hr-absences-actions .p-button {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--surface-600, #475669);
+}
+
+:host ::ng-deep .hr-absences-actions--minimal .p-button:hover,
+:host ::ng-deep .hr-absences-actions .p-button:hover {
+  background: transparent;
+  color: var(--text-primary, #1f2937);
+}
+
+@media (max-width: 1200px) {
+  .hr-absences-page .bulletin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .hr-absences-page .bulletin-shell {
+    padding: 16px;
+  }
+
+  .hr-absences-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hr-absences-search {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .hr-absences-page .bulletin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hr-absences-page .page-title {
+    font-size: 30px;
+  }
+}
+
 /* Modal Styles (app-dialog) - same as overtime-management */
 :host ::ng-deep .app-dialog {
   .p-dialog {

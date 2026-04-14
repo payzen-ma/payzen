@@ -1,3 +1,9 @@
+:host .payslip-page,
+:host .salary-page,
+:host .bulletin-page {
+  background: transparent;
+}
+
 .card {
   background: var(--bg-element);
   border-radius: 8px;

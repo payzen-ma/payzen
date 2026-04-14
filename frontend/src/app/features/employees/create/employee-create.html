@@ -13,20 +13,8 @@
   </ng-template>
 </p-toast>
 
-<section class="payslip-page bulletin-page employee-create-page">
-  <div class="payslip-shell bulletin-shell employee-create-shell">
-    <header class="payslip-hero bulletin-hero employee-create-hero">
-      <div class="payslip-hero__copy">
-        <p class="payslip-eyebrow">{{ 'employees.create.eyebrow' | translate }}</p>
-        <h1 class="payslip-title">{{ 'employees.create.title' | translate }}</h1>
-        <p class="payslip-subtitle">{{ 'employees.create.subtitle' | translate }}</p>
-      </div>
-      <button type="button" pButton class="btn btn-secondary-outline" icon="pi pi-arrow-left"
-        [label]="'common.back' | translate" [attr.aria-label]="'common.back' | translate"
-        [attr.title]="'common.back' | translate" (click)="cancel()">
-        <span class="sr-only">{{ 'common.back' | translate }}</span>
-      </button>
-    </header>
+<section class="employee-create-page">
+  <div class="employee-create-shell">
 
     @if (errorMessage()) {
     <div class="payslip-alert payslip-alert--error">
@@ -46,9 +34,23 @@
     </div>
     }
 
-    <div class="payslip-card bulletin-card employee-create-form-card">
+    <div class="employee-create-header">
+      <div class="employee-create-header-row">
+        <button type="button" pButton class="btn btn-secondary-outline back-btn" icon="pi pi-arrow-left"
+          [label]="'common.back' | translate" (click)="cancel()" [attr.aria-label]="'common.back' | translate"
+          [attr.title]="'common.back' | translate"></button>
+
+        <div class="employee-create-header-meta">
+          <p class="section-eyebrow">NEW HIRE FLOW</p>
+          <h1 class="employee-page-title">Create Employee</h1>
+          <p class="employee-page-desc">Collect identity, contract, and contact details before onboarding.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="employee-create-form-card">
       @if (isLoading()) {
-      <div class="inline-loading flex items-center gap-2 text-(--text-secondary) mb-4">
+      <div class="inline-loading flex items-center gap-2 mb-4">
         <i class="pi pi-spin pi-spinner text-(--primary)"></i>
         <span>{{ 'common.loading' | translate }}</span>
       </div>
@@ -56,8 +58,8 @@
 
       @let data = formData();
 
-      <form [formGroup]="employeeForm" (ngSubmit)="submit()" class="space-y-10">
-        <section class="form-section">
+      <form [formGroup]="employeeForm" (ngSubmit)="submit()" class="employee-create-form">
+        <section class="form-section form-section--first">
           <div class="section-header">
             <div>
               <p class="section-eyebrow">{{ 'employees.create.sections.personal' | translate }}</p>
@@ -65,7 +67,7 @@
               <p class="section-description">{{ 'employees.create.sections.personalDescription' | translate }}</p>
             </div>
           </div>
-          <div class="grid gap-5 md:grid-cols-2">
+          <div class="form-grid">
             <app-input-field [label]="'employees.create.form.firstName' | translate" [placeholder]="'Amal'"
               [requiredMark]="true" icon="pi pi-user"
               [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
@@ -81,9 +83,9 @@
               [errorMessages]="{ required: ('employees.create.validation.required' | translate), email: ('employees.create.validation.email' | translate) }"
               formControlName="email"></app-input-field>
 
-            <app-select-field [label]="'Rôle du compte utilisateur'" [requiredMark]="true"
-              [options]="inviteRoleOptions()" optionLabel="label" optionValue="id" [placeholder]="'--'" [filter]="false"
-              [appendTo]="'body'" [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
+            <app-select-field [label]="'Rôle pour invitation'" [requiredMark]="true" [options]="inviteRoleOptions()"
+              optionLabel="label" optionValue="id" [placeholder]="'--'" [filter]="false" [appendTo]="'body'"
+              [errorMessages]="{ required: ('employees.create.validation.required' | translate) }"
               formControlName="inviteRoleId"></app-select-field>
 
             <app-input-field [label]="'employees.create.form.cin' | translate" [placeholder]="'AA123456'"
@@ -99,7 +101,7 @@
               <label class="field-label after:text-red-500 after:content-['*']">{{ 'employees.create.form.phone' |
                 translate }}</label>
               <div class="phone-combo">
-                <app-select-field class="" [hideLabel]="true" [showErrors]="false" [options]="data.countries"
+                <app-select-field [hideLabel]="true" [showErrors]="false" [options]="data.countries"
                   optionLabel="phoneCode" optionValue="id" [filter]="false" [appendTo]="'body'"
                   formControlName="phoneCountryId"
                   [ariaLabel]="'employees.create.form.phoneCountry' | translate"></app-select-field>
@@ -141,7 +143,7 @@
               <p class="section-description">{{ 'employees.create.sections.jobDescription' | translate }}</p>
             </div>
           </div>
-          <div class="grid gap-5 md:grid-cols-2">
+          <div class="form-grid">
             <app-select-field [label]="'employees.create.form.department' | translate" [requiredMark]="true"
               [options]="data.departments" optionLabel="label" optionValue="id"
               [placeholder]="'employees.create.form.departmentPlaceholder' | translate" [filter]="true"
@@ -179,19 +181,6 @@
             <app-input-field [label]="'employees.create.form.salaryEffectiveDate' | translate" type="date"
               icon="pi pi-calendar" [hint]="'employees.create.form.salaryEffectiveDateHint' | translate"
               formControlName="salaryEffectiveDate"></app-input-field>
-            <!--
-                <app-select-field
-                  [label]="'employees.create.form.salaryPackage' | translate"
-                  [options]="salaryPackageOptions()"
-                  optionLabel="label"
-                  optionValue="id"
-                  [placeholder]="'employees.create.form.salaryPackagePlaceholder' | translate"
-                  [filter]="true"
-                  [showClear]="true"
-                  [appendTo]="'body'"
-                  formControlName="salaryPackageId"
-                ></app-select-field>-->
-
             <app-select-field [label]="'employees.create.form.employeeCategory' | translate"
               [options]="data.employeeCategories || []" optionLabel="label" optionValue="id"
               [placeholder]="'employees.create.form.employeeCategoryPlaceholder' | translate" [filter]="true"
@@ -207,7 +196,7 @@
               <p class="section-description">{{ 'employees.create.sections.contactDescription' | translate }}</p>
             </div>
           </div>
-          <div class="grid gap-5 md:grid-cols-2">
+          <div class="form-grid">
             <app-select-field [label]="'employees.create.form.country' | translate"
               [placeholder]="'employees.create.form.countryPlaceholder' | translate" [options]="data.countries"
               optionLabel="label" optionValue="id" [filter]="true" [appendTo]="'body'"
@@ -218,12 +207,12 @@
               optionLabel="label" optionValue="id" [filter]="true" [appendTo]="'body'" [disabled]="!selectedCountryId()"
               formControlName="cityId"></app-select-field>
 
-            <div class="md:col-span-2">
+            <div class="field-span-2">
               <app-input-field [label]="'employees.create.form.addressLine1' | translate" icon="pi pi-map-marker"
                 formControlName="addressLine1"></app-input-field>
             </div>
 
-            <div class="md:col-span-2">
+            <div class="field-span-2">
               <app-input-field [label]="'employees.create.form.addressLine2' | translate" icon="pi pi-map-marker"
                 formControlName="addressLine2"></app-input-field>
             </div>
@@ -233,20 +222,14 @@
           </div>
         </section>
 
-        <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-3 pt-4">
-          <button type="button" pButton class="btn btn-secondary" [label]="'common.cancel' | translate"
+        <div class="form-actions">
+          <button type="button" pButton class="btn action-cancel" [label]="'common.cancel' | translate"
             [attr.aria-label]="'common.cancel' | translate" [attr.title]="'common.cancel' | translate"
-            (click)="cancel()">
-            <span class="sr-only">{{ 'common.cancel' | translate }}</span>
-          </button>
-          <button type="submit" pButton class="btn btn-primary" icon="pi pi-save" [disabled]="isSubmitting()"
+            (click)="cancel()"></button>
+          <button type="submit" pButton class="btn btn-primary action-submit" [disabled]="isSubmitting()"
             [label]="isSubmitting() ? ('common.loading' | translate) : ('employees.create.submit' | translate)"
             [attr.aria-label]="isSubmitting() ? ('common.loading' | translate) : ('employees.create.submit' | translate)"
-            [attr.title]="isSubmitting() ? ('common.loading' | translate) : ('employees.create.submit' | translate)">
-            <span class="sr-only">
-              {{ isSubmitting() ? ('common.loading' | translate) : ('employees.create.submit' | translate) }}
-            </span>
-          </button>
+            [attr.title]="isSubmitting() ? ('common.loading' | translate) : ('employees.create.submit' | translate)"></button>
         </div>
       </form>
     </div>

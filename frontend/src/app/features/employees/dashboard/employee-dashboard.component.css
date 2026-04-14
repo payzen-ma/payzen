@@ -5,7 +5,7 @@
 
 /* Fond page aligné maquette Figma (Mon espace) — sans dégradé radial */
 section.employee-dashboard-page--workspace.payslip-page {
-  background: var(--bg-page);
+  background: transparent;
   color: var(--text-primary);
 }
 
