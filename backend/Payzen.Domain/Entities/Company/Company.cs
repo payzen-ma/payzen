@@ -77,6 +77,9 @@ public class Company : BaseEntity
     [StringLength(100)]
     public string? PaymentMethod { get; set; }
 
+    [StringLength(200)]
+    public string? MatriculeTemplate { get; set; }
+
     public int? ManagedByCompanyId { get; set; }
 
     // Convention pour choisir la stratégie d'authentification.

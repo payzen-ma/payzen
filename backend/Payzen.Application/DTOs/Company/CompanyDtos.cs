@@ -64,6 +64,9 @@ public class CompanyCreateDto
     [StringLength(200)]
     public string? BusinessSector { get; set; }
 
+    [StringLength(200)]
+    public string? MatriculeTemplate { get; set; }
+
     [StringLength(100)]
     public string? PatenteNumber { get; set; }
 
@@ -168,6 +171,9 @@ public class CompanyUpdateDto
     [StringLength(100)]
     public string? SignatoryTitle { get; set; }
 
+    [StringLength(200)]
+    public string? MatriculeTemplate { get; set; }
+
     /// <summary>"Mensuelle" ou "Bimensuelle"</summary>
     [StringLength(50)]
     public string? PayrollPeriodicity { get; set; }
@@ -204,6 +210,7 @@ public class CompanyListDto
     public string? PayrollPeriodicity { get; set; }
     public string? AuthType { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? MatriculeTemplate { get; set; }
 }
 
 /// <summary>Détail — retourné par GET /api/companies/{id}</summary>
@@ -237,6 +244,7 @@ public class CompanyReadDto
     public DateTime CreatedAt { get; set; }
 
     public string? AuthType { get; set; }
+    public string? MatriculeTemplate { get; set; }
 }
 
 /// <summary>Réponse après création d'une entreprise (fiche employé admin + invitation e-mail Entra)</summary>

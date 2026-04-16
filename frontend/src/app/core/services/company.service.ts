@@ -37,6 +37,7 @@ interface CompanyDto {
   signatoryName?: string;
   signatoryTitle?: string;
   payrollPeriodicity?: string;
+  matriculeTemplate?: string;
   // Add other fields as needed based on backend response
 }
 
@@ -64,6 +65,7 @@ interface CompanyUpdateDto {
   SignatoryTitle?: string;
   /** Périodicité de paie : 'Mensuelle' (mensuel) ou 'Bimensuelle' (tous les 15 jours) */
   PayrollPeriodicity?: string;
+  MatriculeTemplate?: string;
 }
 
   // Mapping configuration from frontend model to backend DTO
@@ -85,6 +87,7 @@ const COMPANY_FIELD_MAP: Partial<Record<keyof Company, keyof CompanyUpdateDto>> 
   website: 'WebsiteUrl',
   signatoryName: 'SignatoryName',
   signatoryTitle: 'SignatoryTitle',
+  matriculeTemplate: 'MatriculeTemplate',
 };
 
 @Injectable({
@@ -363,6 +366,7 @@ export class CompanyService {
       isActive: true,
       signatoryName: (dto as any).signatoryName || (dto as any).SignatoryName || undefined,
       signatoryTitle: (dto as any).signatoryTitle || (dto as any).SignatoryTitle || undefined,
+      matriculeTemplate: (dto as any).matriculeTemplate || (dto as any).MatriculeTemplate || undefined,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.createdAt)
     };

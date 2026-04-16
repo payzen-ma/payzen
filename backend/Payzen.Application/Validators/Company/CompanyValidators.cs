@@ -40,6 +40,8 @@ public class CompanyCreateValidator : AbstractValidator<CompanyCreateDto>
 
         RuleFor(x => x.CnssNumber).MaximumLength(100);
 
+        When(x => x.MatriculeTemplate != null, () => RuleFor(x => x.MatriculeTemplate!).MaximumLength(200));
+
         RuleFor(x => x.AdminFirstName).NotEmpty().Length(2, 100);
         RuleFor(x => x.AdminLastName).NotEmpty().Length(2, 100);
         RuleFor(x => x.AdminEmail).NotEmpty().EmailAddress().MaximumLength(500);
@@ -95,6 +97,8 @@ public class CompanyUpdateValidator : AbstractValidator<CompanyUpdateDto>
                     .Must(a => a == "JWT" || a == "C")
                     .WithMessage("AuthType doit être 'JWT' ou 'C'")
         );
+
+        When(x => x.MatriculeTemplate != null, () => RuleFor(x => x.MatriculeTemplate!).MaximumLength(200));
     }
 }
 

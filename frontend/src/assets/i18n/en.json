@@ -719,6 +719,7 @@
       "foundingDate": "Founding Date",
       "address": "Address",
       "city": "City",
+      "matriculeTemplate": "Employee ID template",
       "email": "Official Email",
       "phone": "Phone Number",
       "website": "Website",

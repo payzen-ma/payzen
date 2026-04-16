@@ -720,6 +720,7 @@
       "rib": "Compte Bancaire Principal (RIB)",
       "address": "Adresse",
       "city": "Ville",
+      "matriculeTemplate": "Modèle de matricule",
       "email": "Email Officiel",
       "phone": "Numéro de Téléphone",
       "website": "Site Web",

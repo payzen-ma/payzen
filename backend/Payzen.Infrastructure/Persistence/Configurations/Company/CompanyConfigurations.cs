@@ -25,6 +25,7 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Payzen.Domain.Entit
         entity.Property(c => c.Currency).HasMaxLength(10).HasDefaultValue("MAD");
         entity.Property(c => c.PayrollPeriodicity).HasMaxLength(50).HasDefaultValue("Mensuelle");
         entity.Property(c => c.BusinessSector).HasMaxLength(200);
+        entity.Property(c => c.MatriculeTemplate).HasMaxLength(200);
         entity.Property(c => c.PaymentMethod).HasMaxLength(100);
         entity.Property(c => c.AuthType).HasMaxLength(20).HasDefaultValue("JWT");
 

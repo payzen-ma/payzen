@@ -280,6 +280,7 @@ public class CompanyService : ICompanyService
                 LegalForm = dto.LegalForm?.Trim(),
                 FoundingDate = dto.FoundingDate,
                 BusinessSector = dto.BusinessSector?.Trim(),
+                MatriculeTemplate = dto.MatriculeTemplate?.Trim(),
                 PaymentMethod = dto.PaymentMethod?.Trim(),
                 AuthType = "C",
                 CreatedBy = createdBy,
@@ -377,6 +378,7 @@ public class CompanyService : ICompanyService
                     LegalForm = company.LegalForm,
                     FoundingDate = company.FoundingDate,
                     BusinessSector = company.BusinessSector,
+                    MatriculeTemplate = company.MatriculeTemplate,
                     CreatedAt = company.CreatedAt.DateTime,
                 },
                 Admin =
@@ -870,6 +872,20 @@ public class CompanyService : ICompanyService
             c.SignatoryName = dto.SignatoryName.Trim();
         if (!string.IsNullOrWhiteSpace(dto.SignatoryTitle))
             c.SignatoryTitle = dto.SignatoryTitle.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.MatriculeTemplate) && dto.MatriculeTemplate.Trim() != c.MatriculeTemplate)
+        {
+            await _companyEventLog.LogEventAsync(
+                c.Id,
+                "MatriculeTemplate_Changed",
+                c.MatriculeTemplate,
+                null,
+                dto.MatriculeTemplate.Trim(),
+                null,
+                updatedBy,
+                ct
+            );
+            c.MatriculeTemplate = dto.MatriculeTemplate.Trim();
+        }
         if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity))
             c.PayrollPeriodicity = dto.PayrollPeriodicity.Trim();
 
@@ -2249,6 +2265,7 @@ public class CompanyService : ICompanyService
             PayrollPeriodicity = c.PayrollPeriodicity,
             AuthType = c.AuthType,
             CreatedAt = c.CreatedAt.DateTime,
+            MatriculeTemplate = c.MatriculeTemplate,
         };
 
     private static CompanyReadDto MapToRead(Domain.Entities.Company.Company c) =>
@@ -2281,5 +2298,6 @@ public class CompanyService : ICompanyService
             PayrollPeriodicity = c.PayrollPeriodicity,
             AuthType = c.AuthType,
             CreatedAt = c.CreatedAt.DateTime,
+            MatriculeTemplate = c.MatriculeTemplate,
         };
 }

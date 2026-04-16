@@ -84,6 +84,7 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     { id: 'phone', key: 'phone', label: 'company.info.phone' },
     { id: 'address', key: 'address', label: 'company.info.address', fullWidth: true },
     { id: 'city', key: 'city', label: 'company.info.city', type: 'autocomplete' },
+    { id: 'matriculeTemplate', key: 'matriculeTemplate', label: 'company.info.matriculeTemplate' },
 
   ];
 

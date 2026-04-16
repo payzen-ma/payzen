@@ -27,6 +27,7 @@ export interface Company {
   rib?: string;                    // Bank account number
   signatoryName?: string;          // Nom du signataire
   signatoryTitle?: string;         // Titre du signataire
+  matriculeTemplate?: string;      // Modèle de matricule employé
   // Cabinet/Multi-company management fields
   managedByCompanyId?: number;     // Cabinet comptable managing this company
   managedByCompanyName?: string;   // Name of managing cabinet (enriched)
