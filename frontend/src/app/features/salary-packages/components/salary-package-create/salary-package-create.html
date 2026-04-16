@@ -12,15 +12,34 @@
     </div>
 
     <div class="salary-create-header__actions">
-      <button type="button" class="btn btn-secondary" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
-      <button type="button" class="btn btn-primary" [disabled]="!canSaveDraft() || isSaving()" (click)="saveDraft()">
+      <button type="button" class="btn btn-success btn-head-action" [disabled]="!canPublish() || isSaving()" (click)="publish()">
+        <i class="pi pi-check" aria-hidden="true"></i>
+        {{ 'salaryPackages.actions.publish' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-head-action" [disabled]="!canSaveDraft() || isSaving()" (click)="saveDraft()">
+        <i class="pi pi-save" aria-hidden="true"></i>
         @if (isSaving()) { {{ 'common.loading' | translate }} } @else { {{ 'common.save' | translate }} }
       </button>
-      <button type="button" class="btn btn-success" [disabled]="!canPublish() || isSaving()" (click)="publish()">
-        {{ 'salaryPackages.actions.publish' | translate }}
+      <button type="button" class="btn btn-secondary btn-head-action" (click)="cancel()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+        {{ 'common.cancel' | translate }}
       </button>
     </div>
   </header>
+
+  @if (successMessage() || errorMessage()) {
+    <section class="form-card">
+      @if (successMessage()) {
+        <p>{{ successMessage() }}</p>
+      }
+      @if (errorMessage()) {
+        <p>{{ errorMessage() }}</p>
+      }
+      <button type="button" class="btn btn-secondary btn-sm" (click)="dismissMessages()">
+        {{ 'common.close' | translate }}
+      </button>
+    </section>
+  }
 
   @if (isLoading()) {
     <section class="loading-state">{{ 'common.loading' | translate }}</section>
@@ -82,7 +101,10 @@
         <article class="form-card">
           <div class="form-card__head">
             <h2>{{ 'salaryPackages.create.componentsTitle' | translate }}</h2>
-            <button type="button" class="btn btn-secondary btn-sm" (click)="openCustomDialog()">{{ 'salaryPackages.create.addCustomComponent' | translate }}</button>
+            <button type="button" class="btn btn-secondary btn-sm btn-add-component" (click)="openCustomDialog()">
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              {{ 'salaryPackages.create.addCustomComponent' | translate }}
+            </button>
           </div>
 
           <div class="component-picker">
@@ -209,32 +231,90 @@
   @if (showCustomDialog()) {
     <div class="dialog-backdrop" (click)="closeCustomDialog()"></div>
     <div class="dialog-shell" role="dialog" aria-modal="true">
-      <div class="dialog-card" (click)="$event.stopPropagation()">
-        <h3>{{ 'salaryPackages.create.customDialog.title' | translate }}</h3>
+      <div class="dialog-card--custom" (click)="$event.stopPropagation()">
+        <div class="custom-dialog__header">
+          <h3>{{ 'salaryPackages.create.customDialog.title' | translate }}</h3>
+          <button type="button" class="custom-dialog__close" (click)="closeCustomDialog()" [attr.aria-label]="'common.close' | translate">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
 
-        <label class="field-block">
-          <span>{{ 'salaryPackages.create.customDialog.name' | translate }}</span>
-          <input type="text" [ngModel]="customName()" (ngModelChange)="customName.set($event)" [placeholder]="'salaryPackages.create.customDialog.namePlaceholder' | translate" />
-        </label>
+        <div class="custom-dialog__body">
+          <label class="custom-dialog__field">
+            <span>{{ 'salaryPackages.create.customDialog.name' | translate }}</span>
+            <input type="text" [ngModel]="customName()" (ngModelChange)="customName.set($event)" [placeholder]="'salaryPackages.create.customDialog.namePlaceholder' | translate" />
+          </label>
 
-        <label class="field-block">
-          <span>{{ 'salaryPackages.create.customDialog.defaultAmount' | translate }}</span>
-          <input type="number" min="0" [ngModel]="customAmount()" (ngModelChange)="customAmount.set(+$event)" />
-        </label>
+          <label class="custom-dialog__field">
+            <span>{{ 'salaryPackages.create.customDialog.defaultAmount' | translate }}</span>
+            <input type="number" min="0" [ngModel]="customAmount()" (ngModelChange)="customAmount.set(+$event)" />
+          </label>
 
-        <label class="check-line">
-          <input type="checkbox" [ngModel]="customIsSocial()" (ngModelChange)="customIsSocial.set($event)" />
-          {{ 'salaryPackages.create.customDialog.subjectToCnss' | translate }}
-        </label>
+          <div class="custom-dialog__check-line">
+            <button
+              type="button"
+              class="custom-dialog__check-toggle"
+              [class.custom-dialog__check-toggle--active]="customIsSocial()"
+              [attr.aria-pressed]="customIsSocial()"
+              (click)="customIsSocial.set(!customIsSocial())">
+              @if (customIsSocial()) {
+                <i class="pi pi-check" aria-hidden="true"></i>
+              }
+            </button>
+            <span>{{ 'salaryPackages.create.customDialog.subjectToCnss' | translate }}</span>
+          </div>
 
-        <label class="check-line">
-          <input type="checkbox" [ngModel]="customIsTaxable()" (ngModelChange)="customIsTaxable.set($event)" />
-          {{ 'salaryPackages.create.customDialog.taxableIr' | translate }}
-        </label>
+          <div class="custom-dialog__check-line custom-dialog__check-line--muted">
+            <button
+              type="button"
+              class="custom-dialog__check-toggle"
+              [class.custom-dialog__check-toggle--active]="customIsTaxable()"
+              [attr.aria-pressed]="customIsTaxable()"
+              (click)="customIsTaxable.set(!customIsTaxable())">
+              @if (customIsTaxable()) {
+                <i class="pi pi-check" aria-hidden="true"></i>
+              }
+            </button>
+            <span>{{ 'salaryPackages.create.customDialog.taxableIr' | translate }}</span>
+          </div>
+        </div>
 
-        <div class="dialog-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeCustomDialog()">{{ 'common.cancel' | translate }}</button>
-          <button type="button" class="btn btn-primary" [disabled]="!customName().trim()" (click)="submitCustomComponent()">{{ 'common.add' | translate }}</button>
+        <div class="custom-dialog__footer">
+          <button type="button" class="btn btn-secondary custom-dialog__btn-cancel" (click)="closeCustomDialog()">{{ 'common.cancel' | translate }}</button>
+          <button type="button" class="btn btn-primary custom-dialog__btn-add" [disabled]="!customName().trim()" (click)="submitCustomComponent()">
+            <i class="pi pi-check" aria-hidden="true"></i>
+            <span>Add component</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showPublishConfirmDialog()) {
+    <div class="dialog-backdrop" (click)="cancelPublishConfirmation()"></div>
+    <div class="dialog-shell" role="dialog" aria-modal="true">
+      <div class="dialog-card--custom dialog-card--publish-confirm" (click)="$event.stopPropagation()">
+        <div class="custom-dialog__header">
+          <h3>{{ 'salaryPackages.actions.publish' | translate }}</h3>
+          <button type="button" class="custom-dialog__close" (click)="cancelPublishConfirmation()" [attr.aria-label]="'common.close' | translate">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="custom-dialog__body">
+          <p class="publish-confirm__message">
+            {{ 'salaryPackages.dialogs.confirm.publishReadonlyWarning' | translate }}
+          </p>
+        </div>
+
+        <div class="custom-dialog__footer">
+          <button type="button" class="btn btn-secondary custom-dialog__btn-cancel" (click)="cancelPublishConfirmation()">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button type="button" class="btn btn-success custom-dialog__btn-add" (click)="confirmPublish()">
+            <i class="pi pi-check" aria-hidden="true"></i>
+            <span>{{ 'salaryPackages.actions.publish' | translate }}</span>
+          </button>
         </div>
       </div>
     </div>

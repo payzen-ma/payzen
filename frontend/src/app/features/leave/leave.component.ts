@@ -18,38 +18,31 @@ import { LeaveLegalRulesPage } from './leave-legal-rules/leave-legal-rules';
     LeaveLegalRulesPage
   ],
   template: `
-    <div class="p-6">
+    <div class="p-6 leave-page">
       <div class="max-w-7xl mx-auto">
         <header class="mb-6">
-          <div class="flex items-center gap-4">
-            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
-              <i class="pi pi-briefcase text-blue-600 text-xl"></i>
-            </div>
-            <div>
-              <h1 class="text-2xl font-semibold text-gray-900">{{ 'leave.title' | translate }}</h1>
-              <p class="text-gray-600 mt-1">{{ 'leave.description' | translate }}</p>
-            </div>
-          </div>
+          <h1 class="text-2xl font-semibold text-gray-900">{{ 'leave.title' | translate }}</h1>
+          <p class="text-gray-600 mt-1">{{ 'leave.description' | translate }}</p>
         </header>
         
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <p-tabs value="types" class="leave-tabs">
-            <p-tablist class="border-b border-gray-200">
-              <p-tab value="types" class="px-6 py-4">
+            <p-tablist class="border-b border-gray-200 p-1">
+              <p-tab value="types" class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-list"></i>
+                  <i class="pi pi-sitemap"></i>
                   <span>{{ 'leave.tabs.types' | translate }}</span>
                 </div>
               </p-tab>
-              <p-tab value="policies" class="px-6 py-4">
+              <p-tab value="policies" class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-cog"></i>
+                  <i class="pi pi-book"></i>
                   <span>{{ 'leave.tabs.policies' | translate }}</span>
                 </div>
               </p-tab>
-              <p-tab value="legal-rules" class="px-6 py-4">
+              <p-tab value="legal-rules" class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-file-text"></i>
+                  <i class="pi pi-file-edit"></i>
                   <span>{{ 'leave.legalRules.title' | translate }}</span>
                 </div>
               </p-tab>
@@ -72,24 +65,30 @@ import { LeaveLegalRulesPage } from './leave-legal-rules/leave-legal-rules';
     </div>
   `,
   styles: [`
+    .leave-page {
+      background: var(--bg-page, #f8fafc);
+      min-height: 100%;
+    }
+
     .leave-tabs {
       --p-tabs-tablist-border-width: 0;
     }
     
     .leave-tabs p-tab {
-      border-bottom: 2px solid transparent;
+      border-bottom: 0;
+      border-radius: 8px;
       transition: all 0.2s ease;
+      color: #64748b;
+      font-weight: 600;
     }
     
     .leave-tabs p-tab:hover {
       background-color: #f8fafc;
-      border-bottom-color: #e2e8f0;
     }
     
     .leave-tabs p-tab[aria-selected="true"] {
-      background-color: #fff;
-      border-bottom-color: #3b82f6;
-      color: #3b82f6;
+      background-color: #ebf5ff;
+      color: #1557b0;
     }
   `]
 })

@@ -1,0 +1,69 @@
+.heading {
+  margin: 0;
+  color: var(--text-primary, #1f2937);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.subheading {
+  margin: 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stat-card {
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  background: var(--bg-element, #fff);
+  padding: 14px 14px 14px 16px;
+}
+
+.stat-label {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.stat-value {
+  margin: 2px 0 0;
+  color: #1f2937;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  font-size: 17px;
+}
+
+.card-compact {
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  background: var(--bg-element, #fff);
+  overflow: hidden;
+}
+
+.saas-table-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #64748b;
+  padding: 12px 16px;
+  background: #f8fafc;
+}
+
+.saas-table-row td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}

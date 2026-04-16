@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://api-test.payzenhr.com/api',
+  apiUrl: 'http://localhost:5119/api',
   entra: {
     clientId: '6961f3db-ba3e-4803-938b-14285b09b391',
     authority: 'https://payzenhrtest.ciamlogin.com/b80bbebd-7733-41d0-9528-9947785f4262',

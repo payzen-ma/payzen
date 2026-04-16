@@ -91,6 +91,7 @@ export interface Employee {
   manager?: string;
   contractType: string;
   contractTypeId?: number;
+  contractId?: number;
   startDate: string;
   endDate?: string;
   probationPeriod: string;
@@ -205,6 +206,7 @@ export interface CreateEmployeeRequest {
   department: string;
   manager?: string;
   contractType: string;
+  contractId?: number;
   startDate: string;
   endDate?: string;
   probationPeriod: string;

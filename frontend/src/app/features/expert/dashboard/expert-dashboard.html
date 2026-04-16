@@ -1,74 +1,93 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">{{ 'expert.dashboard.title' | translate }}</h1>
-      <p class="text-gray-500 mt-1">{{ 'expert.dashboard.subtitle' | translate }}</p>
+  <div class="dashboard-header mb-6">
+    <div class="dashboard-header__text">
+      <h1 class="text-2xl font-bold text-gray-900">Tableau de Bord Expert</h1>
+      <p class="text-gray-500 mt-1">Vue d'ensemble de votre cabinet et de vos clients</p>
     </div>
-    <div class="flex gap-3">
-      <button 
-        pButton 
-        [label]="'expert.dashboard.newClient' | translate" 
-        icon="pi pi-plus" 
-        class="btn btn-primary"
+    <div class="dashboard-header__actions">
+      <button pButton [label]="'expert.dashboard.newClient' | translate" icon="pi pi-plus" class="btn btn-primary"
         (click)="openCreateClient()">
       </button>
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="card flex items-center p-4 shadow-sm border border-gray-200 rounded-lg bg-white">
-      <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-4">
-        <i class="pi pi-building text-xl"></i>
+  <!-- KPI Cards -->
+  <div class="kpi-grid mb-6">
+    <div class="kpi-card kpi-card--blue">
+      <div class="kpi-icon">
+        <i class="pi pi-building"></i>
       </div>
-      <div>
-        <span class="block text-gray-500 text-sm font-medium">{{ 'expert.dashboard.totalClients' | translate }}</span>
-        <span class="block text-2xl font-bold text-gray-900">{{ companies().length }}</span>
-      </div>
-    </div>
-    <div class="card flex items-center p-4 shadow-sm border border-gray-200 rounded-lg bg-white">
-      <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600 mr-4">
-        <i class="pi pi-users text-xl"></i>
-      </div>
-      <div>
-        <span class="block text-gray-500 text-sm font-medium">{{ 'expert.dashboard.totalEmployees' | translate }}</span>
-        <span class="block text-2xl font-bold text-gray-900">
-          {{ globalEmployeeCount() || totalEmployees() }}
-        </span>
+      <div class="kpi-content">
+        <span class="kpi-label">{{ 'expert.dashboard.totalClients' | translate }}</span>
+        <span class="kpi-value">{{ totalClients() || companies().length }}</span>
       </div>
     </div>
-    <div class="card flex items-center p-4 shadow-sm border border-gray-200 rounded-lg bg-white">
-      <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 mr-4">
-        <i class="pi pi-calendar text-xl"></i>
+
+    <div class="kpi-card kpi-card--green">
+      <div class="kpi-icon">
+        <i class="pi pi-users"></i>
       </div>
-      <div>
-        <span class="block text-gray-500 text-sm font-medium">{{ 'expert.dashboard.pendingLeaves' | translate }}</span>
-        <span class="block text-2xl font-bold text-gray-900">{{ pendingLeaves() }}</span>
+      <div class="kpi-content">
+        <span class="kpi-label">{{ 'expert.dashboard.totalEmployees' | translate }}</span>
+        <span class="kpi-value">{{ employeeKpiCount() }}</span>
+        <small class="kpi-subtext">{{ employeesScopeLabel() }}</small>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--purple">
+      <div class="kpi-icon">
+        <i class="pi pi-chart-line"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Moyenne salaries / client</span>
+        <span class="kpi-value">{{ avgEmployeesPerClient() }}</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--amber">
+      <div class="kpi-icon">
+        <i class="pi pi-verified"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Clients actifs</span>
+        <span class="kpi-value">{{ activeClientsCount() }}</span>
+        <small class="kpi-subtext">{{ clientCoverageRate() }}% couverture</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="analytics-grid mb-6">
+    <div class="card bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+      <div class="chart-header">
+        <h3 class="text-base font-semibold text-gray-800">Repartition des employes par client</h3>
+      </div>
+      <div class="chart-container">
+        <p-chart type="bar" [data]="employeesByClientChartData()" [options]="employeesByClientChartOptions()"></p-chart>
+      </div>
+    </div>
+    <div class="card bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+      <div class="chart-header">
+        <h3 class="text-base font-semibold text-gray-800">Repartition des clients par ville</h3>
+      </div>
+      <div class="chart-container">
+        <p-chart type="doughnut" [data]="clientsByCityChartData()" [options]="clientsByCityChartOptions()"></p-chart>
       </div>
     </div>
   </div>
 
   <!-- Clients Table -->
   <div class="card bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-    <p-table 
-      [value]="companies()" 
-      [loading]="isLoading()"
-      [paginator]="true" 
-      [rows]="10"
-      [globalFilterFields]="['legalName', 'ice', 'city']"
-      styleClass="p-datatable-sm">
-      
+    <p-table [value]="companies()" [loading]="isLoading()" [paginator]="true" [rows]="10"
+      [globalFilterFields]="['legalName', 'ice', 'city']" styleClass="p-datatable-sm">
+
       <ng-template pTemplate="caption">
         <div class="flex items-center justify-between p-4">
           <h2 class="text-lg font-semibold text-gray-800">{{ 'expert.dashboard.viewingClient' | translate }}</h2>
           <p-iconField iconPosition="left">
             <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-            <input 
-              pInputText 
-              type="text" 
-              (input)="onSearch($event)" 
-              placeholder="Search clients..." 
+            <input pInputText type="text" (input)="onSearch($event)" placeholder="Search clients..."
               class="p-inputtext-sm w-64" />
           </p-iconField>
         </div>
@@ -77,7 +96,6 @@
       <ng-template pTemplate="header">
         <tr>
           <th style="width: 25%">Raison Sociale</th>
-          <th style="width: 15%">ICE</th>
           <th style="width: 10%">Employees</th>
           <th style="width: 35%">Status</th>
           <th style="width: 15%">Actions</th>
@@ -90,63 +108,40 @@
             <div class="font-medium text-gray-900">{{ company.legalName }}</div>
             <div class="text-xs text-gray-500">{{ company.email }}</div>
           </td>
-          <td>{{ company.ice }}</td>
           <td>
-            <span class="font-semibold text-gray-700">{{ company.employeeCount || 0 }}</span>
+            <span class="font-semibold text-gray-700">{{ getEligibleEmployeeCount(company.id) }}</span>
           </td>
           <td>
             <div class="flex gap-2">
               <!-- Missing Docs Badge -->
               @if (getMissingDocsCount(company) > 0) {
-                <p-tag 
-                  severity="warn" 
-                  [value]="getMissingDocsCount(company) + ' Docs Manquants'"
-                  icon="pi pi-exclamation-triangle">
-                </p-tag>
+              <p-tag severity="warn" [value]="getMissingDocsCount(company) + ' Docs Manquants'"
+                icon="pi pi-exclamation-triangle">
+              </p-tag>
               } @else {
-                <p-tag 
-                  severity="success" 
-                  value="Docs OK"
-                  icon="pi pi-check">
-                </p-tag>
+              <p-tag severity="success" value="Docs OK" icon="pi pi-check">
+              </p-tag>
               }
 
               <!-- Last Payroll Badge -->
               @if (getLastPayrollStatus(company) === 'validated') {
-                <p-tag 
-                  severity="success" 
-                  value="Paie Validée"
-                  icon="pi pi-check-circle">
-                </p-tag>
+              <p-tag severity="success" value="Paie Validée" icon="pi pi-check-circle">
+              </p-tag>
               } @else if (getLastPayrollStatus(company) === 'pending') {
-                <p-tag 
-                  severity="info" 
-                  value="Paie En Cours"
-                  icon="pi pi-spinner">
-                </p-tag>
+              <p-tag severity="info" value="Paie En Cours" icon="pi pi-spinner">
+              </p-tag>
               } @else {
-                <p-tag 
-                  severity="danger" 
-                  value="Paie Retard"
-                  icon="pi pi-clock">
-                </p-tag>
+              <p-tag severity="danger" value="Paie Retard" icon="pi pi-clock">
+              </p-tag>
               }
             </div>
           </td>
           <td>
             <div class="flex gap-2">
-              <button 
-                pButton 
-                icon="pi pi-pencil" 
-                class="p-button-text p-button-sm p-button-secondary"
-                pTooltip="Edit Client"
-                (click)="openEditClient(company); $event.stopPropagation()">
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm p-button-secondary"
+                pTooltip="Edit Client" (click)="openEditClient(company); $event.stopPropagation()">
               </button>
-              <button 
-                pButton 
-                label="Manage" 
-                icon="pi pi-arrow-right" 
-                class="p-button-text p-button-sm"
+              <button pButton label="Manage" icon="pi pi-arrow-right" class="p-button-text p-button-sm"
                 (click)="onSelectCompany(company); $event.stopPropagation()">
               </button>
             </div>
@@ -156,7 +151,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="text-center p-8 text-gray-500">
+          <td colspan="4" class="text-center p-8 text-gray-500">
             No client companies found.
           </td>
         </tr>
@@ -164,43 +159,15 @@
     </p-table>
   </div>
 
-  <!-- Recent Activity Section -->
-  <div class="mb-6">
-    <div class="card bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800">
-          {{ 'expert.dashboard.recentActivity' | translate }}
-        </h2>
-        <button 
-          pButton
-          icon="pi pi-refresh"
-          class="p-button-text p-button-sm"
-          (click)="loadPortfolioDashboard()">
-        </button>
-      </div>
-      <!-- Audit log for the selected company (managed by this expert) -->
-      <app-audit-log *ngIf="selectedCompany()" [companyId]="selectedCompanyId()" [maxItems]="5"></app-audit-log>
-      <!-- Fallback: show cabinet-wide audit log when no company is selected -->
-      <app-audit-log *ngIf="!selectedCompany()" [maxItems]="5"></app-audit-log>
-    </div>
-  </div>
-
   <!-- Client Form Dialog -->
-  <p-dialog 
-    [(visible)]="isClientFormVisible" 
+  <p-dialog [(visible)]="isClientFormVisible"
     [header]="clientFormMode() === 'create' ? ('expert.dashboard.newClient' | translate) : ('expert.dashboard.editClient' | translate)"
-    [modal]="true"
-    styleClass="client-dialog"
-    [style]="{ width: '90vw', maxWidth: '720px' }"
-    [draggable]="false" 
+    [modal]="true" styleClass="client-dialog" [style]="{ width: '90vw', maxWidth: '720px' }" [draggable]="false"
     [resizable]="false">
     @if (isClientFormVisible()) {
-      <app-client-form
-        [mode]="clientFormMode()"
-        [company]="selectedCompanyForEdit()"
-        (save)="onClientSaved()"
-        (cancel)="isClientFormVisible.set(false)">
-      </app-client-form>
+    <app-client-form [mode]="clientFormMode()" [company]="selectedCompanyForEdit()" (save)="onClientSaved()"
+      (cancel)="isClientFormVisible.set(false)">
+    </app-client-form>
     }
   </p-dialog>
 </div>

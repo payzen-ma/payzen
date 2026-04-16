@@ -227,7 +227,11 @@ export class HrLeaveManagementComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          this.employees.set(response.employees || []);
+          this.employees.set(
+            (response.employees || []).filter(
+              (e: any) => e.status === 'active' || e.status === 'on_leave'
+            )
+          );
         },
         error: (error: any) => {
           alert('Error loading employees:');

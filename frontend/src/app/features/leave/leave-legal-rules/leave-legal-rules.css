@@ -1,3 +1,5 @@
+@import '../leave-theme.css';
+
 /* Styles spécifiques pour le composant des règles légales */
 .legal-article-badge {
   background: var(--surface-100);

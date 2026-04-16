@@ -166,9 +166,12 @@ export class PayslipComponent implements OnInit {
 
     this.employeeService.getEmployees(filters).subscribe({
       next: (response) => {
-        this.employees.set(response.employees);
+        const eligible = (response.employees || []).filter(
+          (e: any) => e.status === 'active' || e.status === 'on_leave'
+        );
+        this.employees.set(eligible);
         this.employeeOptions.set(
-          response.employees.map(emp => ({
+          eligible.map(emp => ({
             label: `${emp.firstName} ${emp.lastName}`,
             value: parseInt(emp.id, 10)
           }))

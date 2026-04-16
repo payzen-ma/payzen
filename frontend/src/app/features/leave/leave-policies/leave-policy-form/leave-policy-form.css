@@ -1,1 +1,202 @@
+@import '../../leave-theme.css';
+
 /* Leave Policy Form Styles */
+.policy-page {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 24px;
+}
+
+.policy-dialog {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.policy-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 17px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.policy-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.policy-close-btn {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.policy-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.policy-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.policy-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344155;
+  line-height: 1.1;
+}
+
+.policy-input,
+:host ::ng-deep .policy-select {
+  width: 100%;
+}
+
+:host ::ng-deep .policy-input.p-inputtext,
+:host ::ng-deep .policy-select .p-select {
+  height: 38px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+:host ::ng-deep .policy-input.p-inputtext::placeholder,
+:host ::ng-deep .policy-select .p-select-label {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.policy-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.policy-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 16px;
+  align-items: center;
+}
+
+.policy-checkbox-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.policy-checkbox-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344155;
+  cursor: pointer;
+}
+
+.policy-carryover-box {
+  background: #ebf5ff;
+  border: 1px solid #aed6ff;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.policy-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.policy-checkboxes .policy-checkbox-item:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.policy-toggle-row label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344155;
+  cursor: pointer;
+}
+
+.policy-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 20px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+:host ::ng-deep .policy-footer-cancel.p-button {
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:host ::ng-deep .policy-footer-primary.p-button {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 0;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+}
+
+:host ::ng-deep .policy-footer-primary.p-button:not(:disabled):hover {
+  background: #1557b0;
+}
+
+:host ::ng-deep .policy-footer-primary .p-button-icon,
+:host ::ng-deep .policy-footer-primary .p-button-label {
+  color: #fff;
+}
+
+.policy-loading {
+  max-width: 600px;
+  margin: 48px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .policy-page {
+    padding: 12px;
+  }
+
+  .policy-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -503,6 +503,57 @@
                 </div>
               </div>
 
+              <div class="p-4 rounded-lg border border-(--border-color-subtle) bg-(--bg-page) space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-semibold text-(--text-primary)">Affectation package salarial</h4>
+                  @if (employee().assignedPackage) {
+                  <button pButton type="button" class="btn btn-secondary btn-sm" icon="pi pi-eye"
+                    (click)="navigateToSalaryPackages()">Voir package</button>
+                  }
+                </div>
+
+                @if (employee().assignedPackage) {
+                <div class="text-sm text-(--text-secondary)">
+                  <p><strong>Package actif :</strong> {{ employee().assignedPackage?.salaryPackageName }}</p>
+                  <p><strong>Date d'effet :</strong> {{ employee().assignedPackage?.effectiveDate | date: 'dd/MM/yyyy' }}
+                  </p>
+                </div>
+                } @else {
+                <p class="text-sm text-(--text-muted)">Aucun package salarial actif.</p>
+                }
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                  <div class="form-field md:col-span-2">
+                    <label class="form-label">Package publié</label>
+                    <p-select [options]="availableSalaryPackages()" [ngModel]="assignmentPackageId()"
+                      (ngModelChange)="assignmentPackageId.set($event)" optionLabel="name" optionValue="id"
+                      [placeholder]="isLoadingSalaryPackages() ? 'Chargement...' : 'Sélectionnez un package'"
+                      [disabled]="isLoadingSalaryPackages() || isAssigningSalaryPackage()" class="w-full input"></p-select>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="form-label">Date d'effet</label>
+                    <input pInputText type="date" class="w-full input" [ngModel]="assignmentEffectiveDate()"
+                      (ngModelChange)="assignmentEffectiveDate.set($event)"
+                      [disabled]="isAssigningSalaryPackage()" />
+                  </div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button pButton type="button" class="btn btn-primary" icon="pi pi-check" [disabled]="
+                        isAssigningSalaryPackage() ||
+                        isLoadingSalaryPackages() ||
+                        !assignmentPackageId()
+                      " (click)="assignSalaryPackage()">
+                    @if (isAssigningSalaryPackage()) { Affectation... } @else { Affecter le package }
+                  </button>
+                </div>
+
+                @if (saveError()) {
+                <p class="text-sm text-red-600">{{ saveError() }}</p>
+                }
+              </div>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-field">
                   <label class="form-label required">{{ 'employees.profile.salary.baseSalary' | translate }}</label>

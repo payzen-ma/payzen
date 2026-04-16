@@ -121,8 +121,19 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── JWT Authentication ─────────────────────────────────────────────────────────
-var jwtKey = builder.Configuration["JwtSettings:Key"]
-    ?? throw new InvalidOperationException("JWT Key not found in configuration");
+var jwtKey = builder.Configuration["JwtSettings:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException(
+        "JwtSettings:Key est vide. Configurez une clé JWT (>= 32 caractères) dans appsettings ou via variable d'environnement.");
+}
+
+if (jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "JwtSettings:Key est trop courte. Utilisez une clé JWT d'au moins 32 caractères.");
+}
+
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services

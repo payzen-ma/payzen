@@ -1,171 +1,63 @@
-<div class="p-4 sm:p-6">
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- Enhanced Header with Icon -->
-    <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-      <div class="flex items-start gap-4">
-        <!-- Icon Badge -->
-        <div class="shrink-0 size-12 rounded-xl bg-linear-to-br from-green-500 to-green-600 flex items-center justify-center shadow-sm">
-          <i class="pi pi-file-edit text-white text-xl"></i>
-        </div>
-        
-        <!-- Title & Description -->
-        <div>
-          <h1 class="text-2xl font-semibold text-gray-900 leading-tight">
-            {{ 'company.contractTypes.title' | translate }}
-          </h1>
-          <p class="text-sm text-gray-500 mt-1">
-            {{ 'company.contractTypes.subtitle' | translate }}
-          </p>
-          
-          <!-- Stats Badge -->
-          @if (contractTypes().length > 0) {
-            <div class="flex items-center gap-2 mt-3">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                <i class="pi pi-chart-bar text-[10px]"></i>
-                {{ 'company.contractTypes.stats.count' | translate:{ count: contractTypes().length } }}
-              </span>
-            </div>
-          }
-        </div>
+<div class="entity-tab">
+  <header class="entity-tab-header">
+    <div>
+      <div class="entity-tab-title-row">
+        <h1 class="entity-tab-title">{{ 'company.contractTypes.title' | translate }}</h1>
+        <span class="entity-tab-count-badge">{{ displayedContractTypes().length }} contract type(s)</span>
       </div>
-      
-      <!-- Action Button -->
-      <!-- <p-button 
-        icon="pi pi-plus" 
-        [label]="'company.contractTypes.add' | translate"
-        size="small"
-        (onClick)="openCreateDialog()">
-      </p-button> On desactive ajout d'une nouovelle entré pour les clients-->
-    </header>
+      <p class="entity-tab-subtitle">{{ 'company.contractTypes.subtitle' | translate }}</p>
+    </div>
+  </header>
 
-    <!-- Main Content Card -->
-    <section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" aria-labelledby="contract-types-heading">
-      <h2 id="contract-types-heading" class="sr-only">{{ 'company.contractTypes.title' | translate }}</h2>
-      
-      <!-- Card Header -->
-      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 class="text-sm font-semibold text-gray-900">
-              {{ 'company.contractTypes.table.name' | translate }}
-            </h3>
-            <p class="text-xs text-gray-500 mt-0.5">
-              {{ 'company.contractTypes.table.description' | translate }}
-            </p>
-          </div>
-          
-          @if (contractTypes().length > 5) {
-            <div class="relative max-w-xs w-full sm:w-64">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <i class="pi pi-search text-sm"></i>
-              </span>
-              <input 
-                type="text"
-                [placeholder]="'company.contractTypes.searchPlaceholder' | translate"
-                class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
-            </div>
-          }
-        </div>
+  <section class="entity-tab-card" aria-labelledby="contract-types-heading">
+    <h2 id="contract-types-heading" class="sr-only">{{ 'company.contractTypes.title' | translate }}</h2>
+    <div class="entity-tab-card-header">
+      <div>
+        <h3 class="entity-tab-card-title">{{ 'company.contractTypes.table.name' | translate }}</h3>
+        <p class="entity-tab-card-description">{{ 'company.contractTypes.table.description' | translate }}</p>
       </div>
-      
-      <!-- List Content -->
-      @if (loading()) {
-        <div class="p-8 flex items-center justify-center">
-          <div class="flex flex-col items-center gap-3 text-gray-400">
-            <i class="pi pi-spin pi-spinner text-3xl"></i>
-            <span class="text-sm">{{ 'common.loading' | translate }}</span>
-          </div>
-        </div>
-      } @else if (contractTypes().length === 0) {
-        <div class="p-12">
-          <div class="max-w-sm mx-auto text-center">
-            <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-gray-100 mb-4">
-              <i class="pi pi-file-edit text-3xl text-gray-400"></i>
-            </div>
-            <h3 class="text-base font-semibold text-gray-900 mb-1">
-              {{ 'company.contractTypes.empty.title' | translate }}
-            </h3>
-            <p class="text-sm text-gray-500 mb-6">
-              {{ 'company.contractTypes.empty.description' | translate }}
-            </p>
-            <!-- <p-button 
-              icon="pi pi-plus" 
-              [label]="'company.contractTypes.add' | translate"
-              size="small"
-              (onClick)="openCreateDialog()">
-            </p-button> -->
+      <div class="entity-tab-search-wrap">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          [value]="searchTerm()"
+          (input)="onSearchList($any($event.target).value)"
+          [placeholder]="'company.contractTypes.searchPlaceholder' | translate"
+          class="entity-tab-search-input" />
+      </div>
+    </div>
 
-          </div>
-        </div>
-      } @else {
-        <div class="divide-y divide-gray-100">
-          @for (contractType of contractTypes(); track contractType.id) {
-            <div class="group px-6 py-4 hover:bg-gray-50/80 transition-colors">
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4 flex-1 min-w-0">
-                  <div class="shrink-0 size-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                    <i class="pi pi-file-edit text-green-600 text-sm"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <h4 class="font-medium text-gray-900 truncate">
-                        {{ contractType.contractTypeName }}
-                      </h4>
-                      @if (!contractType.companyId) {
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                          <i class="pi pi-lock text-[10px]"></i>
-                          {{ 'common.system' | translate }}
-                        </span>
-                      }
-                    </div>
-                    <p class="text-xs text-gray-500 mt-0.5">
-                      {{ 'company.contractTypes.itemMeta' | translate }} • {{ (contractType.companyId ? 'company.contractTypes.custom' : 'company.contractTypes.system') | translate }}
-                    </p>
-                  </div>
-                </div>
-                
-                @if (contractType.companyId) {
-                  <!-- <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      (click)="openEditDialog(contractType)"
-                      class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all"
-                      [attr.aria-label]="'common.edit' | translate">
-                      <i class="pi pi-pencil text-sm"></i>
-                    </button>
-                    <button
-                      type="button"
-                      (click)="confirmDelete(contractType)"
-                      class="inline-flex items-center justify-center size-8 rounded-lg text-gray-600 hover:bg-white hover:text-red-600 hover:shadow-sm transition-all"
-                      [attr.aria-label]="'common.delete' | translate">
-                      <i class="pi pi-trash text-sm"></i>
-                    </button>
-                  </div> On interdit la mise a jour ou suppression des type de contrat pour les client-->
-                } @else {
-                  <div class="text-gray-400 text-sm px-3">
-                    <i class="pi pi-lock text-xs"></i>
-                  </div>
-                }
+    @if (loading()) {
+      <div class="entity-tab-loading"><i class="pi pi-spin pi-spinner"></i><span>{{ 'common.loading' | translate }}</span></div>
+    } @else if (displayedContractTypes().length === 0) {
+      <div class="entity-tab-empty">
+        <i class="pi pi-file-edit"></i>
+        <h3>{{ 'company.contractTypes.empty.title' | translate }}</h3>
+        <p>{{ 'company.contractTypes.empty.description' | translate }}</p>
+      </div>
+    } @else {
+      <div class="entity-tab-list">
+        @for (contractType of displayedContractTypes(); track contractType.id) {
+          <div class="entity-tab-row">
+            <div class="entity-tab-row-main">
+              <div class="entity-tab-row-icon"><i class="pi pi-file-edit"></i></div>
+              <div>
+                <p class="entity-tab-row-title">{{ contractType.contractTypeName }}</p>
+                <p class="entity-tab-row-subtitle">
+                  {{ 'company.contractTypes.itemMeta' | translate }} - {{ (contractType.companyId ? 'company.contractTypes.custom' : 'company.contractTypes.system') | translate }}
+                </p>
               </div>
             </div>
-          }
-        </div>
-        
-        <div class="px-6 py-3 bg-gray-50/50 border-t border-gray-100">
-          <div class="flex items-center justify-between text-xs text-gray-500">
-            <span>
-              {{ 'company.contractTypes.footer.showing' | translate:{ count: contractTypes().length } }}
-            </span>
-            <span class="flex items-center gap-1">
-              <i class="pi pi-info-circle text-blue-500"></i>
-              {{ 'company.contractTypes.footer.lastUpdated' | translate }}: {{ 'common.now' | translate }}
-            </span>
+            <span class="entity-tab-row-lock"><i class="pi pi-lock"></i></span>
           </div>
-        </div>
-      }
-    </section>
-  </div>
+        }
+      </div>
+      <div class="entity-tab-footer">
+        <span>Showing {{ displayedContractTypes().length }} contract type(s)</span>
+        <span class="entity-tab-footer-right"><i class="pi pi-info-circle"></i> Last updated: {{ 'common.now' | translate }}</span>
+      </div>
+    }
+  </section>
 </div>
 
 <p-dialog 

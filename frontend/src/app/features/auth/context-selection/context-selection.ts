@@ -96,15 +96,27 @@ export class ContextSelectionPage implements OnInit {
    * Get role display label
    */
   getRoleLabel(role: string): string {
+    const user = this.currentUser();
+    const userRoles = Array.isArray(user?.roles)
+      ? user.roles.map(r => String(r).toLowerCase())
+      : [];
+    const normalizedRole = role.toLowerCase();
+
+    // Si l'utilisateur possède aussi le rôle RH, on priorise l'affichage RH
+    // (sauf en contexte cabinet qui doit rester Expert comptable).
+    if (normalizedRole === 'admin' && userRoles.includes(UserRole.RH)) {
+      return 'Ressource humain';
+    }
+
     const roleLabels: Record<string, string> = {
       admin: 'Administrator',
-      rh: 'HR Manager',
+      rh: 'Ressource humain',
       manager: 'Manager',
       employee: 'Employee',
       cabinet: 'Cabinet Expert',
       admin_payzen: 'PayZen Admin'
     };
-    return roleLabels[role.toLowerCase()] || role;
+    return roleLabels[normalizedRole] || role;
   }
 
   /**

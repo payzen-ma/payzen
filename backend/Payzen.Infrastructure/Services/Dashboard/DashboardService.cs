@@ -211,6 +211,7 @@ public class DashboardService : IDashboardService
             .Include(e => e.Departement)
             .Include(e => e.Status)
             .Include(e => e.Gender)
+            .Where(e => e.DeletedAt == null)
             .AsQueryable();
 
         if (companyId.HasValue)

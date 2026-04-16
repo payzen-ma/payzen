@@ -356,7 +356,9 @@ export class HrAbsencesComponent implements OnInit {
     // Load all employees
     this.employeeService.getEmployees().subscribe({
       next: (response) => {
-        const employees = response.employees || [];
+        const employees = (response.employees || []).filter(
+          e => e.status === 'active' || e.status === 'on_leave'
+        );
         this.allEmployeesList.set(employees);
 
         // For each employee, get their absence stats

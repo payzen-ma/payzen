@@ -1,206 +1,108 @@
-<div class="min-h-screen bg-gray-50">
+<div class="policy-page">
   <p-toast />
 
-  <!-- Page Header -->
-  <div class="max-w-7xl mx-auto px-6 pt-4">
-    <div class="flex items-center gap-4 mb-6">
-      <button
-        pButton
-        type="button"
-        icon="pi pi-arrow-left"
-        class="p-button-text p-button-rounded"
-        (click)="goBack()"
-      ></button>
-      <div>
-        <h1 class="heading">{{ pageTitle() }}</h1>
-        @if (leaveType()) {
-          <p class="subheading mt-1">
-            <span class="font-mono text-xs text-(--primary) bg-(--primary)/10 px-2 py-0.5 rounded mr-2">
-              {{ leaveType()!.LeaveCode }}
-            </span>
-            {{ getLeaveTypeName() }}
-          </p>
-        }
-      </div>
+  @if (isLoading()) {
+    <div class="policy-loading">
+      <i class="pi pi-spin pi-spinner text-3xl"></i>
+      <p>{{ 'common.loading' | translate }}</p>
     </div>
-  </div>
-
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-6 pb-6">
-    @if (isLoading()) {
-      <div class="card flex items-center justify-center py-12">
-        <div class="flex flex-col items-center gap-3">
-          <i class="pi pi-spin pi-spinner text-primary text-4xl"></i>
-          <p class="text-gray-500 font-medium">{{ 'common.loading' | translate }}</p>
-        </div>
+  } @else {
+    <div class="policy-dialog">
+      <div class="policy-dialog-header">
+        <h2>Add Policy</h2>
+        <button type="button" class="policy-close-btn" (click)="goBack()" [attr.aria-label]="'common.close' | translate">
+          <i class="pi pi-times"></i>
+        </button>
       </div>
-    } @else {
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <!-- Status -->
-        <div class="card mb-6">
-          <div class="flex items-center gap-3 p-2">
-            <p-checkbox
-              formControlName="isEnabled"
-              [binary]="true"
-              inputId="isEnabled"
-            ></p-checkbox>
-            <label for="isEnabled" class="cursor-pointer">
-              <span class="font-medium text-(--text-primary)">{{ 'leave.policy.form.enabled' | translate }}</span>
-              <p class="text-sm text-gray-500">{{ 'leave.policy.form.enabledDesc' | translate }}</p>
-            </label>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="policy-dialog-body">
+        <div class="policy-field">
+          <label>Type</label>
+          <p-select
+            [options]="leaveType() ? [{ label: getLeaveTypeName(), value: leaveType()!.Id }] : []"
+            [placeholder]="'Select a leave type'"
+            optionLabel="label"
+            optionValue="value"
+            [disabled]="true"
+            styleClass="w-full policy-select"
+          />
+        </div>
+
+        <div class="policy-field">
+          <label>Accrual method</label>
+          <p-select formControlName="accrualMethod" [options]="accrualMethodOptions" optionLabel="label" optionValue="value"
+            styleClass="w-full policy-select" />
+        </div>
+
+        <div class="policy-grid-2">
+          <div class="policy-field">
+            <label>Days per month (Adult)</label>
+            <input pInputText type="number" formControlName="daysPerMonth" class="policy-input"
+              placeholder="Enter how many days for an adult" />
+          </div>
+          <div class="policy-field">
+            <label>Days per month (Minor)</label>
+            <input pInputText type="number" formControlName="daysPerMonthMinor" class="policy-input"
+              placeholder="Enter how many days for a minor" />
           </div>
         </div>
 
-        <!-- Accrual Configuration -->
-        <div class="card mb-6">
-          <div class="mb-6">
-            <h2 class="text-lg font-semibold text-(--text-primary)">
-              {{ 'leave.policy.form.accrualSection' | translate }}
-            </h2>
-            <p class="text-sm text-gray-500">
-              {{ 'leave.policy.form.accrualSectionDesc' | translate }}
-            </p>
+        <div class="policy-grid-2">
+          <div class="policy-field">
+            <label>Bonus days after 5 years</label>
+            <input pInputText type="number" formControlName="daysPerService5Years" class="policy-input" placeholder="Enter the bonus" />
           </div>
-
-          <div class="grid gap-5 md:grid-cols-2">
-            <!-- Accrual Method -->
-            <app-select-field
-              formControlName="accrualMethod"
-              [label]="'leave.policy.form.accrualMethod' | translate"
-              [options]="accrualMethodOptions"
-              optionLabel="label"
-              optionValue="value"
-              [requiredMark]="true"
-            ></app-select-field>
-
-            <!-- Days per Month -->
-            <app-input-field
-              formControlName="daysPerMonth"
-              [label]="'leave.policy.form.daysPerMonth' | translate"
-              [placeholder]="'1.5'"
-              type="number"
-              [requiredMark]="true"
-            ></app-input-field>
-
-            <!-- Days per 5 years of service -->
-            <app-input-field
-              formControlName="daysPerService5Years"
-              [label]="'leave.policy.form.daysPerService' | translate"
-              [placeholder]="'1.5'"
-              type="number"
-              [requiredMark]="true"
-              [hint]="'leave.policy.form.daysPerServiceHint' | translate"
-            ></app-input-field>
-
-            <!-- Annual Cap -->
-            <app-input-field
-              formControlName="annualCapDays"
-              [label]="'leave.policy.form.annualCap' | translate"
-              [placeholder]="'30'"
-              type="number"
-              [requiredMark]="true"
-            ></app-input-field>
+          <div class="policy-field">
+            <label>Annual cap (days)</label>
+            <input pInputText type="number" formControlName="annualCapDays" class="policy-input" placeholder="Enter the annual cap" />
           </div>
         </div>
 
-        <!-- Carryover & Rules -->
-        <div class="card mb-6">
-          <div class="mb-6">
-            <h2 class="text-lg font-semibold text-(--text-primary)">
-              {{ 'leave.policy.form.rulesSection' | translate }}
-            </h2>
-            <p class="text-sm text-gray-500">
-              {{ 'leave.policy.form.rulesSectionDesc' | translate }}
-            </p>
+        <div class="policy-field">
+          <label>Minimum consecutive days</label>
+          <input pInputText type="number" formControlName="minConsecutiveDays" class="policy-input"
+            placeholder="Enter the minimum consecutive days" />
+        </div>
+
+        <div class="policy-checkboxes">
+          <div class="policy-checkbox-item">
+            <p-checkbox formControlName="requiresEligibility6Months" [binary]="true" inputId="requiresEligibility6Months" />
+            <label for="requiresEligibility6Months">Requires 6 months seniority</label>
           </div>
-
-          <div class="space-y-4">
-            <!-- Requires Balance -->
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <p-checkbox
-                formControlName="requiresBalance"
-                [binary]="true"
-                inputId="requiresBalance"
-              ></p-checkbox>
-              <label for="requiresBalance" class="cursor-pointer flex-1">
-                <span class="font-medium text-(--text-primary)">{{ 'leave.policies.form.requiresBalance' | translate }}</span>
-                <p class="text-sm text-gray-500">{{ 'leave.policies.form.requiresBalanceDesc' | translate }}</p>
-              </label>
-            </div>
-
-            <!-- Allow Carryover -->
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <p-checkbox
-                formControlName="allowCarryover"
-                [binary]="true"
-                inputId="allowCarryover"
-              ></p-checkbox>
-              <label for="allowCarryover" class="cursor-pointer flex-1">
-                <span class="font-medium text-(--text-primary)">{{ 'leave.policy.form.allowCarryover' | translate }}</span>
-                <p class="text-sm text-gray-500">{{ 'leave.policy.form.allowCarryoverDesc' | translate }}</p>
-              </label>
-            </div>
-
-            <!-- Max Carryover Years (conditional) -->
-            @if (form.get('allowCarryover')?.value) {
-              <div class="ml-8">
-                <app-input-field
-                  formControlName="maxCarryoverYears"
-                  [label]="'leave.policy.form.maxCarryoverYears' | translate"
-                  [placeholder]="'2'"
-                  type="number"
-                ></app-input-field>
-              </div>
-            }
-
-            <!-- Min Consecutive Days -->
-            <div class="pt-4">
-              <app-input-field
-                formControlName="minConsecutiveDays"
-                [label]="'leave.policy.form.minConsecutive' | translate"
-                [placeholder]="'12'"
-                type="number"
-                [requiredMark]="true"
-                [hint]="'leave.policy.form.minConsecutiveHint' | translate"
-              ></app-input-field>
-            </div>
-
-            <!-- Use Working Calendar -->
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <p-checkbox
-                formControlName="useWorkingCalendar"
-                [binary]="true"
-                inputId="useWorkingCalendar"
-              ></p-checkbox>
-              <label for="useWorkingCalendar" class="cursor-pointer">
-                <span class="font-medium text-(--text-primary)">{{ 'leave.policy.form.useWorkingCalendar' | translate }}</span>
-                <p class="text-sm text-gray-500">{{ 'leave.policy.form.useWorkingCalendarDesc' | translate }}</p>
-              </label>
-            </div>
+          <div class="policy-checkbox-item">
+            <p-checkbox formControlName="requiresBalance" [binary]="true" inputId="requiresBalance" />
+            <label for="requiresBalance">Requires balance</label>
+          </div>
+          <div class="policy-checkbox-item">
+            <p-checkbox formControlName="useWorkingCalendar" [binary]="true" inputId="useWorkingCalendar" />
+            <label for="useWorkingCalendar">Use working calendar</label>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-3">
-          <button
-            pButton
-            type="button"
-            [label]="'common.cancel' | translate"
-            class="btn btn-secondary"
-            (click)="goBack()"
-            [disabled]="isSaving()"
-          ></button>
-          <button
-            pButton
-            type="submit"
-            [label]="(isEditMode() || policy()) ? ('common.save' | translate) : ('common.create' | translate)"
-            class="btn btn-primary"
-            icon="pi pi-check"
-            [loading]="isSaving()"
-            [disabled]="isSaving()"
-          ></button>
+        <div class="policy-carryover-box">
+          <div class="policy-checkbox-item">
+            <p-checkbox formControlName="allowCarryover" [binary]="true" inputId="allowCarryover" />
+            <label for="allowCarryover">Allow leave carryover</label>
+          </div>
+          @if (form.get('allowCarryover')?.value) {
+            <div class="policy-field">
+              <label>Maximum carryover years</label>
+              <input pInputText type="number" formControlName="maxCarryoverYears" class="policy-input" />
+            </div>
+          }
+        </div>
+
+        <div class="policy-toggle-row">
+          <p-toggleswitch formControlName="isEnabled" inputId="isEnabled"></p-toggleswitch>
+          <label for="isEnabled">Policy enabled</label>
         </div>
       </form>
-    }
-  </div>
+
+      <div class="policy-dialog-footer">
+        <button pButton type="button" label="Cancel" class="policy-footer-cancel" (click)="goBack()" [disabled]="isSaving()"></button>
+        <button pButton type="button" [label]="(isEditMode() || policy()) ? 'Save' : 'Create'" class="policy-footer-primary"
+          icon="pi pi-plus" (click)="onSubmit()" [loading]="isSaving()" [disabled]="isSaving()"></button>
+      </div>
+    </div>
+  }
 </div>

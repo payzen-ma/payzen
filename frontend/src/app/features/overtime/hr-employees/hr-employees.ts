@@ -68,7 +68,11 @@ export class HrEmployeesComponent implements OnInit {
     this.isLoading.set(true);
     this.employeeService.getEmployees().subscribe({
       next: (resp) => {
-        this.employees.set(resp.employees || []);
+        this.employees.set(
+          (resp.employees || []).filter(
+            (e: any) => e.status === 'active' || e.status === 'on_leave'
+          )
+        );
         this.isLoading.set(false);
       },
       error: (err) => {

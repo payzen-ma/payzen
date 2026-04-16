@@ -138,6 +138,7 @@
       "ni": "Non imposable"
     },
     "labels": {
+      "salaireNet": "Salaire net",
       "salaireBrut": "Salaire brut",
       "totalIndemnites": "Indemnités",
       "brutImposable": "Brut imposable",
@@ -1211,7 +1212,7 @@
       "descriptionHint": "Description optionnelle pour cette catégorie",
       "examples": "Exemples courants",
       "examplesList": {
-        "Manager": "Manager",
+        "Manager": "Responsable",
         "Executive": "Cadre",
         "Technician": "Technicien",
         "Supervisor": "Superviseur",
@@ -1610,7 +1611,7 @@
         "manager": "Manager direct",
         "managerPlaceholder": "Affecter un manager (optionnel)",
         "startDate": "Date d'entrée",
-        "salary": "Salaire brut",
+        "salary": "Salaire de base",
         "salaryHourly": "Salaire horaire",
         "salaryHourlyHint": "Utiliser pour les entreprises utilisant un taux horaire au lieu d'un salaire mensuel",
         "salaryEffectiveDate": "Date d'effet du salaire",

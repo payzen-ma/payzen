@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@environments/environment';
 import { catchError, map, of } from 'rxjs';
@@ -36,9 +36,10 @@ export class DashboardHrHttpRepository implements DashboardHrRepository {
 
   private fetchFromApi(query: DashboardHrQuery) {
     const params = this.buildParams(query);
+    const headers = this.buildHeaders(query);
 
     return this.http
-      .get<DashboardHrApiDto>(`${this.apiUrl}/dashboard/hr`, { params })
+      .get<DashboardHrApiDto>(`${this.apiUrl}/dashboard/hr`, { params, headers })
       .pipe(
         map(response => mapDashboardHrApiToPayload(response))
       );
@@ -46,22 +47,33 @@ export class DashboardHrHttpRepository implements DashboardHrRepository {
 
   getDashboardRawData(query: DashboardHrQuery) {
     const params = this.buildParams(query);
+    const headers = this.buildHeaders(query);
     return this.http
-      .get<unknown>(`${this.apiUrl}/dashboard/hr/raw`, { params })
+      .get<unknown>(`${this.apiUrl}/dashboard/hr/raw`, { params, headers })
       .pipe(map(response => normalizeRawApi(response)));
   }
 
   private buildParams(query: DashboardHrQuery): HttpParams {
     let params = new HttpParams();
 
-    if (query.companyId) {
-      params = params.set('companyId', query.companyId);
-    }
-
+    // Note: companyId is NOT sent as a query param — the backend reads it exclusively
+    // from the X-Company-Id header (see ReadCompanyIdHeader() in DashboardControllers.cs).
     if (query.month) {
       params = params.set('month', query.month);
     }
 
+    // Cache buster: prevents browser/CDN from serving stale responses after a context switch.
+    params = params.set('_ts', Date.now().toString());
+
     return params;
+  }
+
+  private buildHeaders(query: DashboardHrQuery): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (query.companyId) {
+      headers = headers.set('X-Company-Id', String(query.companyId));
+    }
+    headers = headers.set('X-Role-Context', query.isExpertMode ? 'expert' : 'standard');
+    return headers;
   }
 }

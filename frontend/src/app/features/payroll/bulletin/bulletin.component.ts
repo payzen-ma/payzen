@@ -174,11 +174,14 @@ export class BulletinComponent implements OnInit {
 
     this.employeeService.getEmployees({ companyId: companyId }).subscribe({
       next: (response) => {
-        this.employees.set(response.employees || []);
+        const eligible = (response.employees || []).filter(
+          e => e.status === 'active' || e.status === 'on_leave'
+        );
+        this.employees.set(eligible);
 
         const options = [
           { label: this.translate.instant('payrollBulletin.allEmployees'), value: null },
-          ...(response.employees || []).map(emp => ({
+          ...eligible.map(emp => ({
             label: `${emp.firstName} ${emp.lastName}`,
             value: parseInt(emp.id)
           }))

@@ -80,6 +80,7 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
   readonly showCustomDialog = signal(false);
+  readonly showPublishConfirmDialog = signal(false);
 
   readonly customName = signal('');
   readonly customAmount = signal<number>(0);
@@ -87,6 +88,8 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
   readonly customIsTaxable = signal(true);
 
   readonly validationErrors = signal<Record<string, string>>({});
+  readonly successMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly routePrefix = computed(() => this.companyContextService.isExpertMode() ? '/expert' : '/app');
 
@@ -124,7 +127,7 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
     return Math.round(this.estimatedCimrSalary() * 1.3 * 100) / 100;
   });
 
-  readonly canSaveDraft = computed(() => this.packageName().trim().length >= 3 && this.baseSalary() > 0);
+  readonly canSaveDraft = computed(() => this.packageName().trim().length >= 3 && this.baseSalary() > 0 && this.selectedCategory() !== null);
   readonly canPublish = computed(() => this.canSaveDraft() && this.selectedCategory() !== null && this.components().length >= 1);
   readonly hasUnsavedChanges = signal(false);
 
@@ -383,6 +386,7 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
 
     if (this.packageNameError()) errors['packageName'] = this.packageNameError();
     if (this.baseSalaryError()) errors['baseSalary'] = this.baseSalaryError();
+    if (this.categoryError()) errors['category'] = this.categoryError();
 
     this.validationErrors.set(errors);
     return Object.keys(errors).length === 0;
@@ -403,19 +407,28 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
   showValidationErrors(): void {
     const messages = Object.values(this.validationErrors());
     if (messages.length > 0) {
-      alert(this.t('salaryPackages.errors.validationTitle') + ':\n\n' + messages.join('\n'));
+      this.showError(`${this.t('salaryPackages.errors.validationTitle')} : ${messages.join(' | ')}`);
     }
   }
 
   showSuccess(message: string): void {
-    alert(message);
+    this.errorMessage.set(null);
+    this.successMessage.set(message);
   }
 
   showError(message: string): void {
-    alert(message);
+    this.successMessage.set(null);
+    this.errorMessage.set(message);
+  }
+
+  dismissMessages(): void {
+    this.successMessage.set(null);
+    this.errorMessage.set(null);
   }
 
   saveDraft(redirectToList = true): void {
+    if (this.isSaving()) return;
+
     if (!this.validateForDraft()) {
       this.showValidationErrors();
       return;
@@ -425,16 +438,22 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
   }
 
   publish(): void {
+    if (this.isSaving()) return;
+
     if (!this.validateForPublish()) {
       this.showValidationErrors();
       return;
     }
 
-    const confirmed = confirm(
-      this.t('salaryPackages.dialogs.confirm.publishReadonlyWarning')
-    );
+    this.showPublishConfirmDialog.set(true);
+  }
 
-    if (!confirmed) return;
+  cancelPublishConfirmation(): void {
+    this.showPublishConfirmDialog.set(false);
+  }
+
+  confirmPublish(): void {
+    this.showPublishConfirmDialog.set(false);
 
     if (this.hasUnsavedChanges()) {
       this.persistDraft(false, () => this.executePublish());
@@ -460,8 +479,7 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Publish failed', err);
-
-        const errorMsg = err?.error?.message || err?.message || this.t('salaryPackages.common.unknownError');
+        const errorMsg = this.extractApiErrorMessage(err);
         this.showError(this.t('salaryPackages.errors.publishFailedWithReason', { errorMsg }));
       }
     });
@@ -469,6 +487,7 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
 
   private persistDraft(redirectToList: boolean, afterSave?: () => void): void {
     this.isSaving.set(true);
+    this.dismissMessages();
 
     const request: SalaryPackageWriteRequest = this.buildSaveRequest('draft');
 
@@ -493,14 +512,14 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Save failed', err);
         this.isSaving.set(false);
-
-        const errorMsg = err?.error?.message || err?.message || this.t('salaryPackages.common.unknownError');
+        const errorMsg = this.extractApiErrorMessage(err);
         this.showError(this.t('salaryPackages.errors.saveFailedWithReason', { errorMsg }));
       }
     });
   }
 
   cancel(): void {
+    this.dismissMessages();
     if (this.hasUnsavedChanges()) {
       const confirmed = confirm(this.t('salaryPackages.dialogs.confirm.unsavedChanges'));
       if (!confirmed) return;
@@ -546,6 +565,24 @@ export class SalaryPackageCreateComponent implements OnInit, OnDestroy {
   private t(key: string, params?: Record<string, unknown>): string {
     const translated = this.translate.instant(key, params);
     return typeof translated === 'string' ? translated : key;
+  }
+
+  private extractApiErrorMessage(err: any): string {
+    const payload = err?.error;
+
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+
+    const firstValidationError = payload?.errors && typeof payload.errors === 'object'
+      ? Object.values(payload.errors).flat().find((v) => typeof v === 'string')
+      : null;
+
+    return payload?.Message
+      || payload?.message
+      || firstValidationError
+      || err?.message
+      || this.t('salaryPackages.common.unknownError');
   }
 
   private localizeStaticOptions(): void {

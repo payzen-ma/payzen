@@ -7,6 +7,7 @@ import { CanComponentDeactivate } from '@app/core/guards/unsaved-changes.guard';
 import { ContractType } from '@app/core/models/contract-type.model';
 import { Child, Employee as EmployeeProfileModel, Spouse } from '@app/core/models/employee.model';
 import { JobPosition } from '@app/core/models/job-position.model';
+import { SalaryPackage } from '@app/core/models/salary-package.model';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { ContractTypeService } from '@app/core/services/contract-type.service';
 import { DraftService } from '@app/core/services/draft.service';
@@ -19,6 +20,7 @@ import {
 } from '@app/core/services/employee.service';
 import { FamilyService } from '@app/core/services/family.service';
 import { JobPositionService } from '@app/core/services/job-position.service';
+import { SalaryPackageService } from '@app/core/services/salary-package.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { ChangeSet, ChangeTracker } from '@app/core/utils/change-tracker.util';
 import { ChangeConfirmationDialog } from '@app/shared/components/change-confirmation-dialog/change-confirmation-dialog';
@@ -100,6 +102,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   private contractTypeService = inject(ContractTypeService);
   private employeeCategoryService = inject(EmployeeCategoryService);
   private familyService = inject(FamilyService);
+  private salaryPackageService = inject(SalaryPackageService);
   private destroyRef = inject(DestroyRef);
   private contextService = inject(CompanyContextService);
   private toastService = inject(ToastService);
@@ -179,6 +182,11 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   }
   readonly saveSuccess = signal<string | null>(null);
   readonly ariaMessage = signal('');
+  readonly availableSalaryPackages = signal<SalaryPackage[]>([]);
+  readonly isLoadingSalaryPackages = signal(false);
+  readonly isAssigningSalaryPackage = signal(false);
+  readonly assignmentPackageId = signal<number | null>(null);
+  readonly assignmentEffectiveDate = signal<string>(new Date().toISOString().split('T')[0]);
 
   readonly employee = signal<EmployeeProfileModel>(this.createEmptyEmployee());
 
@@ -544,6 +552,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       .subscribe(() => {
         this.formData.set(this.emptyFormData);
         this.loadFormData();
+        this.loadAssignableSalaryPackages();
       });
 
     // Refresh localized lookup labels (genders, statuses, etc.) when language changes
@@ -555,6 +564,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       });
 
     // Also react directly to the companyId signal to ensure reload in all change paths
+    this.loadAssignableSalaryPackages();
   }
 
   private loadEmployeeDetails(id: string): void {
@@ -950,6 +960,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.manager = d.ManagerName ?? d.Manager ?? d.manager;
     out.contractType = d.ContractTypeName ?? d.ContractType ?? d.contractType;
     out.contractTypeId = d.ContractTypeId ?? d.contractTypeId ?? undefined;
+    out.contractId = d.ContractId ?? d.contractId ?? undefined;
     out.startDate = d.ContractStartDate ?? d.StartDate ?? d.startDate;
     out.endDate = d.ContractEndDate ?? d.EndDate ?? d.endDate;
     out.probationPeriod = d.ProbationPeriod ?? d.probationPeriod;
@@ -1871,6 +1882,96 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.router.navigate([`${this.routePrefix()}/salary-packages`]);
   }
 
+  async assignSalaryPackage(): Promise<void> {
+    const employeeId = Number(this.employeeId());
+    const salaryPackageId = this.assignmentPackageId();
+
+    if (!employeeId || !salaryPackageId) {
+      this.saveError.set('Veuillez sélectionner un package salarial.');
+      return;
+    }
+
+    const contractId = await this.resolveContractIdForAssignment(employeeId);
+    if (!contractId || contractId <= 0) {
+      this.saveError.set('Impossible d\'affecter le package : contrat employé introuvable.');
+      return;
+    }
+
+    this.isAssigningSalaryPackage.set(true);
+    this.saveError.set(null);
+
+    this.salaryPackageService.createAssignment({
+      salaryPackageId,
+      employeeId,
+      contractId,
+      effectiveDate: this.assignmentEffectiveDate()
+    }).subscribe({
+      next: (assignment) => {
+        this.employee.update((current) => ({ ...current, assignedPackage: assignment }));
+        this.assignmentPackageId.set(null);
+        this.saveSuccess.set('Package salarial affecté avec succès.');
+        setTimeout(() => this.saveSuccess.set(null), 2500);
+        this.isAssigningSalaryPackage.set(false);
+      },
+      error: (err) => {
+        this.saveError.set(this.extractErrorMessage(err, 'Erreur lors de l\'affectation du package salarial.'));
+        this.isAssigningSalaryPackage.set(false);
+      }
+    });
+  }
+
+  private async resolveContractIdForAssignment(employeeId: number): Promise<number | null> {
+    const directContractId = Number(this.employee().contractId ?? this.employee().assignedPackage?.contractId ?? 0);
+    if (directContractId > 0) {
+      return directContractId;
+    }
+
+    try {
+      const contracts = await firstValueFrom(this.employeeService.getEmployeeContracts(employeeId));
+      if (!contracts || contracts.length === 0) {
+        return null;
+      }
+
+      const today = new Date();
+      const parseDate = (v: any): Date | null => {
+        if (!v) return null;
+        const d = new Date(v);
+        return Number.isNaN(d.getTime()) ? null : d;
+      };
+
+      const activeContract = contracts.find((c: any) => {
+        const start = parseDate(c.ContractStartDate ?? c.contractStartDate ?? c.StartDate ?? c.startDate);
+        const end = parseDate(c.ContractEndDate ?? c.contractEndDate ?? c.EndDate ?? c.endDate);
+        if (start && start > today) return false;
+        if (end && end < today) return false;
+        return true;
+      }) ?? contracts[0];
+
+      const resolvedContractId = Number(activeContract?.Id ?? activeContract?.id ?? 0);
+      if (resolvedContractId > 0) {
+        this.employee.update((current) => ({ ...current, contractId: resolvedContractId }));
+        return resolvedContractId;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private loadAssignableSalaryPackages(): void {
+    this.isLoadingSalaryPackages.set(true);
+    this.salaryPackageService.getCompanyPackages(undefined, 'published').subscribe({
+      next: (packages) => {
+        this.availableSalaryPackages.set(packages);
+        this.isLoadingSalaryPackages.set(false);
+      },
+      error: () => {
+        this.availableSalaryPackages.set([]);
+        this.isLoadingSalaryPackages.set(false);
+      }
+    });
+  }
+
   private buildDocumentCards(items: any[]): Document[] {
     const uploadedByType = new Map<string, any>();
     for (const it of items || []) {
@@ -2405,6 +2506,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       department: '',
       manager: '',
       contractType: 'CDI',
+      contractId: undefined,
       startDate: '',
       endDate: undefined,
       probationPeriod: '',

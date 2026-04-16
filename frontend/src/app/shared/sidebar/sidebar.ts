@@ -11,9 +11,9 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
+import { IconifyComponent } from '../ui/iconify/iconify.component';
 import { SidebarGroupLabelComponent } from './sidebar-group/sidebar-group-label.component';
 import { SidebarGroupComponent } from './sidebar-group/sidebar-group.component';
-import { IconifyComponent } from '../ui/iconify/iconify.component';
 
 interface BadgeConfig {
   count: number;
@@ -112,10 +112,20 @@ export class Sidebar {
   });
 
   readonly userRoleLabel = computed(() => {
-    const role = this.currentUser()?.role;
+    const user = this.currentUser();
+    const roles = Array.isArray(user?.roles)
+      ? user.roles.map(r => String(r).toLowerCase())
+      : [];
+    const contextRole = (this.contextService.role() ?? '').toLowerCase();
+    const isExpertContext = this.contextService.isExpertMode() || contextRole === UserRole.CABINET;
+    if (isExpertContext) {
+      return 'Expert comptable';
+    }
+    const hasRhRole = roles.includes(UserRole.RH);
+    const role = hasRhRole ? UserRole.RH : user?.role;
     const roleLabels: Record<string, string> = {
       [UserRole.ADMIN]: 'user.role.admin',
-      [UserRole.RH]: 'user.role.hr',
+      [UserRole.RH]: 'Ressource humain',
       [UserRole.MANAGER]: 'user.role.manager',
       [UserRole.CEO]: 'CEO',
       [UserRole.EMPLOYEE]: 'user.role.employee',
@@ -250,6 +260,16 @@ export class Sidebar {
       modes: ['expert-all', 'standard'],
       requiresCompanyContext: false,
       groupe: 'payroll',
+    },
+    {
+      label: 'nav.salaryPackages',
+      icon: 'pi pi-briefcase',
+      routerLink: '/salary-packages',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null
     },
     {
       label: 'nav.payslips',
@@ -568,6 +588,10 @@ export class Sidebar {
     const userRole = (user?.role ?? '').toLowerCase();
     const userRoles = Array.isArray(user?.roles) ? user.roles.map(r => String(r).toLowerCase()) : [];
     const effectiveRoles = [contextRole, userRole, ...userRoles].filter(Boolean);
+    const isAdminOnly =
+      effectiveRoles.includes(UserRole.ADMIN) &&
+      !effectiveRoles.includes(UserRole.RH) &&
+      !effectiveRoles.includes(UserRole.ADMIN_PAYZEN);
 
     // Determine current mode
     let currentMode: 'expert' | 'standard' | 'expert-client' | 'expert-all' = 'standard';
@@ -584,16 +608,16 @@ export class Sidebar {
           return false;
         }
 
-        // En expert mode, on masque uniquement les écrans RH "globaux"
-        // (ex: gestion congés RH + absences équipe), mais on garde les pages
-        // personnelles "Mon espace" (ex: `/absences`, `/my-leave-requests`).
-        if (isExpert) {
-          const routerLink = item.routerLink ?? '';
-          const isHrLeave = routerLink.includes('/hr-leave-management');
-          const isHrAbsencesTeam = routerLink.includes('/absences/hr');
-          if (isHrLeave || isHrAbsencesTeam) {
-            return false;
-          }
+        // Hide 'my-space' when in expert 'cabinet' context (expert-comptable)
+        // The business requirement: in the accountant/context view, the personal
+        // "Mon espace" group should not be shown in the sidebar.
+        if (contextRole === 'cabinet' && item.groupe === 'my-space') {
+          return false;
+        }
+
+        // Admin seul = gestionnaire du compte : pas d'accès collaborateur/paie.
+        if (isAdminOnly && (item.groupe === 'employees' || item.groupe === 'payroll')) {
+          return false;
         }
 
         // 1. Check Mode

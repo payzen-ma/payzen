@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,6 +39,7 @@ interface ActionConfig {
 })
 export class SalaryPackagesPage implements OnInit {
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly salaryPackageService = inject(SalaryPackageService);
   private readonly contextService = inject(CompanyContextService);
   private readonly translate = inject(TranslateService);
@@ -255,6 +256,10 @@ export class SalaryPackagesPage implements OnInit {
   editPackage(pkg: SalaryPackage, event?: Event): void {
     event?.stopPropagation();
     this.router.navigate([`${this.routePrefix()}/salary-packages`, pkg.id, 'edit']);
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   getAvailableActions(pkg: SalaryPackage): ActionConfig[] {

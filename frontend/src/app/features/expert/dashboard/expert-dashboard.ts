@@ -9,13 +9,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
+import { ChartModule } from 'primeng/chart';
 import { CompanyService } from '@app/core/services/company.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { DashboardService } from '@app/core/services/dashboard.service';
+import { EmployeeService } from '@app/core/services/employee.service';
 import { Company } from '@app/core/models/company.model';
-import { AuditLogComponent } from '../../../shared/components/audit-log/audit-log.component';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Subject, takeUntil, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 import { DialogModule } from 'primeng/dialog';
 import { ClientFormComponent } from '../components/client-form/client-form.component';
@@ -34,7 +35,7 @@ import { ClientFormComponent } from '../components/client-form/client-form.compo
     IconFieldModule,
     InputIconModule,
     TooltipModule,
-    AuditLogComponent,
+    ChartModule,
     DialogModule,
     ClientFormComponent
   ],
@@ -45,7 +46,10 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   private companyService = inject(CompanyService);
   private contextService = inject(CompanyContextService);
   private dashboardService = inject(DashboardService);
+  private employeeService = inject(EmployeeService);
   private destroy$ = new Subject<void>();
+  private readonly eligibleEmployeeStatuses = new Set(['active', 'on_leave']);
+  private employeesCountRequestId = 0;
 
   // Signals
   readonly companies = signal<Company[]>([]);
@@ -54,6 +58,8 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   readonly pendingLeaves = signal<number>(0);
   readonly totalClients = signal<number>(0);
   readonly globalEmployeeCount = signal<number>(0);
+  readonly employeesByCompany = signal<Record<string, number>>({});
+  readonly employeesScopeLabel = signal<string>('Actifs + en conge');
 
   // Dialog state
   readonly isClientFormVisible = signal<boolean>(false);
@@ -69,6 +75,82 @@ export class ExpertDashboard implements OnInit, OnDestroy {
   readonly totalEmployees = computed(() =>
     this.companies().reduce((acc, curr) => acc + (curr.employeeCount || 0), 0)
   );
+  readonly employeeKpiCount = computed(() => this.globalEmployeeCount());
+  readonly employeesByClientChartData = computed(() => {
+    const companies = this.companies();
+    const byCompany = this.employeesByCompany();
+    const labels = companies.map(c => c.legalName);
+    const values = companies.map(c => byCompany[c.id] ?? 0);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Employes actifs + en conge',
+          data: values,
+          backgroundColor: '#3b82f6',
+          borderRadius: 6,
+          maxBarThickness: 42
+        }
+      ]
+    };
+  });
+  readonly employeesByClientChartOptions = computed(() => ({
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0
+        }
+      }
+    }
+  }));
+  readonly clientsByCityChartData = computed(() => {
+    const companies = this.companies();
+    const cityCount = companies.reduce((acc, company) => {
+      const city = (company.city || 'Non renseignee').trim();
+      acc[city] = (acc[city] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const labels = Object.keys(cityCount);
+    const data = labels.map(label => cityCount[label]);
+
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#7c3aed', '#ef4444', '#0ea5e9', '#14b8a6']
+        }
+      ]
+    };
+  });
+  readonly clientsByCityChartOptions = computed(() => ({
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }));
+  readonly activeClientsCount = computed(() => this.companies().filter(c => c.isActive).length);
+  readonly avgEmployeesPerClient = computed(() => {
+    const clients = this.totalClients() || this.companies().length;
+    const employees = this.employeeKpiCount();
+    return clients > 0 ? Math.round((employees / clients) * 10) / 10 : 0;
+  });
+  readonly clientCoverageRate = computed(() => {
+    const total = this.totalClients() || this.companies().length;
+    const active = this.activeClientsCount();
+    return total > 0 ? Math.round((active / total) * 100) : 0;
+  });
 
   ngOnInit(): void {
     this.loadPortfolioDashboard();
@@ -98,6 +180,7 @@ export class ExpertDashboard implements OnInit, OnDestroy {
     this.companyService.getManagedCompanies().subscribe({
       next: (companies) => {
         this.companies.set(companies);
+        this.loadEligibleEmployeeCount(companies);
 
         // Try to fetch per-company employee counts if backend didn't provide them
         const missingCounts = companies.filter(c => !c.employeeCount || c.employeeCount === 0).map(c => c.id);
@@ -136,12 +219,53 @@ export class ExpertDashboard implements OnInit, OnDestroy {
     this.dashboardService.getDashboardSummary().subscribe({
       next: (summary) => {
         this.totalClients.set(summary.totalCompanies);
-        this.globalEmployeeCount.set(summary.totalEmployees);
       },
       error: (err) => {
         alert('Failed to load dashboard summary');
       }
     });
+  }
+
+  private loadEligibleEmployeeCount(companies: Company[]): void {
+    const requestId = ++this.employeesCountRequestId;
+    if (!companies.length) {
+      this.globalEmployeeCount.set(0);
+      this.employeesByCompany.set({});
+      return;
+    }
+
+    const requests = companies.map(company =>
+      this.employeeService.getEmployees({ companyId: company.id, limit: 1000 }).pipe(
+        map(response => response.employees.filter(employee => this.eligibleEmployeeStatuses.has(employee.status || '')).length),
+        catchError(() => of(0))
+      )
+    );
+
+    forkJoin(requests).subscribe({
+      next: counts => {
+        if (requestId !== this.employeesCountRequestId) {
+          return;
+        }
+        const byCompany = companies.reduce((acc, company, index) => {
+          acc[company.id] = counts[index] ?? 0;
+          return acc;
+        }, {} as Record<string, number>);
+        this.employeesByCompany.set(byCompany);
+        const total = counts.reduce((sum, current) => sum + current, 0);
+        this.globalEmployeeCount.set(total);
+      },
+      error: () => {
+        if (requestId !== this.employeesCountRequestId) {
+          return;
+        }
+        this.employeesByCompany.set({});
+        this.globalEmployeeCount.set(0);
+      }
+    });
+  }
+
+  getEligibleEmployeeCount(companyId: string): number {
+    return this.employeesByCompany()[companyId] ?? 0;
   }
 
   onSelectCompany(company: Company): void {

@@ -215,6 +215,10 @@ export class HolidaysComponent {
    * Open edit dialog
    */
   openEditDialog(holiday: Holiday): void {
+    if (this.isGlobalHoliday(holiday)) {
+      return;
+    }
+
     this.isEditMode.set(true);
     this.selectedHoliday.set(holiday);
 
@@ -372,6 +376,10 @@ export class HolidaysComponent {
    * Delete holiday
    */
   deleteHoliday(holiday: Holiday): void {
+    if (this.isGlobalHoliday(holiday)) {
+      return;
+    }
+
     this.confirmationService.confirm({
       message: this.translate.instant('holidays.confirmDelete'),
       header: this.translate.instant('common.confirmation'),
@@ -402,6 +410,28 @@ export class HolidaysComponent {
    */
   applyFilters(): void {
     this.loadHolidays();
+  }
+
+  onYearChange(value: number | null): void {
+    if (value) {
+      this.selectedYear.set(value);
+      this.applyFilters();
+    }
+  }
+
+  onScopeChange(value: HolidayScope | null): void {
+    this.selectedScope.set(value);
+    this.applyFilters();
+  }
+
+  onTypeChange(value: string | null): void {
+    this.selectedType.set(value);
+    this.applyFilters();
+  }
+
+  onStatusChange(value: boolean | null): void {
+    this.selectedActive.set(value);
+    this.applyFilters();
   }
 
   /**
@@ -443,5 +473,17 @@ export class HolidaysComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Robust global-scope check because API can return number or string values.
+   */
+  isGlobalHoliday(holiday: Holiday): boolean {
+    const scopeValue = String((holiday as any)?.scope ?? '').trim().toLowerCase();
+    const scopeDescription = String((holiday as any)?.scopeDescription ?? '').trim().toLowerCase();
+
+    return scopeValue === String(HolidayScope.Global)
+      || scopeValue === 'global'
+      || scopeDescription.includes('global');
   }
 }

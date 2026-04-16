@@ -27,21 +27,23 @@
 
 .pi-page-header .page-title {
   font-family: Inter, sans-serif;
-  font-size: 38px;
+  font-size: var(--font-size-2xl);
   font-style: normal;
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.04em;
-  color: var(--text-primary, #1f2937);
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .pi-page-header .page-subtitle {
   font-family: Inter, sans-serif;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-style: normal;
   font-weight: 500;
   line-height: 1.25;
-  color: var(--surface-500, #64748b);
+  letter-spacing: -0.04em;
+  color: var(--neutral-500);
   margin: 0.3rem 0 0;
 }
 

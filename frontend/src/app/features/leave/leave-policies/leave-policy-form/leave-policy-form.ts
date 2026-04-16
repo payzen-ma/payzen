@@ -6,8 +6,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { CheckboxModule } from 'primeng/checkbox';
-import { InputFieldComponent } from '@app/shared/components/form-controls/input-field';
-import { SelectFieldComponent } from '@app/shared/components/form-controls/select-field';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { LeaveService } from '@app/core/services/leave.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import {
@@ -30,8 +31,9 @@ import { MessageService } from 'primeng/api';
     ButtonModule,
     ToastModule,
     CheckboxModule,
-    InputFieldComponent,
-    SelectFieldComponent
+    ToggleSwitchModule,
+    InputTextModule,
+    SelectModule
   ],
   providers: [MessageService],
   templateUrl: './leave-policy-form.html',
@@ -99,7 +101,9 @@ export class LeavePolicyFormPage implements OnInit {
       isEnabled: [true],
       accrualMethod: [LeaveAccrualMethod.Monthly, Validators.required],
       daysPerMonth: [1.5, [Validators.required, Validators.min(0), Validators.max(31)]],
+      daysPerMonthMinor: [1.5, [Validators.required, Validators.min(0), Validators.max(31)]],
       daysPerService5Years: [1.5, [Validators.required, Validators.min(0)]],
+      requiresEligibility6Months: [true],
       requiresBalance: [true],
       annualCapDays: [30, [Validators.required, Validators.min(1), Validators.max(365)]],
       allowCarryover: [true],
@@ -175,7 +179,9 @@ export class LeavePolicyFormPage implements OnInit {
       isEnabled: policy.IsEnabled,
       accrualMethod: policy.AccrualMethod,
       daysPerMonth: policy.DaysPerMonthAdult,
+      daysPerMonthMinor: policy.DaysPerMonthMinor,
       daysPerService5Years: policy.BonusDaysPerYearAfter5Years,
+      requiresEligibility6Months: policy.RequiresEligibility6Months,
       requiresBalance: policy.RequiresBalance,
       annualCapDays: policy.AnnualCapDays,
       allowCarryover: policy.AllowCarryover,
@@ -218,9 +224,9 @@ export class LeavePolicyFormPage implements OnInit {
       IsEnabled: this.form.value.isEnabled,
       AccrualMethod: this.form.value.accrualMethod,
       DaysPerMonthAdult: this.form.value.daysPerMonth,
-      DaysPerMonthMinor: this.form.value.daysPerMonth,
+      DaysPerMonthMinor: this.form.value.daysPerMonthMinor,
       BonusDaysPerYearAfter5Years: this.form.value.daysPerService5Years,
-      RequiresEligibility6Months: false,
+      RequiresEligibility6Months: this.form.value.requiresEligibility6Months,
       RequiresBalance: this.form.value.requiresBalance,
       AnnualCapDays: this.form.value.annualCapDays,
       AllowCarryover: this.form.value.allowCarryover,
@@ -258,9 +264,9 @@ export class LeavePolicyFormPage implements OnInit {
       IsEnabled: this.form.value.isEnabled,
       AccrualMethod: this.form.value.accrualMethod,
       DaysPerMonthAdult: this.form.value.daysPerMonth,
-      DaysPerMonthMinor: this.form.value.daysPerMonth,
+      DaysPerMonthMinor: this.form.value.daysPerMonthMinor,
       BonusDaysPerYearAfter5Years: this.form.value.daysPerService5Years,
-      RequiresEligibility6Months: false,
+      RequiresEligibility6Months: this.form.value.requiresEligibility6Months,
       RequiresBalance: this.form.value.requiresBalance,
       AnnualCapDays: this.form.value.annualCapDays,
       AllowCarryover: this.form.value.allowCarryover,

@@ -303,14 +303,17 @@ export const createRoleGuard = (allowedRoles: string[]): CanActivateFn => {
 export const adminGuard: CanActivateFn = createRoleGuard(['admin', 'admin_payzen']);
 
 /**
- * RH Guard - Admin, RH, and Admin PayZen
+ * RH Guard - RH and Admin PayZen.
+ * NOTE:
+ * `admin` seul représente un gestionnaire de compte et ne doit pas accéder
+ * aux pages collaborateurs/paie.
  */
-export const rhGuard: CanActivateFn = createRoleGuard(['admin', 'rh', 'admin_payzen']);
+export const rhGuard: CanActivateFn = createRoleGuard(['rh', 'admin_payzen']);
 
 /**
- * Manager Guard - Admin, RH, Manager, and Admin PayZen
+ * Manager Guard - RH, Manager, and Admin PayZen
  */
-export const managerGuard: CanActivateFn = createRoleGuard(['admin', 'rh', 'manager', 'admin_payzen']);
+export const managerGuard: CanActivateFn = createRoleGuard(['rh', 'manager', 'admin_payzen']);
 
 /**
  * Cabinet Guard - Cabinet and Admin PayZen

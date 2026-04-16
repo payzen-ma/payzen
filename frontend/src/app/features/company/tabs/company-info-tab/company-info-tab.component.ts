@@ -7,7 +7,6 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { CompanyService } from '@app/core/services/company.service';
 import { AuthService } from '@app/core/services/auth.service';
@@ -38,12 +37,12 @@ interface FieldConfig {
     ButtonModule,
     FileUploadModule,
     ToastModule,
-    TooltipModule,
     EditableFieldComponent,
     ReadonlyFieldComponent
   ],
   providers: [MessageService],
-  templateUrl: './company-info-tab.component.html'
+  templateUrl: './company-info-tab.component.html',
+  styleUrls: ['./company-info-tab.component.css']
 })
 export class CompanyInfoTabComponent implements OnInit, OnDestroy {
   private readonly companyService = inject(CompanyService);
@@ -60,7 +59,6 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
   // State
   loading = signal(false);
   company = signal<Company | null>(null);
-  infoExpanded = signal(false);
   citySuggestions = signal<string[]>([]);
   logoUrl = signal<string | null>(null);
 
@@ -105,10 +103,6 @@ export class CompanyInfoTabComponent implements OnInit, OnDestroy {
     if (this.logoBlobUrl) {
       URL.revokeObjectURL(this.logoBlobUrl);
     }
-  }
-
-  toggleInfoBanner() {
-    this.infoExpanded.update((v) => !v);
   }
 
   searchCities(event: any) {

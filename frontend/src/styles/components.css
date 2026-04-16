@@ -4648,3 +4648,21 @@ td.overtime-empty-cell {
         grid-template-columns: 1fr;
     }
 }
+
+/* ── FULL WIDTH APP LAYOUT (global) ───────────────────────────────────────── */
+.payslip-shell,
+.leave-requests-shell,
+.bulletin-shell,
+.bulletin-shell--app,
+.overtime-shell,
+.simulation-shell--app,
+.payroll-exports-shell--app,
+.employee-create-shell,
+.salary-page,
+.module-page,
+.hr-absences-page .payslip-shell,
+.hr-leave-page,
+.overtime-management-page {
+    width: 100%;
+    max-width: none !important;
+}

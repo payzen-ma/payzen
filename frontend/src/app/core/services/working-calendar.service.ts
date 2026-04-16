@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CreateWorkingCalendarRequest, UpdateWorkingCalendarRequest, WorkingCalendar } from '../models/working-calendar.model';
 
@@ -54,11 +54,8 @@ export class WorkingCalendarService {
    */
   create(request: CreateWorkingCalendarRequest): Observable<WorkingCalendar> {
     return this.http.post<any>(this.apiUrl, request).pipe(
-      tap({ error: (err) => alert(`[WorkingCalendarService] create() error response: ${err?.error?.message ?? err?.message ?? err}`) }),
       map(response => response.value || response),
-      catchError(err => {
-        return throwError(() => err);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
@@ -66,19 +63,14 @@ export class WorkingCalendarService {
    * Update an existing working calendar entry
    */
   update(id: number, request: UpdateWorkingCalendarRequest): Observable<WorkingCalendar> {
-    alert(`[WorkingCalendarService] update() id=${id} payload: ${JSON.stringify(request)}`);
     return this.http.put<any>(`${this.apiUrl}/${id}`, request).pipe(
-      tap({ error: (err) => alert(`[WorkingCalendarService] update() id=${id} error response: ${err?.error?.message ?? err?.message ?? err}`) }),
       map(response => {
         if (!response) {
           return this.getById(id);
         }
         return response.value || response;
       }),
-      catchError(err => {
-        alert(`[WorkingCalendarService] update() id=${id} caught error: ${err?.error?.message ?? err?.message ?? err}`);
-        return throwError(() => err);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
@@ -98,7 +90,6 @@ export class WorkingCalendarService {
   syncWorkingDaysWithTimes(companyId: number, calendars: any[]): Observable<any[]> {
 
     if (!calendars || calendars.length === 0) {
-      alert('[WorkingCalendarService] No calendars to sync');
       return of([]);
     }
 
@@ -142,7 +133,6 @@ export class WorkingCalendarService {
 
     // If no days selected, return empty array
     if (!selectedDays || selectedDays.length === 0) {
-      alert('[WorkingCalendarService] No working days selected');
       return of([]);
     }
 

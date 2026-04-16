@@ -4,7 +4,8 @@
         "source.organizeImports": "explicit"
     },
     "[csharp]": {
-        "editor.defaultFormatter": "ms-dotnettools.csharp"
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.formatOnSave": true
     },
     "files.trimTrailingWhitespace": true,
     "omnisharp.enableRoslynAnalyzers": true,

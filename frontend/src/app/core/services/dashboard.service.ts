@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
+import { CompanyContextService } from './companyContext.service';
+import { catchError } from 'rxjs/operators';
 
 // Employee Summary Response (from /api/employee/summary)
 export interface EmployeeSummaryResponse {
@@ -56,6 +58,7 @@ export interface RecentCompany {
 })
 export class DashboardService {
   private http = inject(HttpClient);
+  private contextService = inject(CompanyContextService);
   private apiUrl = environment.apiUrl;
 
   /**
@@ -73,10 +76,20 @@ export class DashboardService {
    * Returns: Global statistics including total companies, employees, distribution, etc.
    */
   getDashboardSummary(): Observable<DashboardSummaryResponse> {
-    // Backend provides an expert summary at /api/dashboard/expert/summary
-    const url = `${this.apiUrl}/dashboard/expert/summary`;
+    const currentContext = this.contextService.currentContext();
+    const expertCompanyId = Number(currentContext?.cabinetId ?? currentContext?.companyId ?? 0);
+    const expertUrl = `${this.apiUrl}/dashboard/expert/${expertCompanyId}`;
+    const fallbackUrl = `${this.apiUrl}/dashboard/summary`;
+    const url = expertCompanyId > 0 ? expertUrl : fallbackUrl;
 
     return this.http.get<any>(url).pipe(
+      catchError(err => {
+        // Backward compatibility for environments still exposing /dashboard/summary only.
+        if (expertCompanyId > 0 && err?.status === 404) {
+          return this.http.get<any>(fallbackUrl);
+        }
+        return throwError(() => err);
+      }),
       map(raw => {
         const totalCompanies = raw?.TotalClients ?? raw?.TotalCompanies ?? raw?.totalClients ?? raw?.totalCompanies ?? 0;
         const totalEmployees = raw?.TotalEmployees ?? raw?.totalEmployees ?? raw?.TotalEmployeesCount ?? raw?.totalEmployeesCount ?? 0;

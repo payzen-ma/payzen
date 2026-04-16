@@ -84,8 +84,7 @@ public class SalaryPackageCreateDto
         get; set;
     }
 
-    [Required(ErrorMessage = "Le secteur d'activité est requis")]
-    public int BusinessSectorId
+    public int? BusinessSectorId
     {
         get; set;
     }
@@ -168,8 +167,7 @@ public class SalaryPackageUpdateDto
         get; set;
     }
 
-    [Required(ErrorMessage = "Le secteur d'activité est requis")]
-    public int BusinessSectorId
+    public int? BusinessSectorId
     {
         get; set;
     }

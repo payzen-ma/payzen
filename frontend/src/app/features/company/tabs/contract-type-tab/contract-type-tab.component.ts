@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -41,6 +41,37 @@ import { StateEmploymentProgramOption, StateEmploymentProgramService } from '../
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './contract-type-tab.component.html',
+  styles: [`
+    .entity-tab { display:flex; flex-direction:column; gap:var(--space-6); padding:var(--space-4) var(--space-6) var(--space-6); }
+    .entity-tab-header { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4); }
+    .entity-tab-title-row { display:flex; align-items:center; gap:var(--space-2); }
+    .entity-tab-title { margin:0; color:var(--text-primary); font-size:var(--font-size-xl); font-weight:600; line-height:1.1; }
+    .entity-tab-count-badge { border-radius:var(--radius-full); background:var(--info-light); color:var(--primary-500); font-size:var(--font-size-xs); font-weight:500; line-height:16px; padding:4px 8px; white-space:nowrap; }
+    .entity-tab-subtitle { margin:var(--space-2) 0 0; color:var(--neutral-500); font-size:var(--font-size-sm); font-weight:500; }
+    .entity-tab-card { border:1px solid var(--border-subtle); border-radius:var(--radius-xl); overflow:hidden; background:var(--bg-element); }
+    .entity-tab-card-header { background:var(--bg-page); border-bottom:1px solid var(--border-subtle); padding:12px var(--space-4) 13px; display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); }
+    .entity-tab-card-title { margin:0; color:var(--neutral-800); font-size:var(--font-size-sm); font-weight:600; line-height:20px; }
+    .entity-tab-card-description { margin:2px 0 0; color:var(--text-secondary); font-size:var(--font-size-xs); line-height:16px; }
+    .entity-tab-search-wrap { width:374px; max-width:100%; border:1px solid var(--neutral-200); border-radius:var(--radius-lg); background:var(--bg-element); display:flex; align-items:center; gap:var(--space-3); padding:0 var(--space-3); }
+    .entity-tab-search-wrap i { color:var(--neutral-400); font-size:14px; }
+    .entity-tab-search-input { width:100%; height:40px; border:0; outline:0; background:transparent; color:var(--text-primary); font-size:var(--font-size-sm); }
+    .entity-tab-list { display:flex; flex-direction:column; }
+    .entity-tab-row { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); padding:12px var(--space-4); border-bottom:1px solid var(--neutral-100); }
+    .entity-tab-row-main { border:0; background:transparent; padding:0; width:100%; display:flex; align-items:center; gap:var(--space-4); text-align:left; }
+    .entity-tab-row-icon { width:40px; height:40px; border-radius:var(--radius-lg); background:var(--primary-50); display:grid; place-items:center; color:var(--primary-500); }
+    .entity-tab-row-title { margin:0; color:var(--neutral-800); font-size:var(--font-size-sm); font-weight:500; line-height:16px; }
+    .entity-tab-row-subtitle { margin:2px 0 0; color:var(--text-secondary); font-size:var(--font-size-xs); line-height:16px; }
+    .entity-tab-row-lock { color:var(--text-secondary); font-size:12px; padding-right:8px; }
+    .entity-tab-footer { background:var(--bg-page); border-top:1px solid var(--border-subtle); padding:var(--space-3) var(--space-6); display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); color:var(--text-secondary); font-size:var(--font-size-xs); line-height:16px; }
+    .entity-tab-footer-right { display:inline-flex; align-items:center; gap:var(--space-2); }
+    .entity-tab-footer-right i { color:var(--primary-500); }
+    .entity-tab-loading, .entity-tab-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--space-2); color:var(--text-secondary); }
+    .entity-tab-loading i { font-size:24px; }
+    .entity-tab-empty i { font-size:28px; color:var(--neutral-400); }
+    .entity-tab-empty h3 { margin:0; color:var(--text-primary); font-size:var(--font-size-base); font-weight:600; }
+    .entity-tab-empty p { margin:0; color:var(--text-secondary); font-size:var(--font-size-sm); text-align:center; }
+    @media (max-width:900px){ .entity-tab{ padding:var(--space-4);} .entity-tab-header,.entity-tab-card-header{ flex-direction:column; align-items:stretch;} .entity-tab-footer{ flex-direction:column; align-items:flex-start; padding:var(--space-3) var(--space-4);} }
+  `]
 })
 export class ContractTypeTabComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -57,11 +88,17 @@ export class ContractTypeTabComponent implements OnInit {
   predefinedContractTypes = signal<ContractType[]>([]);
   filteredContractTypes = signal<ContractType[]>([]);
   contractTypes = signal<ContractType[]>([]);
+  searchTerm = signal('');
   legalContractTypeOptions = signal<LegalContractTypeOption[]>([]);
   stateEmploymentProgramOptions = signal<StateEmploymentProgramOption[]>([]);
   loading = signal(false);
   dialogVisible = signal(false);
   submitLoading = signal(false);
+  displayedContractTypes = computed(() => {
+    const query = this.searchTerm().trim().toLowerCase();
+    if (!query) return this.contractTypes();
+    return this.contractTypes().filter((c) => c.contractTypeName?.toLowerCase().includes(query));
+  });
 
   // Form
   contractTypeForm!: FormGroup;
@@ -140,6 +177,10 @@ export class ContractTypeTabComponent implements OnInit {
       c.contractTypeName.toLowerCase().includes(query)
     );
     this.filteredContractTypes.set(filtered);
+  }
+
+  onSearchList(value: string) {
+    this.searchTerm.set(value ?? '');
   }
 
   openEditDialog(contractType: ContractType) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, DestroyRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -31,6 +31,8 @@ interface UserDisplay {
   initials: string;
   avatarColor: string;
 }
+
+type OperationalFilter = 'all' | 'active' | 'on_leave';
 
 interface RoleOption {
   label: string;
@@ -74,6 +76,10 @@ export class UsersTabComponent implements OnInit, OnDestroy {
 
   // State
   users = signal<UserDisplay[]>([]);
+  searchQuery = signal('');
+  operationalFilter = signal<OperationalFilter>('all');
+  currentPage = signal(1);
+  readonly pageSize = 5;
   availableEmployees = signal<AvailableEmployee[]>([]);
   loading = signal(false);
   inviteDialogVisible = signal(false);
@@ -119,6 +125,38 @@ export class UsersTabComponent implements OnInit, OnDestroy {
     { bg: 'bg-rose-100', text: 'text-rose-700' },
     { bg: 'bg-cyan-100', text: 'text-cyan-700' }
   ];
+
+  readonly eligibleUsers = computed(() =>
+    this.users().filter(user => user.status === 'active' || user.status === 'on_leave')
+  );
+
+  readonly filteredUsers = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    const opFilter = this.operationalFilter();
+    let data = this.eligibleUsers();
+
+    if (opFilter !== 'all') {
+      data = data.filter(user => user.status === opFilter);
+    }
+
+    if (query) {
+      data = data.filter(user =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.role.toLowerCase().includes(query)
+      );
+    }
+
+    return data;
+  });
+
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filteredUsers().length / this.pageSize)));
+
+  readonly paginatedUsers = computed(() => {
+    const page = Math.min(this.currentPage(), this.totalPages());
+    const start = (page - 1) * this.pageSize;
+    return this.filteredUsers().slice(start, start + this.pageSize);
+  });
 
   ngOnInit() {
     this.initForm();
@@ -207,6 +245,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
   getStatusClasses(status: string): string {
     const statusMap: Record<string, string> = {
       active: 'bg-green-100 text-green-700',
+      on_leave: 'bg-amber-100 text-amber-700',
       pending: 'bg-amber-100 text-amber-700',
       inactive: 'bg-gray-100 text-gray-600'
     };
@@ -217,6 +256,7 @@ export class UsersTabComponent implements OnInit, OnDestroy {
   getStatusDotClass(status: string): string {
     const dotMap: Record<string, string> = {
       active: 'bg-green-500',
+      on_leave: 'bg-amber-500',
       pending: 'bg-amber-500',
       inactive: 'bg-gray-400'
     };
@@ -583,19 +623,21 @@ export class UsersTabComponent implements OnInit, OnDestroy {
             // leave as viewer on any unexpected shape
           }
           const name = `${e.firstName ?? ''} ${e.lastName ?? ''}`.trim() || email || `#${e.id}`;
+          const rawStatus = (e as any).statusRaw ?? (e as any).status ?? (e as any).StatusRaw ?? (e as any).Status ?? 'inactive';
           return {
             id: String((e as any).id ?? (e as any).Id ?? ''),
             userId: userId ? String(userId) : null,
             name,
             email,
             role,
-            status: (e as any).statusRaw ?? (e as any).status ?? 'inactive',
+            status: this.normalizeUserStatus(rawStatus),
             initials: this.getInitials(name || email || ''),
             avatarColor: 'blue'
           };
         });
 
         this.users.set(displayUsers);
+        this.currentPage.set(1);
         this.loading.set(false);
       },
       error: (err) => {
@@ -607,6 +649,29 @@ export class UsersTabComponent implements OnInit, OnDestroy {
         );
       }
     });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchQuery.set(value ?? '');
+    this.currentPage.set(1);
+  }
+
+  onOperationalFilterChange(value: OperationalFilter): void {
+    this.operationalFilter.set(value ?? 'all');
+    this.currentPage.set(1);
+  }
+
+  goToPage(page: number): void {
+    const safePage = Math.max(1, Math.min(page, this.totalPages()));
+    this.currentPage.set(safePage);
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage() - 1);
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage() + 1);
   }
 
   private getColorIndex(name: string): number {
@@ -719,5 +784,19 @@ export class UsersTabComponent implements OnInit, OnDestroy {
     } catch (e) {
       return this.translate.instant('common.error');
     }
+  }
+
+  private normalizeUserStatus(status: any): string {
+    const raw = String(status ?? '').trim().toLowerCase();
+    if (!raw) return 'inactive';
+
+    if (raw === 'active' || raw === 'actif' || raw === 'enabled') return 'active';
+    if (raw === 'on_leave' || raw === 'on leave' || raw === 'on-leave' || raw === 'leave' || raw === 'en_conge' || raw === 'en congé' || raw === 'conge') {
+      return 'on_leave';
+    }
+    if (raw.startsWith('active')) return 'active';
+    if (raw.includes('leave') || raw.includes('cong')) return 'on_leave';
+
+    return 'inactive';
   }
 }

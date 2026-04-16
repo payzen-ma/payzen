@@ -384,7 +384,7 @@ export class AuthService {
   private getRoleLabel(role: UserRole | string): string {
     const labels: Record<string, string> = {
       [UserRole.ADMIN]: 'Administrator',
-      [UserRole.RH]: 'HR Manager',
+      [UserRole.RH]: 'Ressource humain',
       [UserRole.MANAGER]: 'Manager',
       [UserRole.EMPLOYEE]: 'Employee',
       [UserRole.CABINET]: 'Cabinet Expert',

@@ -442,7 +442,11 @@ export class OvertimeManagementComponent implements OnInit {
     this.employeesLoading.set(true);
     this.employeeService.getEmployees().subscribe({
       next: (resp) => {
-        this.employees.set(resp.employees || []);
+        this.employees.set(
+          (resp.employees || []).filter(
+            (e: any) => e.status === 'active' || e.status === 'on_leave'
+          )
+        );
         this.employeesLoading.set(false);
       },
       error: (err) => {

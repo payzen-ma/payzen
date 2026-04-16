@@ -1,40 +1,22 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Page Header -->
-  <div>
-    <div class="max-w-7xl mx-auto px-6 pt-4">
-      <p-toast />
-      <p-confirmDialog />
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="module-header__icon">
-              <i class="pi pi-calendar"></i>
-            </div>
-            <div>
-              <h1 class="heading">
-                {{ 'leave.types.title' | translate }}
-              </h1>
-              <p class="subheading mt-1">
-                {{ 'leave.types.subtitle' | translate }}
-              </p>
-            </div>
-          </div>
-        </div>
+<div class="leave-types-tab">
+  <p-toast />
+  <p-confirmDialog />
 
-        <button
-          pButton
-          type="button"
-          [label]="'leave.types.add' | translate"
-          class="btn btn-primary"
-          icon="pi pi-plus"
-          (click)="addLeaveType()"
-        ></button>
-      </div>
+  <div class="leave-types-section-header">
+    <div>
+      <h2 class="leave-types-title">{{ 'leave.types.title' | translate }}</h2>
+      <p class="leave-types-subtitle">{{ 'leave.types.subtitle' | translate }}</p>
     </div>
+    <button
+      type="button"
+      class="leave-types-add-btn"
+      (click)="addLeaveType()">
+      <i class="pi pi-plus"></i>
+      <span>{{ 'leave.types.add' | translate }}</span>
+    </button>
   </div>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-6 py-6">
+  <div>
     <!-- Error Message -->
     @if (error()) {
       <div class="flex flex-row items-center justify-center card alert-error alert gap-3 mb-4">
@@ -59,69 +41,22 @@
     }
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="leave-types-stats-grid">
       @for (card of statCards; track card.label) {
-        <div class="stat-card flex items-center justify-between">
-          <div>
-            <p class="stat-label">{{ card.label | translate }}</p>
-            <p class="stat-value">{{ card.accessor(stats()) }}</p>
+        <div class="leave-types-stat-card">
+          <div class="leave-types-stat-texts">
+            <p class="leave-types-stat-label">{{ card.label | translate }}</p>
+            <p class="leave-types-stat-value">{{ card.accessor(stats()) }}</p>
           </div>
-          <div class="stat-card-icon" [ngClass]="card.iconColor">
+          <div class="leave-types-stat-icon" [ngClass]="card.iconColor">
             <i [class]="card.icon"></i>
           </div>
         </div>
       }
     </div>
 
-    <!-- Filters & Search -->
-    <div class="app-filters app-filters--surface mb-6">
-      <div class="app-filters__row">
-        <div class="app-filters__item app-filters__item--search">
-          <label class="app-filters__label" for="leave-types-search">{{ 'common.search' | translate }}</label>
-          <p-iconfield iconPosition="left" class="w-full app-filter-search">
-            <p-inputicon class="pi pi-search app-filter-search__icon"></p-inputicon>
-            <input
-              id="leave-types-search"
-              pInputText
-              type="text"
-              class="w-full app-filter-search__input"
-              [(ngModel)]="searchQueryModel"
-              [placeholder]="'leave.types.searchPlaceholder' | translate"
-              [attr.aria-label]="'leave.types.searchPlaceholder' | translate"
-            />
-          </p-iconfield>
-        </div>
-
-        <div class="app-filters__item app-filters__item--sm">
-          <label class="app-filters__label" for="leave-types-scope">{{ 'leave.types.scope' | translate }}</label>
-          <p-select
-            inputId="leave-types-scope"
-            [options]="scopeOptions()"
-            [(ngModel)]="selectedScopeModel"
-            optionLabel="label"
-            optionValue="value"
-            [placeholder]="'leave.types.filterScope' | translate"
-            class="w-full input"
-          />
-        </div>
-
-        <div class="app-filters__actions">
-          <button
-            pButton
-            type="button"
-            [label]="'common.clear' | translate"
-            (click)="clearFilters()"
-            [disabled]="disableClearButton"
-            class="app-filter-clear"
-            [class.app-filter-clear--disabled]="disableClearButton"
-            title="{{ 'common.clear' | translate }}"
-          ></button>
-        </div>
-      </div>
-    </div>
-
     <!-- Leave Types Table -->
-    <div class="card-compact relative">
+    <div class="card-compact relative leave-types-table-wrap">
       <!-- Loading Overlay -->
       @if (isLoading()) {
         <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
@@ -134,46 +69,49 @@
 
       <p-table
         [value]="filteredLeaveTypes()"
-        styleClass="p-datatable-sm"
+        styleClass="p-datatable-sm leave-types-table"
         [tableStyle]="{'min-width': '40rem'}"
+        [rows]="4"
+        [paginator]="true"
+        [rowsPerPageOptions]="[4, 10, 20]"
       >
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="LeaveName" class="saas-table-header">
+            <th pSortableColumn="LeaveName" class="leave-types-th">
               <div class="flex items-center gap-2">
                 {{ 'leave.types.table.name' | translate }}
                 <p-sortIcon field="LeaveName"></p-sortIcon>
               </div>
             </th>
-            <th pSortableColumn="Scope" class="saas-table-header">
+            <th pSortableColumn="Scope" class="leave-types-th">
               <div class="flex items-center gap-2">
                 {{ 'leave.types.table.scope' | translate }}
                 <p-sortIcon field="Scope"></p-sortIcon>
               </div>
             </th>
-            <th class="saas-table-header">
+            <th class="leave-types-th">
               {{ 'leave.types.table.options' | translate }}
             </th>
-            <th class="saas-table-header text-right">
+            <th class="leave-types-th text-right">
               {{ 'common.actions' | translate }}
             </th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-leaveType>
-          <tr class="saas-table-row cursor-pointer" (click)="viewLeaveType(leaveType)">
+          <tr class="leave-types-row cursor-pointer" (click)="viewLeaveType(leaveType)">
             <!-- Name -->
-            <td class="px-6 py-4">
+            <td class="leave-types-td">
               <div>
-                <p class="font-medium text-primary">{{ leaveType.LeaveName }}</p>
+                <p class="leave-types-name">{{ leaveType.LeaveName }}</p>
                 @if (leaveType.LeaveDescription) {
-                  <p class="text-xs text-gray-500 truncate max-w-xs">{{ leaveType.LeaveDescription }}</p>
+                  <p class="leave-types-description">{{ leaveType.LeaveDescription }}</p>
                 }
               </div>
             </td>
 
             <!-- Scope -->
-            <td class="px-6 py-4">
+            <td class="leave-types-td">
               <app-tag
                 [label]="getScopeLabel(leaveType.Scope)"
                 [variant]="getScopeVariant(leaveType.Scope)"
@@ -182,7 +120,7 @@
             </td>
 
             <!-- Options -->
-            <td class="px-6 py-4">
+            <td class="leave-types-td">
               <div class="flex flex-wrap gap-1">
                 <app-tag
                   [label]="leaveType.IsActive ? ('common.active' | translate) : ('common.inactive' | translate)"
@@ -192,15 +130,15 @@
               </div>
             </td>
 
-            <!-- Actions (only if company scope matches) -->
-            <td class="px-6 py-4 text-right">
+            <!-- Actions -->
+            <td class="leave-types-td text-right">
               <div class="flex items-center justify-end gap-2">
                 @if (canEdit(leaveType)) {
                   <button
                     pButton
                     type="button"
                     icon="pi pi-pencil"
-                    class="p-button-text p-button-sm"
+                    class="p-button-text p-button-sm leave-types-action-btn"
                     (click)="editLeaveType(leaveType, $event)"
                     [title]="'common.edit' | translate"
                   ></button>
@@ -208,7 +146,7 @@
                     pButton
                     type="button"
                     icon="pi pi-trash"
-                    class="p-button-text p-button-danger p-button-sm"
+                    class="p-button-text p-button-danger p-button-sm leave-types-action-btn"
                     (click)="deleteLeaveType(leaveType, $event)"
                     [title]="'common.delete' | translate"
                   ></button>
@@ -217,7 +155,7 @@
                   pButton
                   type="button"
                   icon="pi pi-eye"
-                  class="p-button-text p-button-sm"
+                  class="p-button-text p-button-sm leave-types-action-btn"
                   (click)="viewLeaveType(leaveType)"
                   [title]="'common.view' | translate"
                 ></button>
@@ -254,85 +192,97 @@
 <!-- Leave Type Dialog -->
 <p-dialog
   [(visible)]="showDialog"
-  [header]="dialogTitle() | translate"
   [modal]="true"
-  [closable]="true"
+  [showHeader]="false"
+  [closable]="false"
   [draggable]="false"
   [resizable]="false"
   styleClass="app-dialog app-dialog--medium"
   (onHide)="closeDialog()"
 >
-  <form [formGroup]="form" class="form-container">
-    <!-- Leave Code -->
-    <div class="form-field">
-      <label for="leaveCode" class="form-label form-label-required">
-        {{ 'leave.types.code' | translate }}
-      </label>
-      <input
-        pInputText
-        id="leaveCode"
-        formControlName="leaveCode"
-        class="w-full"
-        [placeholder]="'leave.types.codePlaceholder' | translate"
-      />
-      @if (form.get('leaveCode')?.invalid && form.get('leaveCode')?.touched) {
-        <small class="form-error">{{ 'validation.required' | translate }}</small>
-      }
+  <div class="leave-type-dialog-header">
+    <div class="leave-type-dialog-header-row">
+      <h2 class="leave-type-dialog-title">{{ dialogTitle() | translate }}</h2>
+      <button type="button" class="leave-type-dialog-close" (click)="closeDialog()"
+        [attr.aria-label]="'common.close' | translate">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
+  </div>
 
-    <!-- Leave Name -->
-    <div class="form-field">
-      <label for="leaveName" class="form-label form-label-required">
-        {{ 'leave.types.name' | translate }}
-      </label>
-      <input
-        pInputText
-        id="leaveName"
-        formControlName="leaveName"
-        class="w-full"
-        [placeholder]="'leave.types.namePlaceholder' | translate"
-      />
-      @if (form.get('leaveName')?.invalid && form.get('leaveName')?.touched) {
-        <small class="form-error">{{ 'validation.required' | translate }}</small>
-      }
-    </div>
+  <div class="leave-type-dialog-content">
+    <form [formGroup]="form" class="form-container leave-type-form-layout">
+      <!-- Leave Code -->
+      <div class="form-field">
+        <label for="leaveCode" class="form-label">
+          {{ 'leave.types.code' | translate }}
+        </label>
+        <input
+          pInputText
+          id="leaveCode"
+          formControlName="leaveCode"
+          class="w-full leave-type-input"
+          [placeholder]="'leave.types.codePlaceholder' | translate"
+        />
+        @if (form.get('leaveCode')?.invalid && form.get('leaveCode')?.touched) {
+          <small class="form-error">{{ 'validation.required' | translate }}</small>
+        }
+      </div>
 
-    <!-- Description -->
-    <div class="form-field">
-      <label for="leaveDescription" class="form-label form-label-required">
-        {{ 'leave.types.descriptionLabel' | translate }}
-      </label>
-      <textarea
-        pInputText
-        id="leaveDescription"
-        formControlName="leaveDescription"
-        class="w-full"
-        rows="3"
-        [placeholder]="'leave.types.descriptionPlaceholder' | translate"
-      ></textarea>
-      @if (form.get('leaveDescription')?.invalid && form.get('leaveDescription')?.touched) {
-        <small class="form-error">{{ 'validation.required' | translate }}</small>
-      }
-    </div>
+      <!-- Leave Name -->
+      <div class="form-field">
+        <label for="leaveName" class="form-label">
+          {{ 'leave.types.name' | translate }}
+        </label>
+        <input
+          pInputText
+          id="leaveName"
+          formControlName="leaveName"
+          class="w-full leave-type-input"
+          [placeholder]="'leave.types.namePlaceholder' | translate"
+        />
+        @if (form.get('leaveName')?.invalid && form.get('leaveName')?.touched) {
+          <small class="form-error">{{ 'validation.required' | translate }}</small>
+        }
+      </div>
 
-    <!-- Active Toggle -->
-    <div class="form-field flex-row items-center gap-3">
-      <p-checkbox
-        formControlName="isActive"
-        [binary]="true"
-        inputId="isActive"
-      ></p-checkbox>
-      <label for="isActive" class="form-label cursor-pointer">{{ 'leave.types.isActive' | translate }}</label>
-    </div>
-  </form>
+      <!-- Description -->
+      <div class="form-field">
+        <label for="leaveDescription" class="form-label">
+          {{ 'leave.types.descriptionLabel' | translate }}
+        </label>
+        <textarea
+          pInputText
+          id="leaveDescription"
+          formControlName="leaveDescription"
+          class="w-full leave-type-textarea"
+          rows="6"
+          [placeholder]="'leave.types.descriptionPlaceholder' | translate"
+        ></textarea>
+        @if (form.get('leaveDescription')?.invalid && form.get('leaveDescription')?.touched) {
+          <small class="form-error">{{ 'validation.required' | translate }}</small>
+        }
+      </div>
+
+      <!-- Active Toggle -->
+      <div class="form-field leave-type-active-row">
+        <p-checkbox
+          formControlName="isActive"
+          [binary]="true"
+          inputId="isActive"
+        ></p-checkbox>
+        <label for="isActive" class="form-label cursor-pointer">{{ 'leave.types.isActive' | translate }}</label>
+      </div>
+    </form>
+  </div>
 
   <ng-template pTemplate="footer">
-    <div class="form-actions">
+    <div class="leave-type-dialog-footer">
       <button
         pButton
         type="button"
         [label]="'common.cancel' | translate"
-        class="btn btn-secondary"
+        class="leave-type-footer-cancel"
         (click)="closeDialog()"
         [disabled]="isSaving()"
       ></button>
@@ -341,8 +291,8 @@
           pButton
           type="button"
           [label]="isEditMode() ? ('common.save' | translate) : ('common.create' | translate)"
-          class="btn btn-primary"
-          icon="pi pi-check"
+          class="leave-type-footer-primary"
+          [icon]="isEditMode() ? 'pi pi-check' : 'pi pi-plus'"
           (click)="saveLeaveType()"
           [loading]="isSaving()"
           [disabled]="form.invalid || isSaving()"

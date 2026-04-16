@@ -34,6 +34,10 @@ public class PayrollService : IPayrollService
     public async Task<ServiceResult<PayrollResultReadDto>> CalculateAsync(
         PayrollSimulateRequestDto dto, int userId, CancellationToken ct = default)
     {
+        var eligibility = await CheckPayrollEligibilityAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, ct);
+        if (!eligibility.IsEligible)
+            return ServiceResult<PayrollResultReadDto>.Fail(eligibility.Reason);
+
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
         if (data == null)
             return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
@@ -49,6 +53,10 @@ public class PayrollService : IPayrollService
     public async Task<ServiceResult<PayrollResultReadDto>> SimulateAsync(
         PayrollSimulateRequestDto dto, CancellationToken ct = default)
     {
+        var eligibility = await CheckPayrollEligibilityAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, ct);
+        if (!eligibility.IsEligible)
+            return ServiceResult<PayrollResultReadDto>.Fail(eligibility.Reason);
+
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
         if (data == null)
             return ServiceResult<PayrollResultReadDto>.Fail("Employé introuvable ou données manquantes.");
@@ -391,6 +399,66 @@ public class PayrollService : IPayrollService
         pr.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
+    }
+
+    private async Task<(bool IsEligible, string Reason)> CheckPayrollEligibilityAsync(
+        int employeeId,
+        int month,
+        int year,
+        CancellationToken ct)
+    {
+        var payDate = new DateTime(year, month, 1);
+
+        var employee = await _db.Employees
+            .AsNoTracking()
+            .Include(e => e.Status)
+            .FirstOrDefaultAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
+
+        if (employee == null)
+            return (false, "Employé introuvable.");
+
+        if (!IsStatusEligibleForPayroll(employee.Status))
+            return (false, "La paie ne s'applique qu'aux employés actifs ou en congé.");
+
+        var hasPositiveSalary = await _db.EmployeeSalaries
+            .AsNoTracking()
+            .AnyAsync(s =>
+                s.EmployeeId == employeeId
+                && s.EffectiveDate <= payDate
+                && (s.EndDate == null || s.EndDate >= payDate)
+                && s.BaseSalary > 0m, ct);
+
+        if (!hasPositiveSalary)
+            return (false, "La paie ne s'applique qu'aux employés avec un salaire de base strictement supérieur à 0.");
+
+        return (true, string.Empty);
+    }
+
+    private static bool IsStatusEligibleForPayroll(Domain.Entities.Referentiel.Status? status)
+    {
+        if (status == null)
+            return false;
+
+        var code = NormalizeStatusToken(status.Code);
+        var nameFr = NormalizeStatusToken(status.NameFr);
+        var nameEn = NormalizeStatusToken(status.NameEn);
+
+        return IsAllowedStatusToken(code)
+            || IsAllowedStatusToken(nameFr)
+            || IsAllowedStatusToken(nameEn);
+    }
+
+    private static bool IsAllowedStatusToken(string token)
+        => token is "ACTIVE" or "ACTIF" or "ONLEAVE" or "ENCONGE" or "CONGE";
+
+    private static string NormalizeStatusToken(string? value)
+    {
+        return (value ?? string.Empty)
+            .Trim()
+            .ToUpperInvariant()
+            .Replace("_", string.Empty)
+            .Replace("-", string.Empty)
+            .Replace(" ", string.Empty);
     }
 
     // ── Hydratation ───────────────────────────────────────────────────────────

@@ -378,7 +378,12 @@ export class EmployeeService {
     const companyId = filters?.companyId ?? this.contextService.companyId();
     if (companyId) {
       const url = `${this.EMPLOYEE_URL}/company/${companyId}`;
-      return this.http.get<any>(url).pipe(
+      return this.http.get<any>(url, {
+        headers: {
+          // Ensure requests are scoped to the requested company even when context is switching.
+          'X-Company-Id': String(companyId)
+        }
+      }).pipe(
         map(response => {
           // Backend may return PascalCase (e.g. Employees, TotalEmployees) or camelCase.
           if (!response) return this.mapArrayToEmployeesResponse([]);
@@ -1374,6 +1379,10 @@ export class EmployeeService {
         map(assignment => assignment),
         startWith(null as EmployeeSalaryPackageAssignment | null)
       );
+  }
+
+  getEmployeeContracts(employeeId: string | number): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/employee-contracts/employee/${employeeId}`);
   }
 
   private transformAssignment(data: any): EmployeeSalaryPackageAssignment {

@@ -438,7 +438,7 @@ public static class DbSeeder
         await db.SaveChangesAsync(ct);
 
         // ===== DEMO : remplir les companies id 2..10 avec 10..200 employés aléatoires =====
-        var companyIds = await db.Companies.Where(c => c.Id >= 2 && c.Id <= 10).Select(c => c.Id).ToListAsync(ct);
+        var companyIds = await db.Companies.Where(c => c.Id == 1016).Select(c => c.Id).ToListAsync(ct);
         if (companyIds.Count > 0)
         {
             var rng = new Random(42);

@@ -3,6 +3,7 @@ using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Payroll;
+using Payzen.Domain.Entities.Payroll.Referentiel;
 using Payzen.Infrastructure.Persistence;
 
 namespace Payzen.Infrastructure.Services.Payroll;
@@ -72,6 +73,10 @@ public class SalaryPackageService : ISalaryPackageService
     public async Task<ServiceResult<SalaryPackageReadDto>> CreateAsync(
         SalaryPackageCreateDto dto, int createdBy, CancellationToken ct = default)
     {
+        var resolvedSectorId = await ResolveBusinessSectorIdAsync(dto.BusinessSectorId ?? 0, dto.Category, ct);
+        if (!resolvedSectorId.HasValue)
+            return ServiceResult<SalaryPackageReadDto>.Fail("Secteur d'activité invalide. Veuillez sélectionner un secteur valide.");
+
         var sp = new SalaryPackage
         {
             Name = dto.Name,
@@ -80,7 +85,7 @@ public class SalaryPackageService : ISalaryPackageService
             BaseSalary = dto.BaseSalary,
             Status = "draft",
             CompanyId = dto.CompanyId,
-            BusinessSectorId = dto.BusinessSectorId,
+            BusinessSectorId = resolvedSectorId.Value,
             TemplateType = dto.TemplateType ?? "OFFICIAL",
             RegulationVersion = dto.RegulationVersion ?? "MA_2025",
             AutoRulesJson = dto.AutoRules != null ? System.Text.Json.JsonSerializer.Serialize(dto.AutoRules) : null,
@@ -398,12 +403,17 @@ public class SalaryPackageService : ISalaryPackageService
         }
 
         var sp = await _db.SalaryPackages.FindAsync(new object[] { dto.SalaryPackageId }, ct);
+        var employeeSalaryId = await ResolveEmployeeSalaryIdAsync(dto, ct);
+        if (!employeeSalaryId.HasValue)
+            return ServiceResult<SalaryPackageAssignmentReadDto>.Fail(
+                "Impossible d'affecter le package: aucun salaire employe valide n'a ete trouve pour ce contrat.");
+
         var assignment = new SalaryPackageAssignment
         {
             SalaryPackageId = dto.SalaryPackageId,
             EmployeeId = dto.EmployeeId,
             ContractId = dto.ContractId,
-            EmployeeSalaryId = 0,
+            EmployeeSalaryId = employeeSalaryId.Value,
             EffectiveDate = dto.EffectiveDate,
             PackageVersion = sp?.Version ?? 1,
             CreatedBy = createdBy
@@ -414,6 +424,47 @@ public class SalaryPackageService : ISalaryPackageService
         await _db.Entry(assignment).Reference(a => a.SalaryPackage).LoadAsync(ct);
         await _db.Entry(assignment).Reference(a => a.Employee).LoadAsync(ct);
         return ServiceResult<SalaryPackageAssignmentReadDto>.Ok(MapAssignment(assignment));
+    }
+
+    private async Task<int?> ResolveEmployeeSalaryIdAsync(SalaryPackageAssignmentCreateDto dto, CancellationToken ct)
+    {
+        // 1) Salaire actif a la date d'effet pour le contrat cible
+        var salaryId = await _db.EmployeeSalaries
+            .AsNoTracking()
+            .Where(s => s.EmployeeId == dto.EmployeeId
+                        && s.ContractId == dto.ContractId
+                        && s.DeletedAt == null
+                        && s.EffectiveDate <= dto.EffectiveDate
+                        && (s.EndDate == null || s.EndDate >= dto.EffectiveDate))
+            .OrderByDescending(s => s.EffectiveDate)
+            .Select(s => (int?)s.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (salaryId.HasValue)
+            return salaryId.Value;
+
+        // 2) Fallback: dernier salaire connu sur le contrat
+        salaryId = await _db.EmployeeSalaries
+            .AsNoTracking()
+            .Where(s => s.EmployeeId == dto.EmployeeId
+                        && s.ContractId == dto.ContractId
+                        && s.DeletedAt == null)
+            .OrderByDescending(s => s.EffectiveDate)
+            .Select(s => (int?)s.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (salaryId.HasValue)
+            return salaryId.Value;
+
+        // 3) Fallback final: dernier salaire connu de l'employe
+        salaryId = await _db.EmployeeSalaries
+            .AsNoTracking()
+            .Where(s => s.EmployeeId == dto.EmployeeId && s.DeletedAt == null)
+            .OrderByDescending(s => s.EffectiveDate)
+            .Select(s => (int?)s.Id)
+            .FirstOrDefaultAsync(ct);
+
+        return salaryId;
     }
 
     public async Task<ServiceResult<SalaryPackageAssignmentReadDto>> UpdateAssignmentAsync(
@@ -462,6 +513,65 @@ public class SalaryPackageService : ISalaryPackageService
             Bonuses = bonuses,
             GrossSalary = baseSalary + allowances + bonuses
         });
+    }
+
+    private async Task<int?> ResolveBusinessSectorIdAsync(int requestedSectorId, string? category, CancellationToken ct)
+    {
+        // 1) If a sector ID is provided, keep it only when it exists.
+        if (requestedSectorId > 0)
+        {
+            var exists = await _db.BusinessSectors
+                .AsNoTracking()
+                .AnyAsync(bs => bs.Id == requestedSectorId, ct);
+            if (exists) return requestedSectorId;
+        }
+
+        // 2) Try to infer from category (exact match on sector name or code).
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            var normalized = category.Trim();
+            var match = await _db.BusinessSectors
+                .AsNoTracking()
+                .Where(bs => bs.Name == normalized || bs.Code == normalized)
+                .OrderBy(bs => bs.SortOrder)
+                .Select(bs => (int?)bs.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (match.HasValue) return match.Value;
+        }
+
+        // 3) Safe fallback to a standard/default sector.
+        var standard = await _db.BusinessSectors
+            .AsNoTracking()
+            .Where(bs => bs.IsStandard)
+            .OrderBy(bs => bs.SortOrder)
+            .Select(bs => (int?)bs.Id)
+            .FirstOrDefaultAsync(ct);
+        if (standard.HasValue) return standard.Value;
+
+        // 4) Last fallback: any available sector.
+        var existing = await _db.BusinessSectors
+            .AsNoTracking()
+            .OrderBy(bs => bs.SortOrder)
+            .Select(bs => (int?)bs.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (existing.HasValue)
+            return existing.Value;
+
+        // 5) No business sector configured yet:
+        // auto-create a default one so salary package creation does not fail.
+        var defaultSector = new BusinessSector
+        {
+            Code = "GENERAL",
+            Name = "Secteur général",
+            IsStandard = true,
+            SortOrder = 1
+        };
+
+        _db.BusinessSectors.Add(defaultSector);
+        await _db.SaveChangesAsync(ct);
+        return defaultSector.Id;
     }
 
     // ── Mapper ────────────────────────────────────────────────────────────────

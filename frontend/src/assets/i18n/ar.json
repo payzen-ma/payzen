@@ -131,6 +131,7 @@
       "ni": "غير خاضع للضريبة"
     },
     "labels": {
+      "salaireNet": "الراتب الصافي",
       "salaireBrut": "الراتب الإجمالي",
       "totalIndemnites": "التعويضات",
       "brutImposable": "الإجمالي الخاضع للضريبة",
@@ -1541,7 +1542,7 @@
         "manager": "المسؤول المباشر",
         "managerPlaceholder": "تعيين مسؤول (اختياري)",
         "startDate": "تاريخ الالتحاق",
-        "salary": "الأجر الإجمالي",
+        "salary": "الأجر الصافي",
         "salaryHourly": "الأجر بالساعة",
         "salaryHourlyHint": "يُستخدم للشركات التي تستخدم معدلات بالساعة بدلاً من الرواتب الشهرية",
         "salaryEffectiveDate": "تاريخ سريان الراتب",

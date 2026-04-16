@@ -138,6 +138,7 @@
       "ni": "Non-taxable"
     },
     "labels": {
+      "salaireNet": "Net salary",
       "salaireBrut": "Gross salary",
       "totalIndemnites": "Allowances",
       "brutImposable": "Taxable gross",
@@ -382,8 +383,7 @@
       "backToPortfolio": "Back to Portfolio",
       "editClient": "Edit Client",
       "viewingAsExpert": "You are viewing this company as an Expert"
-    }
-    ,
+    },
     "client": {
       "adminUser": "Invited administrator",
       "adminDescription": "Enter the future administrator: they will receive an email invitation to activate access via Microsoft Entra (no Payzen password)."
@@ -557,7 +557,7 @@
     }
   },
   "common": {
-    "Showing" : "Showing",
+    "Showing": "Showing",
     "system": "System",
     "custom": "Custom",
     "readOnly": "Read Only",
@@ -729,8 +729,7 @@
         "logoUpdateError": "Failed to update logo",
         "fieldUpdated": "Field updated successfully",
         "fieldUpdateError": "Failed to update field"
-      }
-      ,
+      },
       "createCity": "Create city",
       "cityPlaceholder": "Type to search or create a city"
     },
@@ -937,8 +936,7 @@
         "notImplementedTitle": "Not implemented",
         "notImplemented": "This action is not implemented yet.",
         "userRemoved": "User {{name}} was removed",
-        "removeUserError": "Failed to remove user"
-      ,
+        "removeUserError": "Failed to remove user",
         "footerInfo": "User will receive access credentials via email"
       }
     },
@@ -1565,7 +1563,7 @@
         "manager": "Direct manager",
         "managerPlaceholder": "Assign a manager (optional)",
         "startDate": "Start date",
-        "salary": "Gross salary",
+        "salary": "Base salary",
         "salaryHourly": "Hourly salary",
         "salaryHourlyHint": "Use for companies using hourly rates instead of monthly salaries",
         "salaryEffectiveDate": "Salary effective date",
@@ -2319,7 +2317,6 @@
     },
     "declareFor": "Declare overtime for {{name}}",
     "declare": "Declare",
-
     "errors": {
       "loadFailed": "Failed to load overtime records",
       "createFailed": "Failed to declare overtime",

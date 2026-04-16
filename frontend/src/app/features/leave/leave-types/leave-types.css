@@ -1,1 +1,342 @@
-/* Leave Types Page Styles */
+@import '../leave-theme.css';
+
+.leave-types-tab {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-element, #ffffff);
+}
+
+.leave-types-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.leave-types-title {
+  margin: 0;
+  color: var(--text-primary, #1f2937);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.leave-types-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+}
+
+.leave-types-add-btn {
+  height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--primary-500, #1a73e8);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.leave-types-add-btn:hover {
+  background: var(--primary-600, #1557b0);
+}
+
+.leave-types-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.leave-types-stat-card {
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  background: var(--bg-element, #fff);
+  padding: 14px 14px 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leave-types-stat-label {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.leave-types-stat-value {
+  margin: 2px 0 0;
+  color: #1f2937;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.leave-types-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  font-size: 18px;
+}
+
+.leave-types-table-wrap {
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.leave-types-th {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #64748b;
+  padding: 14px 16px;
+  background: #f8fafc;
+}
+
+.leave-types-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.leave-types-td {
+  padding: 14px 16px;
+}
+
+.leave-types-name {
+  margin: 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.leave-types-description {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.leave-types-action-btn {
+  width: 28px;
+  height: 28px;
+}
+
+.leave-types-table-wrap {
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .leave-types-tab {
+    padding: 16px;
+  }
+
+  .leave-types-section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .leave-types-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .leave-types-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Leave type dialog - Figma alignment */
+.leave-type-dialog-header {
+  border-bottom: 1px solid var(--Border-Subtle, #E5E7EB);
+  background: var(--Background-Page, #F8FAFC);
+  display: flex;
+  padding: var(--Space-4, 16px) var(--Space-5, 20px);
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+}
+
+.leave-type-dialog-header-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.leave-type-dialog-title {
+  flex: 1;
+  margin: 0;
+  color: var(--Text-Primary, #1F2937);
+  font-size: var(--Font-Size-xl, 20px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 30px;
+  /* 150% */
+}
+
+.leave-type-dialog-close {
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.leave-type-dialog-content {
+  padding: 24px;
+}
+
+.leave-type-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.leave-type-form-layout .form-field {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.leave-type-form-layout .form-label {
+  margin: 0;
+  color: var(--surface-700, #344155);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.leave-type-input,
+.leave-type-textarea {
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+  color: var(--text-primary, #1f2937);
+  font-size: 13px;
+}
+
+.leave-type-textarea {
+  min-height: 157px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.leave-type-active-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-top: 2px;
+  width: 100%;
+  margin-right: auto;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.leave-type-active-row .form-label {
+  line-height: 20px;
+  text-align: left;
+}
+
+:host ::ng-deep .leave-type-input.p-inputtext {
+  height: 38px;
+  padding: 0 8px;
+}
+
+:host ::ng-deep .leave-type-textarea.p-inputtextarea {
+  border: 1px solid var(--surface-200, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+  min-height: 157px;
+}
+
+:host ::ng-deep .leave-type-input.p-inputtext::placeholder,
+:host ::ng-deep .leave-type-textarea.p-inputtextarea::placeholder {
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  opacity: 1;
+}
+
+.leave-type-dialog-footer {
+  display: flex;
+  padding: var(--Space-4, 16px) var(--Space-5, 20px);
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+  border-top: 1px solid var(--Border-Subtle, #E5E7EB);
+  background: var(--Background-Page, #F8FAFC);
+}
+
+:host ::ng-deep .app-dialog.app-dialog--medium.p-dialog {
+  overflow: hidden;
+  background: var(--bg-page, #f8fafc);
+}
+
+:host ::ng-deep .app-dialog.app-dialog--medium .p-dialog-content {
+  padding: 0;
+  background: var(--bg-page, #f8fafc);
+}
+
+:host ::ng-deep .app-dialog.app-dialog--medium .p-dialog-footer {
+  padding: 0;
+  background: var(--bg-page, #f8fafc);
+}
+
+:host ::ng-deep .leave-type-footer-cancel.p-button {
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: var(--text-primary, #1f2937);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+:host ::ng-deep .leave-type-footer-cancel.p-button:not(:disabled):hover {
+  background: #f9fafb;
+  border-color: #c5ccd6;
+  color: var(--text-primary, #1f2937);
+}
+
+:host ::ng-deep .leave-type-footer-primary.p-button {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-md, 6px);
+  border: 0;
+  background: var(--primary-500, #1a73e8);
+  color: var(--text-inverse, #ffffff);
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+}
+
+:host ::ng-deep .leave-type-footer-primary.p-button:not(:disabled):hover {
+  background: var(--primary-600, #1557b0);
+  color: var(--text-inverse, #ffffff);
+}
+
+:host ::ng-deep .leave-type-footer-primary .p-button-icon,
+:host ::ng-deep .leave-type-footer-primary .p-button-label {
+  color: var(--text-inverse, #ffffff);
+}

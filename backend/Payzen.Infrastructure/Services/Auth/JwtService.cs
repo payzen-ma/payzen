@@ -21,6 +21,10 @@ public class JwtService : IJwtService
     public JwtService(IConfiguration config, AppDbContext db)
     {
         _key = config["JwtSettings:Key"] ?? throw new InvalidOperationException("JwtSettings:Key manquant");
+        if (string.IsNullOrWhiteSpace(_key))
+            throw new InvalidOperationException("JwtSettings:Key vide. Fournissez une clé JWT (>= 32 caractères).");
+        if (_key.Length < 32)
+            throw new InvalidOperationException("JwtSettings:Key trop courte. Utilisez au moins 32 caractères.");
         _issuer = config["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JwtSettings:Issuer manquant");
         _audience = config["JwtSettings:Audience"] ?? throw new InvalidOperationException("JwtSettings:Audience manquant");
         _expiresMinutes = int.Parse(config["JwtSettings:ExpiresInMinutes"] ?? "120");

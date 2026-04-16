@@ -1,6 +1,7 @@
-import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { take } from 'rxjs';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { combineLatest, take } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
 import { DashboardHrRepository } from '../data/dashboard-hr.repository';
 import { DashboardHrData, DashboardFilterState, DashboardHrQuery, DashboardTab, DashboardTabId } from './dashboard-hr.models';
@@ -24,6 +25,8 @@ export class DashboardHrStore {
   private readonly repository = inject(DashboardHrRepository);
   private readonly contextService = inject(CompanyContextService);
   private readonly destroyRef = inject(DestroyRef);
+  private loadRequestId = 0;
+  private loadQueryKey = '';
 
   readonly data = signal<DashboardHrData | null>(null);
   readonly rawData = signal<DashboardHrRawData | null>(null);
@@ -82,23 +85,66 @@ export class DashboardHrStore {
 
     this.contextService.contextChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.load({ hard: false }));
+      .subscribe(() => {
+        this.compareRawByMonth.set({});
+        this.rawData.set(null);
+        this.data.set(null);
+        // Reset department/contractType filters to [] so syncFilterDefaults()
+        // fills them entirely from the new company's data instead of keeping
+        // the intersection with the previous company's departments (which caused
+        // partial employee counts after a context switch).
+        this.filters.update(current => ({
+          ...current,
+          departments: [],
+          contractTypes: []
+        }));
+        this.load({ hard: true });
+      });
 
-    // Recompute materialized data snapshot whenever raw or filters change.
-    effect(() => {
-      const raw = this.rawData();
-      const filters = this.filters();
-      const fallbackCompareMonth = this.isAllTimeMonth(filters.month) ? null : this.previousYearMonth(filters.month);
-      const compareMonth = filters.compareMonth ?? fallbackCompareMonth;
-      const compare = compareMonth ? this.compareRawByMonth()[compareMonth] ?? null : null;
-      if (!raw) {
-        return;
-      }
-      this.data.set(aggregateDashboardFromRaw(raw, filters, compare));
-    }, { allowSignalWrites: true });
+    // Recompute the dashboard snapshot reactively.
+    // combineLatest + filter ensures aggregation only runs when rawData is fresh
+    // and its embedded companyId matches the current context — preventing stale
+    // snapshots from a previous company from being displayed after a context switch.
+    combineLatest([
+      toObservable(this.rawData),
+      toObservable(this.filters),
+      toObservable(this.compareRawByMonth)
+    ])
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(([raw]) => {
+          if (!raw) {
+            return false;
+          }
+          const currentId = this.contextService.companyId();
+          const rawId = String(raw.meta.companyId);
+          // Allow null companyId only when raw.meta.companyId is also 0/null (non-expert mode).
+          const accepted = currentId === null
+            ? (raw.meta.companyId === 0 || raw.meta.companyId === null)
+            : rawId === String(currentId);
+
+          return accepted;
+        }),
+        map(([raw, filters, compareMap]) => {
+          const fallbackCompareMonth = this.isAllTimeMonth(filters.month) ? null : this.previousYearMonth(filters.month);
+          const compareMonth = filters.compareMonth ?? fallbackCompareMonth;
+          const compare = compareMonth ? compareMap[compareMonth] ?? null : null;
+          return aggregateDashboardFromRaw(raw!, filters, compare);
+        })
+      )
+      .subscribe(result => this.data.set(result));
   }
 
   load(options: { hard: boolean }): void {
+    const query = this.buildQuery();
+    if (query.isExpertMode && !query.companyId) {
+      this.isLoading.set(false);
+      this.isRefreshing.set(false);
+      return;
+    }
+    const queryKey = this.queryToKey(query);
+    const requestId = ++this.loadRequestId;
+    this.loadQueryKey = queryKey;
     if (options.hard) {
       this.isLoading.set(true);
     } else {
@@ -108,14 +154,19 @@ export class DashboardHrStore {
     this.error.set(null);
 
     this.repository
-      .getDashboardRawData(this.buildQuery())
+      .getDashboardRawData(query)
       .pipe(take(1))
       .subscribe({
         next: raw => {
+          const isCurrent = requestId === this.loadRequestId && queryKey === this.loadQueryKey;
+          if (!isCurrent) {
+            return;
+          }
           this.rawData.set(raw);
           this.loadedAtIso.set(raw.meta.generatedAt);
           this.warnings.set([]);
           this.dataSource.set('api');
+          this.compareRawByMonth.set({});
           const optionsSet = extractAvailableFilterOptions(raw, this.filters().month);
           this.availableDepartments.set(optionsSet.departments);
           this.availableContractTypes.set(optionsSet.contractTypes);
@@ -131,11 +182,17 @@ export class DashboardHrStore {
           }
         },
         error: error => {
+          if (requestId !== this.loadRequestId || queryKey !== this.loadQueryKey) {
+            return;
+          }
           this.repository
-            .getDashboardData(this.buildQuery())
+            .getDashboardData(query)
             .pipe(take(1))
             .subscribe({
               next: payload => {
+                if (requestId !== this.loadRequestId || queryKey !== this.loadQueryKey) {
+                  return;
+                }
                 this.data.set(payload.data);
                 this.warnings.set([
                   ...payload.meta.warnings,
@@ -148,6 +205,9 @@ export class DashboardHrStore {
                 this.isRefreshing.set(false);
               },
               error: () => {
+                if (requestId !== this.loadRequestId || queryKey !== this.loadQueryKey) {
+                  return;
+                }
                 this.error.set('Impossible de charger le dashboard RH dynamique.');
                 this.isLoading.set(false);
                 this.isRefreshing.set(false);
@@ -235,14 +295,19 @@ export class DashboardHrStore {
       return;
     }
 
+    // Capture the companyId at the moment the request is fired.
+    // If the context switches before the response arrives, the result is discarded.
+    const queryAtDispatch = this.buildQuery();
+    const companyIdAtDispatch = queryAtDispatch.companyId;
+
     this.repository
-      .getDashboardRawData({
-        ...this.buildQuery(),
-        month
-      })
+      .getDashboardRawData({ ...queryAtDispatch, month })
       .pipe(take(1))
       .subscribe({
         next: raw => {
+          if (this.contextService.companyId() !== companyIdAtDispatch) {
+            return;
+          }
           this.compareRawByMonth.update(current => ({ ...current, [month]: raw }));
         },
         error: () => {
@@ -283,5 +348,9 @@ export class DashboardHrStore {
     }
 
     return values;
+  }
+
+  private queryToKey(query: DashboardHrQuery): string {
+    return `${query.companyId ?? 'none'}|${query.isExpertMode}|${query.isClientView}|${query.month ?? 'all'}|${query.compareMonth ?? 'none'}`;
   }
 }

@@ -15,13 +15,13 @@
           </p>
         </div>
       </div>
-      
+
       <ul class="space-y-2.5 pt-3 border-t border-gray-100">
         @for (point of helpPoints; track point) {
-          <li class="flex items-start gap-2">
-            <i class="pi pi-check-circle text-blue-600 text-xs mt-0.5 shrink-0"></i>
-            <span class="text-xs text-gray-700">{{ point | translate }}</span>
-          </li>
+        <li class="flex items-start gap-2">
+          <i class="pi pi-check-circle text-blue-600 text-xs mt-0.5 shrink-0"></i>
+          <span class="text-xs text-gray-700">{{ point | translate }}</span>
+        </li>
         }
       </ul>
     </div>
@@ -30,508 +30,363 @@
 
 <!-- Loading Skeleton -->
 @if (loading() && !company()) {
-  <div class="animate-pulse p-6">
-    <div class="space-y-6 max-w-7xl mx-auto">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="bg-gray-200 rounded-xl h-48"></div>
-      }
-    </div>
+<div class="animate-pulse p-6">
+  <div class="space-y-6 max-w-7xl mx-auto">
+    @for (i of [1, 2, 3]; track i) {
+    <div class="bg-gray-200 rounded-xl h-48"></div>
+    }
   </div>
+</div>
 }
 
 <!-- Main Content -->
 @if (!loading() || company()) {
-  <div class="p-4 sm:p-6">
-    <div class="max-w-7xl mx-auto">
-      
-      <!-- Page Header -->
-      <header class="flex items-center justify-between mb-6">
+<div class="p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Page Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-900">
+          {{ 'company.hrSettings.title' | translate }}
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          {{ 'company.hrSettings.helpDescription' | translate }}
+        </p>
+      </div>
+      <button type="button" (click)="helpPopover.toggle($event)"
+        class="shrink-0 size-10 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 grid place-items-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        [attr.aria-label]="'company.hrSettings.helpTitle' | translate" aria-haspopup="dialog">
+        <i class="pi pi-question-circle text-blue-600 text-lg"></i>
+      </button>
+    </header>
+
+    <!-- Form Error Summary -->
+    @if (formSubmitted && hrForm.invalid) {
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert" aria-live="polite">
+      <div class="flex items-start gap-3">
+        <i class="pi pi-exclamation-triangle text-red-600 mt-0.5"></i>
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">
-            {{ 'company.hrSettings.title' | translate }}
-          </h1>
-          <p class="text-sm text-gray-500 mt-1">
-            {{ 'company.hrSettings.helpDescription' | translate }}
+          <h2 class="text-sm font-semibold text-red-900 mb-1">
+            {{ 'company.hrSettings.formErrors' | translate }}
+          </h2>
+          <ul class="text-sm text-red-800 space-y-1 list-disc list-inside">
+            @if (hrForm.get('currency')?.invalid) {
+            <li>{{ 'company.hrSettings.errors.currencyRequired' | translate }}</li>
+            }
+            @if (hrForm.get('paymentFrequency')?.invalid) {
+            <li>{{ 'company.hrSettings.errors.paymentFrequencyRequired' | translate }}</li>
+            }
+            @if (hrForm.get('fiscalYearStartMonth')?.invalid) {
+            <li>{{ 'company.hrSettings.errors.fiscalYearRequired' | translate }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="hrForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+      <!-- Working Schedule Section -->
+      <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="schedule-heading">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h2 id="schedule-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-calendar text-blue-600"></i>
+            {{ 'company.hrSettings.workingSchedule' | translate }}
+          </h2>
+          <p class="text-sm text-gray-600 mt-1">
+            {{ 'company.hrSettings.workingScheduleDesc' | translate }}
           </p>
         </div>
-        <button 
-          type="button"
-          (click)="helpPopover.toggle($event)"
-          class="shrink-0 size-10 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 grid place-items-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          [attr.aria-label]="'company.hrSettings.helpTitle' | translate"
-          aria-haspopup="dialog">
-          <i class="pi pi-question-circle text-blue-600 text-lg"></i>
-        </button>
-      </header>
 
-      <!-- Form Error Summary -->
-      @if (formSubmitted && hrForm.invalid) {
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert" aria-live="polite">
-          <div class="flex items-start gap-3">
-            <i class="pi pi-exclamation-triangle text-red-600 mt-0.5"></i>
-            <div>
-              <h2 class="text-sm font-semibold text-red-900 mb-1">
-                {{ 'company.hrSettings.formErrors' | translate }}
-              </h2>
-              <ul class="text-sm text-red-800 space-y-1 list-disc list-inside">
-                @if (hrForm.get('currency')?.invalid) {
-                  <li>{{ 'company.hrSettings.errors.currencyRequired' | translate }}</li>
-                }
-                @if (hrForm.get('paymentFrequency')?.invalid) {
-                  <li>{{ 'company.hrSettings.errors.paymentFrequencyRequired' | translate }}</li>
-                }
-                @if (hrForm.get('fiscalYearStartMonth')?.invalid) {
-                  <li>{{ 'company.hrSettings.errors.fiscalYearRequired' | translate }}</li>
-                }
-              </ul>
-            </div>
-          </div>
-        </div>
-      }
+        <div class="p-6 space-y-6">
+          <!-- Working Days -->
+          <div class="form-field">
+            <label for="workingDays" class="form-label form-label-required">
+              {{ 'company.hrSettings.workingDays' | translate }}
+            </label>
 
-      <!-- Form -->
-      <form [formGroup]="hrForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        
-        <!-- Working Schedule Section -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="schedule-heading">
-          <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 id="schedule-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <i class="pi pi-calendar text-blue-600"></i>
-              {{ 'company.hrSettings.workingSchedule' | translate }}
-            </h2>
-            <p class="text-sm text-gray-600 mt-1">
-              {{ 'company.hrSettings.workingScheduleDesc' | translate }}
-            </p>
-          </div>
-          
-          <div class="p-6 space-y-6">
-            <!-- Working Days -->
-            <div class="form-field">
-              <label for="workingDays" class="form-label form-label-required">
-                {{ 'company.hrSettings.workingDays' | translate }}
-              </label>
-              
-              <!-- Days Selector with Enhanced UI -->
-              <div class="grid grid-cols-7 gap-2">
-                @for (day of workingDaysOptions; track day.value) {
-                  <button
-                    type="button"
-                    [class]="'relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ' + 
-                      (hrForm.get('workingDays')?.value?.includes(day.value) 
+            <!-- Days Selector with Enhanced UI -->
+            <div class="grid grid-cols-7 gap-2">
+              @for (day of workingDaysOptions; track day.value) {
+              <button type="button" [class]="'relative flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ' +
+                      (hrForm.get('workingDays')?.value?.includes(day.value)
                         ? (day.isWeekend ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-blue-50 border-blue-500 text-blue-700')
                         : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50')"
-                    (click)="toggleWorkingDay(day.value)"
-                    [attr.aria-label]="day.fullName | translate"
-                    [attr.aria-pressed]="hrForm.get('workingDays')?.value?.includes(day.value)">
-                    
-                    <!-- Selection Indicator -->
-                    @if (hrForm.get('workingDays')?.value?.includes(day.value)) {
-                      <div class="absolute -top-1 -right-1 size-4 rounded-full flex items-center justify-center"
-                           [class]="day.isWeekend ? 'bg-amber-500' : 'bg-blue-600'">
-                        <i class="pi pi-check text-white text-[10px]"></i>
-                      </div>
-                    }
-                    
-                    <!-- Day Icon -->
-                    <i [class]="'pi text-base mb-1 ' + day.icon"></i>
-                    
-                    <!-- Day Label -->
-                    <span class="text-[11px] font-semibold tracking-wide">{{ day.shortLabel | translate }}</span>
-                    
-                    <!-- Tooltip on hover -->
-                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
-                      {{ day.fullName | translate }}
-                    </span>
-                  </button>
+                (click)="toggleWorkingDay(day.value)" [attr.aria-label]="day.fullName | translate"
+                [attr.aria-pressed]="hrForm.get('workingDays')?.value?.includes(day.value)">
+
+                <!-- Selection Indicator -->
+                @if (hrForm.get('workingDays')?.value?.includes(day.value)) {
+                <div class="absolute -top-1 -right-1 size-4 rounded-full flex items-center justify-center"
+                  [class]="day.isWeekend ? 'bg-amber-500' : 'bg-blue-600'">
+                  <i class="pi pi-check text-white text-[10px]"></i>
+                </div>
                 }
-              </div>
-              
-              <small id="workingDays-help" class="mt-3 text-xs text-gray-500 flex items-start gap-1.5">
-                <i class="pi pi-info-circle text-blue-500 mt-0.5 shrink-0"></i>
-                <span>{{ 'company.hrSettings.workingDaysHint' | translate }}</span>
-              </small>
-              
-              @if (isFieldInvalid('workingDays')) {
-                <small class="form-error flex items-center gap-1.5" role="alert">
-                  <i class="pi pi-exclamation-circle"></i>
-                  <span>{{ 'company.hrSettings.errors.workingDaysRequired' | translate }}</span>
-                </small>
+
+                <!-- Day Icon -->
+                <i [class]="'pi text-base mb-1 ' + day.icon"></i>
+
+                <!-- Day Label -->
+                <span class="text-[11px] font-semibold tracking-wide">{{ day.shortLabel | translate }}</span>
+
+                <!-- Tooltip on hover -->
+                <span
+                  class="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                  {{ day.fullName | translate }}
+                </span>
+              </button>
               }
             </div>
 
-            <!-- Standard Work Hours (Per-Day Times) -->
-            <div class="form-field">
-              <label class="form-label">
-                {{ 'company.hrSettings.workingHours' | translate }}
-              </label>
-              
-              <!-- Working Days Hours Table -->
-              <div class="mt-4 overflow-x-auto">
-                <table class="w-full border-collapse">
-                  <thead>
-                    <tr class="bg-gray-100 border-b border-gray-300">
-                      <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                        {{ 'company.hrSettings.day' | translate }}
-                      </th>
-                      <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                        {{ 'company.hrSettings.startTime' | translate }}
-                      </th>
-                      <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                        {{ 'company.hrSettings.endTime' | translate }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (cal of workingCalendars(); track cal.dayOfWeek) {
-                      @if (cal.isWorkingDay) {
-                        <tr class="border-b border-gray-200 hover:bg-blue-50 transition-colors">
-                          <!-- Day Name -->
-                          <td class="px-4 py-3 text-sm font-medium text-gray-700">
-                            {{ getDayTranslationKey(cal.dayOfWeek) | translate }}
-                          </td>
-                          
-                          <!-- Start Hour Input -->
-                          <td class="px-4 py-3 text-center">
-                            <input
-                              type="number"
-                              min="0"
-                              max="23"
-                              [(ngModel)]="cal.startTimeHour"
-                              [ngModelOptions]="{standalone: true}"
-                              (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
-                              class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          </td>
-                          
-                          <!-- End Hour Input -->
-                          <td class="px-4 py-3 text-center">
-                            <input
-                              type="number"
-                              min="0"
-                              max="23"
-                              [(ngModel)]="cal.endTimeHour"
-                              [ngModelOptions]="{standalone: true}"
-                              (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
-                              class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          </td>
-                        </tr>
-                      }
-                    }
-                  </tbody>
-                </table>
-              </div>
-              
-              <small id="hours-help" class="block mt-3 text-xs text-gray-500 flex items-start gap-1.5">
-                <i class="pi pi-info-circle text-blue-500 mt-0.5 shrink-0"></i>
-                <span>{{ 'company.hrSettings.workingHoursHint' | translate }}</span>
-              </small>
-            </div>
+            <small id="workingDays-help" class="mt-3 text-xs text-gray-500 flex items-start gap-1.5">
+              <i class="pi pi-info-circle text-blue-500 mt-0.5 shrink-0"></i>
+              <span>{{ 'company.hrSettings.workingDaysHint' | translate }}</span>
+            </small>
 
-            <!-- Save Button for Working Schedule -->
-            <div class="flex items-center gap-3 pt-4 border-t border-gray-200">
-              <button
-                type="submit"
-                [disabled]="loading() || (!hrForm.dirty && !hrForm.get('workingDays')?.touched)"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg font-medium transition-colors duration-150 flex items-center gap-2">
-                <i class="pi pi-save" [class.animate-spin]="loading()"></i>
-                {{ 'common.save' | translate }}
-              </button>
-              <button
-                type="button"
-                (click)="onCancel()"
-                [disabled]="loading()"
-                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors duration-150">
-                {{ 'common.cancel' | translate }}
-              </button>
-            </div>
+            @if (isFieldInvalid('workingDays')) {
+            <small class="form-error flex items-center gap-1.5" role="alert">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>{{ 'company.hrSettings.errors.workingDaysRequired' | translate }}</span>
+            </small>
+            }
           </div>
-        </section>
 
-        <!-- Leave Rules Section -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="leave-heading">
-          <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 id="leave-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <i class="pi pi-sun text-amber-600"></i>
-              {{ 'company.hrSettings.leaveRules' | translate }}
-            </h2>
-            <p class="text-sm text-gray-600 mt-1">
-              {{ 'company.hrSettings.leaveRulesDesc' | translate }}
-            </p>
+          <!-- Standard Work Hours (Per-Day Times) -->
+          <div class="form-field">
+            <label class="form-label">
+              {{ 'company.hrSettings.workingHours' | translate }}
+            </label>
+
+            <!-- Working Days Hours Table -->
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-gray-100 border-b border-gray-300">
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      {{ 'company.hrSettings.day' | translate }}
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                      {{ 'company.hrSettings.startTime' | translate }}
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                      {{ 'company.hrSettings.endTime' | translate }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cal of workingCalendars(); track cal.dayOfWeek) {
+                  @if (cal.isWorkingDay) {
+                  <tr class="border-b border-gray-200 hover:bg-blue-50 transition-colors">
+                    <!-- Day Name -->
+                    <td class="px-4 py-3 text-sm font-medium text-gray-700">
+                      {{ getDayTranslationKey(cal.dayOfWeek) | translate }}
+                    </td>
+
+                    <!-- Start Hour Input -->
+                    <td class="px-4 py-3 text-center">
+                      <input type="number" min="0" max="23" [(ngModel)]="cal.startTimeHour"
+                        [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
+                        class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </td>
+
+                    <!-- End Hour Input -->
+                    <td class="px-4 py-3 text-center">
+                      <input type="number" min="0" max="23" [(ngModel)]="cal.endTimeHour"
+                        [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="updateDayHours(cal.dayOfWeek, cal.startTimeHour, cal.endTimeHour)"
+                        class="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </td>
+                  </tr>
+                  }
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <small id="hours-help" class="block mt-3 text-xs text-gray-500 flex items-start gap-1.5">
+              <i class="pi pi-info-circle text-blue-500 mt-0.5 shrink-0"></i>
+              <span>{{ 'company.hrSettings.workingHoursHint' | translate }}</span>
+            </small>
           </div>
-          
-          <div class="p-6 form-grid">
-            <!-- Leave Rate -->
-            <div class="form-field">
-              <label for="leaveRate" class="form-label form-label-required">
-                {{ 'company.hrSettings.leaveRate' | translate }}
-              </label>
-              <p-select 
-                id="leaveRate"
-                [options]="leaveRateOptions" 
-                formControlName="leaveAccrualRate" 
-                optionLabel="label" 
-                optionValue="value"
-                styleClass="w-full"
-                [attr.aria-required]="true"
-                aria-describedby="leaveRate-help">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-              <small id="leaveRate-help" class="block mt-2 text-xs text-gray-500">
-                {{ 'company.hrSettings.leaveRateHint' | translate }}
-              </small>
-            </div>
 
-            <!-- Include Saturdays -->
-            <div class="form-field">
-              <span class="form-label form-label-required">
-                {{ 'company.hrSettings.includeSaturdays' | translate }}
-              </span>
-              <div class="flex items-center gap-6" role="radiogroup">
-                <div class="flex items-center gap-2">
-                  <p-radioButton 
-                    name="includeSaturdays" 
-                    [value]="true" 
-                    formControlName="includeSaturdays" 
-                    inputId="satYes">
-                  </p-radioButton>
-                  <label for="satYes" class="text-sm text-gray-700 cursor-pointer">
-                    {{ 'common.yes' | translate }}
-                  </label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <p-radioButton 
-                    name="includeSaturdays" 
-                    [value]="false" 
-                    formControlName="includeSaturdays" 
-                    inputId="satNo">
-                  </p-radioButton>
-                  <label for="satNo" class="text-sm text-gray-700 cursor-pointer">
-                    {{ 'common.no' | translate }}
-                  </label>
-                </div>
-              </div>
-              <small class="block mt-2 text-xs text-gray-500">
-                {{ 'company.hrSettings.saturdaysHint' | translate }}
-              </small>
-            </div>
+          <!-- Save Button for Working Schedule -->
+          <div class="flex items-center gap-3 pt-4 border-t border-gray-200">
+            <button type="submit" [disabled]="loading() || (!hrForm.dirty && !hrForm.get('workingDays')?.touched)"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg font-medium transition-colors duration-150 flex items-center gap-2">
+              <i class="pi pi-save" [class.animate-spin]="loading()"></i>
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" (click)="onCancel()" [disabled]="loading()"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors duration-150">
+              {{ 'common.cancel' | translate }}
+            </button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Paramétrage Paie Section -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="payroll-heading">
-          <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 id="payroll-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <i class="pi pi-wallet text-amber-600"></i>
-              {{ 'company.hrSettings.payrollSetup' | translate }}
-            </h2>
-          </div>
-          
-          <div class="p-6 form-grid">
-            <!-- Currency -->
-            <div class="form-field">
-              <label for="currency" class="form-label form-label-required">
-                {{ 'company.hrSettings.currency' | translate }}
-              </label>
-              <p-select 
-                id="currency"
-                [options]="currencyOptions" 
-                formControlName="currency" 
-                optionLabel="label" 
-                optionValue="value"
-                styleClass="w-full"
-                [attr.aria-required]="true">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-            </div>
-
-            <!-- Payment Frequency -->
-            <div class="form-field">
-              <label for="paymentFrequency" class="form-label form-label-required">
-                {{ 'company.hrSettings.paymentFrequency' | translate }}
-              </label>
-              <p-select 
-                id="paymentFrequency"
-                [options]="paymentFrequencyOptions" 
-                formControlName="paymentFrequency" 
-                optionLabel="label" 
-                optionValue="value"
-                styleClass="w-full"
-                [attr.aria-required]="true">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-            </div>
-
-            <!-- Fiscal Year Start Month -->
-            <div class="form-field">
-              <label for="fiscalMonth" class="form-label form-label-required">
-                {{ 'company.hrSettings.fiscalYearStartMonth' | translate }}
-              </label>
-              <p-select 
-                id="fiscalMonth"
-                [options]="fiscalMonthOptions" 
-                formControlName="fiscalYearStartMonth" 
-                optionLabel="label" 
-                optionValue="value"
-                styleClass="w-full"
-                [attr.aria-required]="true">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-            </div>
-
-            <!-- Payment Mode -->
-            <div class="form-field">
-              <label for="paymentMode" class="form-label">
-                {{ 'company.hrSettings.paymentModeEmployees' | translate }}
-                <span class="text-gray-400 text-xs font-normal ml-1">({{ 'common.optional' | translate }})</span>
-              </label>
-              <p-select 
-                id="paymentMode"
-                [options]="paymentModeOptions" 
-                formControlName="defaultPaymentMode" 
-                optionLabel="label" 
-                optionValue="value"
-                [placeholder]="'company.hrSettings.selectPaymentMode' | translate"
-                styleClass="w-full">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-            </div>
-          </div>
-        </section>
-
-        <!-- Paramètres Avancés Section -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="advanced-heading">
-          <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 id="advanced-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <i class="pi pi-cog text-gray-600"></i>
-              {{ 'company.hrSettings.advancedSettings' | translate }}
-            </h2>
-          </div>
-          
-          <div class="p-6 form-container">
-            <!-- Sector / Activity -->
-            <div class="form-field">
-              <label for="sector" class="form-label">
-                {{ 'company.hrSettings.sector' | translate }}
-              </label>
-              <p-select 
-                id="sector"
-                [options]="sectorOptions" 
-                formControlName="sector" 
-                optionLabel="label" 
-                optionValue="value"
-                [placeholder]="'company.hrSettings.selectSector' | translate"
-                styleClass="w-full">
-                <ng-template let-option pTemplate="item">
-                  {{ option.label | translate }}
-                </ng-template>
-                <ng-template let-option pTemplate="selectedItem">
-                  {{ option.label | translate }}
-                </ng-template>
-              </p-select>
-            </div>
-
-            <!-- Collective Agreement -->
-            <div class="form-field">
-              <label for="collectiveAgreement" class="form-label">
-                {{ 'company.hrSettings.collectiveAgreement' | translate }}
-                <span class="text-gray-400 text-xs font-normal ml-1">({{ 'company.hrSettings.collectiveAgreementHint' | translate }})</span>
-              </label>
-              <input 
-                pInputText 
-                id="collectiveAgreement" 
-                formControlName="collectiveAgreement" 
-                class="input"
-                [placeholder]="'company.hrSettings.collectiveAgreementPlaceholder' | translate"
-                maxlength="200" />
-            </div>
-
-            <!-- CNSS Specific Parameters -->
-            <div class="form-field">
-              <label for="cnssParams" class="form-label">
-                {{ 'company.hrSettings.cnssSpecificParams' | translate }}
-                <span class="text-gray-400 text-xs font-normal ml-1">({{ 'company.hrSettings.cnssSpecificParamsHint' | translate }})</span>
-              </label>
-              <textarea 
-                pTextarea 
-                id="cnssParams" 
-                formControlName="cnssSpecificParameters" 
-                class="input"
-                [placeholder]="'company.hrSettings.cnssSpecificParamsPlaceholder' | translate"
-                rows="3"
-                maxlength="500">
-              </textarea>
-            </div>
-
-            <!-- IR Specific Parameters -->
-            <div class="form-field">
-              <label for="irParams" class="form-label">
-                {{ 'company.hrSettings.irSpecificParams' | translate }}
-                <span class="text-gray-400 text-xs font-normal ml-1">({{ 'company.hrSettings.irSpecificParamsHint' | translate }})</span>
-              </label>
-              <textarea 
-                pTextarea 
-                id="irParams" 
-                formControlName="irSpecificParameters" 
-                class="input"
-                [placeholder]="'company.hrSettings.irSpecificParamsPlaceholder' | translate"
-                rows="3"
-                maxlength="500">
-              </textarea>
-            </div>
-          </div>
-        </section>
-
-        <!-- Form Actions -->
-        <footer class="form-actions justify-between">
-          <p class="text-sm text-gray-500 flex items-center gap-1">
-            <i class="pi pi-info-circle"></i>
-            {{ 'company.hrSettings.saveNote' | translate }}
+      <!-- Leave Rules Section -->
+      <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="leave-heading">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h2 id="leave-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-sun text-amber-600"></i>
+            {{ 'company.hrSettings.leaveRules' | translate }}
+          </h2>
+          <p class="text-sm text-gray-600 mt-1">
+            {{ 'company.hrSettings.leaveRulesDesc' | translate }}
           </p>
-          <div class="flex gap-3">
-            <p-button 
-              type="button"
-              severity="secondary"
-              [label]="'common.cancel' | translate" 
-              icon="pi pi-times"
-              [disabled]="loading()"
-              (onClick)="onCancel()">
-            </p-button>
-            <p-button 
-              type="submit" 
-              [label]="'common.save' | translate" 
-              [loading]="loading()" 
-              [disabled]="loading()"
-              icon="pi pi-check">
-            </p-button>
+        </div>
+
+        <div class="p-6 form-grid">
+          <!-- Leave Rate -->
+          <div class="form-field">
+            <label for="leaveRate" class="form-label form-label-required">
+              {{ 'company.hrSettings.leaveRate' | translate }}
+            </label>
+            <p-select id="leaveRate" [options]="leaveRateOptions" formControlName="leaveAccrualRate" optionLabel="label"
+              optionValue="value" styleClass="w-full" [attr.aria-required]="true" aria-describedby="leaveRate-help">
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
+            <small id="leaveRate-help" class="block mt-2 text-xs text-gray-500">
+              {{ 'company.hrSettings.leaveRateHint' | translate }}
+            </small>
           </div>
-        </footer>
-      </form>
-    </div>
+
+          <!-- Include Saturdays -->
+          <div class="form-field">
+            <span class="form-label form-label-required">
+              {{ 'company.hrSettings.includeSaturdays' | translate }}
+            </span>
+            <div class="flex items-center gap-6" role="radiogroup">
+              <div class="flex items-center gap-2">
+                <p-radioButton name="includeSaturdays" [value]="true" formControlName="includeSaturdays"
+                  inputId="satYes">
+                </p-radioButton>
+                <label for="satYes" class="text-sm text-gray-700 cursor-pointer">
+                  {{ 'common.yes' | translate }}
+                </label>
+              </div>
+              <div class="flex items-center gap-2">
+                <p-radioButton name="includeSaturdays" [value]="false" formControlName="includeSaturdays"
+                  inputId="satNo">
+                </p-radioButton>
+                <label for="satNo" class="text-sm text-gray-700 cursor-pointer">
+                  {{ 'common.no' | translate }}
+                </label>
+              </div>
+            </div>
+            <small class="block mt-2 text-xs text-gray-500">
+              {{ 'company.hrSettings.saturdaysHint' | translate }}
+            </small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Paramétrage Paie Section -->
+      <section class="bg-white rounded-xl border border-gray-200 shadow-sm" aria-labelledby="payroll-heading">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h2 id="payroll-heading" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-wallet text-amber-600"></i>
+            {{ 'company.hrSettings.payrollSetup' | translate }}
+          </h2>
+        </div>
+
+        <div class="p-6 form-grid">
+          <!-- Currency -->
+          <div class="form-field">
+            <label for="currency" class="form-label form-label-required">
+              {{ 'company.hrSettings.currency' | translate }}
+            </label>
+            <p-select id="currency" [options]="currencyOptions" formControlName="currency" optionLabel="label"
+              optionValue="value" styleClass="w-full" [attr.aria-required]="true">
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
+          </div>
+
+          <!-- Payment Frequency -->
+          <div class="form-field">
+            <label for="paymentFrequency" class="form-label form-label-required">
+              {{ 'company.hrSettings.paymentFrequency' | translate }}
+            </label>
+            <p-select id="paymentFrequency" [options]="paymentFrequencyOptions" formControlName="paymentFrequency"
+              optionLabel="label" optionValue="value" styleClass="w-full" [attr.aria-required]="true">
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
+          </div>
+
+          <!-- Fiscal Year Start Month -->
+          <div class="form-field">
+            <label for="fiscalMonth" class="form-label form-label-required">
+              {{ 'company.hrSettings.fiscalYearStartMonth' | translate }}
+            </label>
+            <p-select id="fiscalMonth" [options]="fiscalMonthOptions" formControlName="fiscalYearStartMonth"
+              optionLabel="label" optionValue="value" styleClass="w-full" [attr.aria-required]="true">
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
+          </div>
+
+          <!-- Payment Mode -->
+          <div class="form-field">
+            <label for="paymentMode" class="form-label">
+              {{ 'company.hrSettings.paymentModeEmployees' | translate }}
+              <span class="text-gray-400 text-xs font-normal ml-1">({{ 'common.optional' | translate }})</span>
+            </label>
+            <p-select id="paymentMode" [options]="paymentModeOptions" formControlName="defaultPaymentMode"
+              optionLabel="label" optionValue="value" [placeholder]="'company.hrSettings.selectPaymentMode' | translate"
+              styleClass="w-full">
+              <ng-template let-option pTemplate="item">
+                {{ option.label | translate }}
+              </ng-template>
+              <ng-template let-option pTemplate="selectedItem">
+                {{ option.label | translate }}
+              </ng-template>
+            </p-select>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Form Actions -->
+      <footer class="form-actions justify-between">
+        <p class="text-sm text-gray-500 flex items-center gap-1">
+          <i class="pi pi-info-circle"></i>
+          {{ 'company.hrSettings.saveNote' | translate }}
+        </p>
+        <div class="flex gap-3">
+          <p-button type="button" severity="secondary" [label]="'common.cancel' | translate" icon="pi pi-times"
+            [disabled]="loading()" (onClick)="onCancel()">
+          </p-button>
+          <p-button type="submit" [label]="'common.save' | translate" [loading]="loading()" [disabled]="loading()"
+            icon="pi pi-check">
+          </p-button>
+        </div>
+      </footer>
+    </form>
   </div>
+</div>
 }
 
 <p-toast />

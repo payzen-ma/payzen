@@ -20,14 +20,24 @@ export class ProfileComponent {
 
   readonly user = this.authService.currentUser;
   readonly userRoleLabel = computed(() => {
-    const role = this.user()?.role;
+    const user = this.user();
+    const roles = Array.isArray(user?.roles)
+      ? user.roles.map(r => String(r).toLowerCase())
+      : [];
+    const contextRole = (this.contextService.role() ?? '').toLowerCase();
+    const isExpertContext = this.contextService.isExpertMode() || contextRole === UserRole.CABINET;
+    if (isExpertContext) {
+      return 'Expert comptable';
+    }
+    const hasRhRole = roles.includes(UserRole.RH);
+    const role = hasRhRole ? UserRole.RH : user?.role;
     const roleLabels: Record<string, string> = {
       [UserRole.ADMIN]: 'Admin',
-      [UserRole.RH]: 'RH',
+      [UserRole.RH]: 'Ressource humain',
       [UserRole.MANAGER]: 'Manager',
       [UserRole.CEO]: 'CEO',
       [UserRole.EMPLOYEE]: 'Employe',
-      [UserRole.CABINET]: 'Cabinet',
+      [UserRole.CABINET]: 'Expert comptable',
       [UserRole.ADMIN_PAYZEN]: 'Admin Payzen'
     };
     return role ? (roleLabels[role] ?? role) : '-';

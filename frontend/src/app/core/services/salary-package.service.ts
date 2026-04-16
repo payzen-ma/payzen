@@ -113,7 +113,7 @@ export class SalaryPackageService {
    */
   update(id: number, request: SalaryPackageWriteRequest): Observable<SalaryPackage> {
     const payload = this.toWritePayload(request, true);
-    return this.http.put<any>(`${this.packagesUrl}/${id}`, payload).pipe(
+    return this.http.patch<any>(`${this.packagesUrl}/${id}`, payload).pipe(
       map(pkg => this.transformPackage(pkg))
     );
   }

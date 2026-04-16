@@ -37,7 +37,6 @@ public class SalaryPackageCreateValidator : AbstractValidator<SalaryPackageCreat
     {
         RuleFor(x => x.Name).NotEmpty().Length(2, 200);
         RuleFor(x => x.Category).NotEmpty().Length(2, 100);
-        RuleFor(x => x.BusinessSectorId).GreaterThan(0).WithMessage("Le secteur d'activité est requis");
 
         RuleFor(x => x.Status)
             .NotEmpty()
