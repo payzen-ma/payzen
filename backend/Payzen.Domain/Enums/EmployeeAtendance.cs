@@ -9,12 +9,12 @@ namespace Payzen.Domain.Enums
         Present = 1,
         Absent = 2,
         Holiday = 3,
-        Leave = 4
+        Leave = 4,
     }
 
     public enum AttendanceSource
     {
         System = 1,
-        Manual = 2
+        Manual = 2,
     }
 }

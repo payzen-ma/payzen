@@ -10,8 +10,7 @@ namespace Payzen.Tests.Unit;
 /// </summary>
 public class PayrollEngineTests
 {
-    private readonly PayrollCalculationEngine _engine =
-        new(NullLogger<PayrollCalculationEngine>.Instance);
+    private readonly PayrollCalculationEngine _engine = new(NullLogger<PayrollCalculationEngine>.Instance);
 
     // ═══════════════════════════════════════════════════════════════════
     // MODULE 01 — CNSS
@@ -64,9 +63,9 @@ public class PayrollEngineTests
     // ═══════════════════════════════════════════════════════════════════
 
     [Theory]
-    [InlineData(3000, 0)]         // Tranche 0% → IR = 0
-    [InlineData(5000, "?")]       // Test que le résultat est positif (valeur exacte dépend frais pro)
-    [InlineData(20000, "?")]       // Tranche 37% → IR élevé
+    [InlineData(3000, 0)] // Tranche 0% → IR = 0
+    [InlineData(5000, "?")] // Test que le résultat est positif (valeur exacte dépend frais pro)
+    [InlineData(20000, "?")] // Tranche 37% → IR élevé
     public void IR_SalairesBruts_RetournePositif(decimal salaire, object _)
     {
         var dto = PayrollDtoBuilder.Create().WithBaseSalary(salaire).Build();
@@ -93,10 +92,12 @@ public class PayrollEngineTests
         decimal salaire = 12000;
 
         var sansEnfants = _engine.CalculatePayroll(
-            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithChildren(0).Build());
+            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithChildren(0).Build()
+        );
 
         var avecEnfants = _engine.CalculatePayroll(
-            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithChildren(2).Build());
+            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithChildren(2).Build()
+        );
 
         avecEnfants.IrFinal.Should().BeLessThan(sansEnfants.IrFinal);
     }
@@ -106,11 +107,11 @@ public class PayrollEngineTests
     {
         decimal salaire = 12000;
 
-        var sansFamille = _engine.CalculatePayroll(
-            PayrollDtoBuilder.Create().WithBaseSalary(salaire).Build());
+        var sansFamille = _engine.CalculatePayroll(PayrollDtoBuilder.Create().WithBaseSalary(salaire).Build());
 
         var avecFamille = _engine.CalculatePayroll(
-            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithSpouse().WithChildren(3).Build());
+            PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithSpouse().WithChildren(3).Build()
+        );
 
         avecFamille.IrFinal.Should().BeLessThan(sansFamille.IrFinal);
     }
@@ -144,9 +145,7 @@ public class PayrollEngineTests
         var dto = PayrollDtoBuilder.Create().WithBaseSalary(7000).Build();
         var result = _engine.CalculatePayroll(dto);
 
-        var attendu = result.SalaireBrutImposable
-                    - result.TotalRetenuesSalariales
-                    + result.TotalNiExonere;
+        var attendu = result.SalaireBrutImposable - result.TotalRetenuesSalariales + result.TotalNiExonere;
 
         result.SalaireNet.Should().BeApproximately(attendu, 0.01m);
     }
@@ -257,10 +256,11 @@ public class PayrollEngineTests
     [Fact]
     public void Cimr_AvecCimr_RetenuéPositive()
     {
-        var dto = PayrollDtoBuilder.Create()
-                        .WithBaseSalary(8000)
-                        .WithCimr(employeeRate: 0.03m, companyRate: 0.03m)
-                        .Build();
+        var dto = PayrollDtoBuilder
+            .Create()
+            .WithBaseSalary(8000)
+            .WithCimr(employeeRate: 0.03m, companyRate: 0.03m)
+            .Build();
         var result = _engine.CalculatePayroll(dto);
 
         result.CimrSalarial.Should().BeGreaterThan(0m);
@@ -270,11 +270,13 @@ public class PayrollEngineTests
     public void Panier_ProratiseSelonJoursTravailles_MoinsAbsences()
     {
         const decimal panierMensuelRef = 500m;
-        var moisComplet = PayrollDtoBuilder.Create()
+        var moisComplet = PayrollDtoBuilder
+            .Create()
             .WithBaseSalary(5000)
             .WithSalaryComponent("Prime de panier", panierMensuelRef, isTaxable: false)
             .Build();
-        var avecAbsences = PayrollDtoBuilder.Create()
+        var avecAbsences = PayrollDtoBuilder
+            .Create()
             .WithBaseSalary(5000)
             .WithAbsenceDays(2)
             .WithSalaryComponent("Prime de panier", panierMensuelRef, isTaxable: false)
@@ -292,10 +294,9 @@ public class PayrollEngineTests
     public void ComposanteSalaire_NonTaxable_SansCategorieNI_EntreDansBrutImposable()
     {
         const decimal prime = 1200m;
-        var sansPrime = PayrollDtoBuilder.Create()
-            .WithBaseSalary(5000)
-            .Build();
-        var avecPrime = PayrollDtoBuilder.Create()
+        var sansPrime = PayrollDtoBuilder.Create().WithBaseSalary(5000).Build();
+        var avecPrime = PayrollDtoBuilder
+            .Create()
             .WithBaseSalary(5000)
             .WithSalaryComponent("Prime de rendement", prime, isTaxable: false)
             .Build();
@@ -311,14 +312,8 @@ public class PayrollEngineTests
     public void Cimr_TauxSaisiEnPourcentage45_EquivautFraction0045()
     {
         const decimal salaire = 8000m;
-        var dtoFraction = PayrollDtoBuilder.Create()
-            .WithBaseSalary(salaire)
-            .WithCimr(0.045m, 0.045m)
-            .Build();
-        var dtoPercent = PayrollDtoBuilder.Create()
-            .WithBaseSalary(salaire)
-            .WithCimr(4.5m, 4.5m)
-            .Build();
+        var dtoFraction = PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithCimr(0.045m, 0.045m).Build();
+        var dtoPercent = PayrollDtoBuilder.Create().WithBaseSalary(salaire).WithCimr(4.5m, 4.5m).Build();
 
         var r1 = _engine.CalculatePayroll(dtoFraction);
         var r2 = _engine.CalculatePayroll(dtoPercent);
@@ -335,10 +330,11 @@ public class PayrollEngineTests
     public void NI_Transport_Exoneree()
     {
         // Prime transport NI 300 DH < plafond 500 DH → totalement exonérée
-        var dto = PayrollDtoBuilder.Create()
-                    .WithBaseSalary(5000)
-                    .WithPackageItem("Prime Transport", 300, isTaxable: false)
-                    .Build();
+        var dto = PayrollDtoBuilder
+            .Create()
+            .WithBaseSalary(5000)
+            .WithPackageItem("Prime Transport", 300, isTaxable: false)
+            .Build();
         var result = _engine.CalculatePayroll(dto);
 
         result.TotalNiExonere.Should().BeGreaterThan(0m);
@@ -375,12 +371,13 @@ public class PayrollEngineTests
     public void CasLimite_ToutesCotisations_NetPositif()
     {
         // CNSS + AMO + CIMR + Mutuelle + IR → malgré tout, net doit être > 0
-        var dto = PayrollDtoBuilder.Create()
-                        .WithBaseSalary(8000)
-                        .WithCimr(0.06m, 0.06m)
-                        .WithPrivateInsurance(0.05m)
-                        .WithChildren(2)
-                        .Build();
+        var dto = PayrollDtoBuilder
+            .Create()
+            .WithBaseSalary(8000)
+            .WithCimr(0.06m, 0.06m)
+            .WithPrivateInsurance(0.05m)
+            .WithChildren(2)
+            .Build();
         var result = _engine.CalculatePayroll(dto);
 
         result.Success.Should().BeTrue();

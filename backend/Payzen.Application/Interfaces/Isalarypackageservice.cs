@@ -10,15 +10,34 @@ namespace Payzen.Application.Interfaces;
 public interface ISalaryPackageService
 {
     // ── Package ──────────────────────────────────────────────
-    Task<ServiceResult<IEnumerable<SalaryPackageReadDto>>> GetAllAsync(int? companyId, string? scope, string? status, CancellationToken ct = default);
+    Task<ServiceResult<IEnumerable<SalaryPackageReadDto>>> GetAllAsync(
+        int? companyId,
+        string? scope,
+        string? status,
+        CancellationToken ct = default
+    );
     Task<ServiceResult<IEnumerable<SalaryPackageReadDto>>> GetTemplatesAsync(CancellationToken ct = default);
     Task<ServiceResult<SalaryPackageReadDto>> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageReadDto>> CreateAsync(SalaryPackageCreateDto dto, int createdBy, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageReadDto>> UpdateAsync(int id, SalaryPackageUpdateDto dto, int updatedBy, CancellationToken ct = default);
+    Task<ServiceResult<SalaryPackageReadDto>> CreateAsync(
+        SalaryPackageCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<SalaryPackageReadDto>> UpdateAsync(
+        int id,
+        SalaryPackageUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    );
     Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default);
 
     /// <summary>Clone un template global vers une entreprise cliente (Copy-on-Write).</summary>
-    Task<ServiceResult<SalaryPackageReadDto>> CloneAsync(int id, SalaryPackageCloneDto dto, int userId, CancellationToken ct = default);
+    Task<ServiceResult<SalaryPackageReadDto>> CloneAsync(
+        int id,
+        SalaryPackageCloneDto dto,
+        int userId,
+        CancellationToken ct = default
+    );
 
     /// <summary>Nouvelle version d'un package (versioning).</summary>
     Task<ServiceResult<SalaryPackageReadDto>> NewVersionAsync(int id, int userId, CancellationToken ct = default);
@@ -30,20 +49,54 @@ public interface ISalaryPackageService
     Task<ServiceResult<SalaryPackageReadDto>> DeprecateAsync(int id, int userId, CancellationToken ct = default);
 
     /// <summary>Duplique un package dans la même société.</summary>
-    Task<ServiceResult<SalaryPackageReadDto>> DuplicateAsync(int id, SalaryPackageDuplicateDto dto, int userId, CancellationToken ct = default);
+    Task<ServiceResult<SalaryPackageReadDto>> DuplicateAsync(
+        int id,
+        SalaryPackageDuplicateDto dto,
+        int userId,
+        CancellationToken ct = default
+    );
 
     // ── Items ─────────────────────────────────────────────────
-    Task<ServiceResult<IEnumerable<SalaryPackageItemReadDto>>> GetItemsAsync(int packageId, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageItemReadDto>> AddItemAsync(int packageId, SalaryPackageItemWriteDto dto, int createdBy, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageItemReadDto>> UpdateItemAsync(int itemId, SalaryPackageItemWriteDto dto, int updatedBy, CancellationToken ct = default);
+    Task<ServiceResult<IEnumerable<SalaryPackageItemReadDto>>> GetItemsAsync(
+        int packageId,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<SalaryPackageItemReadDto>> AddItemAsync(
+        int packageId,
+        SalaryPackageItemWriteDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<SalaryPackageItemReadDto>> UpdateItemAsync(
+        int itemId,
+        SalaryPackageItemWriteDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    );
     Task<ServiceResult> DeleteItemAsync(int itemId, int deletedBy, CancellationToken ct = default);
 
     // ── Assignment ───────────────────────────────────────────
-    Task<ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>> GetAssignmentsAsync(int employeeId, CancellationToken ct = default);
-    Task<ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>> GetAllAssignmentsAsync(int? companyId, int? employeeId, CancellationToken ct = default);
+    Task<ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>> GetAssignmentsAsync(
+        int employeeId,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<IEnumerable<SalaryPackageAssignmentReadDto>>> GetAllAssignmentsAsync(
+        int? companyId,
+        int? employeeId,
+        CancellationToken ct = default
+    );
     Task<ServiceResult<SalaryPackageAssignmentReadDto>> GetAssignmentByIdAsync(int id, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageAssignmentReadDto>> AssignAsync(SalaryPackageAssignmentCreateDto dto, int createdBy, CancellationToken ct = default);
-    Task<ServiceResult<SalaryPackageAssignmentReadDto>> UpdateAssignmentAsync(int id, SalaryPackageAssignmentUpdateDto dto, int updatedBy, CancellationToken ct = default);
+    Task<ServiceResult<SalaryPackageAssignmentReadDto>> AssignAsync(
+        SalaryPackageAssignmentCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<SalaryPackageAssignmentReadDto>> UpdateAssignmentAsync(
+        int id,
+        SalaryPackageAssignmentUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    );
     Task<ServiceResult> RevokeAssignmentAsync(int id, int deletedBy, CancellationToken ct = default);
 
     // ── Salary Preview (SalaryPreviewController) ─────────────

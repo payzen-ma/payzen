@@ -15,15 +15,14 @@ namespace Payzen.Infrastructure.Migrations
                 table: "Employees",
                 type: "decimal(10,2)",
                 nullable: false,
-                defaultValue: 0m);
+                defaultValue: 0m
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AnnualLeaveOpeningDays",
-                table: "Employees");
+            migrationBuilder.DropColumn(name: "AnnualLeaveOpeningDays", table: "Employees");
         }
     }
 }

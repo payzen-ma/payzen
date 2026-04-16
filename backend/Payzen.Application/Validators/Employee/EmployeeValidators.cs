@@ -25,20 +25,15 @@ public class EmployeeCreateValidator : AbstractValidator<EmployeeCreateDto>
             .Must(dob => DateOnly.FromDateTime(DateTime.Today).Year - dob.Year >= 16)
             .WithMessage("L'employé doit avoir au moins 16 ans");
 
-        When(x => x.CompanyId.HasValue, () =>
-            RuleFor(x => x.CompanyId!.Value).GreaterThan(0));
+        When(x => x.CompanyId.HasValue, () => RuleFor(x => x.CompanyId!.Value).GreaterThan(0));
 
-        When(x => x.Salary.HasValue, () =>
-            RuleFor(x => x.Salary!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.Salary.HasValue, () => RuleFor(x => x.Salary!.Value).GreaterThanOrEqualTo(0));
 
-        When(x => x.SalaryHourly.HasValue, () =>
-            RuleFor(x => x.SalaryHourly!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.SalaryHourly.HasValue, () => RuleFor(x => x.SalaryHourly!.Value).GreaterThanOrEqualTo(0));
 
-        When(x => x.Password != null, () =>
-            RuleFor(x => x.Password!).MinimumLength(8));
+        When(x => x.Password != null, () => RuleFor(x => x.Password!).MinimumLength(8));
 
-        When(x => x.InviteRoleId.HasValue, () =>
-            RuleFor(x => x.InviteRoleId!.Value).GreaterThan(0));
+        When(x => x.InviteRoleId.HasValue, () => RuleFor(x => x.InviteRoleId!.Value).GreaterThan(0));
     }
 }
 
@@ -46,42 +41,44 @@ public class EmployeeUpdateValidator : AbstractValidator<EmployeeUpdateDto>
 {
     public EmployeeUpdateValidator()
     {
-        When(x => x.Email != null, () =>
-            RuleFor(x => x.Email!).EmailAddress().MaximumLength(500));
+        When(x => x.Email != null, () => RuleFor(x => x.Email!).EmailAddress().MaximumLength(500));
 
-        When(x => x.Phone != null, () =>
-            RuleFor(x => x.Phone!)
-                .Matches("^\\d{9}$")
-                .WithMessage("Le numéro de téléphone doit contenir exactement 9 chiffres"));
+        When(
+            x => x.Phone != null,
+            () =>
+                RuleFor(x => x.Phone!)
+                    .Matches("^\\d{9}$")
+                    .WithMessage("Le numéro de téléphone doit contenir exactement 9 chiffres")
+        );
 
-        When(x => x.Phone != null, () =>
-            RuleFor(x => x.CountryPhoneCode)
-                .NotEmpty()
-                .Matches("^\\+\\d{1,4}$")
-                .WithMessage("L'indicatif pays est invalide (ex: +212)"));
+        When(
+            x => x.Phone != null,
+            () =>
+                RuleFor(x => x.CountryPhoneCode)
+                    .NotEmpty()
+                    .Matches("^\\+\\d{1,4}$")
+                    .WithMessage("L'indicatif pays est invalide (ex: +212)")
+        );
 
-        When(x => x.CountryPhoneCode != null, () =>
-            RuleFor(x => x.CountryPhoneCode!)
-                .Matches("^\\+\\d{1,4}$")
-                .WithMessage("L'indicatif pays est invalide (ex: +212)"));
+        When(
+            x => x.CountryPhoneCode != null,
+            () =>
+                RuleFor(x => x.CountryPhoneCode!)
+                    .Matches("^\\+\\d{1,4}$")
+                    .WithMessage("L'indicatif pays est invalide (ex: +212)")
+        );
 
-        When(x => x.FirstName != null, () =>
-            RuleFor(x => x.FirstName!).Length(2, 500));
+        When(x => x.FirstName != null, () => RuleFor(x => x.FirstName!).Length(2, 500));
 
-        When(x => x.LastName != null, () =>
-            RuleFor(x => x.LastName!).Length(2, 500));
+        When(x => x.LastName != null, () => RuleFor(x => x.LastName!).Length(2, 500));
 
-        When(x => x.Salary.HasValue, () =>
-            RuleFor(x => x.Salary!.Value).GreaterThan(0));
+        When(x => x.Salary.HasValue, () => RuleFor(x => x.Salary!.Value).GreaterThan(0));
 
-        When(x => x.SalaryHourly.HasValue, () =>
-            RuleFor(x => x.SalaryHourly!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.SalaryHourly.HasValue, () => RuleFor(x => x.SalaryHourly!.Value).GreaterThanOrEqualTo(0));
 
-        When(x => x.CnssNumber != null, () =>
-            RuleFor(x => x.CnssNumber!).MaximumLength(100));
+        When(x => x.CnssNumber != null, () => RuleFor(x => x.CnssNumber!).MaximumLength(100));
 
-        When(x => x.CimrNumber != null, () =>
-            RuleFor(x => x.CimrNumber!).MaximumLength(100));
+        When(x => x.CimrNumber != null, () => RuleFor(x => x.CimrNumber!).MaximumLength(100));
     }
 }
 
@@ -95,10 +92,13 @@ public class EmployeeContractCreateValidator : AbstractValidator<EmployeeContrac
         RuleFor(x => x.ContractTypeId).GreaterThan(0).WithMessage("L'ID du type de contrat est requis");
         RuleFor(x => x.StartDate).NotEmpty().WithMessage("La date de début est requise");
 
-        When(x => x.EndDate.HasValue, () =>
-            RuleFor(x => x.EndDate!.Value)
-                .GreaterThan(x => x.StartDate)
-                .WithMessage("La date de fin doit être postérieure à la date de début"));
+        When(
+            x => x.EndDate.HasValue,
+            () =>
+                RuleFor(x => x.EndDate!.Value)
+                    .GreaterThan(x => x.StartDate)
+                    .WithMessage("La date de fin doit être postérieure à la date de début")
+        );
     }
 }
 
@@ -114,16 +114,17 @@ public class EmployeeSalaryCreateValidator : AbstractValidator<EmployeeSalaryCre
             .Must(x => x.BaseSalary.HasValue || x.BaseSalaryHourly.HasValue)
             .WithMessage("Le salaire de base (BaseSalary) ou le salaire horaire (BaseSalaryHourly) est requis");
 
-        When(x => x.BaseSalary.HasValue, () =>
-            RuleFor(x => x.BaseSalary!.Value).GreaterThan(0));
+        When(x => x.BaseSalary.HasValue, () => RuleFor(x => x.BaseSalary!.Value).GreaterThan(0));
 
-        When(x => x.BaseSalaryHourly.HasValue, () =>
-            RuleFor(x => x.BaseSalaryHourly!.Value).GreaterThan(0));
+        When(x => x.BaseSalaryHourly.HasValue, () => RuleFor(x => x.BaseSalaryHourly!.Value).GreaterThan(0));
 
-        When(x => x.EndDate.HasValue, () =>
-            RuleFor(x => x.EndDate!.Value)
-                .GreaterThan(x => x.EffectiveDate)
-                .WithMessage("La date de fin doit être postérieure à la date d'effet"));
+        When(
+            x => x.EndDate.HasValue,
+            () =>
+                RuleFor(x => x.EndDate!.Value)
+                    .GreaterThan(x => x.EffectiveDate)
+                    .WithMessage("La date de fin doit être postérieure à la date d'effet")
+        );
     }
 }
 
@@ -136,10 +137,13 @@ public class EmployeeSalaryComponentCreateValidator : AbstractValidator<Employee
         RuleFor(x => x.Amount).NotEqual(0).WithMessage("Le montant est requis");
         RuleFor(x => x.EffectiveDate).NotEmpty().WithMessage("La date d'effet est requise");
 
-        When(x => x.EndDate.HasValue, () =>
-            RuleFor(x => x.EndDate!.Value)
-                .GreaterThan(x => x.EffectiveDate)
-                .WithMessage("La date de fin doit être postérieure à la date d'effet"));
+        When(
+            x => x.EndDate.HasValue,
+            () =>
+                RuleFor(x => x.EndDate!.Value)
+                    .GreaterThan(x => x.EffectiveDate)
+                    .WithMessage("La date de fin doit être postérieure à la date d'effet")
+        );
     }
 }
 
@@ -153,8 +157,7 @@ public class EmployeeAddressCreateValidator : AbstractValidator<EmployeeAddressC
         RuleFor(x => x.CityId).GreaterThan(0).WithMessage("L'ID de la ville est requis");
         RuleFor(x => x.CountryId).GreaterThan(0).WithMessage("L'ID du pays est requis");
 
-        When(x => x.AddressLine2 != null, () =>
-            RuleFor(x => x.AddressLine2!).MaximumLength(500));
+        When(x => x.AddressLine2 != null, () => RuleFor(x => x.AddressLine2!).MaximumLength(500));
     }
 }
 
@@ -178,7 +181,8 @@ public class EmployeeChildCreateValidator : AbstractValidator<EmployeeChildCreat
         RuleFor(x => x.LastName).NotEmpty().Length(2, 100);
         RuleFor(x => x.DateOfBirth)
             .NotEmpty()
-            .LessThan(DateTime.Today).WithMessage("La date de naissance doit être dans le passé");
+            .LessThan(DateTime.Today)
+            .WithMessage("La date de naissance doit être dans le passé");
     }
 }
 
@@ -191,10 +195,10 @@ public class EmployeeSpouseCreateValidator : AbstractValidator<EmployeeSpouseCre
         RuleFor(x => x.LastName).NotEmpty().Length(2, 100);
         RuleFor(x => x.DateOfBirth)
             .NotEmpty()
-            .LessThan(DateTime.Today).WithMessage("La date de naissance doit être dans le passé");
+            .LessThan(DateTime.Today)
+            .WithMessage("La date de naissance doit être dans le passé");
 
-        When(x => x.CinNumber != null, () =>
-            RuleFor(x => x.CinNumber!).MaximumLength(50));
+        When(x => x.CinNumber != null, () => RuleFor(x => x.CinNumber!).MaximumLength(50));
     }
 }
 
@@ -206,8 +210,7 @@ public class EmployeeAbsenceCreateValidator : AbstractValidator<EmployeeAbsenceC
         RuleFor(x => x.AbsenceDate).NotEmpty().WithMessage("La date d'absence est requise");
         RuleFor(x => x.AbsenceType).NotEmpty().MaximumLength(50);
 
-        When(x => x.Reason != null, () =>
-            RuleFor(x => x.Reason!).MaximumLength(500));
+        When(x => x.Reason != null, () => RuleFor(x => x.Reason!).MaximumLength(500));
     }
 }
 
@@ -218,13 +221,15 @@ public class EmployeeOvertimeCreateValidator : AbstractValidator<EmployeeOvertim
         RuleFor(x => x.EmployeeId).GreaterThan(0).WithMessage("L'ID de l'employé est requis");
         RuleFor(x => x.OvertimeDate).NotEmpty().WithMessage("La date est requise");
 
-        When(x => x.DurationInHours.HasValue, () =>
-            RuleFor(x => x.DurationInHours!.Value)
-                .InclusiveBetween(0.01m, 24m)
-                .WithMessage("La durée doit être entre 0.01 et 24 heures"));
+        When(
+            x => x.DurationInHours.HasValue,
+            () =>
+                RuleFor(x => x.DurationInHours!.Value)
+                    .InclusiveBetween(0.01m, 24m)
+                    .WithMessage("La durée doit être entre 0.01 et 24 heures")
+        );
 
-        When(x => x.EmployeeComment != null, () =>
-            RuleFor(x => x.EmployeeComment!).MaximumLength(500));
+        When(x => x.EmployeeComment != null, () => RuleFor(x => x.EmployeeComment!).MaximumLength(500));
     }
 }
 
@@ -235,9 +240,12 @@ public class EmployeeCategoryCreateValidator : AbstractValidator<EmployeeCategor
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de la société est requis");
         RuleFor(x => x.Name).NotEmpty().Length(2, 500);
 
-        When(x => x.PayrollPeriodicity != null, () =>
-            RuleFor(x => x.PayrollPeriodicity!)
-                .Must(p => p == "Mensuelle" || p == "Bimensuelle")
-                .WithMessage("La périodicité doit être 'Mensuelle' ou 'Bimensuelle'"));
+        When(
+            x => x.PayrollPeriodicity != null,
+            () =>
+                RuleFor(x => x.PayrollPeriodicity!)
+                    .Must(p => p == "Mensuelle" || p == "Bimensuelle")
+                    .WithMessage("La périodicité doit être 'Mensuelle' ou 'Bimensuelle'")
+        );
     }
 }

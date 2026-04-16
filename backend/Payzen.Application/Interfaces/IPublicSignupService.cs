@@ -17,7 +17,8 @@ public interface IPublicSignupService
         AuthenticatedCompanySignupDto request,
         int currentUserId,
         string currentUserEmail,
-        CancellationToken ct);
+        CancellationToken ct
+    );
 }
 
 public sealed record PublicSignupRequest(

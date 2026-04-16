@@ -40,15 +40,17 @@ public class CompanyOnboardingService : ICompanyOnboardingService
         for (int day = 0; day <= 6; day++)
         {
             bool isWorkingDay = day >= 1 && day <= 5;
-            _db.WorkingCalendars.Add(new WorkingCalendar
-            {
-                CompanyId = companyId,
-                DayOfWeek = day,
-                IsWorkingDay = isWorkingDay,
-                StartTime = isWorkingDay ? new TimeSpan(8, 30, 0) : null,
-                EndTime = isWorkingDay ? new TimeSpan(17, 30, 0) : null,
-                CreatedBy = userId
-            });
+            _db.WorkingCalendars.Add(
+                new WorkingCalendar
+                {
+                    CompanyId = companyId,
+                    DayOfWeek = day,
+                    IsWorkingDay = isWorkingDay,
+                    StartTime = isWorkingDay ? new TimeSpan(8, 30, 0) : null,
+                    EndTime = isWorkingDay ? new TimeSpan(17, 30, 0) : null,
+                    CreatedBy = userId,
+                }
+            );
         }
     }
 
@@ -58,22 +60,18 @@ public class CompanyOnboardingService : ICompanyOnboardingService
         if (exists)
             return;
 
-        var defaults = new[]
-        {
-            "CDI",
-            "CDD",
-            "Contrat d'intérim",
-            "Contrat de stage"
-        };
+        var defaults = new[] { "CDI", "CDD", "Contrat d'intérim", "Contrat de stage" };
 
         foreach (var name in defaults)
         {
-            _db.ContractTypes.Add(new ContractType
-            {
-                ContractTypeName = name,
-                CompanyId = companyId,
-                CreatedBy = userId
-            });
+            _db.ContractTypes.Add(
+                new ContractType
+                {
+                    ContractTypeName = name,
+                    CompanyId = companyId,
+                    CreatedBy = userId,
+                }
+            );
         }
     }
 
@@ -89,17 +87,19 @@ public class CompanyOnboardingService : ICompanyOnboardingService
             "Comptabilité",
             "Commercial",
             "Informatique",
-            "Production"
+            "Production",
         };
 
         foreach (var name in defaults)
         {
-            _db.Departements.Add(new Departement
-            {
-                CompanyId = companyId,
-                DepartementName = name,
-                CreatedBy = userId
-            });
+            _db.Departements.Add(
+                new Departement
+                {
+                    CompanyId = companyId,
+                    DepartementName = name,
+                    CreatedBy = userId,
+                }
+            );
         }
     }
 
@@ -115,17 +115,19 @@ public class CompanyOnboardingService : ICompanyOnboardingService
             "Comptable",
             "Commercial",
             "Développeur",
-            "Technicien"
+            "Technicien",
         };
 
         foreach (var name in defaults)
         {
-            _db.JobPositions.Add(new JobPosition
-            {
-                CompanyId = companyId,
-                Name = name,
-                CreatedBy = userId
-            });
+            _db.JobPositions.Add(
+                new JobPosition
+                {
+                    CompanyId = companyId,
+                    Name = name,
+                    CreatedBy = userId,
+                }
+            );
         }
     }
 
@@ -134,19 +136,23 @@ public class CompanyOnboardingService : ICompanyOnboardingService
         if (await _db.EmployeeCategories.AnyAsync(c => c.CompanyId == companyId, ct))
             return;
 
-        _db.EmployeeCategories.Add(new EmployeeCategory
-        {
-            CompanyId = companyId,
-            Name = "Cadre",
-            Mode = EmployeeCategoryMode.Attendance,
-            CreatedBy = userId
-        });
-        _db.EmployeeCategories.Add(new EmployeeCategory
-        {
-            CompanyId = companyId,
-            Name = "Ouvrier",
-            Mode = EmployeeCategoryMode.Attendance,
-            CreatedBy = userId
-        });
+        _db.EmployeeCategories.Add(
+            new EmployeeCategory
+            {
+                CompanyId = companyId,
+                Name = "Cadre",
+                Mode = EmployeeCategoryMode.Attendance,
+                CreatedBy = userId,
+            }
+        );
+        _db.EmployeeCategories.Add(
+            new EmployeeCategory
+            {
+                CompanyId = companyId,
+                Name = "Ouvrier",
+                Mode = EmployeeCategoryMode.Attendance,
+                CreatedBy = userId,
+            }
+        );
     }
 }

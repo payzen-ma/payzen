@@ -15,15 +15,14 @@ namespace Payzen.Infrastructure.Migrations
                 name: "AnnualLeaveOpeningEffectiveFrom",
                 table: "Employees",
                 type: "date",
-                nullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AnnualLeaveOpeningEffectiveFrom",
-                table: "Employees");
+            migrationBuilder.DropColumn(name: "AnnualLeaveOpeningEffectiveFrom", table: "Employees");
         }
     }
 }

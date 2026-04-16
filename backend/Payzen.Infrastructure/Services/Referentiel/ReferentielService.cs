@@ -10,14 +10,14 @@ namespace Payzen.Infrastructure.Services.Referentiel;
 public class ReferentielService : IReferentielService
 {
     private readonly AppDbContext _db;
+
     public ReferentielService(AppDbContext db) => _db = db;
 
     // ── Country ───────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<IEnumerable<CountryReadDto>>> GetCountriesAsync(CancellationToken ct = default)
     {
-        var list = await _db.Countries.OrderBy(c => c.CountryName)
-            .Select(c => MapCountry(c)).ToListAsync(ct);
+        var list = await _db.Countries.OrderBy(c => c.CountryName).Select(c => MapCountry(c)).ToListAsync(ct);
         return ServiceResult<IEnumerable<CountryReadDto>>.Ok(list);
     }
 
@@ -29,15 +29,30 @@ public class ReferentielService : IReferentielService
         return ServiceResult<CountryReadDto>.Ok(MapCountry(c));
     }
 
-    public async Task<ServiceResult<CountryReadDto>> CreateCountryAsync(CountryCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<CountryReadDto>> CreateCountryAsync(
+        CountryCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var c = new Country { CountryName = dto.CountryName, CountryCode = dto.CountryCode, CountryPhoneCode = dto.CountryPhoneCode, CreatedBy = createdBy };
+        var c = new Country
+        {
+            CountryName = dto.CountryName,
+            CountryCode = dto.CountryCode,
+            CountryPhoneCode = dto.CountryPhoneCode,
+            CreatedBy = createdBy,
+        };
         _db.Countries.Add(c);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<CountryReadDto>.Ok(MapCountry(c));
     }
 
-    public async Task<ServiceResult<CountryReadDto>> UpdateCountryAsync(int id, CountryUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<CountryReadDto>> UpdateCountryAsync(
+        int id,
+        CountryUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var c = await _db.Countries.FindAsync(new object[] { id }, ct);
         if (c == null)
@@ -66,7 +81,10 @@ public class ReferentielService : IReferentielService
 
     // ── City ──────────────────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<CityReadDto>>> GetCitiesAsync(int? countryId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<CityReadDto>>> GetCitiesAsync(
+        int? countryId,
+        CancellationToken ct = default
+    )
     {
         var q = _db.Cities.AsQueryable();
         if (countryId.HasValue)
@@ -83,15 +101,29 @@ public class ReferentielService : IReferentielService
         return ServiceResult<CityReadDto>.Ok(MapCity(c));
     }
 
-    public async Task<ServiceResult<CityReadDto>> CreateCityAsync(CityCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<CityReadDto>> CreateCityAsync(
+        CityCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var c = new City { CityName = dto.CityName, CountryId = dto.CountryId, CreatedBy = createdBy };
+        var c = new City
+        {
+            CityName = dto.CityName,
+            CountryId = dto.CountryId,
+            CreatedBy = createdBy,
+        };
         _db.Cities.Add(c);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<CityReadDto>.Ok(MapCity(c));
     }
 
-    public async Task<ServiceResult<CityReadDto>> UpdateCityAsync(int id, CityUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<CityReadDto>> UpdateCityAsync(
+        int id,
+        CityUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var c = await _db.Cities.FindAsync(new object[] { id }, ct);
         if (c == null)
@@ -116,14 +148,22 @@ public class ReferentielService : IReferentielService
 
     // ── Nationality ───────────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<NationalityReadDto>>> GetNationalitiesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<NationalityReadDto>>> GetNationalitiesAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.Nationalities.OrderBy(n => n.Name)
-            .Select(n => new NationalityReadDto { Id = n.Id, Name = n.Name }).ToListAsync(ct);
+        var list = await _db
+            .Nationalities.OrderBy(n => n.Name)
+            .Select(n => new NationalityReadDto { Id = n.Id, Name = n.Name })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<NationalityReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<NationalityReadDto>> CreateNationalityAsync(NationalityCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<NationalityReadDto>> CreateNationalityAsync(
+        NationalityCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var n = new Nationality { Name = dto.Name, CreatedBy = createdBy };
         _db.Nationalities.Add(n);
@@ -144,19 +184,38 @@ public class ReferentielService : IReferentielService
 
     // ── MaritalStatus ──────────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<MaritalStatusReadDto>>> GetMaritalStatusesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<MaritalStatusReadDto>>> GetMaritalStatusesAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.MaritalStatuses.OrderBy(m => m.NameFr)
-            .Select(m => new MaritalStatusReadDto { Id = m.Id, Code = m.Code, NameFr = m.NameFr, NameAr = m.NameAr, NameEn = m.NameEn, IsActive = true }).ToListAsync(ct);
+        var list = await _db
+            .MaritalStatuses.OrderBy(m => m.NameFr)
+            .Select(m => new MaritalStatusReadDto
+            {
+                Id = m.Id,
+                Code = m.Code,
+                NameFr = m.NameFr,
+                NameAr = m.NameAr,
+                NameEn = m.NameEn,
+                IsActive = true,
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<MaritalStatusReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<MaritalStatusReadDto>> CreateMaritalStatusAsync(MaritalStatusCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<MaritalStatusReadDto>> CreateMaritalStatusAsync(
+        MaritalStatusCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var nameFr = (dto.NameFr ?? dto.Name ?? "").Trim();
         if (string.IsNullOrEmpty(nameFr))
             return ServiceResult<MaritalStatusReadDto>.Fail("Le libellé (NameFr ou Name) est requis.");
-        var code = !string.IsNullOrWhiteSpace(dto.Code) ? dto.Code.Trim().ToUpperInvariant() : string.Concat(nameFr.ToUpperInvariant().Replace(" ", "_").Where(c => char.IsLetterOrDigit(c) || c == '_')).TrimStart('_');
+        var code = !string.IsNullOrWhiteSpace(dto.Code)
+            ? dto.Code.Trim().ToUpperInvariant()
+            : string.Concat(nameFr.ToUpperInvariant().Replace(" ", "_").Where(c => char.IsLetterOrDigit(c) || c == '_'))
+                .TrimStart('_');
         if (code.Length > 50)
             code = code[..50];
         if (string.IsNullOrEmpty(code))
@@ -171,18 +230,46 @@ public class ReferentielService : IReferentielService
         };
         _db.MaritalStatuses.Add(entity);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<MaritalStatusReadDto>.Ok(new MaritalStatusReadDto { Id = entity.Id, Code = entity.Code, NameFr = entity.NameFr, NameAr = entity.NameAr, NameEn = entity.NameEn, IsActive = true });
+        return ServiceResult<MaritalStatusReadDto>.Ok(
+            new MaritalStatusReadDto
+            {
+                Id = entity.Id,
+                Code = entity.Code,
+                NameFr = entity.NameFr,
+                NameAr = entity.NameAr,
+                NameEn = entity.NameEn,
+                IsActive = true,
+            }
+        );
     }
 
-    public async Task<ServiceResult<MaritalStatusReadDto>> GetMaritalStatusByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<MaritalStatusReadDto>> GetMaritalStatusByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
         var m = await _db.MaritalStatuses.Where(x => x.DeletedAt == null).FirstOrDefaultAsync(x => x.Id == id, ct);
         if (m == null)
             return ServiceResult<MaritalStatusReadDto>.Fail("Statut marital introuvable.");
-        return ServiceResult<MaritalStatusReadDto>.Ok(new MaritalStatusReadDto { Id = m.Id, Code = m.Code, NameFr = m.NameFr, NameAr = m.NameAr, NameEn = m.NameEn, IsActive = true });
+        return ServiceResult<MaritalStatusReadDto>.Ok(
+            new MaritalStatusReadDto
+            {
+                Id = m.Id,
+                Code = m.Code,
+                NameFr = m.NameFr,
+                NameAr = m.NameAr,
+                NameEn = m.NameEn,
+                IsActive = true,
+            }
+        );
     }
 
-    public async Task<ServiceResult<MaritalStatusReadDto>> UpdateMaritalStatusAsync(int id, MaritalStatusUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<MaritalStatusReadDto>> UpdateMaritalStatusAsync(
+        int id,
+        MaritalStatusUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var m = await _db.MaritalStatuses.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (m == null)
@@ -196,7 +283,17 @@ public class ReferentielService : IReferentielService
         m.UpdatedBy = updatedBy;
         m.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<MaritalStatusReadDto>.Ok(new MaritalStatusReadDto { Id = m.Id, Code = m.Code, NameFr = m.NameFr, NameAr = m.NameAr, NameEn = m.NameEn, IsActive = true });
+        return ServiceResult<MaritalStatusReadDto>.Ok(
+            new MaritalStatusReadDto
+            {
+                Id = m.Id,
+                Code = m.Code,
+                NameFr = m.NameFr,
+                NameAr = m.NameAr,
+                NameEn = m.NameEn,
+                IsActive = true,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteMaritalStatusAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -214,7 +311,19 @@ public class ReferentielService : IReferentielService
 
     public async Task<ServiceResult<IEnumerable<GenderReadDto>>> GetGendersAsync(CancellationToken ct = default)
     {
-        var list = await _db.Genders.Where(g => g.DeletedAt == null).OrderBy(g => g.NameFr).Select(g => new GenderReadDto { Id = g.Id, Code = g.Code, NameFr = g.NameFr, NameAr = g.NameAr, NameEn = g.NameEn, IsActive = g.IsActive }).ToListAsync(ct);
+        var list = await _db
+            .Genders.Where(g => g.DeletedAt == null)
+            .OrderBy(g => g.NameFr)
+            .Select(g => new GenderReadDto
+            {
+                Id = g.Id,
+                Code = g.Code,
+                NameFr = g.NameFr,
+                NameAr = g.NameAr,
+                NameEn = g.NameEn,
+                IsActive = g.IsActive,
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<GenderReadDto>>.Ok(list);
     }
 
@@ -223,19 +332,58 @@ public class ReferentielService : IReferentielService
         var g = await _db.Genders.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (g == null)
             return ServiceResult<GenderReadDto>.Fail("Genre introuvable.");
-        return ServiceResult<GenderReadDto>.Ok(new GenderReadDto { Id = g.Id, Code = g.Code, NameFr = g.NameFr, NameAr = g.NameAr, NameEn = g.NameEn, IsActive = g.IsActive });
+        return ServiceResult<GenderReadDto>.Ok(
+            new GenderReadDto
+            {
+                Id = g.Id,
+                Code = g.Code,
+                NameFr = g.NameFr,
+                NameAr = g.NameAr,
+                NameEn = g.NameEn,
+                IsActive = g.IsActive,
+            }
+        );
     }
 
-    public async Task<ServiceResult<GenderReadDto>> CreateGenderAsync(GenderCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<GenderReadDto>> CreateGenderAsync(
+        GenderCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var code = !string.IsNullOrWhiteSpace(dto.Code) ? dto.Code.Trim().ToUpperInvariant() : ("G_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
-        var g = new Gender { Code = code, NameFr = dto.NameFr, NameAr = dto.NameAr ?? dto.NameFr, NameEn = dto.NameEn ?? dto.NameFr, IsActive = true, CreatedBy = createdBy };
+        var code = !string.IsNullOrWhiteSpace(dto.Code)
+            ? dto.Code.Trim().ToUpperInvariant()
+            : ("G_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
+        var g = new Gender
+        {
+            Code = code,
+            NameFr = dto.NameFr,
+            NameAr = dto.NameAr ?? dto.NameFr,
+            NameEn = dto.NameEn ?? dto.NameFr,
+            IsActive = true,
+            CreatedBy = createdBy,
+        };
         _db.Genders.Add(g);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<GenderReadDto>.Ok(new GenderReadDto { Id = g.Id, Code = g.Code, NameFr = g.NameFr, NameAr = g.NameAr, NameEn = g.NameEn, IsActive = g.IsActive });
+        return ServiceResult<GenderReadDto>.Ok(
+            new GenderReadDto
+            {
+                Id = g.Id,
+                Code = g.Code,
+                NameFr = g.NameFr,
+                NameAr = g.NameAr,
+                NameEn = g.NameEn,
+                IsActive = g.IsActive,
+            }
+        );
     }
 
-    public async Task<ServiceResult<GenderReadDto>> UpdateGenderAsync(int id, GenderUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<GenderReadDto>> UpdateGenderAsync(
+        int id,
+        GenderUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var g = await _db.Genders.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (g == null)
@@ -251,7 +399,17 @@ public class ReferentielService : IReferentielService
         g.UpdatedBy = updatedBy;
         g.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<GenderReadDto>.Ok(new GenderReadDto { Id = g.Id, Code = g.Code, NameFr = g.NameFr, NameAr = g.NameAr, NameEn = g.NameEn, IsActive = g.IsActive });
+        return ServiceResult<GenderReadDto>.Ok(
+            new GenderReadDto
+            {
+                Id = g.Id,
+                Code = g.Code,
+                NameFr = g.NameFr,
+                NameAr = g.NameAr,
+                NameEn = g.NameEn,
+                IsActive = g.IsActive,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteGenderAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -269,7 +427,22 @@ public class ReferentielService : IReferentielService
 
     public async Task<ServiceResult<IEnumerable<StatusReadDto>>> GetStatusesAsync(CancellationToken ct = default)
     {
-        var list = await _db.Statuses.Where(s => s.DeletedAt == null).OrderBy(s => s.NameFr).Select(s => new StatusReadDto { Id = s.Id, Code = s.Code, NameFr = s.NameFr, NameAr = s.NameAr, NameEn = s.NameEn, IsActive = s.IsActive, AffectsAccess = s.AffectsAccess, AffectsPayroll = s.AffectsPayroll, AffectsAttendance = s.AffectsAttendance }).ToListAsync(ct);
+        var list = await _db
+            .Statuses.Where(s => s.DeletedAt == null)
+            .OrderBy(s => s.NameFr)
+            .Select(s => new StatusReadDto
+            {
+                Id = s.Id,
+                Code = s.Code,
+                NameFr = s.NameFr,
+                NameAr = s.NameAr,
+                NameEn = s.NameEn,
+                IsActive = s.IsActive,
+                AffectsAccess = s.AffectsAccess,
+                AffectsPayroll = s.AffectsPayroll,
+                AffectsAttendance = s.AffectsAttendance,
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<StatusReadDto>>.Ok(list);
     }
 
@@ -278,19 +451,67 @@ public class ReferentielService : IReferentielService
         var s = await _db.Statuses.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (s == null)
             return ServiceResult<StatusReadDto>.Fail("Statut introuvable.");
-        return ServiceResult<StatusReadDto>.Ok(new StatusReadDto { Id = s.Id, Code = s.Code, NameFr = s.NameFr, NameAr = s.NameAr, NameEn = s.NameEn, IsActive = s.IsActive, AffectsAccess = s.AffectsAccess, AffectsPayroll = s.AffectsPayroll, AffectsAttendance = s.AffectsAttendance });
+        return ServiceResult<StatusReadDto>.Ok(
+            new StatusReadDto
+            {
+                Id = s.Id,
+                Code = s.Code,
+                NameFr = s.NameFr,
+                NameAr = s.NameAr,
+                NameEn = s.NameEn,
+                IsActive = s.IsActive,
+                AffectsAccess = s.AffectsAccess,
+                AffectsPayroll = s.AffectsPayroll,
+                AffectsAttendance = s.AffectsAttendance,
+            }
+        );
     }
 
-    public async Task<ServiceResult<StatusReadDto>> CreateStatusAsync(StatusCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<StatusReadDto>> CreateStatusAsync(
+        StatusCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var code = !string.IsNullOrWhiteSpace(dto.Code) ? dto.Code.Trim().ToUpperInvariant() : ("ST_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
-        var s = new Status { Code = code, NameFr = dto.NameFr, NameAr = dto.NameAr ?? dto.NameFr, NameEn = dto.NameEn ?? dto.NameFr, IsActive = true, AffectsAccess = dto.AffectsAccess, AffectsPayroll = dto.AffectsPayroll, AffectsAttendance = dto.AffectsAttendance, CreatedBy = createdBy };
+        var code = !string.IsNullOrWhiteSpace(dto.Code)
+            ? dto.Code.Trim().ToUpperInvariant()
+            : ("ST_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
+        var s = new Status
+        {
+            Code = code,
+            NameFr = dto.NameFr,
+            NameAr = dto.NameAr ?? dto.NameFr,
+            NameEn = dto.NameEn ?? dto.NameFr,
+            IsActive = true,
+            AffectsAccess = dto.AffectsAccess,
+            AffectsPayroll = dto.AffectsPayroll,
+            AffectsAttendance = dto.AffectsAttendance,
+            CreatedBy = createdBy,
+        };
         _db.Statuses.Add(s);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<StatusReadDto>.Ok(new StatusReadDto { Id = s.Id, Code = s.Code, NameFr = s.NameFr, NameAr = s.NameAr, NameEn = s.NameEn, IsActive = s.IsActive, AffectsAccess = s.AffectsAccess, AffectsPayroll = s.AffectsPayroll, AffectsAttendance = s.AffectsAttendance });
+        return ServiceResult<StatusReadDto>.Ok(
+            new StatusReadDto
+            {
+                Id = s.Id,
+                Code = s.Code,
+                NameFr = s.NameFr,
+                NameAr = s.NameAr,
+                NameEn = s.NameEn,
+                IsActive = s.IsActive,
+                AffectsAccess = s.AffectsAccess,
+                AffectsPayroll = s.AffectsPayroll,
+                AffectsAttendance = s.AffectsAttendance,
+            }
+        );
     }
 
-    public async Task<ServiceResult<StatusReadDto>> UpdateStatusAsync(int id, StatusUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<StatusReadDto>> UpdateStatusAsync(
+        int id,
+        StatusUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var s = await _db.Statuses.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (s == null)
@@ -312,7 +533,20 @@ public class ReferentielService : IReferentielService
         s.UpdatedBy = updatedBy;
         s.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<StatusReadDto>.Ok(new StatusReadDto { Id = s.Id, Code = s.Code, NameFr = s.NameFr, NameAr = s.NameAr, NameEn = s.NameEn, IsActive = s.IsActive, AffectsAccess = s.AffectsAccess, AffectsPayroll = s.AffectsPayroll, AffectsAttendance = s.AffectsAttendance });
+        return ServiceResult<StatusReadDto>.Ok(
+            new StatusReadDto
+            {
+                Id = s.Id,
+                Code = s.Code,
+                NameFr = s.NameFr,
+                NameAr = s.NameAr,
+                NameEn = s.NameEn,
+                IsActive = s.IsActive,
+                AffectsAccess = s.AffectsAccess,
+                AffectsPayroll = s.AffectsPayroll,
+                AffectsAttendance = s.AffectsAttendance,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteStatusAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -328,30 +562,91 @@ public class ReferentielService : IReferentielService
 
     // ── EducationLevel ─────────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<EducationLevelReadDto>>> GetEducationLevelsAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EducationLevelReadDto>>> GetEducationLevelsAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EducationLevels.Where(e => e.DeletedAt == null).OrderBy(e => e.LevelOrder).ThenBy(e => e.NameFr).Select(e => new EducationLevelReadDto { Id = e.Id, Code = e.Code, NameFr = e.NameFr, NameAr = e.NameAr, NameEn = e.NameEn, LevelOrder = e.LevelOrder, IsActive = e.IsActive }).ToListAsync(ct);
+        var list = await _db
+            .EducationLevels.Where(e => e.DeletedAt == null)
+            .OrderBy(e => e.LevelOrder)
+            .ThenBy(e => e.NameFr)
+            .Select(e => new EducationLevelReadDto
+            {
+                Id = e.Id,
+                Code = e.Code,
+                NameFr = e.NameFr,
+                NameAr = e.NameAr,
+                NameEn = e.NameEn,
+                LevelOrder = e.LevelOrder,
+                IsActive = e.IsActive,
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<EducationLevelReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EducationLevelReadDto>> GetEducationLevelByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<EducationLevelReadDto>> GetEducationLevelByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
         var e = await _db.EducationLevels.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (e == null)
             return ServiceResult<EducationLevelReadDto>.Fail("Niveau d'éducation introuvable.");
-        return ServiceResult<EducationLevelReadDto>.Ok(new EducationLevelReadDto { Id = e.Id, Code = e.Code, NameFr = e.NameFr, NameAr = e.NameAr, NameEn = e.NameEn, LevelOrder = e.LevelOrder, IsActive = e.IsActive });
+        return ServiceResult<EducationLevelReadDto>.Ok(
+            new EducationLevelReadDto
+            {
+                Id = e.Id,
+                Code = e.Code,
+                NameFr = e.NameFr,
+                NameAr = e.NameAr,
+                NameEn = e.NameEn,
+                LevelOrder = e.LevelOrder,
+                IsActive = e.IsActive,
+            }
+        );
     }
 
-    public async Task<ServiceResult<EducationLevelReadDto>> CreateEducationLevelAsync(EducationLevelCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EducationLevelReadDto>> CreateEducationLevelAsync(
+        EducationLevelCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var code = !string.IsNullOrWhiteSpace(dto.Code) ? dto.Code.Trim().ToUpperInvariant() : ("ED_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
-        var e = new EducationLevel { Code = code, NameFr = dto.NameFr, NameAr = dto.NameAr ?? dto.NameFr, NameEn = dto.NameEn ?? dto.NameFr, LevelOrder = dto.LevelOrder, IsActive = true, CreatedBy = createdBy };
+        var code = !string.IsNullOrWhiteSpace(dto.Code)
+            ? dto.Code.Trim().ToUpperInvariant()
+            : ("ED_" + (dto.NameFr ?? "").Trim().ToUpperInvariant().Replace(" ", "_"));
+        var e = new EducationLevel
+        {
+            Code = code,
+            NameFr = dto.NameFr,
+            NameAr = dto.NameAr ?? dto.NameFr,
+            NameEn = dto.NameEn ?? dto.NameFr,
+            LevelOrder = dto.LevelOrder,
+            IsActive = true,
+            CreatedBy = createdBy,
+        };
         _db.EducationLevels.Add(e);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<EducationLevelReadDto>.Ok(new EducationLevelReadDto { Id = e.Id, Code = e.Code, NameFr = e.NameFr, NameAr = e.NameAr, NameEn = e.NameEn, LevelOrder = e.LevelOrder, IsActive = e.IsActive });
+        return ServiceResult<EducationLevelReadDto>.Ok(
+            new EducationLevelReadDto
+            {
+                Id = e.Id,
+                Code = e.Code,
+                NameFr = e.NameFr,
+                NameAr = e.NameAr,
+                NameEn = e.NameEn,
+                LevelOrder = e.LevelOrder,
+                IsActive = e.IsActive,
+            }
+        );
     }
 
-    public async Task<ServiceResult<EducationLevelReadDto>> UpdateEducationLevelAsync(int id, EducationLevelUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EducationLevelReadDto>> UpdateEducationLevelAsync(
+        int id,
+        EducationLevelUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var e = await _db.EducationLevels.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (e == null)
@@ -369,7 +664,18 @@ public class ReferentielService : IReferentielService
         e.UpdatedBy = updatedBy;
         e.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<EducationLevelReadDto>.Ok(new EducationLevelReadDto { Id = e.Id, Code = e.Code, NameFr = e.NameFr, NameAr = e.NameAr, NameEn = e.NameEn, LevelOrder = e.LevelOrder, IsActive = e.IsActive });
+        return ServiceResult<EducationLevelReadDto>.Ok(
+            new EducationLevelReadDto
+            {
+                Id = e.Id,
+                Code = e.Code,
+                NameFr = e.NameFr,
+                NameAr = e.NameAr,
+                NameEn = e.NameEn,
+                LevelOrder = e.LevelOrder,
+                IsActive = e.IsActive,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteEducationLevelAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -385,29 +691,71 @@ public class ReferentielService : IReferentielService
 
     // ── LegalContractType ──────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<LegalContractTypeReadDtos>>> GetLegalContractTypesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<LegalContractTypeReadDtos>>> GetLegalContractTypesAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.LegalContractTypes.Where(l => l.DeletedAt == null).OrderBy(l => l.Code).Select(l => new LegalContractTypeReadDtos { Id = l.Id, Code = l.Code, Name = l.Name }).ToListAsync(ct);
+        var list = await _db
+            .LegalContractTypes.Where(l => l.DeletedAt == null)
+            .OrderBy(l => l.Code)
+            .Select(l => new LegalContractTypeReadDtos
+            {
+                Id = l.Id,
+                Code = l.Code,
+                Name = l.Name,
+            })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<LegalContractTypeReadDtos>>.Ok(list);
     }
 
-    public async Task<ServiceResult<LegalContractTypeReadDtos>> GetLegalContractTypeByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<LegalContractTypeReadDtos>> GetLegalContractTypeByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
         var l = await _db.LegalContractTypes.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (l == null)
             return ServiceResult<LegalContractTypeReadDtos>.Fail("Type de contrat légal introuvable.");
-        return ServiceResult<LegalContractTypeReadDtos>.Ok(new LegalContractTypeReadDtos { Id = l.Id, Code = l.Code, Name = l.Name });
+        return ServiceResult<LegalContractTypeReadDtos>.Ok(
+            new LegalContractTypeReadDtos
+            {
+                Id = l.Id,
+                Code = l.Code,
+                Name = l.Name,
+            }
+        );
     }
 
-    public async Task<ServiceResult<LegalContractTypeReadDtos>> CreateLegalContractTypeAsync(LegalContractTypeCreateDtos dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<LegalContractTypeReadDtos>> CreateLegalContractTypeAsync(
+        LegalContractTypeCreateDtos dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var l = new LegalContractType { Code = dto.Code, Name = dto.Name, CreatedBy = createdBy };
+        var l = new LegalContractType
+        {
+            Code = dto.Code,
+            Name = dto.Name,
+            CreatedBy = createdBy,
+        };
         _db.LegalContractTypes.Add(l);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<LegalContractTypeReadDtos>.Ok(new LegalContractTypeReadDtos { Id = l.Id, Code = l.Code, Name = l.Name });
+        return ServiceResult<LegalContractTypeReadDtos>.Ok(
+            new LegalContractTypeReadDtos
+            {
+                Id = l.Id,
+                Code = l.Code,
+                Name = l.Name,
+            }
+        );
     }
 
-    public async Task<ServiceResult<LegalContractTypeReadDtos>> UpdateLegalContractTypeAsync(int id, LegalContractTypeUpdateDtos dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<LegalContractTypeReadDtos>> UpdateLegalContractTypeAsync(
+        int id,
+        LegalContractTypeUpdateDtos dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var l = await _db.LegalContractTypes.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (l == null)
@@ -417,7 +765,14 @@ public class ReferentielService : IReferentielService
         l.UpdatedBy = updatedBy;
         l.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<LegalContractTypeReadDtos>.Ok(new LegalContractTypeReadDtos { Id = l.Id, Code = l.Code, Name = l.Name });
+        return ServiceResult<LegalContractTypeReadDtos>.Ok(
+            new LegalContractTypeReadDtos
+            {
+                Id = l.Id,
+                Code = l.Code,
+                Name = l.Name,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteLegalContractTypeAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -433,32 +788,55 @@ public class ReferentielService : IReferentielService
 
     // ── StateEmploymentProgram ────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<StateEmploymentProgramReadDto>>> GetStateEmploymentProgramsAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<StateEmploymentProgramReadDto>>> GetStateEmploymentProgramsAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.StateEmploymentPrograms
-            .Where(s => s.DeletedAt == null)
-            .Select(s => new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name }).ToListAsync(ct);
+        var list = await _db
+            .StateEmploymentPrograms.Where(s => s.DeletedAt == null)
+            .Select(s => new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name })
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<StateEmploymentProgramReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<StateEmploymentProgramReadDto>> GetStateEmploymentProgramByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<StateEmploymentProgramReadDto>> GetStateEmploymentProgramByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
-        var s = await _db.StateEmploymentPrograms
-            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var s = await _db.StateEmploymentPrograms.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (s == null)
             return ServiceResult<StateEmploymentProgramReadDto>.Fail("Programme introuvable.");
-        return ServiceResult<StateEmploymentProgramReadDto>.Ok(new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name });
+        return ServiceResult<StateEmploymentProgramReadDto>.Ok(
+            new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name }
+        );
     }
 
-    public async Task<ServiceResult<StateEmploymentProgramReadDto>> CreateStateEmploymentProgramAsync(StateEmploymentProgramCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<StateEmploymentProgramReadDto>> CreateStateEmploymentProgramAsync(
+        StateEmploymentProgramCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var s = new StateEmploymentProgram { Code = dto.Code, Name = dto.Name, CreatedBy = createdBy };
+        var s = new StateEmploymentProgram
+        {
+            Code = dto.Code,
+            Name = dto.Name,
+            CreatedBy = createdBy,
+        };
         _db.StateEmploymentPrograms.Add(s);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<StateEmploymentProgramReadDto>.Ok(new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name });
+        return ServiceResult<StateEmploymentProgramReadDto>.Ok(
+            new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name }
+        );
     }
 
-    public async Task<ServiceResult<StateEmploymentProgramReadDto>> UpdateStateEmploymentProgramAsync(int id, StateEmploymentProgramUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<StateEmploymentProgramReadDto>> UpdateStateEmploymentProgramAsync(
+        int id,
+        StateEmploymentProgramUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var s = await _db.StateEmploymentPrograms.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (s == null)
@@ -467,10 +845,16 @@ public class ReferentielService : IReferentielService
             s.Name = dto.Name;
         s.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<StateEmploymentProgramReadDto>.Ok(new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name });
+        return ServiceResult<StateEmploymentProgramReadDto>.Ok(
+            new StateEmploymentProgramReadDto { Id = s.Id, Name = s.Name }
+        );
     }
 
-    public async Task<ServiceResult> DeleteStateEmploymentProgramAsync(int id, int deletedBy, CancellationToken ct = default)
+    public async Task<ServiceResult> DeleteStateEmploymentProgramAsync(
+        int id,
+        int deletedBy,
+        CancellationToken ct = default
+    )
     {
         var s = await _db.StateEmploymentPrograms.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (s == null)
@@ -483,7 +867,10 @@ public class ReferentielService : IReferentielService
 
     // ── OvertimeRateRule ──────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<OvertimeRateRuleReadDto>>> GetOvertimeRateRulesAsync(bool? isActive, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<OvertimeRateRuleReadDto>>> GetOvertimeRateRulesAsync(
+        bool? isActive,
+        CancellationToken ct = default
+    )
     {
         var q = _db.OvertimeRateRules.AsQueryable();
         if (isActive.HasValue)
@@ -492,7 +879,10 @@ public class ReferentielService : IReferentielService
         return ServiceResult<IEnumerable<OvertimeRateRuleReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<OvertimeRateRuleReadDto>> GetOvertimeRateRuleByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<OvertimeRateRuleReadDto>> GetOvertimeRateRuleByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
         var r = await _db.OvertimeRateRules.FindAsync(new object[] { id }, ct);
         if (r == null)
@@ -500,10 +890,12 @@ public class ReferentielService : IReferentielService
         return ServiceResult<OvertimeRateRuleReadDto>.Ok(MapOvertimeRule(r));
     }
 
-    public async Task<ServiceResult<IEnumerable<string>>> GetOvertimeRateRuleCategoriesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<string>>> GetOvertimeRateRuleCategoriesAsync(
+        CancellationToken ct = default
+    )
     {
-        var categories = await _db.OvertimeRateRules
-            .Where(r => r.DeletedAt == null && r.Category != null)
+        var categories = await _db
+            .OvertimeRateRules.Where(r => r.DeletedAt == null && r.Category != null)
             .Select(r => r.Category!)
             .Distinct()
             .OrderBy(c => c)
@@ -511,7 +903,11 @@ public class ReferentielService : IReferentielService
         return ServiceResult<IEnumerable<string>>.Ok(categories);
     }
 
-    public async Task<ServiceResult<OvertimeRateRuleReadDto>> CreateOvertimeRateRuleAsync(OvertimeRateRuleCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<OvertimeRateRuleReadDto>> CreateOvertimeRateRuleAsync(
+        OvertimeRateRuleCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var r = new OvertimeRateRule
         {
@@ -525,14 +921,19 @@ public class ReferentielService : IReferentielService
             IsActive = dto.IsActive,
             TimeRangeType = dto.TimeRangeType,
             CumulationStrategy = dto.CumulationStrategy,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.OvertimeRateRules.Add(r);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<OvertimeRateRuleReadDto>.Ok(MapOvertimeRule(r));
     }
 
-    public async Task<ServiceResult<OvertimeRateRuleReadDto>> UpdateOvertimeRateRuleAsync(int id, OvertimeRateRuleUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<OvertimeRateRuleReadDto>> UpdateOvertimeRateRuleAsync(
+        int id,
+        OvertimeRateRuleUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var r = await _db.OvertimeRateRules.FindAsync(new object[] { id }, ct);
         if (r == null)
@@ -565,36 +966,39 @@ public class ReferentielService : IReferentielService
 
     // ── Mappers ───────────────────────────────────────────────────────────────
 
-    private static CountryReadDto MapCountry(Country c) => new()
-    {
-        Id = c.Id,
-        CountryName = c.CountryName,
-        CountryCode = c.CountryCode,
-        CountryPhoneCode = c.CountryPhoneCode,
-        CreatedAt = c.CreatedAt.DateTime
-    };
+    private static CountryReadDto MapCountry(Country c) =>
+        new()
+        {
+            Id = c.Id,
+            CountryName = c.CountryName,
+            CountryCode = c.CountryCode,
+            CountryPhoneCode = c.CountryPhoneCode,
+            CreatedAt = c.CreatedAt.DateTime,
+        };
 
-    private static CityReadDto MapCity(City c) => new()
-    {
-        Id = c.Id,
-        CityName = c.CityName,
-        CountryId = c.CountryId,
-        CreatedAt = c.CreatedAt.DateTime
-    };
+    private static CityReadDto MapCity(City c) =>
+        new()
+        {
+            Id = c.Id,
+            CityName = c.CityName,
+            CountryId = c.CountryId,
+            CreatedAt = c.CreatedAt.DateTime,
+        };
 
-    private static OvertimeRateRuleReadDto MapOvertimeRule(OvertimeRateRule r) => new()
-    {
-        Id = r.Id,
-        Code = r.Code,
-        NameFr = r.NameFr,
-        NameAr = r.NameAr,
-        NameEn = r.NameEn,
-        AppliesTo = r.AppliesTo,
-        Multiplier = r.Multiplier,
-        Priority = r.Priority,
-        IsActive = r.IsActive,
-        TimeRangeType = r.TimeRangeType,
-        CumulationStrategy = r.CumulationStrategy,
-        CreatedAt = r.CreatedAt.DateTime
-    };
+    private static OvertimeRateRuleReadDto MapOvertimeRule(OvertimeRateRule r) =>
+        new()
+        {
+            Id = r.Id,
+            Code = r.Code,
+            NameFr = r.NameFr,
+            NameAr = r.NameAr,
+            NameEn = r.NameEn,
+            AppliesTo = r.AppliesTo,
+            Multiplier = r.Multiplier,
+            Priority = r.Priority,
+            IsActive = r.IsActive,
+            TimeRangeType = r.TimeRangeType,
+            CumulationStrategy = r.CumulationStrategy,
+            CreatedAt = r.CreatedAt.DateTime,
+        };
 }

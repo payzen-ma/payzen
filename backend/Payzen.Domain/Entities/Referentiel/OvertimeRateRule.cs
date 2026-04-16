@@ -1,120 +1,82 @@
 using System.ComponentModel.DataAnnotations;
-using Payzen.Domain.Enums;
 using Payzen.Domain.Common;
+using Payzen.Domain.Enums;
 
 namespace Payzen.Domain.Entities.Referentiel;
 
 /// <summary>Règle de majoration pour heures supplémentaires</summary>
 public class OvertimeRateRule : BaseEntity
 {
-
     [Required]
     [MaxLength(50)]
     public string Code { get; set; } = string.Empty;
 
-    [Required][MaxLength(200)] public string NameAr { get; set; } = string.Empty;
-    [Required][MaxLength(200)] public string NameFr { get; set; } = string.Empty;
-    [Required][MaxLength(200)] public string NameEn { get; set; } = string.Empty;
-
-    [MaxLength(1000)]
-    public string? Description
-    {
-        get; set;
-    }
+    [Required]
+    [MaxLength(200)]
+    public string NameAr { get; set; } = string.Empty;
 
     [Required]
-    public OvertimeType AppliesTo
-    {
-        get; set;
-    }
+    [MaxLength(200)]
+    public string NameFr { get; set; } = string.Empty;
 
-    [Required] public TimeRangeType TimeRangeType { get; set; } = TimeRangeType.AllDay;
-    public TimeOnly? StartTime
-    {
-        get; set;
-    }
-    public TimeOnly? EndTime
-    {
-        get; set;
-    }
+    [Required]
+    [MaxLength(200)]
+    public string NameEn { get; set; } = string.Empty;
+
+    [MaxLength(1000)]
+    public string? Description { get; set; }
+
+    [Required]
+    public OvertimeType AppliesTo { get; set; }
+
+    [Required]
+    public TimeRangeType TimeRangeType { get; set; } = TimeRangeType.AllDay;
+    public TimeOnly? StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
 
     // Bitmask jours: 1=Lundi, 2=Mardi, 4=Mer, 8=Jeu, 16=Ven, 32=Sam, 64=Dim
-    public int? ApplicableDaysOfWeek
-    {
-        get; set;
-    }
+    public int? ApplicableDaysOfWeek { get; set; }
 
     [Required]
     [Range(1.00, 10.00)]
-    public decimal Multiplier
-    {
-        get; set;
-    }
+    public decimal Multiplier { get; set; }
 
     [Required]
     public MultiplierCumulationStrategy CumulationStrategy { get; set; } = MultiplierCumulationStrategy.TakeMaximum;
 
     [Required]
     [Range(1, 100)]
-    public int Priority
-    {
-        get; set;
-    }
+    public int Priority { get; set; }
 
     [MaxLength(50)]
-    public string? Category
-    {
-        get; set;
-    }
+    public string? Category { get; set; }
 
-    [Required] public bool IsActive { get; set; } = true;
-    public DateOnly? EffectiveFrom
-    {
-        get; set;
-    }
-    public DateOnly? EffectiveTo
-    {
-        get; set;
-    }
+    [Required]
+    public bool IsActive { get; set; } = true;
+    public DateOnly? EffectiveFrom { get; set; }
+    public DateOnly? EffectiveTo { get; set; }
 
     [Range(0.01, 24.00)]
-    public decimal? MinimumDurationHours
-    {
-        get; set;
-    }
+    public decimal? MinimumDurationHours { get; set; }
+
     [Range(0.01, 24.00)]
-    public decimal? MaximumDurationHours
-    {
-        get; set;
-    }
-    public bool RequiresSuperiorApproval
-    {
-        get; set;
-    }
+    public decimal? MaximumDurationHours { get; set; }
+    public bool RequiresSuperiorApproval { get; set; }
 
     [MaxLength(500)]
-    public string? LegalReference
-    {
-        get; set;
-    }
-    [MaxLength(500)]
-    public string? DocumentationUrl
-    {
-        get; set;
-    }
+    public string? LegalReference { get; set; }
 
+    [MaxLength(500)]
+    public string? DocumentationUrl { get; set; }
 
     [Timestamp]
-    public byte[]? RowVersion
-    {
-        get; set;
-    }
+    public byte[]? RowVersion { get; set; }
 
     // Navigation
     public ICollection<Employee.EmployeeOvertime> OvertimeRecords { get; set; } = new List<Employee.EmployeeOvertime>();
 
-    public bool IsValidOn(DateOnly date)
-        => IsActive && date >= EffectiveFrom && (EffectiveTo == null || date <= EffectiveTo);
+    public bool IsValidOn(DateOnly date) =>
+        IsActive && date >= EffectiveFrom && (EffectiveTo == null || date <= EffectiveTo);
 
     public bool OverlapsTimeRange(TimeOnly start, TimeOnly end)
     {
@@ -126,7 +88,7 @@ public class OvertimeRateRule : BaseEntity
         {
             TimeRangeType.SameDay => start < EndTime && end > StartTime,
             TimeRangeType.CrossesMidnight => true,
-            _ => false
+            _ => false,
         };
     }
 }

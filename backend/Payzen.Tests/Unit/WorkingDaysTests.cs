@@ -26,10 +26,10 @@ public class WorkingDaysTests
     {
         // Lundi 10 mars au vendredi 14 mars 2025 = 5 jours
         // Mais vendredi ajoute 1 extra selon règle marocaine → 6 jours
-        using var db  = CreateDb();
-        var svc       = new WorkingDaysCalculatorService(db);
-        var start     = new DateOnly(2025, 3, 10); // Lundi
-        var end       = new DateOnly(2025, 3, 14); // Vendredi
+        using var db = CreateDb();
+        var svc = new WorkingDaysCalculatorService(db);
+        var start = new DateOnly(2025, 3, 10); // Lundi
+        var end = new DateOnly(2025, 3, 14); // Vendredi
 
         var jours = await svc.CalculateWorkingDaysAsync(99, start, end);
 
@@ -40,10 +40,10 @@ public class WorkingDaysTests
     [Fact]
     public async Task WeekEnd_SamediDimanche_ZeroJours()
     {
-        using var db  = CreateDb();
-        var svc       = new WorkingDaysCalculatorService(db);
-        var start     = new DateOnly(2025, 3, 15); // Samedi
-        var end       = new DateOnly(2025, 3, 16); // Dimanche
+        using var db = CreateDb();
+        var svc = new WorkingDaysCalculatorService(db);
+        var start = new DateOnly(2025, 3, 15); // Samedi
+        var end = new DateOnly(2025, 3, 16); // Dimanche
 
         var jours = await svc.CalculateWorkingDaysAsync(99, start, end);
 
@@ -55,25 +55,26 @@ public class WorkingDaysTests
     {
         // Un jour férié dans la semaine doit réduire le décompte
         using var db = CreateDb();
-        db.Holidays.Add(new Holiday
-        {
-            CompanyId   = 1,
-            HolidayDate = new DateOnly(2025, 3, 12), // Mercredi
-            NameFr      = "Fête test",
-            NameAr      = "HolidayAR",
-            NameEn      = "Test Holiday",
-            IsMandatory = true,
-            CreatedBy   = 1
-        });
+        db.Holidays.Add(
+            new Holiday
+            {
+                CompanyId = 1,
+                HolidayDate = new DateOnly(2025, 3, 12), // Mercredi
+                NameFr = "Fête test",
+                NameAr = "HolidayAR",
+                NameEn = "Test Holiday",
+                IsMandatory = true,
+                CreatedBy = 1,
+            }
+        );
         await db.SaveChangesAsync();
 
-        var svc   = new WorkingDaysCalculatorService(db);
+        var svc = new WorkingDaysCalculatorService(db);
         var start = new DateOnly(2025, 3, 10); // Lundi
-        var end   = new DateOnly(2025, 3, 14); // Vendredi
+        var end = new DateOnly(2025, 3, 14); // Vendredi
 
-        var avecFerie    = await svc.CalculateWorkingDaysAsync(1, start, end);
-        var sansFerie    = await new WorkingDaysCalculatorService(CreateDb())
-                                .CalculateWorkingDaysAsync(99, start, end);
+        var avecFerie = await svc.CalculateWorkingDaysAsync(1, start, end);
+        var sansFerie = await new WorkingDaysCalculatorService(CreateDb()).CalculateWorkingDaysAsync(99, start, end);
 
         avecFerie.Should().BeLessThan(sansFerie);
     }

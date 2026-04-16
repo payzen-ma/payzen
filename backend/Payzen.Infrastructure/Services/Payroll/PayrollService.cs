@@ -32,7 +32,10 @@ public class PayrollService : IPayrollService
     // ── Calcul ────────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<PayrollResultReadDto>> CalculateAsync(
-        PayrollSimulateRequestDto dto, int userId, CancellationToken ct = default)
+        PayrollSimulateRequestDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var eligibility = await CheckPayrollEligibilityAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, ct);
         if (!eligibility.IsEligible)
@@ -46,12 +49,23 @@ public class PayrollService : IPayrollService
         if (!result.Success)
             return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
 
-        var entity = await PersistResultAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, userId, result, false, ct);
+        var entity = await PersistResultAsync(
+            dto.EmployeeId,
+            dto.PayMonth,
+            dto.PayYear,
+            dto.PayHalf,
+            userId,
+            result,
+            false,
+            ct
+        );
         return ServiceResult<PayrollResultReadDto>.Ok(MapToRead(entity, result));
     }
 
     public async Task<ServiceResult<PayrollResultReadDto>> SimulateAsync(
-        PayrollSimulateRequestDto dto, CancellationToken ct = default)
+        PayrollSimulateRequestDto dto,
+        CancellationToken ct = default
+    )
     {
         var eligibility = await CheckPayrollEligibilityAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, ct);
         if (!eligibility.IsEligible)
@@ -66,23 +80,36 @@ public class PayrollService : IPayrollService
             return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
 
         // Simulation : on crée un DTO sans persister
-        var fakeEntity = new PayrollResult { EmployeeId = dto.EmployeeId, CompanyId = 0, Month = dto.PayMonth, Year = dto.PayYear, PayHalf = dto.PayHalf };
+        var fakeEntity = new PayrollResult
+        {
+            EmployeeId = dto.EmployeeId,
+            CompanyId = 0,
+            Month = dto.PayMonth,
+            Year = dto.PayYear,
+            PayHalf = dto.PayHalf,
+        };
         ApplyResultToEntity(result, fakeEntity);
         return ServiceResult<PayrollResultReadDto>.Ok(MapToRead(fakeEntity, result));
     }
 
     public async Task<ServiceResult<IEnumerable<PayrollResultReadDto>>> BatchCalculateAsync(
-        PayrollBatchRequestDto dto, int userId, CancellationToken ct = default)
+        PayrollBatchRequestDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
-        var employees = await _db.Employees
-            .Where(e => e.CompanyId == dto.CompanyId)
-            .Select(e => e.Id)
-            .ToListAsync(ct);
+        var employees = await _db.Employees.Where(e => e.CompanyId == dto.CompanyId).Select(e => e.Id).ToListAsync(ct);
 
         var results = new List<PayrollResultReadDto>();
         foreach (var empId in employees)
         {
-            var simDto = new PayrollSimulateRequestDto { EmployeeId = empId, PayMonth = dto.PayMonth, PayYear = dto.PayYear, PayHalf = dto.PayHalf };
+            var simDto = new PayrollSimulateRequestDto
+            {
+                EmployeeId = empId,
+                PayMonth = dto.PayMonth,
+                PayYear = dto.PayYear,
+                PayHalf = dto.PayHalf,
+            };
             var res = await CalculateAsync(simDto, userId, ct);
             if (res.Success)
                 results.Add(res.Data!);
@@ -93,10 +120,16 @@ public class PayrollService : IPayrollService
     // ── Queries ───────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<PayrollBulletinResultsResponseDto>> GetResultsAsync(
-        int? companyId, int month, int year, int? payHalf, string? statusFilter, CancellationToken ct = default)
+        int? companyId,
+        int month,
+        int year,
+        int? payHalf,
+        string? statusFilter,
+        CancellationToken ct = default
+    )
     {
-        var q = _db.PayrollResults
-            .AsNoTracking()
+        var q = _db
+            .PayrollResults.AsNoTracking()
             .Where(pr => pr.DeletedAt == null && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf)
             .Include(pr => pr.Employee)
             .Include(pr => pr.Company)
@@ -108,8 +141,7 @@ public class PayrollService : IPayrollService
         if (TryMapBulletinStatusFilter(statusFilter, out var st))
             q = q.Where(pr => pr.Status == st);
 
-        var list = await q
-            .OrderBy(pr => pr.Employee!.LastName)
+        var list = await q.OrderBy(pr => pr.Employee!.LastName)
             .ThenBy(pr => pr.Employee!.FirstName)
             .Select(pr => new PayrollBulletinResultItemDto
             {
@@ -132,35 +164,40 @@ public class PayrollService : IPayrollService
                 TotalNet2 = pr.TotalNet2,
                 ProcessedAt = pr.ProcessedAt,
                 ClaudeModel = pr.ClaudeModel,
-                TokensUsed = pr.TokensUsed
+                TokensUsed = pr.TokensUsed,
             })
             .ToListAsync(ct);
 
-        return ServiceResult<PayrollBulletinResultsResponseDto>.Ok(new PayrollBulletinResultsResponseDto
-        {
-            Count = list.Count,
-            Month = month,
-            Year = year,
-            Results = list
-        });
+        return ServiceResult<PayrollBulletinResultsResponseDto>.Ok(
+            new PayrollBulletinResultsResponseDto
+            {
+                Count = list.Count,
+                Month = month,
+                Year = year,
+                Results = list,
+            }
+        );
     }
 
-    public async Task<ServiceResult<object>> GetStatsAsync(int companyId, int year, int month, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetStatsAsync(
+        int companyId,
+        int year,
+        int month,
+        CancellationToken ct = default
+    )
     {
-        var q = _db.PayrollResults.Where(pr => pr.CompanyId == companyId && pr.Year == year && pr.Month == month && pr.DeletedAt == null);
+        var q = _db.PayrollResults.Where(pr =>
+            pr.CompanyId == companyId && pr.Year == year && pr.Month == month && pr.DeletedAt == null
+        );
         var count = await q.CountAsync(ct);
         var totalNet = await q.SumAsync(pr => pr.TotalNet ?? pr.NetAPayer ?? 0, ct);
-        return ServiceResult<object>.Ok(new
-        {
-            count,
-            totalNet
-        });
+        return ServiceResult<object>.Ok(new { count, totalNet });
     }
 
     public async Task<ServiceResult<PayrollResultReadDto>> GetResultByIdAsync(int id, CancellationToken ct = default)
     {
-        var pr = await _db.PayrollResults
-            .Include(pr => pr.Employee)
+        var pr = await _db
+            .PayrollResults.Include(pr => pr.Employee)
             .Include(pr => pr.Primes)
             .Include(pr => pr.CalculationAuditSteps)
             .FirstOrDefaultAsync(pr => pr.Id == id && pr.DeletedAt == null, ct);
@@ -169,10 +206,13 @@ public class PayrollService : IPayrollService
             : ServiceResult<PayrollResultReadDto>.Ok(MapToRead(pr, null));
     }
 
-    public async Task<ServiceResult<PayrollBulletinDetailDto>> GetBulletinDetailAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<PayrollBulletinDetailDto>> GetBulletinDetailAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
-        var result = await _db.PayrollResults
-            .AsNoTracking()
+        var result = await _db
+            .PayrollResults.AsNoTracking()
             .Include(pr => pr.Employee)
             .Include(pr => pr.Company)
             .Include(pr => pr.Primes)
@@ -194,13 +234,15 @@ public class PayrollService : IPayrollService
         var startDate = DateOnly.FromDateTime(startOfPeriod);
         var endDate = DateOnly.FromDateTime(endOfPeriod);
 
-        var absences = await _db.EmployeeAbsences
-            .AsNoTracking()
-            .Where(ea => ea.EmployeeId == result.EmployeeId
-                         && ea.AbsenceDate >= startDate
-                         && ea.AbsenceDate <= endDate
-                         && ea.Status == AbsenceStatus.Approved
-                         && ea.DeletedAt == null)
+        var absences = await _db
+            .EmployeeAbsences.AsNoTracking()
+            .Where(ea =>
+                ea.EmployeeId == result.EmployeeId
+                && ea.AbsenceDate >= startDate
+                && ea.AbsenceDate <= endDate
+                && ea.Status == AbsenceStatus.Approved
+                && ea.DeletedAt == null
+            )
             .OrderBy(ea => ea.AbsenceDate)
             .Select(ea => new PayrollBulletinAbsenceDto
             {
@@ -209,35 +251,39 @@ public class PayrollService : IPayrollService
                 AbsenceType = ea.AbsenceType,
                 Reason = ea.Reason,
                 DurationType = ea.DurationType.ToString(),
-                Status = ea.Status.ToString()
+                Status = ea.Status.ToString(),
             })
             .ToListAsync(ct);
 
-        var overtimes = await _db.EmployeeOvertimes
-            .AsNoTracking()
-            .Where(eo => eo.EmployeeId == result.EmployeeId
-                         && eo.OvertimeDate >= startDate
-                         && eo.OvertimeDate <= endDate
-                         && eo.Status == OvertimeStatus.Approved
-                         && eo.DeletedAt == null)
+        var overtimes = await _db
+            .EmployeeOvertimes.AsNoTracking()
+            .Where(eo =>
+                eo.EmployeeId == result.EmployeeId
+                && eo.OvertimeDate >= startDate
+                && eo.OvertimeDate <= endDate
+                && eo.Status == OvertimeStatus.Approved
+                && eo.DeletedAt == null
+            )
             .OrderBy(eo => eo.OvertimeDate)
             .Select(eo => new PayrollBulletinOvertimeDto
             {
                 Id = eo.Id,
                 OvertimeDate = eo.OvertimeDate.ToString("yyyy-MM-dd"),
                 DurationInHours = eo.DurationInHours,
-                RateMultiplierApplied = eo.RateMultiplierApplied
+                RateMultiplierApplied = eo.RateMultiplierApplied,
             })
             .ToListAsync(ct);
 
-        var leaves = await _db.LeaveRequests
-            .AsNoTracking()
+        var leaves = await _db
+            .LeaveRequests.AsNoTracking()
             .Include(lr => lr.LeaveType)
-            .Where(lr => lr.EmployeeId == result.EmployeeId
-                         && lr.Status == LeaveRequestStatus.Approved
-                         && lr.DeletedAt == null
-                         && lr.StartDate <= endDate
-                         && lr.EndDate >= startDate)
+            .Where(lr =>
+                lr.EmployeeId == result.EmployeeId
+                && lr.Status == LeaveRequestStatus.Approved
+                && lr.DeletedAt == null
+                && lr.StartDate <= endDate
+                && lr.EndDate >= startDate
+            )
             .OrderBy(lr => lr.StartDate)
             .Select(lr => new PayrollBulletinLeaveDto
             {
@@ -245,30 +291,30 @@ public class PayrollService : IPayrollService
                 StartDate = lr.StartDate.ToString("yyyy-MM-dd"),
                 EndDate = lr.EndDate.ToString("yyyy-MM-dd"),
                 WorkingDaysDeducted = lr.WorkingDaysDeducted,
-                LeaveTypeName = lr.LeaveType != null ? (lr.LeaveType.LeaveNameFr ?? lr.LeaveType.LeaveCode) : null
+                LeaveTypeName = lr.LeaveType != null ? (lr.LeaveType.LeaveNameFr ?? lr.LeaveType.LeaveCode) : null,
             })
             .ToListAsync(ct);
 
-        var primes = result.Primes
-            .OrderBy(p => p.Ordre)
+        var primes = result
+            .Primes.OrderBy(p => p.Ordre)
             .Select(p => new PayrollBulletinDetailPrimeDto
             {
                 Label = p.Label,
                 Montant = p.Montant,
                 Ordre = p.Ordre,
-                IsTaxable = p.IsTaxable
+                IsTaxable = p.IsTaxable,
             })
             .ToList();
 
-        var auditSteps = result.CalculationAuditSteps?
-            .OrderBy(s => s.StepOrder)
+        var auditSteps = result
+            .CalculationAuditSteps?.OrderBy(s => s.StepOrder)
             .Select(s => new PayrollBulletinAuditStepDto
             {
                 StepOrder = s.StepOrder,
                 ModuleName = s.ModuleName,
                 FormulaDescription = s.FormulaDescription,
                 InputsJson = s.InputsJson,
-                OutputsJson = s.OutputsJson
+                OutputsJson = s.OutputsJson,
             })
             .ToList();
 
@@ -338,7 +384,7 @@ public class PayrollService : IPayrollService
             CalculationAuditSteps = auditSteps,
             Absences = absences,
             Overtimes = overtimes,
-            Leaves = leaves
+            Leaves = leaves,
         };
 
         return ServiceResult<PayrollBulletinDetailDto>.Ok(dto);
@@ -375,18 +421,32 @@ public class PayrollService : IPayrollService
     }
 
     public async Task<ServiceResult<PayrollResultReadDto>> RecalculateForEmployeeAsync(
-        int employeeId, int month, int year, int? payHalf, int userId, CancellationToken ct = default)
+        int employeeId,
+        int month,
+        int year,
+        int? payHalf,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         // Supprimer le résultat existant s'il existe
-        var existing = await _db.PayrollResults
-            .FirstOrDefaultAsync(pr => pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf, ct);
+        var existing = await _db.PayrollResults.FirstOrDefaultAsync(
+            pr => pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf,
+            ct
+        );
         if (existing != null)
         {
             existing.DeletedAt = DateTimeOffset.UtcNow;
             existing.DeletedBy = userId;
         }
 
-        var simDto = new PayrollSimulateRequestDto { EmployeeId = employeeId, PayMonth = month, PayYear = year, PayHalf = payHalf };
+        var simDto = new PayrollSimulateRequestDto
+        {
+            EmployeeId = employeeId,
+            PayMonth = month,
+            PayYear = year,
+            PayHalf = payHalf,
+        };
         return await CalculateAsync(simDto, userId, ct);
     }
 
@@ -405,12 +465,13 @@ public class PayrollService : IPayrollService
         int employeeId,
         int month,
         int year,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var payDate = new DateTime(year, month, 1);
 
-        var employee = await _db.Employees
-            .AsNoTracking()
+        var employee = await _db
+            .Employees.AsNoTracking()
             .Include(e => e.Status)
             .FirstOrDefaultAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
 
@@ -420,13 +481,16 @@ public class PayrollService : IPayrollService
         if (!IsStatusEligibleForPayroll(employee.Status))
             return (false, "La paie ne s'applique qu'aux employés actifs ou en congé.");
 
-        var hasPositiveSalary = await _db.EmployeeSalaries
-            .AsNoTracking()
-            .AnyAsync(s =>
-                s.EmployeeId == employeeId
-                && s.EffectiveDate <= payDate
-                && (s.EndDate == null || s.EndDate >= payDate)
-                && s.BaseSalary > 0m, ct);
+        var hasPositiveSalary = await _db
+            .EmployeeSalaries.AsNoTracking()
+            .AnyAsync(
+                s =>
+                    s.EmployeeId == employeeId
+                    && s.EffectiveDate <= payDate
+                    && (s.EndDate == null || s.EndDate >= payDate)
+                    && s.BaseSalary > 0m,
+                ct
+            );
 
         if (!hasPositiveSalary)
             return (false, "La paie ne s'applique qu'aux employés avec un salaire de base strictement supérieur à 0.");
@@ -443,13 +507,11 @@ public class PayrollService : IPayrollService
         var nameFr = NormalizeStatusToken(status.NameFr);
         var nameEn = NormalizeStatusToken(status.NameEn);
 
-        return IsAllowedStatusToken(code)
-            || IsAllowedStatusToken(nameFr)
-            || IsAllowedStatusToken(nameEn);
+        return IsAllowedStatusToken(code) || IsAllowedStatusToken(nameFr) || IsAllowedStatusToken(nameEn);
     }
 
-    private static bool IsAllowedStatusToken(string token)
-        => token is "ACTIVE" or "ACTIF" or "ONLEAVE" or "ENCONGE" or "CONGE";
+    private static bool IsAllowedStatusToken(string token) =>
+        token is "ACTIVE" or "ACTIF" or "ONLEAVE" or "ENCONGE" or "CONGE";
 
     private static string NormalizeStatusToken(string? value)
     {
@@ -468,10 +530,15 @@ public class PayrollService : IPayrollService
     /// et construit le EmployeePayrollDto.
     /// </summary>
     private async Task<EmployeePayrollDto?> HydrateAsync(
-        int employeeId, int month, int year, int? payHalf, CancellationToken ct)
+        int employeeId,
+        int month,
+        int year,
+        int? payHalf,
+        CancellationToken ct
+    )
     {
-        var employee = await _db.Employees
-            .Include(e => e.MaritalStatus)
+        var employee = await _db
+            .Employees.Include(e => e.MaritalStatus)
             .Include(e => e.Children)
             .Include(e => e.Spouses)
             .Include(e => e.Category)
@@ -482,11 +549,15 @@ public class PayrollService : IPayrollService
 
         // Contrat actif à la date de paie
         var payDate = new DateTime(year, month, 1);
-        var contract = await _db.EmployeeContracts
-            .Include(c => c.ContractType).ThenInclude(ct2 => ct2!.LegalContractType)
-            .Include(c => c.ContractType).ThenInclude(ct2 => ct2!.StateEmploymentProgram)
+        var contract = await _db
+            .EmployeeContracts.Include(c => c.ContractType)
+                .ThenInclude(ct2 => ct2!.LegalContractType)
+            .Include(c => c.ContractType)
+                .ThenInclude(ct2 => ct2!.StateEmploymentProgram)
             .Include(c => c.JobPosition)
-            .Where(c => c.EmployeeId == employeeId && c.StartDate <= payDate && (c.EndDate == null || c.EndDate >= payDate))
+            .Where(c =>
+                c.EmployeeId == employeeId && c.StartDate <= payDate && (c.EndDate == null || c.EndDate >= payDate)
+            )
             .OrderByDescending(c => c.StartDate)
             .FirstOrDefaultAsync(ct);
 
@@ -494,9 +565,11 @@ public class PayrollService : IPayrollService
             return null;
 
         // Salaire actif
-        var salary = await _db.EmployeeSalaries
-            .Include(s => s.Components)
-            .Where(s => s.EmployeeId == employeeId && s.EffectiveDate <= payDate && (s.EndDate == null || s.EndDate >= payDate))
+        var salary = await _db
+            .EmployeeSalaries.Include(s => s.Components)
+            .Where(s =>
+                s.EmployeeId == employeeId && s.EffectiveDate <= payDate && (s.EndDate == null || s.EndDate >= payDate)
+            )
             .OrderByDescending(s => s.EffectiveDate)
             .FirstOrDefaultAsync(ct);
 
@@ -510,9 +583,12 @@ public class PayrollService : IPayrollService
             periodStart = periodStart.AddDays(15); // 16-31
 
         // Package salarial actif
-        var assignment = await _db.SalaryPackageAssignments
-            .Include(a => a.SalaryPackage).ThenInclude(sp => sp!.Items)
-            .Where(a => a.EmployeeId == employeeId && a.EffectiveDate <= payDate && (a.EndDate == null || a.EndDate >= payDate))
+        var assignment = await _db
+            .SalaryPackageAssignments.Include(a => a.SalaryPackage)
+                .ThenInclude(sp => sp!.Items)
+            .Where(a =>
+                a.EmployeeId == employeeId && a.EffectiveDate <= payDate && (a.EndDate == null || a.EndDate >= payDate)
+            )
             .OrderByDescending(a => a.EffectiveDate)
             .FirstOrDefaultAsync(ct);
 
@@ -520,38 +596,46 @@ public class PayrollService : IPayrollService
         var startOfMonth = periodStart;
         var endOfMonth = periodEnd;
 
-        var absences = await _db.EmployeeAbsences
-            .Where(a => a.EmployeeId == employeeId
-                     && a.AbsenceDate >= startOfMonth
-                     && a.AbsenceDate <= endOfMonth
-                     && a.Status == AbsenceStatus.Approved)
+        var absences = await _db
+            .EmployeeAbsences.Where(a =>
+                a.EmployeeId == employeeId
+                && a.AbsenceDate >= startOfMonth
+                && a.AbsenceDate <= endOfMonth
+                && a.Status == AbsenceStatus.Approved
+            )
             .ToListAsync(ct);
 
         // Heures supplémentaires du mois
-        var overtimes = await _db.EmployeeOvertimes
-            .Where(o => o.EmployeeId == employeeId
-                     && o.OvertimeDate >= startOfMonth
-                     && o.OvertimeDate <= endOfMonth
-                     && o.Status == OvertimeStatus.Approved)
+        var overtimes = await _db
+            .EmployeeOvertimes.Where(o =>
+                o.EmployeeId == employeeId
+                && o.OvertimeDate >= startOfMonth
+                && o.OvertimeDate <= endOfMonth
+                && o.Status == OvertimeStatus.Approved
+            )
             .ToListAsync(ct);
 
         // Congés approuvés chevauchant le mois
         var leaveStart = startOfMonth;
         var leaveEnd = endOfMonth;
-        var leaves = await _db.LeaveRequests
-            .Include(lr => lr.LeaveType)
-            .Where(lr => lr.EmployeeId == employeeId
-                      && lr.Status == LeaveRequestStatus.Approved
-                      && lr.StartDate <= leaveEnd
-                      && lr.EndDate >= leaveStart)
+        var leaves = await _db
+            .LeaveRequests.Include(lr => lr.LeaveType)
+            .Where(lr =>
+                lr.EmployeeId == employeeId
+                && lr.Status == LeaveRequestStatus.Approved
+                && lr.StartDate <= leaveEnd
+                && lr.EndDate >= leaveStart
+            )
             .ToListAsync(ct);
 
         // Pointage (heures travaillées)
-        var totalWorkedHours = await _db.EmployeeAttendances
-            .Where(a => a.EmployeeId == employeeId
-                     && a.WorkDate >= startOfMonth
-                     && a.WorkDate <= endOfMonth
-                     && a.Status == AttendanceStatus.Present)
+        var totalWorkedHours = await _db
+            .EmployeeAttendances.Where(a =>
+                a.EmployeeId == employeeId
+                && a.WorkDate >= startOfMonth
+                && a.WorkDate <= endOfMonth
+                && a.Status == AttendanceStatus.Present
+            )
             .SumAsync(a => (decimal?)a.WorkedHours ?? 0m, ct);
 
         var anciennete = (int)Math.Floor((payDate - contract.StartDate).TotalDays / 365.25);
@@ -580,77 +664,100 @@ public class PayrollService : IPayrollService
 
             BaseSalary = salary?.BaseSalary ?? 0m,
             BaseSalaryHourly = salary?.BaseSalaryHourly,
-            SalaryComponents = salary?.Components?
-                .Where(c => DateOnly.FromDateTime(c.EffectiveDate) <= periodEnd
-                            && (c.EndDate == null || DateOnly.FromDateTime(c.EndDate.Value) >= periodStart))
-                .Select(c => new PayrollSalaryComponentDto
-                {
-                    ComponentType = c.ComponentType,
-                    Amount = c.Amount,
-                    IsTaxable = c.IsTaxable,
-                    IsSocial = c.IsSocial,
-                    IsCIMR = c.IsCIMR
-                }).ToList() ?? new(),
+            SalaryComponents =
+                salary
+                    ?.Components?.Where(c =>
+                        DateOnly.FromDateTime(c.EffectiveDate) <= periodEnd
+                        && (c.EndDate == null || DateOnly.FromDateTime(c.EndDate.Value) >= periodStart)
+                    )
+                    .Select(c => new PayrollSalaryComponentDto
+                    {
+                        ComponentType = c.ComponentType,
+                        Amount = c.Amount,
+                        IsTaxable = c.IsTaxable,
+                        IsSocial = c.IsSocial,
+                        IsCIMR = c.IsCIMR,
+                    })
+                    .ToList()
+                ?? new(),
 
             SalaryPackageName = assignment?.SalaryPackage?.Name,
-            PackageItems = assignment?.SalaryPackage?.Items?.Select(i => new PayrollPackageItemDto
-            {
-                Label = i.Label,
-                DefaultValue = i.DefaultValue,
-                Type = i.Type,
-                IsTaxable = i.IsTaxable,
-                IsSocial = i.IsSocial,
-                IsCIMR = i.IsCIMR,
-                ExemptionLimit = i.ExemptionLimit
-            }).ToList() ?? new(),
+            PackageItems =
+                assignment
+                    ?.SalaryPackage?.Items?.Select(i => new PayrollPackageItemDto
+                    {
+                        Label = i.Label,
+                        DefaultValue = i.DefaultValue,
+                        Type = i.Type,
+                        IsTaxable = i.IsTaxable,
+                        IsSocial = i.IsSocial,
+                        IsCIMR = i.IsCIMR,
+                        ExemptionLimit = i.ExemptionLimit,
+                    })
+                    .ToList()
+                ?? new(),
 
-            Absences = absences.Select(a => new PayrollAbsenceDto
-            {
-                AbsenceType = a.AbsenceType,
-                AbsenceDate = a.AbsenceDate.ToDateTime(TimeOnly.MinValue),
-                DurationType = a.DurationType.ToString(),
-                Status = a.Status.ToString()
-            }).ToList(),
+            Absences = absences
+                .Select(a => new PayrollAbsenceDto
+                {
+                    AbsenceType = a.AbsenceType,
+                    AbsenceDate = a.AbsenceDate.ToDateTime(TimeOnly.MinValue),
+                    DurationType = a.DurationType.ToString(),
+                    Status = a.Status.ToString(),
+                })
+                .ToList(),
 
-            Overtimes = overtimes.Select(o => new PayrollOvertimeDto
-            {
-                OvertimeDate = o.OvertimeDate.ToDateTime(TimeOnly.MinValue),
-                DurationInHours = o.DurationInHours,
-                RateMultiplier = o.RateMultiplierApplied
-            }).ToList(),
+            Overtimes = overtimes
+                .Select(o => new PayrollOvertimeDto
+                {
+                    OvertimeDate = o.OvertimeDate.ToDateTime(TimeOnly.MinValue),
+                    DurationInHours = o.DurationInHours,
+                    RateMultiplier = o.RateMultiplierApplied,
+                })
+                .ToList(),
 
-            Leaves = leaves.Select(lr => new PayrollLeaveDto
-            {
-                LeaveType = lr.LeaveType?.LeaveNameFr,
-                StartDate = lr.StartDate,
-                EndDate = lr.EndDate,
-                DaysCount = lr.WorkingDaysDeducted
-            }).ToList(),
+            Leaves = leaves
+                .Select(lr => new PayrollLeaveDto
+                {
+                    LeaveType = lr.LeaveType?.LeaveNameFr,
+                    StartDate = lr.StartDate,
+                    EndDate = lr.EndDate,
+                    DaysCount = lr.WorkingDaysDeducted,
+                })
+                .ToList(),
 
             PayMonth = month,
             PayYear = year,
             PayHalf = payHalf,
-            TotalWorkedHours = totalWorkedHours
+            TotalWorkedHours = totalWorkedHours,
         };
     }
 
     // ── Persistence ───────────────────────────────────────────────────────────
 
     private async Task<PayrollResult> PersistResultAsync(
-        int employeeId, int month, int year, int? payHalf, int userId,
-        PayrollCalculationResult calc, bool isBatch, CancellationToken ct)
+        int employeeId,
+        int month,
+        int year,
+        int? payHalf,
+        int userId,
+        PayrollCalculationResult calc,
+        bool isBatch,
+        CancellationToken ct
+    )
     {
         var employee = await _db.Employees.FindAsync(new object[] { employeeId }, ct);
 
         // Règle métier: un seul résultat "actif" par employé/période.
         // Avant de persister, on soft-delete tout résultat existant (quel que soit le statut).
-        var existingResults = await _db.PayrollResults
-            .Where(pr =>
+        var existingResults = await _db
+            .PayrollResults.Where(pr =>
                 pr.DeletedAt == null
                 && pr.EmployeeId == employeeId
                 && pr.Month == month
                 && pr.Year == year
-                && pr.PayHalf == payHalf)
+                && pr.PayHalf == payHalf
+            )
             .ToListAsync(ct);
 
         if (existingResults.Count > 0)
@@ -672,7 +779,7 @@ public class PayrollService : IPayrollService
             PayHalf = payHalf,
             Status = PayrollResultStatus.OK,
             ProcessedAt = DateTime.UtcNow,
-            CreatedBy = userId
+            CreatedBy = userId,
         };
 
         ApplyResultToEntity(calc, entity);
@@ -692,7 +799,7 @@ public class PayrollService : IPayrollService
                 FormulaDescription = s.FormulaDescription,
                 InputsJson = s.InputsJson,
                 OutputsJson = s.OutputsJson,
-                CreatedBy = userId
+                CreatedBy = userId,
             });
             _db.PayrollCalculationAuditSteps.AddRange(steps);
         }
@@ -763,40 +870,57 @@ public class PayrollService : IPayrollService
 
     // ── Mapper ────────────────────────────────────────────────────────────────
 
-    private static PayrollResultReadDto MapToRead(PayrollResult pr, PayrollCalculationResult? calc) => new()
-    {
-        Id = pr.Id,
-        EmployeeId = pr.EmployeeId,
-        EmployeeFullName = pr.Employee != null ? $"{pr.Employee.FirstName} {pr.Employee.LastName}" : string.Empty,
-        CompanyId = pr.CompanyId,
-        Month = pr.Month,
-        Year = pr.Year,
-        PayHalf = pr.PayHalf,
-        Status = pr.Status,
-        ErrorMessage = pr.ErrorMessage,
-        SalaireBase = pr.SalaireBase,
-        PrimeAnciennete = pr.PrimeAnciennete,
-        PrimeAnciennteRate = pr.PrimeAnciennteRate,
-        HeuresSupp25 = pr.HeuresSupp25,
-        HeuresSupp50 = pr.HeuresSupp50,
-        HeuresSupp100 = pr.HeuresSupp100,
-        TotalPrimesImposables = pr.TotalPrimesImposables,
-        BrutImposable = pr.BrutImposable,
-        FraisProfessionnels = pr.FraisProfessionnels,
-        BaseCnss = pr.CnssBase,
-        CnssRgSalarial = pr.CnssPartSalariale,
-        CnssAmoSalarial = pr.AmoPartSalariale,
-        CimrSalarial = pr.CimrPartSalariale,
-        MutuelleSalariale = pr.MutuellePartSalariale,
-        IrTaux = pr.IrTaux,
-        IR = pr.ImpotRevenu,
-        RevenuNetImposable = pr.NetImposable,
-        SalaireNet = pr.NetAPayer,
-        CnssRgPatronal = pr.CnssPartPatronale,
-        AmoPatronal = pr.AmoPartPatronale,
-        CimrPatronal = pr.CimrPartPatronale,
-        TotalChargesPatronales = pr.TotalCotisationsPatronales,
-        Primes = pr.Primes?.Select(p => new PayrollResultPrimeDto { Label = p.Label, Montant = p.Montant, IsTaxable = p.IsTaxable }).ToList() ?? new(),
-        AuditSteps = pr.CalculationAuditSteps?.OrderBy(s => s.StepOrder).Select(s => new PayrollAuditStepDto { StepOrder = s.StepOrder, ModuleName = s.ModuleName, FormulaDescription = s.FormulaDescription }).ToList()
-    };
+    private static PayrollResultReadDto MapToRead(PayrollResult pr, PayrollCalculationResult? calc) =>
+        new()
+        {
+            Id = pr.Id,
+            EmployeeId = pr.EmployeeId,
+            EmployeeFullName = pr.Employee != null ? $"{pr.Employee.FirstName} {pr.Employee.LastName}" : string.Empty,
+            CompanyId = pr.CompanyId,
+            Month = pr.Month,
+            Year = pr.Year,
+            PayHalf = pr.PayHalf,
+            Status = pr.Status,
+            ErrorMessage = pr.ErrorMessage,
+            SalaireBase = pr.SalaireBase,
+            PrimeAnciennete = pr.PrimeAnciennete,
+            PrimeAnciennteRate = pr.PrimeAnciennteRate,
+            HeuresSupp25 = pr.HeuresSupp25,
+            HeuresSupp50 = pr.HeuresSupp50,
+            HeuresSupp100 = pr.HeuresSupp100,
+            TotalPrimesImposables = pr.TotalPrimesImposables,
+            BrutImposable = pr.BrutImposable,
+            FraisProfessionnels = pr.FraisProfessionnels,
+            BaseCnss = pr.CnssBase,
+            CnssRgSalarial = pr.CnssPartSalariale,
+            CnssAmoSalarial = pr.AmoPartSalariale,
+            CimrSalarial = pr.CimrPartSalariale,
+            MutuelleSalariale = pr.MutuellePartSalariale,
+            IrTaux = pr.IrTaux,
+            IR = pr.ImpotRevenu,
+            RevenuNetImposable = pr.NetImposable,
+            SalaireNet = pr.NetAPayer,
+            CnssRgPatronal = pr.CnssPartPatronale,
+            AmoPatronal = pr.AmoPartPatronale,
+            CimrPatronal = pr.CimrPartPatronale,
+            TotalChargesPatronales = pr.TotalCotisationsPatronales,
+            Primes =
+                pr.Primes?.Select(p => new PayrollResultPrimeDto
+                    {
+                        Label = p.Label,
+                        Montant = p.Montant,
+                        IsTaxable = p.IsTaxable,
+                    })
+                    .ToList()
+                ?? new(),
+            AuditSteps = pr
+                .CalculationAuditSteps?.OrderBy(s => s.StepOrder)
+                .Select(s => new PayrollAuditStepDto
+                {
+                    StepOrder = s.StepOrder,
+                    ModuleName = s.ModuleName,
+                    FormulaDescription = s.FormulaDescription,
+                })
+                .ToList(),
+        };
 }

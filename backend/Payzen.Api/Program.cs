@@ -17,65 +17,67 @@ using Payzen.Infrastructure.Persistence;
 using Payzen.Infrastructure.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // ===== AUTHENTICATION =====
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    // Session cookie — expire après 30 min d'inactivité
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    options.SlidingExpiration = true;   // renouvelle le timer si l'user est actif
-    options.Cookie.HttpOnly = true;   // inaccessible depuis JavaScript
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.LoginPath = "/auth/login";
-    options.LogoutPath = "/auth/logout";
-    options.Events.OnRedirectToLogin = context =>
+builder
+    .Services.AddAuthentication(options =>
     {
-        // Pour une API REST, retourner 401 au lieu de rediriger
-        context.Response.StatusCode = 401;
-        return Task.CompletedTask;
-    };
-})
-.AddOpenIdConnect("EntraExternalId", options =>
-{
-    options.Authority = builder.Configuration["EntraExternalId:Instance"]
-                         + builder.Configuration["EntraExternalId:TenantId"];
-    options.ClientId = builder.Configuration["EntraExternalId:ClientId"];
-    options.ClientSecret = builder.Configuration["EntraExternalId:ClientSecret"];
-    options.CallbackPath = builder.Configuration["EntraExternalId:CallbackPath"];
-
-    options.ResponseType = OpenIdConnectResponseType.Code;  // Authorization Code Flow
-    options.UsePkce = true;   // obligatoire pour SPA + sécurité renforcée
-    options.SaveTokens = true;   // conserve les tokens pour le refresh
-
-    options.Scope.Clear();
-    options.Scope.Add("openid");
-    options.Scope.Add("profile");
-    options.Scope.Add("email");
-    options.Scope.Add("offline_access");  // nécessaire pour le refresh token
-
-    options.TokenValidationParameters = new TokenValidationParameters
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
     {
-        NameClaimType = "name",
-        RoleClaimType = "roles"
-    };
+        // Session cookie — expire après 30 min d'inactivité
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true; // renouvelle le timer si l'user est actif
+        options.Cookie.HttpOnly = true; // inaccessible depuis JavaScript
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.LoginPath = "/auth/login";
+        options.LogoutPath = "/auth/logout";
+        options.Events.OnRedirectToLogin = context =>
+        {
+            // Pour une API REST, retourner 401 au lieu de rediriger
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        };
+    })
+    .AddOpenIdConnect(
+        "EntraExternalId",
+        options =>
+        {
+            options.Authority =
+                builder.Configuration["EntraExternalId:Instance"] + builder.Configuration["EntraExternalId:TenantId"];
+            options.ClientId = builder.Configuration["EntraExternalId:ClientId"];
+            options.ClientSecret = builder.Configuration["EntraExternalId:ClientSecret"];
+            options.CallbackPath = builder.Configuration["EntraExternalId:CallbackPath"];
 
-    // Mapper le claim "oid" vers un claim standard
-    options.ClaimActions.MapJsonKey("oid",
-        "http://schemas.microsoft.com/identity/claims/objectidentifier");
-});
+            options.ResponseType = OpenIdConnectResponseType.Code; // Authorization Code Flow
+            options.UsePkce = true; // obligatoire pour SPA + sécurité renforcée
+            options.SaveTokens = true; // conserve les tokens pour le refresh
+
+            options.Scope.Clear();
+            options.Scope.Add("openid");
+            options.Scope.Add("profile");
+            options.Scope.Add("email");
+            options.Scope.Add("offline_access"); // nécessaire pour le refresh token
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                NameClaimType = "name",
+                RoleClaimType = "roles",
+            };
+
+            // Mapper le claim "oid" vers un claim standard
+            options.ClaimActions.MapJsonKey("oid", "http://schemas.microsoft.com/identity/claims/objectidentifier");
+        }
+    );
 
 // ===== AUTHORIZATION =====
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole("admin"));
-    options.AddPolicy("ActiveUser", policy =>
-        policy.RequireClaim("isActive", "true"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
+    options.AddPolicy("ActiveUser", policy => policy.RequireClaim("isActive", "true"));
 });
 
 // ===== SESSION =====
@@ -95,17 +97,17 @@ builder.Services.AddSession(options =>
 // (JWT + endpoint /api/auth/entra-login).
 
 // ── Controllers + JSON + Validation global ────────────────────────────────────
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<ValidationActionFilter>();
-})
-.AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    options.JsonSerializerOptions.Converters.Add(
-        new System.Text.Json.Serialization.JsonStringEnumConverter());
-});
+builder
+    .Services.AddControllers(options =>
+    {
+        options.Filters.Add<ValidationActionFilter>();
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -125,19 +127,21 @@ var jwtKey = builder.Configuration["JwtSettings:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
     throw new InvalidOperationException(
-        "JwtSettings:Key est vide. Configurez une clé JWT (>= 32 caractères) dans appsettings ou via variable d'environnement.");
+        "JwtSettings:Key est vide. Configurez une clé JWT (>= 32 caractères) dans appsettings ou via variable d'environnement."
+    );
 }
 
 if (jwtKey.Length < 32)
 {
     throw new InvalidOperationException(
-        "JwtSettings:Key est trop courte. Utilisez une clé JWT d'au moins 32 caractères.");
+        "JwtSettings:Key est trop courte. Utilisez une clé JWT d'au moins 32 caractères."
+    );
 }
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
-builder.Services
-    .AddAuthentication(options =>
+builder
+    .Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -155,7 +159,7 @@ builder.Services
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
             NameClaimType = "unique_name",
-            RoleClaimType = "role"
+            RoleClaimType = "role",
         };
     });
 
@@ -179,7 +183,8 @@ builder.Services.AddCors(options =>
                 "https://app-test.payzenhr.com",
                 "https://admin-test.payzenhr.com",
                 "https://app.payzenhr.com",
-                "https://admin.payzen.ma")
+                "https://admin.payzen.ma"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -220,27 +225,30 @@ app.UseExceptionHandler(errorApp =>
         var error = context.Features.Get<IExceptionHandlerFeature>();
         if (error != null)
         {
-            var logger = context.RequestServices
-                .GetRequiredService<ILogger<Program>>();
-            logger.LogError(error.Error,
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(
+                error.Error,
                 "Exception non gérée sur {Method} {Path}",
                 context.Request.Method,
-                context.Request.Path);
+                context.Request.Path
+            );
         }
 
         var exceptionType = error?.Error?.GetType().Name;
         var exceptionMessage = error?.Error?.Message;
         var inDevelopment = app.Environment.IsDevelopment();
 
-        await context.Response.WriteAsJsonAsync(new
-        {
-            Message = "Une erreur interne est survenue.",
-            TraceId = context.TraceIdentifier,
-            // Débogage: aide à identifier rapidement la cause d'un 500.
-            // En prod, on évite de renvoyer le message exceptionnel.
-            ExceptionType = inDevelopment ? exceptionType : null,
-            ExceptionMessage = inDevelopment ? exceptionMessage : null
-        });
+        await context.Response.WriteAsJsonAsync(
+            new
+            {
+                Message = "Une erreur interne est survenue.",
+                TraceId = context.TraceIdentifier,
+                // Débogage: aide à identifier rapidement la cause d'un 500.
+                // En prod, on évite de renvoyer le message exceptionnel.
+                ExceptionType = inDevelopment ? exceptionType : null,
+                ExceptionMessage = inDevelopment ? exceptionMessage : null,
+            }
+        );
     });
 });
 
@@ -248,8 +256,7 @@ app.UseExceptionHandler(errorApp =>
 app.UseStatusCodePages(async statusContext =>
 {
     var response = statusContext.HttpContext.Response;
-    if (response.ContentType == null ||
-        !response.ContentType.Contains("application/json"))
+    if (response.ContentType == null || !response.ContentType.Contains("application/json"))
     {
         response.ContentType = "application/json";
         var message = response.StatusCode switch
@@ -258,12 +265,9 @@ app.UseStatusCodePages(async statusContext =>
             403 => "Accès refusé.",
             404 => "Ressource introuvable.",
             405 => "Méthode non autorisée.",
-            _ => $"Erreur HTTP {response.StatusCode}."
+            _ => $"Erreur HTTP {response.StatusCode}.",
         };
-        await response.WriteAsJsonAsync(new
-        {
-            Message = message
-        });
+        await response.WriteAsJsonAsync(new { Message = message });
     }
 });
 
@@ -287,29 +291,36 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapGet("/api/health", async (AppDbContext db) =>
-{
-    try
+app.MapGet(
+    "/api/health",
+    async (AppDbContext db) =>
     {
-        var canConnect = await db.Database.CanConnectAsync();
-        return Results.Ok(new
+        try
         {
-            status = "API is running",
-            database = canConnect ? "connected" : "unreachable",
-            timestamp = DateTime.UtcNow
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Ok(new
+            var canConnect = await db.Database.CanConnectAsync();
+            return Results.Ok(
+                new
+                {
+                    status = "API is running",
+                    database = canConnect ? "connected" : "unreachable",
+                    timestamp = DateTime.UtcNow,
+                }
+            );
+        }
+        catch (Exception ex)
         {
-            status = "API is running",
-            database = "error",
-            innerError = ex.InnerException?.Message,
-            timestamp = DateTime.UtcNow
-        });
+            return Results.Ok(
+                new
+                {
+                    status = "API is running",
+                    database = "error",
+                    innerError = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow,
+                }
+            );
+        }
     }
-});
+);
 app.Run();
 
 // ── Filtre de validation global ────────────────────────────────────────────────
@@ -319,21 +330,13 @@ public class ValidationActionFilter : IActionFilter
     {
         if (!context.ModelState.IsValid)
         {
-            var errors = context.ModelState
-                .Where(x => x.Value?.Errors.Count > 0)
-                .ToDictionary(
-                    x => x.Key,
-                    x => x.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+            var errors = context
+                .ModelState.Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(x => x.Key, x => x.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
 
-            context.Result = new BadRequestObjectResult(new
-            {
-                Message = "Données invalides.",
-                Errors = errors
-            });
+            context.Result = new BadRequestObjectResult(new { Message = "Données invalides.", Errors = errors });
         }
     }
 
-    public void OnActionExecuted(ActionExecutedContext context)
-    {
-    }
+    public void OnActionExecuted(ActionExecutedContext context) { }
 }

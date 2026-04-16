@@ -6,7 +6,7 @@ public enum PaymentFrequency
     MONTHLY,
     QUARTERLY,
     ANNUAL,
-    ONE_TIME
+    ONE_TIME,
 }
 
 public enum ExemptionType
@@ -19,34 +19,34 @@ public enum ExemptionType
     FORMULA,
     FORMULA_CAPPED,
     TIERED,
-    DUAL_CAP
+    DUAL_CAP,
 }
 
 public enum DualCapLogic
 {
     MIN,
-    MAX
+    MAX,
 }
 
 public enum CapUnit
 {
     PER_DAY,
     PER_MONTH,
-    PER_YEAR
+    PER_YEAR,
 }
 
 public enum BaseReference
 {
-    BASE_SALARY,   // Salaire de base only
-    GROSS_SALARY,  // Salaire brut (includes primes)
-    SBI            // Salaire Brut Imposable
+    BASE_SALARY, // Salaire de base only
+    GROSS_SALARY, // Salaire brut (includes primes)
+    SBI, // Salaire Brut Imposable
 }
 
 public enum ElementStatus
 {
     DRAFT,
     ACTIVE,
-    ARCHIVED
+    ARCHIVED,
 }
 
 /// <summary>Régime CIMR (DSL @ENUM RegimeCIMR)</summary>
@@ -54,5 +54,5 @@ public enum RegimeCimr
 {
     AUCUN,
     AL_KAMIL,
-    AL_MOUNASSIB
+    AL_MOUNASSIB,
 }

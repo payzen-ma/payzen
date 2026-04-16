@@ -22,7 +22,8 @@ public class AppDbContextDesignTimeFactory : IDesignTimeDbContextFactory<AppDbCo
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseSqlServer(
             config.GetConnectionString("DefaultConnection"),
-            sql => sql.MigrationsAssembly("Payzen.Infrastructure"));
+            sql => sql.MigrationsAssembly("Payzen.Infrastructure")
+        );
 
         return new AppDbContext(optionsBuilder.Options);
     }

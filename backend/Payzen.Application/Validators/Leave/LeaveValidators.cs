@@ -11,10 +11,14 @@ public class LeaveTypeCreateValidator : AbstractValidator<LeaveTypeCreateDto>
         RuleFor(x => x.LeaveName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.LeaveDescription).NotEmpty().MaximumLength(500);
 
-        When(x => x.Scope == Domain.Enums.LeaveScope.Company, () =>
-            RuleFor(x => x.CompanyId)
-                .NotNull().WithMessage("CompanyId est requis quand Scope = Company")
-                .GreaterThan(0));
+        When(
+            x => x.Scope == Domain.Enums.LeaveScope.Company,
+            () =>
+                RuleFor(x => x.CompanyId)
+                    .NotNull()
+                    .WithMessage("CompanyId est requis quand Scope = Company")
+                    .GreaterThan(0)
+        );
     }
 }
 
@@ -41,8 +45,10 @@ public class LeaveTypeLegalRuleCreateValidator : AbstractValidator<LeaveTypeLega
         RuleFor(x => x.DaysGranted).InclusiveBetween(1, 3650);
         RuleFor(x => x.LegalArticle).NotEmpty().MaximumLength(50);
 
-        When(x => x.MustBeUsedWithinDays.HasValue, () =>
-            RuleFor(x => x.MustBeUsedWithinDays!.Value).InclusiveBetween(1, 3650));
+        When(
+            x => x.MustBeUsedWithinDays.HasValue,
+            () => RuleFor(x => x.MustBeUsedWithinDays!.Value).InclusiveBetween(1, 3650)
+        );
     }
 }
 
@@ -57,8 +63,7 @@ public class LeaveRequestCreateValidator : AbstractValidator<LeaveRequestCreateD
             .GreaterThanOrEqualTo(x => x.StartDate)
             .WithMessage("La date de fin doit être égale ou postérieure à la date de début");
 
-        When(x => x.EmployeeNote != null, () =>
-            RuleFor(x => x.EmployeeNote!).MaximumLength(1000));
+        When(x => x.EmployeeNote != null, () => RuleFor(x => x.EmployeeNote!).MaximumLength(1000));
     }
 }
 
@@ -82,12 +87,9 @@ public class LeaveCarryOverAgreementCreateValidator : AbstractValidator<LeaveCar
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de la société est requis");
         RuleFor(x => x.LeaveTypeId).GreaterThan(0).WithMessage("L'ID du type de congé est requis");
         RuleFor(x => x.AgreementDate).NotEmpty().WithMessage("La date de l'accord est requise");
-        RuleFor(x => x.ToYear)
-            .GreaterThan(x => x.FromYear)
-            .WithMessage("ToYear doit être supérieur à FromYear");
+        RuleFor(x => x.ToYear).GreaterThan(x => x.FromYear).WithMessage("ToYear doit être supérieur à FromYear");
 
-        When(x => x.AgreementDocRef != null, () =>
-            RuleFor(x => x.AgreementDocRef!).MaximumLength(500));
+        When(x => x.AgreementDocRef != null, () => RuleFor(x => x.AgreementDocRef!).MaximumLength(500));
     }
 }
 
@@ -99,8 +101,7 @@ public class LeaveRequestAttachmentCreateValidator : AbstractValidator<LeaveRequ
         RuleFor(x => x.FileName).NotEmpty().MaximumLength(255);
         RuleFor(x => x.FilePath).NotEmpty().MaximumLength(1000);
 
-        When(x => x.FileType != null, () =>
-            RuleFor(x => x.FileType!).MaximumLength(100));
+        When(x => x.FileType != null, () => RuleFor(x => x.FileType!).MaximumLength(100));
     }
 }
 
@@ -110,8 +111,7 @@ public class LeaveRequestApprovalHistoryCreateValidator : AbstractValidator<Leav
     {
         RuleFor(x => x.LeaveRequestId).GreaterThan(0).WithMessage("L'ID de la demande de congé est requis");
 
-        When(x => x.Comment != null, () =>
-            RuleFor(x => x.Comment!).MaximumLength(1000));
+        When(x => x.Comment != null, () => RuleFor(x => x.Comment!).MaximumLength(1000));
     }
 }
 
@@ -122,8 +122,7 @@ public class LeaveRequestExemptionCreateValidator : AbstractValidator<LeaveReque
         RuleFor(x => x.LeaveRequestId).GreaterThan(0).WithMessage("L'ID de la demande de congé est requis");
         RuleFor(x => x.ExemptionDate).NotEmpty().WithMessage("La date d'exemption est requise");
 
-        When(x => x.Note != null, () =>
-            RuleFor(x => x.Note!).MaximumLength(500));
+        When(x => x.Note != null, () => RuleFor(x => x.Note!).MaximumLength(500));
     }
 }
 
@@ -134,10 +133,8 @@ public class LeaveAuditLogCreateValidator : AbstractValidator<LeaveAuditLogCreat
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de la société est requis");
         RuleFor(x => x.EventName).NotEmpty().MaximumLength(200);
 
-        When(x => x.OldValue != null, () =>
-            RuleFor(x => x.OldValue!).MaximumLength(2000));
+        When(x => x.OldValue != null, () => RuleFor(x => x.OldValue!).MaximumLength(2000));
 
-        When(x => x.NewValue != null, () =>
-            RuleFor(x => x.NewValue!).MaximumLength(2000));
+        When(x => x.NewValue != null, () => RuleFor(x => x.NewValue!).MaximumLength(2000));
     }
 }

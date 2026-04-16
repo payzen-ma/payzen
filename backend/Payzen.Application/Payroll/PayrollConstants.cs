@@ -25,7 +25,7 @@ public static class PayrollConstants
     public const decimal PLAFOND_NI_TRANSPORT = 500.00m;
     public const decimal PLAFOND_NI_TRANSPORT_HU = 750.00m;
     public const decimal PLAFOND_NI_TOURNEE = 1500.00m;
-    public const decimal PLAFOND_NI_REPRESENTATION = 0.10m;   // 10% du salaire
+    public const decimal PLAFOND_NI_REPRESENTATION = 0.10m; // 10% du salaire
     public const decimal PLAFOND_NI_PANIER_JOUR = 34.20m;
     public const decimal PLAFOND_NI_CAISSE = 239.00m;
     public const decimal PLAFOND_NI_CAISSE_DGI = 190.00m;
@@ -51,11 +51,11 @@ public static class PayrollConstants
     /// <summary>Barème IR mensuel 2026 (RNI_min, RNI_max, taux, déduction mensuelle)</summary>
     public static readonly (decimal RniMin, decimal RniMax, decimal Taux, decimal Deduction)[] BaremeIRMensuel2026 =
     {
-        (0,          3333.33m,        0.00m,  0.00m),
-        (3333.34m,   5000.00m,        0.10m,  333.33m),
-        (5000.01m,   6666.67m,        0.20m,  833.33m),
-        (6666.68m,   8333.33m,        0.30m,  1500.00m),
-        (8333.34m,   15000.00m,       0.34m,  1833.33m),
-        (15000.01m,  decimal.MaxValue,0.37m,  2283.33m),
+        (0, 3333.33m, 0.00m, 0.00m),
+        (3333.34m, 5000.00m, 0.10m, 333.33m),
+        (5000.01m, 6666.67m, 0.20m, 833.33m),
+        (6666.68m, 8333.33m, 0.30m, 1500.00m),
+        (8333.34m, 15000.00m, 0.34m, 1833.33m),
+        (15000.01m, decimal.MaxValue, 0.37m, 2283.33m),
     };
 }

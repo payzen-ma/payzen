@@ -1,9 +1,9 @@
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Payzen.Application.DTOs.Payroll;
 using Payzen.Domain.Enums;
-using System.Globalization;
-using System.Text.Json;
-using System.Text;
 
 namespace Payzen.Application.Payroll;
 
@@ -41,7 +41,10 @@ public class PayrollCalculationEngine
     {
         _logger.LogInformation(
             "Début calcul paie — {FullName} ({Month:D2}/{Year})",
-            data.FullName, data.PayMonth, data.PayYear);
+            data.FullName,
+            data.PayMonth,
+            data.PayYear
+        );
 
         var result = new PayrollCalculationResult
         {
@@ -60,7 +63,9 @@ public class PayrollCalculationEngine
 
             _logger.LogInformation(
                 "Calcul terminé — Net : {Net:N2} MAD | Coût emp. : {Cout:N2} MAD",
-                result.SalaireNet, result.CoutEmployeurTotal);
+                result.SalaireNet,
+                result.CoutEmployeurTotal
+            );
         }
         catch (Exception ex)
         {
@@ -96,19 +101,19 @@ public class PayrollCalculationEngine
 
         // ── Jours travaillés / congés / absences ────────────────────────────
 
-        var joursAbsents = data.Absences?
-            .Where(a =>
-                string.Equals(a.Status, "Approved", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(a.AbsenceType, "MATERNITE", StringComparison.OrdinalIgnoreCase)
-                && (a.DurationType == "FullDay" || a.DurationType == "HalfDay"))
-            .Sum(a => a.DurationType == "FullDay" ? 1m : 0.5m) ?? 0m;
+        var joursAbsents =
+            data.Absences?.Where(a =>
+                    string.Equals(a.Status, "Approved", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(a.AbsenceType, "MATERNITE", StringComparison.OrdinalIgnoreCase)
+                    && (a.DurationType == "FullDay" || a.DurationType == "HalfDay")
+                )
+                .Sum(a => a.DurationType == "FullDay" ? 1m : 0.5m)
+            ?? 0m;
 
-        var joursConge = (int)Math.Round(
-            data.Leaves?.Sum(l => l.DaysCount) ?? 0m);
+        var joursConge = (int)Math.Round(data.Leaves?.Sum(l => l.DaysCount) ?? 0m);
 
         ctx.JoursConge = joursConge;
-        ctx.JoursTravailles = Math.Max(0,
-            PayrollConstants.WorkDaysRef - joursConge - (int)Math.Round(joursAbsents));
+        ctx.JoursTravailles = Math.Max(0, PayrollConstants.WorkDaysRef - joursConge - (int)Math.Round(joursAbsents));
 
         // ── Heures supplémentaires par tranche ──────────────────────────────
 
@@ -127,40 +132,40 @@ public class PayrollCalculationEngine
 
         // ── Primes imposables (SalaryComponents + PackageItems taxables) ─────
 
-        foreach (var c in data.SalaryComponents?.Where(c => c.IsTaxable)
-                          ?? Array.Empty<PayrollSalaryComponentDto>())
+        foreach (var c in data.SalaryComponents?.Where(c => c.IsTaxable) ?? Array.Empty<PayrollSalaryComponentDto>())
         {
             // La classification métier NI (ex: représentation, transport, panier...) prime
             // sur le simple flag IsTaxable pour éviter les mauvaises imputations.
             if (!TryAssignNiDedicatedCategory(ctx, c.ComponentType, c.Amount))
             {
-                ctx.PrimesImposables.Add(new PrimeImposableItem
-                {
-                    Label = c.ComponentType,
-                    Montant = MontantPanierProratiseSiLibelle(c.ComponentType, c.Amount, ctx.JoursTravailles)
-                });
+                ctx.PrimesImposables.Add(
+                    new PrimeImposableItem
+                    {
+                        Label = c.ComponentType,
+                        Montant = MontantPanierProratiseSiLibelle(c.ComponentType, c.Amount, ctx.JoursTravailles),
+                    }
+                );
             }
         }
 
-        foreach (var p in data.PackageItems?.Where(p => p.IsTaxable)
-                          ?? Array.Empty<PayrollPackageItemDto>())
+        foreach (var p in data.PackageItems?.Where(p => p.IsTaxable) ?? Array.Empty<PayrollPackageItemDto>())
         {
             if (!TryAssignNiDedicatedCategory(ctx, p.Label, p.DefaultValue))
             {
-                ctx.PrimesImposables.Add(new PrimeImposableItem
-                {
-                    Label = p.Label,
-                    Montant = MontantPanierProratiseSiLibelle(p.Label, p.DefaultValue, ctx.JoursTravailles)
-                });
+                ctx.PrimesImposables.Add(
+                    new PrimeImposableItem
+                    {
+                        Label = p.Label,
+                        Montant = MontantPanierProratiseSiLibelle(p.Label, p.DefaultValue, ctx.JoursTravailles),
+                    }
+                );
             }
         }
 
         // ── CIMR ─────────────────────────────────────────────────────────────
         // Les fiches employés / UI saisissent souvent « 4,5 » pour 4,5 % ; le moteur attend une fraction (0,045).
 
-        if (data.CimrNumber != null
-            && data.CimrEmployeeRate.HasValue
-            && data.CimrCompanyRate.HasValue)
+        if (data.CimrNumber != null && data.CimrEmployeeRate.HasValue && data.CimrCompanyRate.HasValue)
         {
             var ts = NormalizeCimrRateFraction(data.CimrEmployeeRate.Value);
             var tp = NormalizeCimrRateFraction(data.CimrCompanyRate.Value);
@@ -183,26 +188,28 @@ public class PayrollCalculationEngine
         // routés vers « NiAutres » (exonération totale en module 04) : ce sont en pratique des primes /
         // éléments de salaire et doivent entrer dans le brut imposable (TotalPrimesImposables).
 
-        foreach (var c in data.SalaryComponents?.Where(c => !c.IsTaxable)
-                          ?? Array.Empty<PayrollSalaryComponentDto>())
+        foreach (var c in data.SalaryComponents?.Where(c => !c.IsTaxable) ?? Array.Empty<PayrollSalaryComponentDto>())
         {
             if (!TryAssignNiDedicatedCategory(ctx, c.ComponentType, c.Amount))
-                ctx.PrimesImposables.Add(new PrimeImposableItem
-                {
-                    Label = string.IsNullOrWhiteSpace(c.ComponentType) ? "Composante salaire" : c.ComponentType,
-                    Montant = c.Amount
-                });
+                ctx.PrimesImposables.Add(
+                    new PrimeImposableItem
+                    {
+                        Label = string.IsNullOrWhiteSpace(c.ComponentType) ? "Composante salaire" : c.ComponentType,
+                        Montant = c.Amount,
+                    }
+                );
         }
 
-        foreach (var p in data.PackageItems?.Where(p => !p.IsTaxable)
-                          ?? Array.Empty<PayrollPackageItemDto>())
+        foreach (var p in data.PackageItems?.Where(p => !p.IsTaxable) ?? Array.Empty<PayrollPackageItemDto>())
         {
             if (!TryAssignNiDedicatedCategory(ctx, p.Label, p.DefaultValue))
-                ctx.PrimesImposables.Add(new PrimeImposableItem
-                {
-                    Label = string.IsNullOrWhiteSpace(p.Label) ? "Ligne package" : p.Label,
-                    Montant = p.DefaultValue
-                });
+                ctx.PrimesImposables.Add(
+                    new PrimeImposableItem
+                    {
+                        Label = string.IsNullOrWhiteSpace(p.Label) ? "Ligne package" : p.Label,
+                        Montant = p.DefaultValue,
+                    }
+                );
         }
 
         return ctx;
@@ -303,9 +310,7 @@ public class PayrollCalculationEngine
     {
         if (string.IsNullOrWhiteSpace(label))
             return amount;
-        return label.ToUpperInvariant().Contains("PANIER")
-            ? MontantPanierProratise(amount, joursTravailles)
-            : amount;
+        return label.ToUpperInvariant().Contains("PANIER") ? MontantPanierProratise(amount, joursTravailles) : amount;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -316,135 +321,280 @@ public class PayrollCalculationEngine
     {
         // MODULE 01 — Ancienneté
         Module01_Anciennete(ctx);
-        Audit(result, 1, "Module01_Anciennete",
+        Audit(
+            result,
+            1,
+            "Module01_Anciennete",
             "PrimeAnciennete = SalaireBase26j × TauxAnciennete ; fallback horaire si SalaireBase=0",
-            In("SalaireBase26j", ctx.SalaireBase26j,
-               "DateEmbauche", ctx.DateEmbauche.ToString("yyyy-MM-dd"),
-               "AncienneteAnnees", ctx.AncienneteAnnees,
-               "TauxAnciennete", ctx.TauxAnciennete),
-            Out("PrimeAnciennete", ctx.PrimeAnciennete));
+            In(
+                "SalaireBase26j",
+                ctx.SalaireBase26j,
+                "DateEmbauche",
+                ctx.DateEmbauche.ToString("yyyy-MM-dd"),
+                "AncienneteAnnees",
+                ctx.AncienneteAnnees,
+                "TauxAnciennete",
+                ctx.TauxAnciennete
+            ),
+            Out("PrimeAnciennete", ctx.PrimeAnciennete)
+        );
 
         // MODULE 02 — Présence
         Module02_Presence(ctx);
-        Audit(result, 2, "Module02_Presence",
+        Audit(
+            result,
+            2,
+            "Module02_Presence",
             "SalaireBaseMensuel = SalaireBase26j si JoursPayés≥26, sinon SalaireBase26j × (JoursPayésTotal / 26)",
-            In("SalaireBase26j", ctx.SalaireBase26j,
-               "JoursTravailles", ctx.JoursTravailles,
-               "JoursFeries", ctx.JoursFeries,
-               "JoursConge", ctx.JoursConge,
-               "JoursPayesTotal", ctx.JoursPayesTotal),
-            Out("SalaireBaseMensuel", ctx.SalaireBaseMensuel));
+            In(
+                "SalaireBase26j",
+                ctx.SalaireBase26j,
+                "JoursTravailles",
+                ctx.JoursTravailles,
+                "JoursFeries",
+                ctx.JoursFeries,
+                "JoursConge",
+                ctx.JoursConge,
+                "JoursPayesTotal",
+                ctx.JoursPayesTotal
+            ),
+            Out("SalaireBaseMensuel", ctx.SalaireBaseMensuel)
+        );
 
         // MODULE 03 — Heures supplémentaires
         Module03_HeuresSupplementaires(ctx);
-        Audit(result, 3, "Module03_HeuresSupplementaires",
+        Audit(
+            result,
+            3,
+            "Module03_HeuresSupplementaires",
             "TauxHoraire = (SalaireBaseMensuel + PrimeAnciennete) / HeuresMois ; MontHsupp = H × TauxH × (1.25|1.50|2.00)",
-            In("SalaireBaseMensuel", ctx.SalaireBaseMensuel,
-               "PrimeAnciennete", ctx.PrimeAnciennete,
-               "HeuresMois", ctx.HeuresMois,
-               "HSup25Pct", ctx.HSup25Pct, "HSup50Pct", ctx.HSup50Pct, "HSup100Pct", ctx.HSup100Pct),
-            Out("TauxHoraire", ctx.TauxHoraire,
-                "MontHsupp25", ctx.MontHsupp25, "MontHsupp50", ctx.MontHsupp50,
-                "MontHsupp100", ctx.MontHsupp100, "TotalHsupp", ctx.TotalHsupp));
+            In(
+                "SalaireBaseMensuel",
+                ctx.SalaireBaseMensuel,
+                "PrimeAnciennete",
+                ctx.PrimeAnciennete,
+                "HeuresMois",
+                ctx.HeuresMois,
+                "HSup25Pct",
+                ctx.HSup25Pct,
+                "HSup50Pct",
+                ctx.HSup50Pct,
+                "HSup100Pct",
+                ctx.HSup100Pct
+            ),
+            Out(
+                "TauxHoraire",
+                ctx.TauxHoraire,
+                "MontHsupp25",
+                ctx.MontHsupp25,
+                "MontHsupp50",
+                ctx.MontHsupp50,
+                "MontHsupp100",
+                ctx.MontHsupp100,
+                "TotalHsupp",
+                ctx.TotalHsupp
+            )
+        );
 
         // MODULE 04 — Indemnités non imposables
         Module04_IndemnitesNonImposables(ctx);
-        Audit(result, 4, "Module04_IndemnitesNonImposables",
+        Audit(
+            result,
+            4,
+            "Module04_IndemnitesNonImposables",
             "Scission par type avec plafonds DGI ; TotalNiExonere + TotalNiExcedentImposable",
-            In("NiTransport", ctx.NiTransport, "NiPanier", ctx.NiPanier,
-               "NiRepresentation", ctx.NiRepresentation, "JoursTravailles", ctx.JoursTravailles),
-            Out("TotalNiExonere", ctx.TotalNiExonere,
-                "TotalNiExcedentImposable", ctx.TotalNiExcedentImposable));
+            In(
+                "NiTransport",
+                ctx.NiTransport,
+                "NiPanier",
+                ctx.NiPanier,
+                "NiRepresentation",
+                ctx.NiRepresentation,
+                "JoursTravailles",
+                ctx.JoursTravailles
+            ),
+            Out("TotalNiExonere", ctx.TotalNiExonere, "TotalNiExcedentImposable", ctx.TotalNiExcedentImposable)
+        );
 
         // MODULE 05 — Salaire brut imposable
         Module05_SalaireBrutImposable(ctx);
-        Audit(result, 5, "Module05_SalaireBrutImposable",
+        Audit(
+            result,
+            5,
+            "Module05_SalaireBrutImposable",
             "SBI = SalaireBaseMensuel + PrimeAnc + TotalHsupp + TotalPrimesImposables + TotalNiExcedentImposable",
-            In("SalaireBaseMensuel", ctx.SalaireBaseMensuel,
-               "PrimeAnciennete", ctx.PrimeAnciennete,
-               "TotalHsupp", ctx.TotalHsupp,
-               "TotalPrimesImposables", ctx.TotalPrimesImposables,
-               "TotalNiExcedentImposable", ctx.TotalNiExcedentImposable),
-            Out("SalaireBrutImposable", ctx.SalaireBrutImposable));
+            In(
+                "SalaireBaseMensuel",
+                ctx.SalaireBaseMensuel,
+                "PrimeAnciennete",
+                ctx.PrimeAnciennete,
+                "TotalHsupp",
+                ctx.TotalHsupp,
+                "TotalPrimesImposables",
+                ctx.TotalPrimesImposables,
+                "TotalNiExcedentImposable",
+                ctx.TotalNiExcedentImposable
+            ),
+            Out("SalaireBrutImposable", ctx.SalaireBrutImposable)
+        );
 
         // MODULE 06 — CNSS (Décret 2.25.266 — 2025)
         Module06_Cnss(ctx);
-        Audit(result, 6, "Module06_Cnss",
+        Audit(
+            result,
+            6,
+            "Module06_Cnss",
             "BaseCnss = min(SBI, 6000) ; RG sal 4.48%, AMO sal 2.26% ; Patronal : RG 8.98%, AF 6.4%, FP 1.6%, AMO 2.26%+1.85%",
             In("SalaireBrutImposable", ctx.SalaireBrutImposable, "DisableAmo", ctx.DisableAmo),
-            Out("BaseCnssRg", ctx.BaseCnssRg,
-                "CnssRgSalarial", ctx.CnssRgSalarial, "CnssAmoSalarial", ctx.CnssAmoSalarial,
-                "TotalCnssSalarial", ctx.TotalCnssSalarial, "TotalCnssPatronal", ctx.TotalCnssPatronal));
+            Out(
+                "BaseCnssRg",
+                ctx.BaseCnssRg,
+                "CnssRgSalarial",
+                ctx.CnssRgSalarial,
+                "CnssAmoSalarial",
+                ctx.CnssAmoSalarial,
+                "TotalCnssSalarial",
+                ctx.TotalCnssSalarial,
+                "TotalCnssPatronal",
+                ctx.TotalCnssPatronal
+            )
+        );
 
         // MODULE 07 — CIMR
         Module07_Cimr(ctx);
-        Audit(result, 7, "Module07_Cimr",
+        Audit(
+            result,
+            7,
+            "Module07_Cimr",
             "AL_KAMIL : base = SBI×Taux ; AL_MOUNASSIB : base = max(0, SBI-6000)×Taux",
-            In("RegimeCimr", ctx.RegimeCimr.ToString(),
-               "SalaireBrutImposable", ctx.SalaireBrutImposable,
-               "CimrTauxSalarial", ctx.CimrTauxSalarial, "CimrTauxPatronal", ctx.CimrTauxPatronal),
-            Out("BaseCimr", ctx.BaseCimr, "CimrSalarial", ctx.CimrSalarial, "CimrPatronal", ctx.CimrPatronal));
+            In(
+                "RegimeCimr",
+                ctx.RegimeCimr.ToString(),
+                "SalaireBrutImposable",
+                ctx.SalaireBrutImposable,
+                "CimrTauxSalarial",
+                ctx.CimrTauxSalarial,
+                "CimrTauxPatronal",
+                ctx.CimrTauxPatronal
+            ),
+            Out("BaseCimr", ctx.BaseCimr, "CimrSalarial", ctx.CimrSalarial, "CimrPatronal", ctx.CimrPatronal)
+        );
 
         // MODULE 08 — Frais professionnels (LF 2025)
         Module08_FraisProfessionnels(ctx);
-        Audit(result, 8, "Module08_FraisProfessionnels",
+        Audit(
+            result,
+            8,
+            "Module08_FraisProfessionnels",
             "Base≤6500 → 35% ; Base>6500 → 25% ; Plafond 2916.67 MAD (LF 2025)",
             In("SalaireBrutImposable", ctx.SalaireBrutImposable),
-            Out("TauxFp", ctx.TauxFp, "PlafondFp", ctx.PlafondFp, "MontantFp", ctx.MontantFp));
+            Out("TauxFp", ctx.TauxFp, "PlafondFp", ctx.PlafondFp, "MontantFp", ctx.MontantFp)
+        );
 
         // MODULE 09 — Base IR (RNI)
         Module09_BaseIr(ctx);
-        Audit(result, 9, "Module09_BaseIr",
+        Audit(
+            result,
+            9,
+            "Module09_BaseIr",
             "RNI = SBI - TotalCnssSal - CimrSal - MutuelleSal - MontantFp - IntLogement",
-            In("SalaireBrutImposable", ctx.SalaireBrutImposable,
-               "TotalCnssSalarial", ctx.TotalCnssSalarial,
-               "CimrSalarial", ctx.CimrSalarial,
-               "MontantFp", ctx.MontantFp,
-               "MutuelleSalarialeAmount", ctx.MutuelleSalarialeAmount,
-               "InteretPretLogement", ctx.InteretPretLogement),
-            Out("RevenuNetImposable", ctx.RevenuNetImposable));
+            In(
+                "SalaireBrutImposable",
+                ctx.SalaireBrutImposable,
+                "TotalCnssSalarial",
+                ctx.TotalCnssSalarial,
+                "CimrSalarial",
+                ctx.CimrSalarial,
+                "MontantFp",
+                ctx.MontantFp,
+                "MutuelleSalarialeAmount",
+                ctx.MutuelleSalarialeAmount,
+                "InteretPretLogement",
+                ctx.InteretPretLogement
+            ),
+            Out("RevenuNetImposable", ctx.RevenuNetImposable)
+        );
 
         // MODULE 10 — IR (barème mensuel 2026)
         Module10_Ir(ctx);
-        Audit(result, 10, "Module10_Ir",
+        Audit(
+            result,
+            10,
+            "Module10_Ir",
             "Barème IR mensuel 2026 ; DeductionFamille = SituationFam × 30 ; IrFinal = max(0, RNI×Taux - DedBareme - DedFamille)",
-            In("RevenuNetImposable", ctx.RevenuNetImposable,
-               "SituationFam", ctx.SituationFam,
-               "TauxIr", ctx.TauxIr,
-               "DeductionBareme", ctx.DeductionBareme, "DeductionFamille", ctx.DeductionFamille),
-            Out("IrBrut", ctx.IrBrut, "IrFinal", ctx.IrFinal));
+            In(
+                "RevenuNetImposable",
+                ctx.RevenuNetImposable,
+                "SituationFam",
+                ctx.SituationFam,
+                "TauxIr",
+                ctx.TauxIr,
+                "DeductionBareme",
+                ctx.DeductionBareme,
+                "DeductionFamille",
+                ctx.DeductionFamille
+            ),
+            Out("IrBrut", ctx.IrBrut, "IrFinal", ctx.IrFinal)
+        );
 
         // MODULE 11 — Net à payer
         Module11_NetAPayer(ctx);
-        Audit(result, 11, "Module11_NetAPayer",
+        Audit(
+            result,
+            11,
+            "Module11_NetAPayer",
             "TotalRetenues = CNSS + CIMR + Mutuelle + IR + Avance ; SalaireNet = SBI - TotalRetenues + TotalNiExonere",
-            In("SalaireBrutImposable", ctx.SalaireBrutImposable,
-               "TotalCnssSalarial", ctx.TotalCnssSalarial,
-               "CimrSalarial", ctx.CimrSalarial,
-               "MutuelleSalarialeAmount", ctx.MutuelleSalarialeAmount,
-               "IrFinal", ctx.IrFinal,
-               "AvanceSalaire", ctx.AvanceSalaire,
-               "TotalNiExonere", ctx.TotalNiExonere),
-            Out("TotalRetenuesSalariales", ctx.TotalRetenuesSalariales, "SalaireNet", ctx.SalaireNet));
+            In(
+                "SalaireBrutImposable",
+                ctx.SalaireBrutImposable,
+                "TotalCnssSalarial",
+                ctx.TotalCnssSalarial,
+                "CimrSalarial",
+                ctx.CimrSalarial,
+                "MutuelleSalarialeAmount",
+                ctx.MutuelleSalarialeAmount,
+                "IrFinal",
+                ctx.IrFinal,
+                "AvanceSalaire",
+                ctx.AvanceSalaire,
+                "TotalNiExonere",
+                ctx.TotalNiExonere
+            ),
+            Out("TotalRetenuesSalariales", ctx.TotalRetenuesSalariales, "SalaireNet", ctx.SalaireNet)
+        );
 
         // MODULE 12 — Coût employeur
         Module12_CoutEmployeur(ctx);
-        Audit(result, 12, "Module12_CoutEmployeur",
+        Audit(
+            result,
+            12,
+            "Module12_CoutEmployeur",
             "TotalChargesPatronales = TotalCnssPatronal + CimrPatronal + MutuellePatronale ; CoutEmp = SBI + Charges + NiExo",
-            In("SalaireBrutImposable", ctx.SalaireBrutImposable,
-               "TotalCnssPatronal", ctx.TotalCnssPatronal,
-               "CimrPatronal", ctx.CimrPatronal,
-               "MutuellePatronaleAmount", ctx.MutuellePatronaleAmount,
-               "TotalNiExonere", ctx.TotalNiExonere),
-            Out("TotalChargesPatronales", ctx.TotalChargesPatronales,
-                "CoutEmployeurTotal", ctx.CoutEmployeurTotal));
+            In(
+                "SalaireBrutImposable",
+                ctx.SalaireBrutImposable,
+                "TotalCnssPatronal",
+                ctx.TotalCnssPatronal,
+                "CimrPatronal",
+                ctx.CimrPatronal,
+                "MutuellePatronaleAmount",
+                ctx.MutuellePatronaleAmount,
+                "TotalNiExonere",
+                ctx.TotalNiExonere
+            ),
+            Out("TotalChargesPatronales", ctx.TotalChargesPatronales, "CoutEmployeurTotal", ctx.CoutEmployeurTotal)
+        );
 
         // MODULE 13 — Congés annuels (Code du Travail Art. 231-265)
         Module13_CongesAnnuels(ctx);
-        Audit(result, 13, "Module13_CongesAnnuels",
+        Audit(
+            result,
+            13,
+            "Module13_CongesAnnuels",
             "<5a→18j | <10a→19.5j | <15a→21j | <20a→22.5j | <25a→24j | <30a→25.5j | <35a→27j | <40a→28.5j | ≥40a→30j",
             In("AncienneteAnnees", ctx.AncienneteAnnees),
-            Out("JoursCongeAnnuels", ctx.JoursCongeAnnuels));
+            Out("JoursCongeAnnuels", ctx.JoursCongeAnnuels)
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -454,8 +604,10 @@ public class PayrollCalculationEngine
     private static void Module01_Anciennete(PayrollCalculationContext ctx)
     {
         var dernierJourMois = new DateTime(
-            ctx.AnneePaie, ctx.MoisPaie,
-            DateTime.DaysInMonth(ctx.AnneePaie, ctx.MoisPaie));
+            ctx.AnneePaie,
+            ctx.MoisPaie,
+            DateTime.DaysInMonth(ctx.AnneePaie, ctx.MoisPaie)
+        );
 
         ctx.AncienneteAnnees = (int)((dernierJourMois - ctx.DateEmbauche).TotalDays / 365.25);
 
@@ -471,11 +623,10 @@ public class PayrollCalculationEngine
         ctx.PrimeAnciennteRate = ctx.TauxAnciennete;
 
         // Fallback taux horaire si salaire mensuel non fourni
-        ctx.PrimeAnciennete = ctx.SalaireBase26j <= 0
-                           && ctx.BaseSalaryHourly > 0
-                           && ctx.HeuresTravaillées > 0
-            ? Round(ctx.BaseSalaryHourly * ctx.HeuresTravaillées * ctx.TauxAnciennete)
-            : Round(ctx.SalaireBase26j * ctx.TauxAnciennete);
+        ctx.PrimeAnciennete =
+            ctx.SalaireBase26j <= 0 && ctx.BaseSalaryHourly > 0 && ctx.HeuresTravaillées > 0
+                ? Round(ctx.BaseSalaryHourly * ctx.HeuresTravaillées * ctx.TauxAnciennete)
+                : Round(ctx.SalaireBase26j * ctx.TauxAnciennete);
     }
 
     private static void Module02_Presence(PayrollCalculationContext ctx)
@@ -489,17 +640,19 @@ public class PayrollCalculationEngine
         }
         else
         {
-            ctx.SalaireBaseMensuel = ctx.JoursPayesTotal >= PayrollConstants.WorkDaysRef
-                ? ctx.SalaireBase26j
-                : Round(ctx.SalaireBase26j * ctx.JoursPayesTotal / PayrollConstants.WorkDaysRef);
+            ctx.SalaireBaseMensuel =
+                ctx.JoursPayesTotal >= PayrollConstants.WorkDaysRef
+                    ? ctx.SalaireBase26j
+                    : Round(ctx.SalaireBase26j * ctx.JoursPayesTotal / PayrollConstants.WorkDaysRef);
         }
     }
 
     private static void Module03_HeuresSupplementaires(PayrollCalculationContext ctx)
     {
-        ctx.TauxHoraire = ctx.BaseSalaryHourly > 0
-            ? Round(ctx.BaseSalaryHourly, 4)
-            : Round((ctx.SalaireBaseMensuel + ctx.PrimeAnciennete) / ctx.HeuresMois, 4);
+        ctx.TauxHoraire =
+            ctx.BaseSalaryHourly > 0
+                ? Round(ctx.BaseSalaryHourly, 4)
+                : Round((ctx.SalaireBaseMensuel + ctx.PrimeAnciennete) / ctx.HeuresMois, 4);
 
         ctx.MontHsupp25 = Round(ctx.HSup25Pct * ctx.TauxHoraire * 1.25m);
         ctx.MontHsupp50 = Round(ctx.HSup50Pct * ctx.TauxHoraire * 1.50m);
@@ -557,13 +710,29 @@ public class PayrollCalculationEngine
         var niAutresExo = ctx.NiAutres;
 
         ctx.TotalNiExonere =
-            niTransportExo + niKmExo + niTourneeExo + niRepExo + niPanierExo
-            + niCaisseExo + niLaitExo + niOutillageExo + niSalissureExo
-            + niAideExo + niGratifExo + niAutresExo;
+            niTransportExo
+            + niKmExo
+            + niTourneeExo
+            + niRepExo
+            + niPanierExo
+            + niCaisseExo
+            + niLaitExo
+            + niOutillageExo
+            + niSalissureExo
+            + niAideExo
+            + niGratifExo
+            + niAutresExo;
 
         ctx.TotalNiExcedentImposable =
-            niTransportImp + niTourneeImp + niRepImp + niPanierImp
-            + niCaisseImp + niLaitImp + niOutillageImp + niSalissureImp + niGratifImp;
+            niTransportImp
+            + niTourneeImp
+            + niRepImp
+            + niPanierImp
+            + niCaisseImp
+            + niLaitImp
+            + niOutillageImp
+            + niSalissureImp
+            + niGratifImp;
 
         ctx.NiLineTransport = niTransportExo;
         ctx.NiLineKilometrique = niKmExo;
@@ -595,21 +764,27 @@ public class PayrollCalculationEngine
         // Salarial
         ctx.BaseCnssRg = Math.Min(ctx.SalaireBrutImposable, PayrollConstants.PLAFOND_CNSS_MENSUEL);
         ctx.CnssRgSalarial = Round(ctx.BaseCnssRg * PayrollConstants.CNSS_RG_SALARIAL);
-        ctx.CnssAmoSalarial = ctx.DisableAmo ? 0m
-                              : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_SALARIAL);
+        ctx.CnssAmoSalarial = ctx.DisableAmo
+            ? 0m
+            : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_SALARIAL);
         ctx.TotalCnssSalarial = ctx.CnssRgSalarial + ctx.CnssAmoSalarial;
 
         // Patronal
         ctx.CnssRgPatronal = Round(ctx.BaseCnssRg * PayrollConstants.CNSS_RG_PATRONAL);
         ctx.CnssAllocFamPatronal = Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_ALLOC_FAM_PAT);
         ctx.CnssFpPatronal = Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_FP_PAT);
-        ctx.CnssAmoPatronal = ctx.DisableAmo ? 0m
-                                    : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_PATRONAL);
-        ctx.CnssParticipAmoPatronal = ctx.DisableAmo ? 0m
-                                    : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_PARTICIPATION_PAT);
+        ctx.CnssAmoPatronal = ctx.DisableAmo
+            ? 0m
+            : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_PATRONAL);
+        ctx.CnssParticipAmoPatronal = ctx.DisableAmo
+            ? 0m
+            : Round(ctx.SalaireBrutImposable * PayrollConstants.CNSS_AMO_PARTICIPATION_PAT);
         ctx.TotalCnssPatronal =
-            ctx.CnssRgPatronal + ctx.CnssAllocFamPatronal + ctx.CnssFpPatronal
-            + ctx.CnssAmoPatronal + ctx.CnssParticipAmoPatronal;
+            ctx.CnssRgPatronal
+            + ctx.CnssAllocFamPatronal
+            + ctx.CnssFpPatronal
+            + ctx.CnssAmoPatronal
+            + ctx.CnssParticipAmoPatronal;
     }
 
     /// <summary>
@@ -650,9 +825,10 @@ public class PayrollCalculationEngine
     {
         ctx.BaseFp = ctx.SalaireBrutImposable;
 
-        (ctx.TauxFp, ctx.PlafondFp) = ctx.BaseFp <= PayrollConstants.FP_SEUIL_35
-            ? (PayrollConstants.FP_TAUX_35, PayrollConstants.FP_PLAFOND_35)
-            : (PayrollConstants.FP_TAUX_25, PayrollConstants.FP_PLAFOND_25);
+        (ctx.TauxFp, ctx.PlafondFp) =
+            ctx.BaseFp <= PayrollConstants.FP_SEUIL_35
+                ? (PayrollConstants.FP_TAUX_35, PayrollConstants.FP_PLAFOND_35)
+                : (PayrollConstants.FP_TAUX_25, PayrollConstants.FP_PLAFOND_25);
 
         ctx.MontantFp = Math.Min(Round(ctx.BaseFp * ctx.TauxFp), ctx.PlafondFp);
     }
@@ -662,13 +838,15 @@ public class PayrollCalculationEngine
         ctx.MutuelleSalarialeAmount = Round(ctx.SalaireBrutImposable * ctx.MutuelleSalariale);
         ctx.MutuellePatronaleAmount = Round(ctx.SalaireBrutImposable * ctx.MutuellePatronale);
 
-        ctx.RevenuNetImposable = Math.Max(0m,
+        ctx.RevenuNetImposable = Math.Max(
+            0m,
             ctx.SalaireBrutImposable
-            - ctx.TotalCnssSalarial
-            - ctx.CimrSalarial
-            - ctx.MutuelleSalarialeAmount
-            - ctx.MontantFp
-            - ctx.InteretPretLogement);
+                - ctx.TotalCnssSalarial
+                - ctx.CimrSalarial
+                - ctx.MutuelleSalarialeAmount
+                - ctx.MontantFp
+                - ctx.InteretPretLogement
+        );
     }
 
     private static void Module10_Ir(PayrollCalculationContext ctx)
@@ -692,29 +870,16 @@ public class PayrollCalculationEngine
     private static void Module11_NetAPayer(PayrollCalculationContext ctx)
     {
         ctx.TotalRetenuesSalariales =
-            ctx.TotalCnssSalarial
-            + ctx.CimrSalarial
-            + ctx.MutuelleSalarialeAmount
-            + ctx.IrFinal
-            + ctx.AvanceSalaire;
+            ctx.TotalCnssSalarial + ctx.CimrSalarial + ctx.MutuelleSalarialeAmount + ctx.IrFinal + ctx.AvanceSalaire;
 
-        ctx.SalaireNet = Round(
-            ctx.SalaireBrutImposable
-            - ctx.TotalRetenuesSalariales
-            + ctx.TotalNiExonere);
+        ctx.SalaireNet = Round(ctx.SalaireBrutImposable - ctx.TotalRetenuesSalariales + ctx.TotalNiExonere);
     }
 
     private static void Module12_CoutEmployeur(PayrollCalculationContext ctx)
     {
-        ctx.TotalChargesPatronales =
-            ctx.TotalCnssPatronal
-            + ctx.CimrPatronal
-            + ctx.MutuellePatronaleAmount;
+        ctx.TotalChargesPatronales = ctx.TotalCnssPatronal + ctx.CimrPatronal + ctx.MutuellePatronaleAmount;
 
-        ctx.CoutEmployeurTotal = Round(
-            ctx.SalaireBrutImposable
-            + ctx.TotalChargesPatronales
-            + ctx.TotalNiExonere);
+        ctx.CoutEmployeurTotal = Round(ctx.SalaireBrutImposable + ctx.TotalChargesPatronales + ctx.TotalNiExonere);
     }
 
     private static void Module13_CongesAnnuels(PayrollCalculationContext ctx)
@@ -831,29 +996,34 @@ public class PayrollCalculationEngine
     // HELPERS
     // ──────────────────────────────────────────────────────────────────────────
 
-    private static decimal Round(decimal value, int decimals = PayrollConstants.RoundingDecimals)
-        => Math.Round(value, decimals, MidpointRounding.AwayFromZero);
+    private static decimal Round(decimal value, int decimals = PayrollConstants.RoundingDecimals) =>
+        Math.Round(value, decimals, MidpointRounding.AwayFromZero);
 
     private void Audit(
         PayrollCalculationResult result,
-        int step, string module, string formula,
+        int step,
+        string module,
+        string formula,
         Dictionary<string, object> inputs,
-        Dictionary<string, object> outputs)
+        Dictionary<string, object> outputs
+    )
     {
-        result.AuditSteps!.Add(new PayrollAuditStep
-        {
-            StepOrder = step,
-            ModuleName = module,
-            FormulaDescription = formula,
-            InputsJson = JsonSerializer.Serialize(inputs),
-            OutputsJson = JsonSerializer.Serialize(outputs),
-        });
+        result.AuditSteps!.Add(
+            new PayrollAuditStep
+            {
+                StepOrder = step,
+                ModuleName = module,
+                FormulaDescription = formula,
+                InputsJson = JsonSerializer.Serialize(inputs),
+                OutputsJson = JsonSerializer.Serialize(outputs),
+            }
+        );
 
-        _logger.LogDebug("PAIE [{Step:D2}] {Module} → {Outputs}",
-            step, module, JsonSerializer.Serialize(outputs));
+        _logger.LogDebug("PAIE [{Step:D2}] {Module} → {Outputs}", step, module, JsonSerializer.Serialize(outputs));
     }
 
     private static Dictionary<string, object> In(params object[] pairs) => BuildDict(pairs);
+
     private static Dictionary<string, object> Out(params object[] pairs) => BuildDict(pairs);
 
     private static Dictionary<string, object> BuildDict(object[] pairs)

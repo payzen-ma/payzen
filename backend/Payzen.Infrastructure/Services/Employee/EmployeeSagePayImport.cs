@@ -10,8 +10,8 @@ using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Company;
 using Payzen.Domain.Entities.Employee;
 using Payzen.Domain.Entities.Referentiel;
-using DomainEmployee = Payzen.Domain.Entities.Employee.Employee;
 using Payzen.Infrastructure.Persistence;
+using DomainEmployee = Payzen.Domain.Entities.Employee.Employee;
 
 namespace Payzen.Infrastructure.Services.Employee;
 
@@ -26,7 +26,8 @@ internal static class EmployeeSagePayImport
         int? month,
         int? year,
         bool preview,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         if (!csvStream.CanSeek)
         {
@@ -37,15 +38,21 @@ internal static class EmployeeSagePayImport
         }
 
         // Ancien contrôleur : Code == "Active" ; seed monolithe : souvent "ACTIVE"
-        var defaultStatus = await db.Statuses.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.IsActive && s.DeletedAt == null
-                && (s.Code == "Active" || s.Code == "ACTIVE" || s.Code == "active"), ct);
+        var defaultStatus = await db
+            .Statuses.AsNoTracking()
+            .FirstOrDefaultAsync(
+                s =>
+                    s.IsActive
+                    && s.DeletedAt == null
+                    && (s.Code == "Active" || s.Code == "ACTIVE" || s.Code == "active"),
+                ct
+            );
         if (defaultStatus == null)
-            return ServiceResult<SageImportResultDto>.Fail("Statut actif introuvable dans la base (codes Active / ACTIVE).");
+            return ServiceResult<SageImportResultDto>.Fail(
+                "Statut actif introuvable dans la base (codes Active / ACTIVE)."
+            );
 
-        var genders = await db.Genders.AsNoTracking()
-            .Where(g => g.IsActive && g.DeletedAt == null)
-            .ToListAsync(ct);
+        var genders = await db.Genders.AsNoTracking().Where(g => g.IsActive && g.DeletedAt == null).ToListAsync(ct);
 
         var rows = ParseCsvRows(csvStream);
         var result = new SageImportResultDto { TotalProcessed = rows.Count };
@@ -84,11 +91,13 @@ internal static class EmployeeSagePayImport
 
                 if (!TryParseDateOnlyFlexible(dateNaissanceRaw, out var dateOfBirth))
                     throw new InvalidOperationException(
-                        $"Format de date de naissance invalide : '{row.DateNaissance}'. Format attendu : JJ/MM/AAAA");
+                        $"Format de date de naissance invalide : '{row.DateNaissance}'. Format attendu : JJ/MM/AAAA"
+                    );
 
                 if (!TryParseDateTimeFlexible(dateEntreeRaw, out var parsedStart))
                     throw new InvalidOperationException(
-                        $"Format de date d'entrée invalide : '{row.DateEntree}'. Format attendu : JJ/MM/AAAA");
+                        $"Format de date d'entrée invalide : '{row.DateEntree}'. Format attendu : JJ/MM/AAAA"
+                    );
                 var startDate = (DateTime?)parsedStart;
 
                 var tauxClean = tauxHoraireRaw.Replace(" ", "").Replace(",", ".");
@@ -108,9 +117,10 @@ internal static class EmployeeSagePayImport
                 {
                     var genderCode = row.Genre.Trim().ToUpperInvariant();
                     var genderMatch = genders.FirstOrDefault(g =>
-                        g.Code.Equals(genderCode, StringComparison.OrdinalIgnoreCase) ||
-                        g.NameFr.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase) ||
-                        g.NameEn.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase));
+                        g.Code.Equals(genderCode, StringComparison.OrdinalIgnoreCase)
+                        || g.NameFr.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase)
+                        || g.NameEn.StartsWith(genderCode, StringComparison.OrdinalIgnoreCase)
+                    );
                     genderId = genderMatch?.Id;
                 }
 
@@ -118,10 +128,13 @@ internal static class EmployeeSagePayImport
                 if (!string.IsNullOrWhiteSpace(posteRaw))
                 {
                     var posteKey = posteRaw.Trim();
-                    var jpList = await db.JobPositions.AsNoTracking()
+                    var jpList = await db
+                        .JobPositions.AsNoTracking()
                         .Where(jp => jp.CompanyId == targetCompanyId && jp.DeletedAt == null)
                         .ToListAsync(ct);
-                    jobPosition = jpList.FirstOrDefault(j => j.Name.Equals(posteKey, StringComparison.OrdinalIgnoreCase));
+                    jobPosition = jpList.FirstOrDefault(j =>
+                        j.Name.Equals(posteKey, StringComparison.OrdinalIgnoreCase)
+                    );
 
                     if (jobPosition == null && !preview)
                     {
@@ -129,7 +142,7 @@ internal static class EmployeeSagePayImport
                         {
                             Name = posteKey,
                             CompanyId = targetCompanyId,
-                            CreatedBy = userId
+                            CreatedBy = userId,
                         };
                         db.JobPositions.Add(newJp);
                         await db.SaveChangesAsync(ct);
@@ -148,31 +161,44 @@ internal static class EmployeeSagePayImport
                 DomainEmployee? existingEmployee = null;
                 if (matriculeParsed.HasValue)
                 {
-                    existingEmployee = await db.Employees
-                        .Include(e => e.Salaries)
+                    existingEmployee = await db
+                        .Employees.Include(e => e.Salaries)
                         .Include(e => e.Contracts)
                         .Include(e => e.MaritalStatus)
-                        .FirstOrDefaultAsync(e => e.Matricule == matriculeParsed && e.CompanyId == targetCompanyId && e.DeletedAt == null, ct);
+                        .FirstOrDefaultAsync(
+                            e =>
+                                e.Matricule == matriculeParsed && e.CompanyId == targetCompanyId && e.DeletedAt == null,
+                            ct
+                        );
                 }
 
                 if (existingEmployee == null && !string.IsNullOrWhiteSpace(cinTrimmed))
                 {
-                    existingEmployee = await db.Employees
-                        .Include(e => e.Salaries)
+                    existingEmployee = await db
+                        .Employees.Include(e => e.Salaries)
                         .Include(e => e.Contracts)
                         .Include(e => e.MaritalStatus)
-                        .FirstOrDefaultAsync(e => e.CinNumber == cinTrimmed && e.CompanyId == targetCompanyId && e.DeletedAt == null, ct);
+                        .FirstOrDefaultAsync(
+                            e => e.CinNumber == cinTrimmed && e.CompanyId == targetCompanyId && e.DeletedAt == null,
+                            ct
+                        );
                 }
 
                 if (existingEmployee == null)
                 {
-                    existingEmployee = await db.Employees
-                        .Include(e => e.Salaries)
+                    existingEmployee = await db
+                        .Employees.Include(e => e.Salaries)
                         .Include(e => e.Contracts)
                         .Include(e => e.MaritalStatus)
-                        .FirstOrDefaultAsync(e =>
-                            e.FirstName == prenom && e.LastName == nom && e.DateOfBirth == dateOfBirth &&
-                            e.CompanyId == targetCompanyId && e.DeletedAt == null, ct);
+                        .FirstOrDefaultAsync(
+                            e =>
+                                e.FirstName == prenom
+                                && e.LastName == nom
+                                && e.DateOfBirth == dateOfBirth
+                                && e.CompanyId == targetCompanyId
+                                && e.DeletedAt == null,
+                            ct
+                        );
                 }
                 else if (string.IsNullOrWhiteSpace(existingEmployee.CnssNumber) && existingEmployee.Matricule.HasValue)
                     existingEmployee.CnssNumber = $"CNSS{existingEmployee.Matricule.Value}";
@@ -203,7 +229,7 @@ internal static class EmployeeSagePayImport
                         CnssNumber = assignedMatricule.HasValue ? $"CNSS{assignedMatricule.Value}" : null,
                         Matricule = assignedMatricule,
                         MaritalStatusId = maritalStatusId,
-                        CreatedBy = userId
+                        CreatedBy = userId,
                     };
 
                     if (!preview)
@@ -211,13 +237,20 @@ internal static class EmployeeSagePayImport
                         db.Employees.Add(employee);
                         await db.SaveChangesAsync(ct);
 
-                        await eventLog.LogSimpleEventAsync(employee.Id, EmployeeEventLogNames.EmployeeCreated, null,
-                            $"{employee.FirstName} {employee.LastName} (Import Sage - Matricule: {employee.Matricule})", userId, ct);
+                        await eventLog.LogSimpleEventAsync(
+                            employee.Id,
+                            EmployeeEventLogNames.EmployeeCreated,
+                            null,
+                            $"{employee.FirstName} {employee.LastName} (Import Sage - Matricule: {employee.Matricule})",
+                            userId,
+                            ct
+                        );
 
                         EmployeeContract? createdContract = null;
                         if (jobPosition != null)
                         {
-                            var defaultCt = await db.ContractTypes.AsNoTracking()
+                            var defaultCt = await db
+                                .ContractTypes.AsNoTracking()
                                 .FirstOrDefaultAsync(c => c.CompanyId == targetCompanyId && c.DeletedAt == null, ct);
                             if (defaultCt != null)
                             {
@@ -229,23 +262,30 @@ internal static class EmployeeSagePayImport
                                     ContractTypeId = defaultCt.Id,
                                     StartDate = startDate ?? DateTime.UtcNow,
                                     EndDate = null,
-                                    CreatedBy = userId
+                                    CreatedBy = userId,
                                 };
                                 db.EmployeeContracts.Add(employeeContract);
                                 await db.SaveChangesAsync(ct);
                                 createdContract = employeeContract;
 
                                 var contractInfo = $"{defaultCt.ContractTypeName} — {jobPosition.Name}";
-                                await eventLog.LogSimpleEventAsync(employee.Id, EmployeeEventLogNames.ContractCreated, null,
-                                    jobPosition.Name, userId, ct);
+                                await eventLog.LogSimpleEventAsync(
+                                    employee.Id,
+                                    EmployeeEventLogNames.ContractCreated,
+                                    null,
+                                    jobPosition.Name,
+                                    userId,
+                                    ct
+                                );
                             }
                         }
 
                         if (hourlyRate.HasValue && hourlyRate.Value > 0 && createdContract != null)
                         {
-                            var effectiveDate = month.HasValue && year.HasValue
-                                ? new DateTime(year.Value, month.Value, 1)
-                                : startDate ?? DateTime.UtcNow;
+                            var effectiveDate =
+                                month.HasValue && year.HasValue
+                                    ? new DateTime(year.Value, month.Value, 1)
+                                    : startDate ?? DateTime.UtcNow;
                             var employeeSalary = new EmployeeSalary
                             {
                                 EmployeeId = employee.Id,
@@ -254,22 +294,32 @@ internal static class EmployeeSagePayImport
                                 BaseSalaryHourly = hourlyRate.Value,
                                 EffectiveDate = effectiveDate,
                                 EndDate = null,
-                                CreatedBy = userId
+                                CreatedBy = userId,
                             };
                             db.EmployeeSalaries.Add(employeeSalary);
                             await db.SaveChangesAsync(ct);
-                            await eventLog.LogSimpleEventAsync(employee.Id, EmployeeEventLogNames.SalaryCreated, null,
-                                employeeSalary.BaseSalaryHourly?.ToString(CultureInfo.InvariantCulture), userId, ct);
+                            await eventLog.LogSimpleEventAsync(
+                                employee.Id,
+                                EmployeeEventLogNames.SalaryCreated,
+                                null,
+                                employeeSalary.BaseSalaryHourly?.ToString(CultureInfo.InvariantCulture),
+                                userId,
+                                ct
+                            );
                         }
 
                         try
                         {
-                            var casablancaCity = await db.Cities.AsNoTracking()
+                            var casablancaCity = await db
+                                .Cities.AsNoTracking()
                                 .Where(c => c.DeletedAt == null)
-                                .FirstOrDefaultAsync(c =>
-                                    c.CityName == "Casablanca" ||
-                                    c.CityName == "CASABLANCA" ||
-                                    c.CityName.Trim().ToLowerInvariant() == "casablanca", ct);
+                                .FirstOrDefaultAsync(
+                                    c =>
+                                        c.CityName == "Casablanca"
+                                        || c.CityName == "CASABLANCA"
+                                        || c.CityName.Trim().ToLowerInvariant() == "casablanca",
+                                    ct
+                                );
 
                             if (casablancaCity != null)
                             {
@@ -277,15 +327,23 @@ internal static class EmployeeSagePayImport
                                 {
                                     EmployeeId = employee.Id,
                                     CityId = casablancaCity.Id,
-                                    AddressLine1 = string.IsNullOrWhiteSpace(row.Adresse) ? "Adresse inconnue" : row.Adresse.Trim(),
+                                    AddressLine1 = string.IsNullOrWhiteSpace(row.Adresse)
+                                        ? "Adresse inconnue"
+                                        : row.Adresse.Trim(),
                                     AddressLine2 = null,
                                     ZipCode = "ZIP-CASA",
-                                    CreatedBy = userId
+                                    CreatedBy = userId,
                                 };
                                 db.EmployeeAddresses.Add(employeeAddress);
                                 await db.SaveChangesAsync(ct);
-                                await eventLog.LogSimpleEventAsync(employee.Id, EmployeeEventLogNames.AddressCreated, null,
-                                    $"{employeeAddress.AddressLine1}, Casablanca", userId, ct);
+                                await eventLog.LogSimpleEventAsync(
+                                    employee.Id,
+                                    EmployeeEventLogNames.AddressCreated,
+                                    null,
+                                    $"{employeeAddress.AddressLine1}, Casablanca",
+                                    userId,
+                                    ct
+                                );
                             }
                         }
                         catch
@@ -310,37 +368,47 @@ internal static class EmployeeSagePayImport
                                 Username = username,
                                 Email = employee.Email,
                                 IsActive = true,
-                                CreatedBy = userId
+                                CreatedBy = userId,
                             };
                             db.Users.Add(createdUser);
                             await db.SaveChangesAsync(ct);
 
-                            var defaultRole = await db.Roles.AsNoTracking()
-                                .FirstOrDefaultAsync(r =>
-                                    (r.Name.Equals("employee", StringComparison.OrdinalIgnoreCase)
-                                     || r.Name.Equals("Employee", StringComparison.OrdinalIgnoreCase))
-                                    && r.DeletedAt == null, ct);
+                            var defaultRole = await db
+                                .Roles.AsNoTracking()
+                                .FirstOrDefaultAsync(
+                                    r =>
+                                        (
+                                            r.Name.Equals("employee", StringComparison.OrdinalIgnoreCase)
+                                            || r.Name.Equals("Employee", StringComparison.OrdinalIgnoreCase)
+                                        )
+                                        && r.DeletedAt == null,
+                                    ct
+                                );
                             if (defaultRole != null)
                             {
-                                db.UsersRoles.Add(new UsersRoles
-                                {
-                                    UserId = createdUser.Id,
-                                    RoleId = defaultRole.Id,
-                                    CreatedBy = userId
-                                });
+                                db.UsersRoles.Add(
+                                    new UsersRoles
+                                    {
+                                        UserId = createdUser.Id,
+                                        RoleId = defaultRole.Id,
+                                        CreatedBy = userId,
+                                    }
+                                );
                                 await db.SaveChangesAsync(ct);
                             }
                         }
                     }
 
                     result.SuccessCount++;
-                    result.Created.Add(new SageImportCreatedItemDto
-                    {
-                        Id = preview ? 0 : employee.Id,
-                        FullName = $"{prenom} {nom}",
-                        Matricule = preview ? assignedMatricule : employee.Matricule,
-                        Email = emailRaw ?? string.Empty
-                    });
+                    result.Created.Add(
+                        new SageImportCreatedItemDto
+                        {
+                            Id = preview ? 0 : employee.Id,
+                            FullName = $"{prenom} {nom}",
+                            Matricule = preview ? assignedMatricule : employee.Matricule,
+                            Email = emailRaw ?? string.Empty,
+                        }
+                    );
                 }
                 else
                 {
@@ -354,18 +422,21 @@ internal static class EmployeeSagePayImport
                     if (existingEmployee.MaritalStatusId != maritalStatusId)
                         changes.Add("MaritalStatus");
 
-                    var activeContract = existingEmployee.Contracts?
-                        .Where(c => c.DeletedAt == null && c.EndDate == null)
+                    var activeContract = existingEmployee
+                        .Contracts?.Where(c => c.DeletedAt == null && c.EndDate == null)
                         .OrderByDescending(c => c.StartDate)
                         .FirstOrDefault();
                     if (jobPosition != null && activeContract != null && activeContract.JobPositionId != jobPosition.Id)
                         changes.Add("JobPosition");
 
-                    var activeSalary = existingEmployee.Salaries?
-                        .Where(s => s.DeletedAt == null && s.EndDate == null)
+                    var activeSalary = existingEmployee
+                        .Salaries?.Where(s => s.DeletedAt == null && s.EndDate == null)
                         .OrderByDescending(s => s.EffectiveDate)
                         .FirstOrDefault();
-                    if (hourlyRate.HasValue && (activeSalary == null || activeSalary.BaseSalaryHourly != hourlyRate.Value))
+                    if (
+                        hourlyRate.HasValue
+                        && (activeSalary == null || activeSalary.BaseSalaryHourly != hourlyRate.Value)
+                    )
                         changes.Add("HourlyRate");
 
                     if (changes.Count == 0)
@@ -374,46 +445,73 @@ internal static class EmployeeSagePayImport
                     if (preview)
                     {
                         result.SuccessCount++;
-                        result.Updated.Add(new SageImportUpdatedItemDto
-                        {
-                            Id = existingEmployee.Id,
-                            FullName = $"{existingEmployee.FirstName} {existingEmployee.LastName}",
-                            Matricule = existingEmployee.Matricule,
-                            Email = existingEmployee.Email
-                        });
+                        result.Updated.Add(
+                            new SageImportUpdatedItemDto
+                            {
+                                Id = existingEmployee.Id,
+                                FullName = $"{existingEmployee.FirstName} {existingEmployee.LastName}",
+                                Matricule = existingEmployee.Matricule,
+                                Email = existingEmployee.Email,
+                            }
+                        );
                     }
                     else
                     {
                         if (changes.Contains("FirstName"))
                         {
-                            await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.FirstNameChanged,
-                                existingEmployee.FirstName, prenom, userId, ct);
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.FirstNameChanged,
+                                existingEmployee.FirstName,
+                                prenom,
+                                userId,
+                                ct
+                            );
                             existingEmployee.FirstName = prenom;
                         }
 
                         if (changes.Contains("LastName"))
                         {
-                            await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.LastNameChanged,
-                                existingEmployee.LastName, nom, userId, ct);
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.LastNameChanged,
+                                existingEmployee.LastName,
+                                nom,
+                                userId,
+                                ct
+                            );
                             existingEmployee.LastName = nom;
                         }
 
                         if (changes.Contains("DateOfBirth"))
                         {
-                            await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.DateOfBirthChanged,
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.DateOfBirthChanged,
                                 existingEmployee.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                                dateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), userId, ct);
+                                dateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                                userId,
+                                ct
+                            );
                             existingEmployee.DateOfBirth = dateOfBirth;
                         }
 
                         if (changes.Contains("MaritalStatus"))
                         {
-                            var newMarital = await db.MaritalStatuses.AsNoTracking()
+                            var newMarital = await db
+                                .MaritalStatuses.AsNoTracking()
                                 .FirstOrDefaultAsync(m => m.Id == maritalStatusId, ct);
-                            var oldMs = await db.MaritalStatuses.AsNoTracking()
+                            var oldMs = await db
+                                .MaritalStatuses.AsNoTracking()
                                 .FirstOrDefaultAsync(m => m.Id == existingEmployee.MaritalStatusId, ct);
-                            await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.MaritalStatusChanged,
-                                oldMs?.Code, newMarital?.Code, userId, ct);
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.MaritalStatusChanged,
+                                oldMs?.Code,
+                                newMarital?.Code,
+                                userId,
+                                ct
+                            );
                             existingEmployee.MaritalStatusId = maritalStatusId;
                         }
 
@@ -421,7 +519,8 @@ internal static class EmployeeSagePayImport
 
                         if (changes.Contains("JobPosition") && jobPosition != null)
                         {
-                            var defaultCt = await db.ContractTypes.AsNoTracking()
+                            var defaultCt = await db
+                                .ContractTypes.AsNoTracking()
                                 .FirstOrDefaultAsync(c => c.CompanyId == targetCompanyId && c.DeletedAt == null, ct);
                             if (defaultCt != null)
                             {
@@ -433,22 +532,34 @@ internal static class EmployeeSagePayImport
                                     ContractTypeId = defaultCt.Id,
                                     StartDate = startDate ?? DateTime.UtcNow,
                                     EndDate = null,
-                                    CreatedBy = userId
+                                    CreatedBy = userId,
                                 };
                                 db.EmployeeContracts.Add(employeeContract);
                                 await db.SaveChangesAsync(ct);
                                 contractForSalary = employeeContract;
-                                await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.JobPositionChanged,
-                                    null, jobPosition.Name, userId, ct);
+                                await eventLog.LogSimpleEventAsync(
+                                    existingEmployee.Id,
+                                    EmployeeEventLogNames.JobPositionChanged,
+                                    null,
+                                    jobPosition.Name,
+                                    userId,
+                                    ct
+                                );
                             }
                         }
 
-                        if (changes.Contains("HourlyRate") && hourlyRate.HasValue && hourlyRate.Value > 0 && contractForSalary != null)
+                        if (
+                            changes.Contains("HourlyRate")
+                            && hourlyRate.HasValue
+                            && hourlyRate.Value > 0
+                            && contractForSalary != null
+                        )
                         {
                             var oldHourly = activeSalary?.BaseSalaryHourly ?? 0m;
-                            var effectiveDate = month.HasValue && year.HasValue
-                                ? new DateTime(year.Value, month.Value, 1)
-                                : startDate ?? DateTime.UtcNow;
+                            var effectiveDate =
+                                month.HasValue && year.HasValue
+                                    ? new DateTime(year.Value, month.Value, 1)
+                                    : startDate ?? DateTime.UtcNow;
                             var empSalary = new EmployeeSalary
                             {
                                 EmployeeId = existingEmployee.Id,
@@ -457,35 +568,45 @@ internal static class EmployeeSagePayImport
                                 BaseSalaryHourly = hourlyRate.Value,
                                 EffectiveDate = effectiveDate,
                                 EndDate = null,
-                                CreatedBy = userId
+                                CreatedBy = userId,
                             };
                             db.EmployeeSalaries.Add(empSalary);
-                            await eventLog.LogSimpleEventAsync(existingEmployee.Id, EmployeeEventLogNames.SalaryUpdated,
-                                oldHourly.ToString(CultureInfo.InvariantCulture), hourlyRate.Value.ToString(CultureInfo.InvariantCulture), userId, ct);
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.SalaryUpdated,
+                                oldHourly.ToString(CultureInfo.InvariantCulture),
+                                hourlyRate.Value.ToString(CultureInfo.InvariantCulture),
+                                userId,
+                                ct
+                            );
                         }
 
                         await db.SaveChangesAsync(ct);
 
                         result.SuccessCount++;
-                        result.Updated.Add(new SageImportUpdatedItemDto
-                        {
-                            Id = existingEmployee.Id,
-                            FullName = $"{existingEmployee.FirstName} {existingEmployee.LastName}",
-                            Matricule = existingEmployee.Matricule,
-                            Email = existingEmployee.Email
-                        });
+                        result.Updated.Add(
+                            new SageImportUpdatedItemDto
+                            {
+                                Id = existingEmployee.Id,
+                                FullName = $"{existingEmployee.FirstName} {existingEmployee.LastName}",
+                                Matricule = existingEmployee.Matricule,
+                                Email = existingEmployee.Email,
+                            }
+                        );
                     }
                 }
             }
             catch (Exception ex)
             {
                 result.FailedCount++;
-                result.Errors.Add(new SageImportErrorDto
-                {
-                    Row = rowNum,
-                    FullName = string.IsNullOrWhiteSpace(fullName) ? $"Ligne {rowNum}" : fullName,
-                    Message = ex.Message
-                });
+                result.Errors.Add(
+                    new SageImportErrorDto
+                    {
+                        Row = rowNum,
+                        FullName = string.IsNullOrWhiteSpace(fullName) ? $"Ligne {rowNum}" : fullName,
+                        Message = ex.Message,
+                    }
+                );
             }
         }
 
@@ -505,9 +626,19 @@ internal static class EmployeeSagePayImport
 
         if (resolvedMarital == null)
             resolvedMarital = allMaritals.FirstOrDefault(m =>
-                (!string.IsNullOrWhiteSpace(m.Code) && m.Code.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrWhiteSpace(m.NameFr) && m.NameFr.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrWhiteSpace(m.NameEn) && m.NameEn.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)));
+                (
+                    !string.IsNullOrWhiteSpace(m.Code)
+                    && m.Code.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)
+                )
+                || (
+                    !string.IsNullOrWhiteSpace(m.NameFr)
+                    && m.NameFr.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)
+                )
+                || (
+                    !string.IsNullOrWhiteSpace(m.NameEn)
+                    && m.NameEn.Equals(incomingMarital, StringComparison.OrdinalIgnoreCase)
+                )
+            );
 
         if (resolvedMarital == null)
         {
@@ -517,8 +648,10 @@ internal static class EmployeeSagePayImport
                 var codeNorm = NormalizeHeader(m.Code);
                 var nameFrNorm = NormalizeHeader(m.NameFr);
                 var nameEnNorm = NormalizeHeader(m.NameEn);
-                if (!string.IsNullOrWhiteSpace(normIncoming) &&
-                    (codeNorm == normIncoming || nameFrNorm == normIncoming || nameEnNorm == normIncoming))
+                if (
+                    !string.IsNullOrWhiteSpace(normIncoming)
+                    && (codeNorm == normIncoming || nameFrNorm == normIncoming || nameEnNorm == normIncoming)
+                )
                 {
                     resolvedMarital = m;
                     break;
@@ -534,13 +667,17 @@ internal static class EmployeeSagePayImport
                 var codeNorm = NormalizeHeader(m.Code);
                 var nameFrNorm = NormalizeHeader(m.NameFr);
                 var nameEnNorm = NormalizeHeader(m.NameEn);
-                if (!string.IsNullOrWhiteSpace(normIncoming) && (
-                        codeNorm.Contains(normIncoming, StringComparison.Ordinal) ||
-                        nameFrNorm.Contains(normIncoming, StringComparison.Ordinal) ||
-                        nameEnNorm.Contains(normIncoming, StringComparison.Ordinal) ||
-                        normIncoming.Contains(codeNorm, StringComparison.Ordinal) ||
-                        normIncoming.Contains(nameFrNorm, StringComparison.Ordinal) ||
-                        normIncoming.Contains(nameEnNorm, StringComparison.Ordinal)))
+                if (
+                    !string.IsNullOrWhiteSpace(normIncoming)
+                    && (
+                        codeNorm.Contains(normIncoming, StringComparison.Ordinal)
+                        || nameFrNorm.Contains(normIncoming, StringComparison.Ordinal)
+                        || nameEnNorm.Contains(normIncoming, StringComparison.Ordinal)
+                        || normIncoming.Contains(codeNorm, StringComparison.Ordinal)
+                        || normIncoming.Contains(nameFrNorm, StringComparison.Ordinal)
+                        || normIncoming.Contains(nameEnNorm, StringComparison.Ordinal)
+                    )
+                )
                 {
                     resolvedMarital = m;
                     break;
@@ -554,7 +691,8 @@ internal static class EmployeeSagePayImport
             if (!string.IsNullOrWhiteSpace(normIncoming) && normIncoming.Length == 1)
             {
                 resolvedMarital = allMaritals.FirstOrDefault(m =>
-                    NormalizeHeader(m.Code).StartsWith(normIncoming, StringComparison.Ordinal));
+                    NormalizeHeader(m.Code).StartsWith(normIncoming, StringComparison.Ordinal)
+                );
             }
         }
 
@@ -615,18 +753,21 @@ internal static class EmployeeSagePayImport
     private static async Task<int?> GenerateUniqueMatricule(AppDbContext db, int companyId, CancellationToken ct)
     {
         var has = await db.Employees.AnyAsync(
-            e => e.CompanyId == companyId && e.DeletedAt == null && e.Matricule.HasValue, ct);
+            e => e.CompanyId == companyId && e.DeletedAt == null && e.Matricule.HasValue,
+            ct
+        );
         if (!has)
             return 1;
-        var maxMatricule = await db.Employees
-            .Where(e => e.CompanyId == companyId && e.DeletedAt == null && e.Matricule.HasValue)
+        var maxMatricule = await db
+            .Employees.Where(e => e.CompanyId == companyId && e.DeletedAt == null && e.Matricule.HasValue)
             .MaxAsync(e => e.Matricule!.Value, ct);
         return maxMatricule + 1;
     }
 
     private static string GenerateUsername(string firstName, string lastName, int suffix = 0)
     {
-        var baseName = $"{firstName}.{lastName}".ToLowerInvariant()
+        var baseName = $"{firstName}.{lastName}"
+            .ToLowerInvariant()
             .Replace(" ", "", StringComparison.Ordinal)
             .Replace("'", "", StringComparison.Ordinal);
         if (suffix > 0)
@@ -649,7 +790,7 @@ internal static class EmployeeSagePayImport
             HeaderValidated = null,
             BadDataFound = null,
             Delimiter = delimiter,
-            TrimOptions = TrimOptions.Trim
+            TrimOptions = TrimOptions.Trim,
         };
 
         using var csv = new CsvReader(reader, csvConfig);
@@ -741,7 +882,18 @@ internal static class EmployeeSagePayImport
         /// </summary>
         string? GetNomFromRow(CsvReader cr)
         {
-            foreach (var c in new[] { "nom", "nomdefamille", "nomfamille", "nomusage", "nomnaissance", "nompatronymique", "nomjeunefille" })
+            foreach (
+                var c in new[]
+                {
+                    "nom",
+                    "nomdefamille",
+                    "nomfamille",
+                    "nomusage",
+                    "nomnaissance",
+                    "nompatronymique",
+                    "nomjeunefille",
+                }
+            )
             {
                 var candKey = NormalizeHeader(c);
                 if (string.IsNullOrWhiteSpace(candKey))
@@ -789,7 +941,9 @@ internal static class EmployeeSagePayImport
                                 return v;
                         }
                     }
-                    catch { /* ignore */ }
+                    catch
+                    { /* ignore */
+                    }
                 }
             }
 
@@ -798,11 +952,23 @@ internal static class EmployeeSagePayImport
 
         string? GetPrenomFromRow(CsvReader cr)
         {
-            foreach (var c in new[]
-                     {
-                         "prenom", "preno", "prenomusuel", "prenomsocial", "prenom1", "prenom2", "prenom3",
-                         "firstname", "givenname", "prenomjeunefille", "prnom", "pren"
-                     })
+            foreach (
+                var c in new[]
+                {
+                    "prenom",
+                    "preno",
+                    "prenomusuel",
+                    "prenomsocial",
+                    "prenom1",
+                    "prenom2",
+                    "prenom3",
+                    "firstname",
+                    "givenname",
+                    "prenomjeunefille",
+                    "prnom",
+                    "pren",
+                }
+            )
             {
                 var candKey = NormalizeHeader(c);
                 if (string.IsNullOrWhiteSpace(candKey))
@@ -845,7 +1011,9 @@ internal static class EmployeeSagePayImport
                                 return v;
                         }
                     }
-                    catch { /* ignore */ }
+                    catch
+                    { /* ignore */
+                    }
                 }
             }
 
@@ -895,17 +1063,40 @@ internal static class EmployeeSagePayImport
                 DateNaissance = GetByCandidates(csv, "datedenaissance", "datenais", "datenissance"),
                 Genre = GetByCandidates(csv, "genre", "sexe"),
                 Adresse = GetByCandidates(csv, "adresse", "address"),
-                SituationFamiliale = GetByCandidates(csv, "situationfamiliale", "situation", "situationfam", "situationfamille"),
+                SituationFamiliale = GetByCandidates(
+                    csv,
+                    "situationfamiliale",
+                    "situation",
+                    "situationfam",
+                    "situationfamille"
+                ),
                 EmploiOccupe = GetByCandidates(csv, "emploi", "emploioccupe", "emploi_occupe", "emploiocc"),
                 TauxAnc = GetByCandidates(csv, "tauxanc", "tauxanciennete", "tauxancientete"),
                 Anct = GetByCandidates(csv, "anct", "anciennete", "anciennetee", "anc"),
-                TauxHoraire = GetByCandidates(csv, "tauxh", "tauth", "tauxhoraire", "taux_h")
+                TauxHoraire = GetByCandidates(csv, "tauxh", "tauth", "tauxhoraire", "taux_h"),
             };
 
-            var combinedName = GetByCandidates(csv,
-                "nomcomplet", "nomprenom", "nometprenom", "employe", "salarie", "libelle", "liblong", "intitule",
-                "designation", "collaborateur", "identite", "name", "raisonsociale", "nomsalarie", "nomsalrie",
-                "lib", "libellelong", "champsalarie");
+            var combinedName = GetByCandidates(
+                csv,
+                "nomcomplet",
+                "nomprenom",
+                "nometprenom",
+                "employe",
+                "salarie",
+                "libelle",
+                "liblong",
+                "intitule",
+                "designation",
+                "collaborateur",
+                "identite",
+                "name",
+                "raisonsociale",
+                "nomsalarie",
+                "nomsalrie",
+                "lib",
+                "libellelong",
+                "champsalarie"
+            );
             TrySplitCombinedNameIntoDto(dto, combinedName);
 
             TrySplitNomColumnIfMultipart(dto);
@@ -948,11 +1139,19 @@ internal static class EmployeeSagePayImport
         if (DateOnly.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
             return true;
 
-        var sep = s.Contains('/') ? '/' : s.Contains('-') ? '-' : (char?)null;
+        var sep =
+            s.Contains('/') ? '/'
+            : s.Contains('-') ? '-'
+            : (char?)null;
         if (sep != null)
         {
             var parts = s.Split((char)sep);
-            if (parts.Length >= 3 && int.TryParse(parts[0], out var d) && int.TryParse(parts[1], out var m) && int.TryParse(parts[2], out var y))
+            if (
+                parts.Length >= 3
+                && int.TryParse(parts[0], out var d)
+                && int.TryParse(parts[1], out var m)
+                && int.TryParse(parts[2], out var y)
+            )
             {
                 if (parts[2].Length == 2)
                     y = y <= 50 ? 2000 + y : 1900 + y;
@@ -961,7 +1160,9 @@ internal static class EmployeeSagePayImport
                     parsedDate = new DateOnly(y, m, d);
                     return true;
                 }
-                catch { /* ignore */ }
+                catch
+                { /* ignore */
+                }
             }
         }
 
@@ -984,11 +1185,19 @@ internal static class EmployeeSagePayImport
         if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))
             return true;
 
-        var sep = s.Contains('/') ? '/' : s.Contains('-') ? '-' : (char?)null;
+        var sep =
+            s.Contains('/') ? '/'
+            : s.Contains('-') ? '-'
+            : (char?)null;
         if (sep != null)
         {
             var parts = s.Split((char)sep);
-            if (parts.Length >= 3 && int.TryParse(parts[0], out var d) && int.TryParse(parts[1], out var m) && int.TryParse(parts[2], out var y))
+            if (
+                parts.Length >= 3
+                && int.TryParse(parts[0], out var d)
+                && int.TryParse(parts[1], out var m)
+                && int.TryParse(parts[2], out var y)
+            )
             {
                 if (parts[2].Length == 2)
                     y = y <= 50 ? 2000 + y : 1900 + y;
@@ -997,7 +1206,9 @@ internal static class EmployeeSagePayImport
                     parsedDateTime = new DateTime(y, m, d);
                     return true;
                 }
-                catch { /* ignore */ }
+                catch
+                { /* ignore */
+                }
             }
         }
 

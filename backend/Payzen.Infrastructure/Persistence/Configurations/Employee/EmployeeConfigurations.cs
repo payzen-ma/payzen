@@ -25,15 +25,51 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Payzen.Domain.Enti
         entity.Property(e => e.AnnualLeaveOpeningDays).HasColumnType("decimal(10,2)");
         entity.Property(e => e.AnnualLeaveOpeningEffectiveFrom).HasColumnType("date");
 
-        entity.HasOne(e => e.Company).WithMany(c => c.Employees).HasForeignKey(e => e.CompanyId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(e => e.Manager).WithMany(e => e.Subordinates).HasForeignKey(e => e.ManagerId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(e => e.Departement).WithMany(d => d.Employees).HasForeignKey(e => e.DepartementId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.Status).WithMany(s => s.Employees).HasForeignKey(e => e.StatusId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.Gender).WithMany(g => g.Employees).HasForeignKey(e => e.GenderId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.Nationality).WithMany(n => n.Employees).HasForeignKey(e => e.NationalityId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.EducationLevel).WithMany(el => el.Employees).HasForeignKey(e => e.EducationLevelId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.MaritalStatus).WithMany(ms => ms.Employees).HasForeignKey(e => e.MaritalStatusId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(e => e.Category).WithMany(c => c.Employees).HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.Company)
+            .WithMany(c => c.Employees)
+            .HasForeignKey(e => e.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(e => e.Manager)
+            .WithMany(e => e.Subordinates)
+            .HasForeignKey(e => e.ManagerId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(e => e.Departement)
+            .WithMany(d => d.Employees)
+            .HasForeignKey(e => e.DepartementId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.Status)
+            .WithMany(s => s.Employees)
+            .HasForeignKey(e => e.StatusId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.Gender)
+            .WithMany(g => g.Employees)
+            .HasForeignKey(e => e.GenderId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.Nationality)
+            .WithMany(n => n.Employees)
+            .HasForeignKey(e => e.NationalityId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.EducationLevel)
+            .WithMany(el => el.Employees)
+            .HasForeignKey(e => e.EducationLevelId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.MaritalStatus)
+            .WithMany(ms => ms.Employees)
+            .HasForeignKey(e => e.MaritalStatusId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(e => e.Category)
+            .WithMany(c => c.Employees)
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 
@@ -53,10 +89,22 @@ public class EmployeeContractConfiguration : IEntityTypeConfiguration<EmployeeCo
     public void Configure(EntityTypeBuilder<EmployeeContract> entity)
     {
         entity.ToTable("EmployeeContracts");
-        entity.HasOne(ec => ec.Employee).WithMany(e => e.Contracts).HasForeignKey(ec => ec.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ec => ec.Employee)
+            .WithMany(e => e.Contracts)
+            .HasForeignKey(ec => ec.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(ec => ec.Company).WithMany().HasForeignKey(ec => ec.CompanyId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(ec => ec.JobPosition).WithMany(jp => jp.EmployeeContracts).HasForeignKey(ec => ec.JobPositionId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(ec => ec.ContractType).WithMany(ct => ct.Employees).HasForeignKey(ec => ec.ContractTypeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ec => ec.JobPosition)
+            .WithMany(jp => jp.EmployeeContracts)
+            .HasForeignKey(ec => ec.JobPositionId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ec => ec.ContractType)
+            .WithMany(ct => ct.Employees)
+            .HasForeignKey(ec => ec.ContractTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -67,8 +115,16 @@ public class EmployeeSalaryConfiguration : IEntityTypeConfiguration<EmployeeSala
         entity.ToTable("EmployeeSalaries");
         entity.Property(es => es.BaseSalary).HasColumnType("decimal(18,2)");
         entity.Property(es => es.BaseSalaryHourly).HasColumnType("decimal(18,4)");
-        entity.HasOne(es => es.Employee).WithMany(e => e.Salaries).HasForeignKey(es => es.EmployeeId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(es => es.Contract).WithMany(c => c.Salaries).HasForeignKey(es => es.ContractId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(es => es.Employee)
+            .WithMany(e => e.Salaries)
+            .HasForeignKey(es => es.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(es => es.Contract)
+            .WithMany(c => c.Salaries)
+            .HasForeignKey(es => es.ContractId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -79,7 +135,11 @@ public class EmployeeSalaryComponentConfiguration : IEntityTypeConfiguration<Emp
         entity.ToTable("EmployeeSalaryComponents");
         entity.Property(esc => esc.ComponentType).IsRequired().HasMaxLength(100);
         entity.Property(esc => esc.Amount).HasColumnType("decimal(18,2)");
-        entity.HasOne(esc => esc.EmployeeSalary).WithMany(es => es.Components).HasForeignKey(esc => esc.EmployeeSalaryId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(esc => esc.EmployeeSalary)
+            .WithMany(es => es.Components)
+            .HasForeignKey(esc => esc.EmployeeSalaryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -91,7 +151,11 @@ public class EmployeeAddressConfiguration : IEntityTypeConfiguration<EmployeeAdd
         entity.Property(ea => ea.AddressLine1).IsRequired().HasMaxLength(500);
         entity.Property(ea => ea.AddressLine2).HasMaxLength(500);
         entity.Property(ea => ea.ZipCode).IsRequired().HasMaxLength(20);
-        entity.HasOne(ea => ea.Employee).WithMany(e => e.Addresses).HasForeignKey(ea => ea.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ea => ea.Employee)
+            .WithMany(e => e.Addresses)
+            .HasForeignKey(ea => ea.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(ea => ea.City).WithMany().HasForeignKey(ea => ea.CityId).OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -104,7 +168,11 @@ public class EmployeeDocumentConfiguration : IEntityTypeConfiguration<EmployeeDo
         entity.Property(ed => ed.Name).IsRequired().HasMaxLength(500);
         entity.Property(ed => ed.FilePath).IsRequired().HasMaxLength(1000);
         entity.Property(ed => ed.DocumentType).IsRequired().HasMaxLength(100);
-        entity.HasOne(ed => ed.Employee).WithMany(e => e.Documents).HasForeignKey(ed => ed.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ed => ed.Employee)
+            .WithMany(e => e.Documents)
+            .HasForeignKey(ed => ed.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -114,7 +182,11 @@ public class EmployeeAttendanceConfiguration : IEntityTypeConfiguration<Employee
     {
         entity.ToTable("EmployeeAttendances");
         entity.Property(ea => ea.WorkedHours).HasColumnType("decimal(5,2)");
-        entity.HasOne(ea => ea.Employee).WithMany(e => e.Attendances).HasForeignKey(ea => ea.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ea => ea.Employee)
+            .WithMany(e => e.Attendances)
+            .HasForeignKey(ea => ea.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -124,7 +196,11 @@ public class EmployeeAttendanceBreakConfiguration : IEntityTypeConfiguration<Emp
     {
         entity.ToTable("EmployeeAttendanceBreaks");
         entity.Property(eab => eab.BreakType).HasMaxLength(50);
-        entity.HasOne(eab => eab.EmployeeAttendance).WithMany(ea => ea.Breaks).HasForeignKey(eab => eab.EmployeeAttendanceId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(eab => eab.EmployeeAttendance)
+            .WithMany(ea => ea.Breaks)
+            .HasForeignKey(eab => eab.EmployeeAttendanceId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -136,7 +212,11 @@ public class EmployeeAbsenceConfiguration : IEntityTypeConfiguration<EmployeeAbs
         entity.Property(ea => ea.AbsenceType).IsRequired().HasMaxLength(100);
         entity.Property(ea => ea.Reason).HasMaxLength(500);
         entity.Property(ea => ea.DecisionComment).HasMaxLength(500);
-        entity.HasOne(ea => ea.Employee).WithMany().HasForeignKey(ea => ea.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ea => ea.Employee)
+            .WithMany()
+            .HasForeignKey(ea => ea.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -147,7 +227,11 @@ public class EmployeeChildConfiguration : IEntityTypeConfiguration<EmployeeChild
         entity.ToTable("EmployeeChildren");
         entity.Property(ec => ec.FirstName).IsRequired().HasMaxLength(100);
         entity.Property(ec => ec.LastName).IsRequired().HasMaxLength(100);
-        entity.HasOne(ec => ec.Employee).WithMany(e => e.Children).HasForeignKey(ec => ec.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(ec => ec.Employee)
+            .WithMany(e => e.Children)
+            .HasForeignKey(ec => ec.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(ec => ec.Gender).WithMany().HasForeignKey(ec => ec.GenderId).OnDelete(DeleteBehavior.SetNull);
     }
 }
@@ -160,7 +244,11 @@ public class EmployeeSpouseConfiguration : IEntityTypeConfiguration<EmployeeSpou
         entity.Property(es => es.FirstName).IsRequired().HasMaxLength(100);
         entity.Property(es => es.LastName).IsRequired().HasMaxLength(100);
         entity.Property(es => es.CinNumber).HasMaxLength(20);
-        entity.HasOne(es => es.Employee).WithMany(e => e.Spouses).HasForeignKey(es => es.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(es => es.Employee)
+            .WithMany(e => e.Spouses)
+            .HasForeignKey(es => es.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(es => es.Gender).WithMany().HasForeignKey(es => es.GenderId).OnDelete(DeleteBehavior.SetNull);
     }
 }
@@ -179,8 +267,16 @@ public class EmployeeOvertimeConfiguration : IEntityTypeConfiguration<EmployeeOv
         entity.Property(eo => eo.EmployeeComment).HasMaxLength(500);
         entity.Property(eo => eo.ManagerComment).HasMaxLength(500);
         entity.Property(eo => eo.RowVersion).IsRowVersion();
-        entity.HasOne(eo => eo.Employee).WithMany().HasForeignKey(eo => eo.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(eo => eo.Employee)
+            .WithMany()
+            .HasForeignKey(eo => eo.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
         entity.HasOne(eo => eo.Holiday).WithMany().HasForeignKey(eo => eo.HolidayId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(eo => eo.RateRule).WithMany(rr => rr.OvertimeRecords).HasForeignKey(eo => eo.RateRuleId).OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(eo => eo.RateRule)
+            .WithMany(rr => rr.OvertimeRecords)
+            .HasForeignKey(eo => eo.RateRuleId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

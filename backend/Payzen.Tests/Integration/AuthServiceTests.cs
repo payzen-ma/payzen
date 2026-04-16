@@ -28,13 +28,15 @@ public class AuthServiceTests : IDisposable
 
         // Configuration minimale pour JwtService
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["JwtSettings:Key"] = "test_secret_key_must_be_at_least_32_chars_long",
-                ["JwtSettings:Issuer"] = "PayzenTest",
-                ["JwtSettings:Audience"] = "PayzenClient",
-                ["JwtSettings:ExpiresInMinutes"] = "60"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["JwtSettings:Key"] = "test_secret_key_must_be_at_least_32_chars_long",
+                    ["JwtSettings:Issuer"] = "PayzenTest",
+                    ["JwtSettings:Audience"] = "PayzenClient",
+                    ["JwtSettings:ExpiresInMinutes"] = "60",
+                }
+            )
             .Build();
 
         var jwtService = new JwtService(config, _db);
@@ -43,19 +45,33 @@ public class AuthServiceTests : IDisposable
 
         // Seed minimal RBAC requis par LoginWithEntraAsync (rôles de fallback)
         _db.Roles.AddRange(
-            new Roles { Id = 1, Name = "Employee", Description = "Employee", CreatedBy = 0 },
-            new Roles { Id = 2, Name = "Visitor", Description = "Visitor", CreatedBy = 0 }
+            new Roles
+            {
+                Id = 1,
+                Name = "Employee",
+                Description = "Employee",
+                CreatedBy = 0,
+            },
+            new Roles
+            {
+                Id = 2,
+                Name = "Visitor",
+                Description = "Visitor",
+                CreatedBy = 0,
+            }
         );
 
         // Seed un user admin de test (sans mot de passe, auth via Entra)
-        _db.Users.Add(new Users
-        {
-            Id = AdminId,
-            Email = "admin@test.ma",
-            Username = "admin",
-            IsActive = true,
-            CreatedBy = 0
-        });
+        _db.Users.Add(
+            new Users
+            {
+                Id = AdminId,
+                Email = "admin@test.ma",
+                Username = "admin",
+                IsActive = true,
+                CreatedBy = 0,
+            }
+        );
         _db.SaveChanges();
     }
 
@@ -91,7 +107,7 @@ public class AuthServiceTests : IDisposable
         {
             Email = "nouveau@test.ma",
             Username = "nouveau",
-            IsActive = true
+            IsActive = true,
         };
 
         var result = await _svc.CreateUserAsync(dto, AdminId);
@@ -107,7 +123,7 @@ public class AuthServiceTests : IDisposable
         {
             Email = "admin@test.ma", // déjà dans la DB
             Username = "admin2",
-            IsActive = true
+            IsActive = true,
         };
 
         var result = await _svc.CreateUserAsync(dto, AdminId);

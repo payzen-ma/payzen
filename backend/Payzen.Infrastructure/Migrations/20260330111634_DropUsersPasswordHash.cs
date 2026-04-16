@@ -10,9 +10,7 @@ namespace Payzen.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "PasswordHash",
-                table: "Users");
+            migrationBuilder.DropColumn(name: "PasswordHash", table: "Users");
         }
 
         /// <inheritdoc />
@@ -23,7 +21,8 @@ namespace Payzen.Infrastructure.Migrations
                 table: "Users",
                 type: "nvarchar(500)",
                 maxLength: 500,
-                nullable: true);
+                nullable: true
+            );
         }
     }
 }

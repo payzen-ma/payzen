@@ -17,34 +17,34 @@ public enum OvertimeType
     /// Heures sup normales (prolongement journée standard).
     /// Taux marocain habituel : +25% en journée, +50% de nuit.
     /// </summary>
-    Standard = 1 << 0,  // 1
+    Standard = 1 << 0, // 1
 
     /// <summary>
     /// Travail pendant le jour de repos hebdomadaire.
     /// Déterminé par WorkingCalendar (IsWorkingDay = false).
     /// Exemple : travail le dimanche.
     /// </summary>
-    WeeklyRest = 1 << 1,  // 2
+    WeeklyRest = 1 << 1, // 2
 
     /// <summary>
     /// Travail pendant un jour férié officiel.
     /// Déterminé par la table Holiday.
     /// Exemple : travail le 1er Mai, Aïd al-Fitr.
     /// </summary>
-    PublicHoliday = 1 << 2,  // 4
+    PublicHoliday = 1 << 2, // 4
 
     /// <summary>
     /// Travail de nuit (tranche 21h–6h selon législation marocaine).
     /// Peut se combiner avec WeeklyRest ou PublicHoliday.
     /// </summary>
-    Night = 1 << 3,  // 8
+    Night = 1 << 3, // 8
 
     /// <summary>
     /// Combinaison Férié OU Repos hebdomadaire.
     /// Utilisé pour définir des règles communes aux deux cas
     /// sans dupliquer les OvertimeRateRule.
     /// </summary>
-    FerieOrRest = PublicHoliday | WeeklyRest  // 6
+    FerieOrRest = PublicHoliday | WeeklyRest, // 6
 }
 
 /// <summary>
@@ -60,7 +60,7 @@ public enum OvertimeEntryMode
     DurationOnly = 2,
 
     /// <summary>Journée complète → utilise la durée standard du WorkingCalendar</summary>
-    FullDay = 3
+    FullDay = 3,
 }
 
 /// <summary>
@@ -82,7 +82,7 @@ public enum OvertimeStatus
     Rejected = 3,
 
     /// <summary>Annulé par l'employé avant ou après approbation</summary>
-    Cancelled = 4
+    Cancelled = 4,
 }
 
 /// <summary>
@@ -101,7 +101,7 @@ public enum TimeRangeType
     /// Plage qui traverse minuit (ex: 22:00–02:00).
     /// Nécessite une logique de split dans OvertimeRateRule.
     /// </summary>
-    CrossesMidnight = 2
+    CrossesMidnight = 2,
 }
 
 /// <summary>
@@ -127,5 +127,5 @@ public enum MultiplierCumulationStrategy
     /// Exemple : 125% + 150% − 100% = 175% → ×1.75
     /// Formule : (r1 - 1) + (r2 - 1) + 1 = r1 + r2 - 1
     /// </summary>
-    AdditiveMinus100 = 3
+    AdditiveMinus100 = 3,
 }

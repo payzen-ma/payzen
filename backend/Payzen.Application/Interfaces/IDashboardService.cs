@@ -15,15 +15,30 @@ public interface IDashboardService
     Task<DashboardHrDto> GetHrDashboardAsync(int? companyId, string? month, CancellationToken ct = default);
     Task<DashboardHrVueGlobaleDto> GetVueGlobaleAsync(int? companyId, string? month, CancellationToken ct = default);
     Task<DashboardHrMouvementsDto> GetMouvementsRhAsync(int? companyId, string? month, CancellationToken ct = default);
-    Task<DashboardHrMasseSalarialeDto> GetMasseSalarialeAsync(int? companyId, string? month, CancellationToken ct = default);
-    Task<DashboardHrPariteDiversiteDto> GetPariteDiversiteAsync(int? companyId, string? month, CancellationToken ct = default);
-    Task<DashboardHrConformiteSocialeDto> GetConformiteSocialeAsync(int? companyId, string? month, CancellationToken ct = default);
+    Task<DashboardHrMasseSalarialeDto> GetMasseSalarialeAsync(
+        int? companyId,
+        string? month,
+        CancellationToken ct = default
+    );
+    Task<DashboardHrPariteDiversiteDto> GetPariteDiversiteAsync(
+        int? companyId,
+        string? month,
+        CancellationToken ct = default
+    );
+    Task<DashboardHrConformiteSocialeDto> GetConformiteSocialeAsync(
+        int? companyId,
+        string? month,
+        CancellationToken ct = default
+    );
 
     // ── Backoffice / Expert / Dashboard général / Dashboard Employee ──────────────
     Task<ServiceResult<DashboardSummaryDto>> GetBackofficeSummaryAsync(CancellationToken ct = default);
     Task<ServiceResult<DashboardSummaryDto>> GetSummaryAsync(CancellationToken ct = default);
     Task<ServiceResult<object>> GetEmployeesSnapshotAsync(int? companyId, CancellationToken ct = default);
-    Task<ServiceResult<ExpertDashboardDto>> GetExpertDashboardAsync(int expertCompanyId, CancellationToken ct = default);
+    Task<ServiceResult<ExpertDashboardDto>> GetExpertDashboardAsync(
+        int expertCompanyId,
+        CancellationToken ct = default
+    );
     Task<ServiceResult<DashboardResponseDto>> GetEmployeesDashboardAsync(int userId, CancellationToken ct = default);
     Task<ServiceResult<EmployeeDashboardDataDto>> GetEmployeeDashboardAsync(int userId, CancellationToken ct = default);
     Task<ServiceResult<CeoDashboardDto>> GetCeoDashboardDataAsync(
@@ -31,5 +46,6 @@ public interface IDashboardService
         string? parity = null,
         string? fromMonth = null,
         string? toMonth = null,
-        CancellationToken ct = default);
+        CancellationToken ct = default
+    );
 }

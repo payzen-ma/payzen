@@ -1,6 +1,5 @@
-using Payzen.Domain.Enums;
 using Payzen.Domain.Common;
-
+using Payzen.Domain.Enums;
 
 namespace Payzen.Domain.Entities.Payroll.Referentiel;
 
@@ -11,30 +10,15 @@ namespace Payzen.Domain.Entities.Payroll.Referentiel;
 /// </summary>
 public class RuleDualCap : BaseEntity
 {
-    public int RuleId
-    {
-        get; set;
-    }
+    public int RuleId { get; set; }
 
     // Fixed cap portion (e.g., 20 DH/jour)
-    public decimal FixedCapAmount
-    {
-        get; set;
-    }
-    public CapUnit FixedCapUnit
-    {
-        get; set;
-    }
+    public decimal FixedCapAmount { get; set; }
+    public CapUnit FixedCapUnit { get; set; }
 
     /// <summary>PercentageCap stored as human % (20 = 20%). Divided by 100 in calculations.</summary>
-    public decimal PercentageCap
-    {
-        get; set;
-    }
-    public BaseReference BaseReference
-    {
-        get; set;
-    }
+    public decimal PercentageCap { get; set; }
+    public BaseReference BaseReference { get; set; }
 
     // MIN = most restrictive, MAX = most favorable
     public DualCapLogic Logic { get; set; } = DualCapLogic.MIN;
@@ -50,8 +34,6 @@ public class RuleDualCap : BaseEntity
     {
         var fixedCap = FixedCapAmount * periodsInUnit;
         var percentageCap = baseAmount * (PercentageCap / 100);
-        return Logic == DualCapLogic.MIN
-            ? Math.Min(fixedCap, percentageCap)
-            : Math.Max(fixedCap, percentageCap);
+        return Logic == DualCapLogic.MIN ? Math.Min(fixedCap, percentageCap) : Math.Max(fixedCap, percentageCap);
     }
 }

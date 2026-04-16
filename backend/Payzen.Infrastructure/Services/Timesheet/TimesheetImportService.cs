@@ -36,7 +36,8 @@ public class TimesheetImportService : ITimesheetImportService
         int? half,
         int? companyId,
         int? userId,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
     {
         var ext = Path.GetExtension(fileName ?? "").ToLowerInvariant();
         if (ext != ".xlsx" && ext != ".csv")
@@ -45,7 +46,8 @@ public class TimesheetImportService : ITimesheetImportService
         int targetCompanyId;
         if (userId.HasValue)
         {
-            var currentUser = await _db.Users.AsNoTracking()
+            var currentUser = await _db
+                .Users.AsNoTracking()
                 .Include(u => u.Employee)
                 .FirstOrDefaultAsync(u => u.Id == userId.Value && u.IsActive && u.DeletedAt == null, ct);
             if (currentUser?.Employee == null)
@@ -59,13 +61,20 @@ public class TimesheetImportService : ITimesheetImportService
             targetCompanyId = companyId.Value;
         }
 
-        var company = await _db.Companies.AsNoTracking()
+        var company = await _db
+            .Companies.AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == targetCompanyId && c.DeletedAt == null, ct);
         if (company == null)
             return ServiceResult<TimesheetImportResultDto>.Fail("Société non trouvée.");
 
-        var result = new TimesheetImportResultDto { Month = month, Year = year, PeriodMode = mode };
-        var employeesByMatricule = await _db.Employees.AsNoTracking()
+        var result = new TimesheetImportResultDto
+        {
+            Month = month,
+            Year = year,
+            PeriodMode = mode,
+        };
+        var employeesByMatricule = await _db
+            .Employees.AsNoTracking()
             .Where(e => e.CompanyId == targetCompanyId && e.Matricule != null && e.DeletedAt == null)
             .ToDictionaryAsync(e => e.Matricule!.Value, ct);
 
@@ -90,7 +99,8 @@ public class TimesheetImportService : ITimesheetImportService
 
         var startOfMonth = new DateOnly(year, month, 1);
         var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-        DateOnly periodStart, periodEnd;
+        DateOnly periodStart,
+            periodEnd;
 
         if (mode == "bi_monthly")
         {
@@ -110,19 +120,47 @@ public class TimesheetImportService : ITimesheetImportService
             if (string.IsNullOrWhiteSpace(row.MatriculeRaw))
             {
                 result.ErrorCount++;
-                result.Errors.Add(new TimesheetImportErrorDto { Row = row.RowIndex, Matricule = null, Message = "Matricule manquant." });
+                result.Errors.Add(
+                    new TimesheetImportErrorDto
+                    {
+                        Row = row.RowIndex,
+                        Matricule = null,
+                        Message = "Matricule manquant.",
+                    }
+                );
                 continue;
             }
-            if (!int.TryParse(row.MatriculeRaw.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var matricule))
+            if (
+                !int.TryParse(
+                    row.MatriculeRaw.Trim(),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out var matricule
+                )
+            )
             {
                 result.ErrorCount++;
-                result.Errors.Add(new TimesheetImportErrorDto { Row = row.RowIndex, Matricule = row.MatriculeRaw, Message = "Matricule invalide." });
+                result.Errors.Add(
+                    new TimesheetImportErrorDto
+                    {
+                        Row = row.RowIndex,
+                        Matricule = row.MatriculeRaw,
+                        Message = "Matricule invalide.",
+                    }
+                );
                 continue;
             }
             if (!employeesByMatricule.TryGetValue(matricule, out var emp))
             {
                 result.ErrorCount++;
-                result.Errors.Add(new TimesheetImportErrorDto { Row = row.RowIndex, Matricule = row.MatriculeRaw, Message = $"Aucun employé avec le matricule {matricule}." });
+                result.Errors.Add(
+                    new TimesheetImportErrorDto
+                    {
+                        Row = row.RowIndex,
+                        Matricule = row.MatriculeRaw,
+                        Message = $"Aucun employé avec le matricule {matricule}.",
+                    }
+                );
                 continue;
             }
             hoursByEmployeeId.TryGetValue(emp.Id, out var cur);
@@ -133,31 +171,42 @@ public class TimesheetImportService : ITimesheetImportService
         if (hoursByEmployeeId.Count == 0)
             return ServiceResult<TimesheetImportResultDto>.Ok(result);
 
-        var existing = await _db.EmployeeAttendances
-            .Where(a => hoursByEmployeeId.Keys.Contains(a.EmployeeId)
-                     && a.WorkDate >= periodStart && a.WorkDate <= periodEnd
-                     && a.Source == AttendanceSource.Manual)
+        var existing = await _db
+            .EmployeeAttendances.Where(a =>
+                hoursByEmployeeId.Keys.Contains(a.EmployeeId)
+                && a.WorkDate >= periodStart
+                && a.WorkDate <= periodEnd
+                && a.Source == AttendanceSource.Manual
+            )
             .ToListAsync(ct);
         if (existing.Count > 0)
             _db.EmployeeAttendances.RemoveRange(existing);
 
         var now = DateTimeOffset.UtcNow;
         foreach (var kvp in hoursByEmployeeId)
-            _db.EmployeeAttendances.Add(new EmployeeAttendance
-            {
-                EmployeeId = kvp.Key,
-                WorkDate = periodStart,
-                WorkedHours = kvp.Value,
-                BreakMinutesApplied = 0,
-                Status = AttendanceStatus.Present,
-                Source = AttendanceSource.Manual,
-                CreatedAt = now,
-                CreatedBy = userId ?? 0
-            });
+            _db.EmployeeAttendances.Add(
+                new EmployeeAttendance
+                {
+                    EmployeeId = kvp.Key,
+                    WorkDate = periodStart,
+                    WorkedHours = kvp.Value,
+                    BreakMinutesApplied = 0,
+                    Status = AttendanceStatus.Present,
+                    Source = AttendanceSource.Manual,
+                    CreatedAt = now,
+                    CreatedBy = userId ?? 0,
+                }
+            );
 
         await _db.SaveChangesAsync(ct);
-        _logger.LogInformation("Timesheet import OK — company {CompanyId} {Month}/{Year} success={S} errors={E}",
-            targetCompanyId, month, year, result.SuccessCount, result.ErrorCount);
+        _logger.LogInformation(
+            "Timesheet import OK — company {CompanyId} {Month}/{Year} success={S} errors={E}",
+            targetCompanyId,
+            month,
+            year,
+            result.SuccessCount,
+            result.ErrorCount
+        );
         return ServiceResult<TimesheetImportResultDto>.Ok(result);
     }
 
@@ -166,15 +215,20 @@ public class TimesheetImportService : ITimesheetImportService
         int year,
         int? companyId,
         int? userId,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
     {
         int targetCompanyId;
         if (userId.HasValue)
         {
-            var u = await _db.Users.AsNoTracking().Include(x => x.Employee)
+            var u = await _db
+                .Users.AsNoTracking()
+                .Include(x => x.Employee)
                 .FirstOrDefaultAsync(x => x.Id == userId.Value && x.IsActive && x.DeletedAt == null, ct);
             if (u?.Employee == null)
-                return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Fail("Utilisateur non associé à un employé.");
+                return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Fail(
+                    "Utilisateur non associé à un employé."
+                );
             targetCompanyId = companyId ?? u.Employee.CompanyId;
         }
         else
@@ -187,11 +241,13 @@ public class TimesheetImportService : ITimesheetImportService
         var start = new DateOnly(year, month, 1);
         var end = start.AddMonths(1).AddDays(-1);
 
-        var list = await _db.EmployeeAttendances.AsNoTracking()
-            .Include(a => a.Employee).Include(a => a.Breaks)
-            .Where(a => a.Employee!.CompanyId == targetCompanyId
-                     && a.WorkDate >= start && a.WorkDate <= end)
-            .OrderBy(a => a.Employee!.FirstName).ThenBy(a => a.WorkDate)
+        var list = await _db
+            .EmployeeAttendances.AsNoTracking()
+            .Include(a => a.Employee)
+            .Include(a => a.Breaks)
+            .Where(a => a.Employee!.CompanyId == targetCompanyId && a.WorkDate >= start && a.WorkDate <= end)
+            .OrderBy(a => a.Employee!.FirstName)
+            .ThenBy(a => a.WorkDate)
             .Select(a => new EmployeeAttendanceReadDto
             {
                 Id = a.Id,
@@ -205,14 +261,15 @@ public class TimesheetImportService : ITimesheetImportService
                 Status = a.Status,
                 Source = a.Source,
                 Breaks = a.Breaks!.Select(b => new EmployeeAttendanceBreakReadDto
-                {
-                    Id = b.Id,
-                    BreakStart = b.BreakStart,
-                    BreakEnd = b.BreakEnd,
-                    BreakType = b.BreakType ?? string.Empty,
-                    CreatedAt = b.CreatedAt,
-                    ModifiedAt = b.UpdatedAt
-                }).ToList()
+                    {
+                        Id = b.Id,
+                        BreakStart = b.BreakStart,
+                        BreakEnd = b.BreakEnd,
+                        BreakType = b.BreakType ?? string.Empty,
+                        CreatedAt = b.CreatedAt,
+                        ModifiedAt = b.UpdatedAt,
+                    })
+                    .ToList(),
             })
             .ToListAsync(ct);
 
@@ -221,8 +278,11 @@ public class TimesheetImportService : ITimesheetImportService
 
     // ── Parsers (détail d'implémentation) ─────────────────────────────────────
 
-    private static async Task ParseXlsx(Stream stream,
-        List<(int, string?, decimal)> rows, TimesheetImportResultDto result)
+    private static async Task ParseXlsx(
+        Stream stream,
+        List<(int, string?, decimal)> rows,
+        TimesheetImportResultDto result
+    )
     {
         using var wb = new XLWorkbook(stream);
         var ws = wb.Worksheet(1);
@@ -243,12 +303,14 @@ public class TimesheetImportService : ITimesheetImportService
             if (!TryParseDecimal(nrh, out var h) || h < 0)
             {
                 result.ErrorCount++;
-                result.Errors.Add(new()
-                {
-                    Row = r,
-                    Matricule = mat,
-                    Message = $"Heures invalides : '{nrh}'."
-                });
+                result.Errors.Add(
+                    new()
+                    {
+                        Row = r,
+                        Matricule = mat,
+                        Message = $"Heures invalides : '{nrh}'.",
+                    }
+                );
                 continue;
             }
             rows.Add((r, mat, h));
@@ -256,8 +318,11 @@ public class TimesheetImportService : ITimesheetImportService
         await Task.CompletedTask;
     }
 
-    private static async Task ParseCsv(Stream stream,
-        List<(int, string?, decimal)> rows, TimesheetImportResultDto result)
+    private static async Task ParseCsv(
+        Stream stream,
+        List<(int, string?, decimal)> rows,
+        TimesheetImportResultDto result
+    )
     {
         using var reader = new StreamReader(stream);
         var headerLine = await reader.ReadLineAsync();
@@ -281,12 +346,14 @@ public class TimesheetImportService : ITimesheetImportService
             if (!TryParseDecimal(nrh, out var h) || h < 0)
             {
                 result.ErrorCount++;
-                result.Errors.Add(new()
-                {
-                    Row = rowIdx,
-                    Matricule = mat,
-                    Message = $"Heures invalides : '{nrh}'."
-                });
+                result.Errors.Add(
+                    new()
+                    {
+                        Row = rowIdx,
+                        Matricule = mat,
+                        Message = $"Heures invalides : '{nrh}'.",
+                    }
+                );
                 continue;
             }
             rows.Add((rowIdx, mat, h));
@@ -378,10 +445,12 @@ public class TimesheetImportService : ITimesheetImportService
         var s = input.Trim().Replace('\u00A0', ' ').Trim();
         var lastDot = s.LastIndexOf('.');
         var lastComma = s.LastIndexOf(',');
-        char dec = (lastDot >= 0 && lastComma >= 0) ? (lastComma > lastDot ? ',' : '.') : lastComma >= 0 ? ',' : '.';
-        var norm = dec == ','
-            ? s.Replace(".", "").Replace(" ", "").Replace(',', '.')
-            : s.Replace(",", "").Replace(" ", "");
+        char dec =
+            (lastDot >= 0 && lastComma >= 0) ? (lastComma > lastDot ? ',' : '.')
+            : lastComma >= 0 ? ','
+            : '.';
+        var norm =
+            dec == ',' ? s.Replace(".", "").Replace(" ", "").Replace(',', '.') : s.Replace(",", "").Replace(" ", "");
         if (norm.StartsWith("(") && norm.EndsWith(")"))
             norm = "-" + norm[1..^1];
         if (norm.StartsWith("+"))

@@ -7,5 +7,5 @@ namespace Payzen.Domain.Enums;
 public enum HolidayScope
 {
     Global = 0,
-    Company = 1
+    Company = 1,
 }

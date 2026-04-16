@@ -20,7 +20,17 @@ public interface ITimesheetImportService
     /// <param name="half">1 ou 2 si bi_monthly</param>
     /// <param name="companyId">Société cible (optionnel si userId fourni et employé associé)</param>
     /// <param name="userId">Utilisateur courant (optionnel)</param>
-    Task<ServiceResult<TimesheetImportResultDto>> ImportFromFileAsync(Stream fileStream, string fileName, int month, int year, string mode, int? half, int? companyId, int? userId, CancellationToken ct = default);
+    Task<ServiceResult<TimesheetImportResultDto>> ImportFromFileAsync(
+        Stream fileStream,
+        string fileName,
+        int month,
+        int year,
+        string mode,
+        int? half,
+        int? companyId,
+        int? userId,
+        CancellationToken ct = default
+    );
 
     /// <summary>
     /// Récupère les pointages d'une société pour un mois donné.
@@ -30,5 +40,6 @@ public interface ITimesheetImportService
         int year,
         int? companyId,
         int? userId,
-        CancellationToken ct = default);
+        CancellationToken ct = default
+    );
 }

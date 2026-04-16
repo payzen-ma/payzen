@@ -16,10 +16,13 @@ namespace Payzen.Infrastructure.Services.Payroll;
 public class PayComponentService : IPayComponentService
 {
     private readonly AppDbContext _db;
+
     public PayComponentService(AppDbContext db) => _db = db;
 
     public async Task<ServiceResult<IEnumerable<PayComponentReadDto>>> GetAllAsync(
-        bool? isActive, CancellationToken ct = default)
+        bool? isActive,
+        CancellationToken ct = default
+    )
     {
         var q = _db.PayComponents.Where(pc => pc.DeletedAt == null).AsQueryable();
         if (isActive.HasValue)
@@ -28,10 +31,15 @@ public class PayComponentService : IPayComponentService
         return ServiceResult<IEnumerable<PayComponentReadDto>>.Ok(list.Select(Map));
     }
 
-    public async Task<ServiceResult<IEnumerable<PayComponentReadDto>>> GetEffectiveAsync(DateTime? asOf, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<PayComponentReadDto>>> GetEffectiveAsync(
+        DateTime? asOf,
+        CancellationToken ct = default
+    )
     {
         var d = asOf ?? DateTime.UtcNow;
-        var q = _db.PayComponents.Where(pc => pc.DeletedAt == null && pc.IsActive && pc.ValidFrom <= d && (pc.ValidTo == null || pc.ValidTo >= d));
+        var q = _db.PayComponents.Where(pc =>
+            pc.DeletedAt == null && pc.IsActive && pc.ValidFrom <= d && (pc.ValidTo == null || pc.ValidTo >= d)
+        );
         var list = await q.OrderBy(pc => pc.SortOrder).ThenBy(pc => pc.Code).ToListAsync(ct);
         return ServiceResult<IEnumerable<PayComponentReadDto>>.Ok(list.Select(Map));
     }
@@ -39,7 +47,9 @@ public class PayComponentService : IPayComponentService
     public async Task<ServiceResult<PayComponentReadDto>> GetByCodeAsync(string code, CancellationToken ct = default)
     {
         var pc = await _db.PayComponents.FirstOrDefaultAsync(p => p.Code == code && p.DeletedAt == null, ct);
-        return pc == null ? ServiceResult<PayComponentReadDto>.Fail("Composante introuvable.") : ServiceResult<PayComponentReadDto>.Ok(Map(pc));
+        return pc == null
+            ? ServiceResult<PayComponentReadDto>.Fail("Composante introuvable.")
+            : ServiceResult<PayComponentReadDto>.Ok(Map(pc));
     }
 
     public async Task<ServiceResult<PayComponentReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
@@ -51,7 +61,10 @@ public class PayComponentService : IPayComponentService
     }
 
     public async Task<ServiceResult<PayComponentReadDto>> CreateAsync(
-        PayComponentWriteDto dto, int createdBy, CancellationToken ct = default)
+        PayComponentWriteDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         if (await _db.PayComponents.AnyAsync(pc => pc.Code == dto.Code && pc.DeletedAt == null, ct))
             return ServiceResult<PayComponentReadDto>.Fail($"Un PayComponent avec le code '{dto.Code}' existe déjà.");
@@ -72,7 +85,7 @@ public class PayComponentService : IPayComponentService
             ValidTo = dto.ValidTo,
             SortOrder = dto.SortOrder ?? 0,
             IsActive = true,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.PayComponents.Add(pc);
         await _db.SaveChangesAsync(ct);
@@ -80,7 +93,11 @@ public class PayComponentService : IPayComponentService
     }
 
     public async Task<ServiceResult<PayComponentReadDto>> UpdateAsync(
-        int id, PayComponentWriteDto dto, int updatedBy, CancellationToken ct = default)
+        int id,
+        PayComponentWriteDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var pc = await _db.PayComponents.FindAsync(new object[] { id }, ct);
         if (pc == null)
@@ -102,18 +119,43 @@ public class PayComponentService : IPayComponentService
         return ServiceResult<PayComponentReadDto>.Ok(Map(pc));
     }
 
-    public async Task<ServiceResult<PayComponentReadDto>> NewVersionAsync(int id, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<PayComponentReadDto>> NewVersionAsync(
+        int id,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var src = await _db.PayComponents.FindAsync(new object[] { id }, ct);
         if (src == null)
             return ServiceResult<PayComponentReadDto>.Fail("Composante introuvable.");
-        var next = new PayComponent { Code = src.Code, NameFr = src.NameFr, NameAr = src.NameAr, NameEn = src.NameEn, Type = src.Type, IsTaxable = src.IsTaxable, IsSocial = src.IsSocial, IsCIMR = src.IsCIMR, ExemptionLimit = src.ExemptionLimit, IsRegulated = src.IsRegulated, ValidFrom = DateTime.UtcNow, ValidTo = null, SortOrder = src.SortOrder, IsActive = true, CreatedBy = userId };
+        var next = new PayComponent
+        {
+            Code = src.Code,
+            NameFr = src.NameFr,
+            NameAr = src.NameAr,
+            NameEn = src.NameEn,
+            Type = src.Type,
+            IsTaxable = src.IsTaxable,
+            IsSocial = src.IsSocial,
+            IsCIMR = src.IsCIMR,
+            ExemptionLimit = src.ExemptionLimit,
+            IsRegulated = src.IsRegulated,
+            ValidFrom = DateTime.UtcNow,
+            ValidTo = null,
+            SortOrder = src.SortOrder,
+            IsActive = true,
+            CreatedBy = userId,
+        };
         _db.PayComponents.Add(next);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<PayComponentReadDto>.Ok(Map(next));
     }
 
-    public async Task<ServiceResult<PayComponentReadDto>> DeactivateAsync(int id, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<PayComponentReadDto>> DeactivateAsync(
+        int id,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var pc = await _db.PayComponents.FindAsync(new object[] { id }, ct);
         if (pc == null)
@@ -136,20 +178,21 @@ public class PayComponentService : IPayComponentService
         return ServiceResult.Ok();
     }
 
-    private static PayComponentReadDto Map(PayComponent pc) => new()
-    {
-        Id = pc.Id,
-        Code = pc.Code,
-        NameFr = pc.NameFr,
-        NameAr = pc.NameAr,
-        NameEn = pc.NameEn,
-        Type = pc.Type,
-        IsTaxable = pc.IsTaxable,
-        IsSocial = pc.IsSocial,
-        IsCIMR = pc.IsCIMR,
-        ExemptionLimit = pc.ExemptionLimit,
-        IsActive = pc.IsActive
-    };
+    private static PayComponentReadDto Map(PayComponent pc) =>
+        new()
+        {
+            Id = pc.Id,
+            Code = pc.Code,
+            NameFr = pc.NameFr,
+            NameAr = pc.NameAr,
+            NameEn = pc.NameEn,
+            Type = pc.Type,
+            IsTaxable = pc.IsTaxable,
+            IsSocial = pc.IsSocial,
+            IsCIMR = pc.IsCIMR,
+            ExemptionLimit = pc.ExemptionLimit,
+            IsActive = pc.IsActive,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -160,75 +203,89 @@ public class PayComponentService : IPayComponentService
 public class ReferentielPayrollService : IReferentielPayrollService
 {
     private readonly AppDbContext _db;
+
     public ReferentielPayrollService(AppDbContext db) => _db = db;
 
     // ── Éléments ──────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<IEnumerable<ReferentielElementListDto>>> GetElementsAsync(
-        bool? isActive, CancellationToken ct = default)
+        bool? isActive,
+        CancellationToken ct = default
+    )
     {
-        var q = _db.ReferentielElements
-            .Include(re => re.Category)
-            .Include(re => re.Rules)
-            .AsQueryable();
+        var q = _db.ReferentielElements.Include(re => re.Category).Include(re => re.Rules).AsQueryable();
         if (isActive.HasValue)
             q = q.Where(re => re.IsActive == isActive.Value);
 
         var list = await q.OrderBy(re => re.Category.SortOrder).ThenBy(re => re.Name).ToListAsync(ct);
-        return ServiceResult<IEnumerable<ReferentielElementListDto>>.Ok(list.Select(re => new ReferentielElementListDto
-        {
-            Id = re.Id,
-            Code = re.Code,
-            Name = re.Name,
-            CategoryName = re.Category.Name,
-            DefaultFrequency = re.DefaultFrequency,
-            Status = re.Status,
-            IsActive = re.IsActive,
-            HasConvergence = re.HasConvergence,
-            RuleCount = re.Rules.Count
-        }));
+        return ServiceResult<IEnumerable<ReferentielElementListDto>>.Ok(
+            list.Select(re => new ReferentielElementListDto
+            {
+                Id = re.Id,
+                Code = re.Code,
+                Name = re.Name,
+                CategoryName = re.Category.Name,
+                DefaultFrequency = re.DefaultFrequency,
+                Status = re.Status,
+                IsActive = re.IsActive,
+                HasConvergence = re.HasConvergence,
+                RuleCount = re.Rules.Count,
+            })
+        );
     }
 
     public async Task<ServiceResult<ReferentielElementDto>> GetElementByIdAsync(int id, CancellationToken ct = default)
     {
-        var re = await _db.ReferentielElements
-            .Include(re => re.Category)
-            .Include(re => re.Rules).ThenInclude(r => r.Authority)
-            .Include(re => re.Rules).ThenInclude(r => r.Cap)
-            .Include(re => re.Rules).ThenInclude(r => r.Percentage)
-            .Include(re => re.Rules).ThenInclude(r => r.Formula).ThenInclude(f => f!.Parameter)
+        var re = await _db
+            .ReferentielElements.Include(re => re.Category)
+            .Include(re => re.Rules)
+                .ThenInclude(r => r.Authority)
+            .Include(re => re.Rules)
+                .ThenInclude(r => r.Cap)
+            .Include(re => re.Rules)
+                .ThenInclude(r => r.Percentage)
+            .Include(re => re.Rules)
+                .ThenInclude(r => r.Formula)
+                    .ThenInclude(f => f!.Parameter)
             .FirstOrDefaultAsync(re => re.Id == id, ct);
         if (re == null)
             return ServiceResult<ReferentielElementDto>.Fail("Élément introuvable.");
 
-        return ServiceResult<ReferentielElementDto>.Ok(new ReferentielElementDto
-        {
-            Id = re.Id,
-            Code = re.Code,
-            Name = re.Name,
-            CategoryId = re.CategoryId,
-            CategoryName = re.Category.Name,
-            Description = re.Description,
-            DefaultFrequency = re.DefaultFrequency,
-            Status = re.Status,
-            IsActive = re.IsActive,
-            Rules = re.Rules.Select(r => new ElementRuleDto
+        return ServiceResult<ReferentielElementDto>.Ok(
+            new ReferentielElementDto
             {
-                Id = r.Id,
-                ElementId = r.ElementId,
-                AuthorityId = r.AuthorityId,
-                AuthorityName = r.Authority.Name,
-                ExemptionType = r.ExemptionType,
-                SourceRef = r.SourceRef,
-                EffectiveFrom = r.EffectiveFrom,
-                EffectiveTo = r.EffectiveTo,
-                IsActive = r.IsActive()
-            }).ToList()
-        });
+                Id = re.Id,
+                Code = re.Code,
+                Name = re.Name,
+                CategoryId = re.CategoryId,
+                CategoryName = re.Category.Name,
+                Description = re.Description,
+                DefaultFrequency = re.DefaultFrequency,
+                Status = re.Status,
+                IsActive = re.IsActive,
+                Rules = re
+                    .Rules.Select(r => new ElementRuleDto
+                    {
+                        Id = r.Id,
+                        ElementId = r.ElementId,
+                        AuthorityId = r.AuthorityId,
+                        AuthorityName = r.Authority.Name,
+                        ExemptionType = r.ExemptionType,
+                        SourceRef = r.SourceRef,
+                        EffectiveFrom = r.EffectiveFrom,
+                        EffectiveTo = r.EffectiveTo,
+                        IsActive = r.IsActive(),
+                    })
+                    .ToList(),
+            }
+        );
     }
 
     public async Task<ServiceResult<ReferentielElementDto>> CreateElementAsync(
-        CreateReferentielElementDto dto, int createdBy, CancellationToken ct = default)
+        CreateReferentielElementDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var re = new ReferentielElement
         {
@@ -239,28 +296,34 @@ public class ReferentielPayrollService : IReferentielPayrollService
             DefaultFrequency = dto.DefaultFrequency,
             Status = dto.Status,
             IsActive = true,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.ReferentielElements.Add(re);
         await _db.SaveChangesAsync(ct);
 
         await _db.Entry(re).Reference(r => r.Category).LoadAsync(ct);
-        return ServiceResult<ReferentielElementDto>.Ok(new ReferentielElementDto
-        {
-            Id = re.Id,
-            Code = re.Code,
-            Name = re.Name,
-            CategoryId = re.CategoryId,
-            CategoryName = re.Category.Name,
-            Description = re.Description,
-            DefaultFrequency = re.DefaultFrequency,
-            Status = re.Status,
-            IsActive = re.IsActive
-        });
+        return ServiceResult<ReferentielElementDto>.Ok(
+            new ReferentielElementDto
+            {
+                Id = re.Id,
+                Code = re.Code,
+                Name = re.Name,
+                CategoryId = re.CategoryId,
+                CategoryName = re.Category.Name,
+                Description = re.Description,
+                DefaultFrequency = re.DefaultFrequency,
+                Status = re.Status,
+                IsActive = re.IsActive,
+            }
+        );
     }
 
     public async Task<ServiceResult<ReferentielElementDto>> UpdateElementAsync(
-        int id, UpdateReferentielElementDto dto, int updatedBy, CancellationToken ct = default)
+        int id,
+        UpdateReferentielElementDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var re = await _db.ReferentielElements.Include(re => re.Category).FirstOrDefaultAsync(re => re.Id == id, ct);
         if (re == null)
@@ -274,18 +337,20 @@ public class ReferentielPayrollService : IReferentielPayrollService
         re.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
 
-        return ServiceResult<ReferentielElementDto>.Ok(new ReferentielElementDto
-        {
-            Id = re.Id,
-            Code = re.Code,
-            Name = re.Name,
-            CategoryId = re.CategoryId,
-            CategoryName = re.Category.Name,
-            Description = re.Description,
-            DefaultFrequency = re.DefaultFrequency,
-            Status = re.Status,
-            IsActive = re.IsActive
-        });
+        return ServiceResult<ReferentielElementDto>.Ok(
+            new ReferentielElementDto
+            {
+                Id = re.Id,
+                Code = re.Code,
+                Name = re.Name,
+                CategoryId = re.CategoryId,
+                CategoryName = re.Category.Name,
+                Description = re.Description,
+                DefaultFrequency = re.DefaultFrequency,
+                Status = re.Status,
+                IsActive = re.IsActive,
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteElementAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -302,7 +367,10 @@ public class ReferentielPayrollService : IReferentielPayrollService
     // ── Règles ────────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<ElementRuleDto>> CreateRuleAsync(
-        CreateElementRuleDto dto, int createdBy, CancellationToken ct = default)
+        CreateElementRuleDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var rule = new ElementRule
         {
@@ -314,28 +382,34 @@ public class ReferentielPayrollService : IReferentielPayrollService
             EffectiveFrom = dto.EffectiveFrom,
             EffectiveTo = dto.EffectiveTo,
             Status = dto.Status,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.ElementRules.Add(rule);
         await _db.SaveChangesAsync(ct);
 
         await _db.Entry(rule).Reference(r => r.Authority).LoadAsync(ct);
-        return ServiceResult<ElementRuleDto>.Ok(new ElementRuleDto
-        {
-            Id = rule.Id,
-            ElementId = rule.ElementId,
-            AuthorityId = rule.AuthorityId,
-            AuthorityName = rule.Authority.Name,
-            ExemptionType = rule.ExemptionType,
-            SourceRef = rule.SourceRef,
-            EffectiveFrom = rule.EffectiveFrom,
-            EffectiveTo = rule.EffectiveTo,
-            IsActive = rule.IsActive()
-        });
+        return ServiceResult<ElementRuleDto>.Ok(
+            new ElementRuleDto
+            {
+                Id = rule.Id,
+                ElementId = rule.ElementId,
+                AuthorityId = rule.AuthorityId,
+                AuthorityName = rule.Authority.Name,
+                ExemptionType = rule.ExemptionType,
+                SourceRef = rule.SourceRef,
+                EffectiveFrom = rule.EffectiveFrom,
+                EffectiveTo = rule.EffectiveTo,
+                IsActive = rule.IsActive(),
+            }
+        );
     }
 
     public async Task<ServiceResult<ElementRuleDto>> UpdateRuleAsync(
-        int id, UpdateElementRuleDto dto, int updatedBy, CancellationToken ct = default)
+        int id,
+        UpdateElementRuleDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var rule = await _db.ElementRules.Include(r => r.Authority).FirstOrDefaultAsync(r => r.Id == id, ct);
         if (rule == null)
@@ -348,18 +422,20 @@ public class ReferentielPayrollService : IReferentielPayrollService
             rule.Status = dto.Status.Value;
         rule.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<ElementRuleDto>.Ok(new ElementRuleDto
-        {
-            Id = rule.Id,
-            ElementId = rule.ElementId,
-            AuthorityId = rule.AuthorityId,
-            AuthorityName = rule.Authority.Name,
-            ExemptionType = rule.ExemptionType,
-            SourceRef = rule.SourceRef,
-            EffectiveFrom = rule.EffectiveFrom,
-            EffectiveTo = rule.EffectiveTo,
-            IsActive = rule.IsActive()
-        });
+        return ServiceResult<ElementRuleDto>.Ok(
+            new ElementRuleDto
+            {
+                Id = rule.Id,
+                ElementId = rule.ElementId,
+                AuthorityId = rule.AuthorityId,
+                AuthorityName = rule.Authority.Name,
+                ExemptionType = rule.ExemptionType,
+                SourceRef = rule.SourceRef,
+                EffectiveFrom = rule.EffectiveFrom,
+                EffectiveTo = rule.EffectiveTo,
+                IsActive = rule.IsActive(),
+            }
+        );
     }
 
     public async Task<ServiceResult> DeleteRuleAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -375,21 +451,26 @@ public class ReferentielPayrollService : IReferentielPayrollService
 
     // ── Paramètres légaux ────────────────────────────────────────────────────
 
-    public async Task<ServiceResult<IEnumerable<LegalParameterDto>>> GetLegalParametersAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<LegalParameterDto>>> GetLegalParametersAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.LegalParameters
-            .OrderBy(lp => lp.Code)
+        var list = await _db
+            .LegalParameters.OrderBy(lp => lp.Code)
             .ThenByDescending(lp => lp.EffectiveFrom)
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<LegalParameterDto>>.Ok(list.Select(MapParam));
     }
 
     public async Task<ServiceResult<LegalParameterDto>> CreateLegalParameterAsync(
-        CreateLegalParameterDto dto, int createdBy, CancellationToken ct = default)
+        CreateLegalParameterDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         // Fermer la version précédente
-        var prev = await _db.LegalParameters
-            .Where(lp => lp.Code == dto.Code && lp.EffectiveTo == null)
+        var prev = await _db
+            .LegalParameters.Where(lp => lp.Code == dto.Code && lp.EffectiveTo == null)
             .FirstOrDefaultAsync(ct);
         if (prev != null)
         {
@@ -406,39 +487,44 @@ public class ReferentielPayrollService : IReferentielPayrollService
             Source = dto.Source,
             EffectiveFrom = dto.EffectiveFrom,
             EffectiveTo = dto.EffectiveTo,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.LegalParameters.Add(lp);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<LegalParameterDto>.Ok(MapParam(lp));
     }
 
-    private static LegalParameterDto MapParam(LegalParameter lp) => new()
-    {
-        Id = lp.Id,
-        Code = lp.Code,
-        Name = lp.Label,
-        Description = lp.Source,
-        Source = lp.Source,
-        Value = lp.Value,
-        Unit = lp.Unit,
-        EffectiveFrom = lp.EffectiveFrom,
-        EffectiveTo = lp.EffectiveTo
-    };
+    private static LegalParameterDto MapParam(LegalParameter lp) =>
+        new()
+        {
+            Id = lp.Id,
+            Code = lp.Code,
+            Name = lp.Label,
+            Description = lp.Source,
+            Source = lp.Source,
+            Value = lp.Value,
+            Unit = lp.Unit,
+            EffectiveFrom = lp.EffectiveFrom,
+            EffectiveTo = lp.EffectiveTo,
+        };
 
     // ── Ancienneté ────────────────────────────────────────────────────────────
 
     public async Task<ServiceResult<IEnumerable<AncienneteRateSetDto>>> GetRateSetsAsync(CancellationToken ct = default)
     {
-        var list = await _db.AncienneteRateSets
-            .Include(rs => rs.Rates)
+        var list = await _db
+            .AncienneteRateSets.Include(rs => rs.Rates)
             .Where(rs => rs.DeletedAt == null)
             .OrderByDescending(rs => rs.EffectiveFrom)
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<AncienneteRateSetDto>>.Ok(list.Select(MapRateSet));
     }
 
-    public async Task<ServiceResult<AncienneteRateSetDto>> CreateRateSetAsync(CreateAncienneteRateSetDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<AncienneteRateSetDto>> CreateRateSetAsync(
+        CreateAncienneteRateSetDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var rs = new AncienneteRateSet
         {
@@ -448,19 +534,31 @@ public class ReferentielPayrollService : IReferentielPayrollService
             Source = dto.Source,
             EffectiveFrom = dto.EffectiveFrom,
             EffectiveTo = dto.EffectiveTo,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         foreach (var r in dto.Rates)
-            rs.Rates.Add(new AncienneteRate { MinYears = r.MinYears, MaxYears = r.MaxYears, Rate = r.Rate, CreatedBy = createdBy });
+            rs.Rates.Add(
+                new AncienneteRate
+                {
+                    MinYears = r.MinYears,
+                    MaxYears = r.MaxYears,
+                    Rate = r.Rate,
+                    CreatedBy = createdBy,
+                }
+            );
         _db.AncienneteRateSets.Add(rs);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<AncienneteRateSetDto>.Ok(MapRateSet(rs));
     }
 
-    public async Task<ServiceResult<AncienneteRateSetDto>> CustomizeCompanyRatesAsync(CustomizeCompanyRatesDto dto, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<AncienneteRateSetDto>> CustomizeCompanyRatesAsync(
+        CustomizeCompanyRatesDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
-        var legal = await _db.AncienneteRateSets
-            .Where(rs => rs.IsLegalDefault && rs.DeletedAt == null)
+        var legal = await _db
+            .AncienneteRateSets.Where(rs => rs.IsLegalDefault && rs.DeletedAt == null)
             .OrderByDescending(rs => rs.EffectiveFrom)
             .FirstOrDefaultAsync(ct);
 
@@ -472,26 +570,43 @@ public class ReferentielPayrollService : IReferentielPayrollService
             CompanyId = dto.CompanyId,
             ClonedFromId = legal?.Id,
             EffectiveFrom = DateOnly.FromDateTime(DateTime.Today),
-            CreatedBy = userId
+            CreatedBy = userId,
         };
         foreach (var r in dto.Rates)
-            rs.Rates.Add(new AncienneteRate { MinYears = r.MinYears, MaxYears = r.MaxYears, Rate = r.Rate, CreatedBy = userId });
+            rs.Rates.Add(
+                new AncienneteRate
+                {
+                    MinYears = r.MinYears,
+                    MaxYears = r.MaxYears,
+                    Rate = r.Rate,
+                    CreatedBy = userId,
+                }
+            );
         _db.AncienneteRateSets.Add(rs);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<AncienneteRateSetDto>.Ok(MapRateSet(rs));
     }
 
-    private static AncienneteRateSetDto MapRateSet(AncienneteRateSet rs) => new()
-    {
-        Id = rs.Id,
-        Name = rs.Name,
-        IsLegalDefault = rs.IsLegalDefault,
-        Source = rs.Source,
-        EffectiveFrom = rs.EffectiveFrom,
-        EffectiveTo = rs.EffectiveTo,
-        IsActive = rs.DeletedAt == null,
-        CompanyId = rs.CompanyId,
-        ClonedFromId = rs.ClonedFromId,
-        Rates = rs.Rates.Select(r => new AncienneteRateDto { Id = r.Id, MinYears = r.MinYears, MaxYears = r.MaxYears, Rate = r.Rate }).ToList()
-    };
+    private static AncienneteRateSetDto MapRateSet(AncienneteRateSet rs) =>
+        new()
+        {
+            Id = rs.Id,
+            Name = rs.Name,
+            IsLegalDefault = rs.IsLegalDefault,
+            Source = rs.Source,
+            EffectiveFrom = rs.EffectiveFrom,
+            EffectiveTo = rs.EffectiveTo,
+            IsActive = rs.DeletedAt == null,
+            CompanyId = rs.CompanyId,
+            ClonedFromId = rs.ClonedFromId,
+            Rates = rs
+                .Rates.Select(r => new AncienneteRateDto
+                {
+                    Id = r.Id,
+                    MinYears = r.MinYears,
+                    MaxYears = r.MaxYears,
+                    Rate = r.Rate,
+                })
+                .ToList(),
+        };
 }

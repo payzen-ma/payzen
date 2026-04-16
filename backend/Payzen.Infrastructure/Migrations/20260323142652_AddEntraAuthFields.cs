@@ -15,14 +15,16 @@ namespace Payzen.Infrastructure.Migrations
                 table: "Users",
                 type: "nvarchar(200)",
                 maxLength: 200,
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "Source",
                 table: "Users",
                 type: "nvarchar(50)",
                 maxLength: 50,
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "AuthType",
@@ -30,33 +32,27 @@ namespace Payzen.Infrastructure.Migrations
                 type: "nvarchar(20)",
                 maxLength: 20,
                 nullable: true,
-                defaultValue: "JWT");
+                defaultValue: "JWT"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_ExternalId",
                 table: "Users",
                 column: "ExternalId",
-                filter: "[ExternalId] IS NOT NULL AND [DeletedAt] IS NULL");
+                filter: "[ExternalId] IS NOT NULL AND [DeletedAt] IS NULL"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Users_ExternalId",
-                table: "Users");
+            migrationBuilder.DropIndex(name: "IX_Users_ExternalId", table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "ExternalId",
-                table: "Users");
+            migrationBuilder.DropColumn(name: "ExternalId", table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "Source",
-                table: "Users");
+            migrationBuilder.DropColumn(name: "Source", table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "AuthType",
-                table: "Companies");
+            migrationBuilder.DropColumn(name: "AuthType", table: "Companies");
         }
     }
 }

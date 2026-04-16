@@ -28,9 +28,21 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Payzen.Domain.Entit
         entity.Property(c => c.PaymentMethod).HasMaxLength(100);
         entity.Property(c => c.AuthType).HasMaxLength(20).HasDefaultValue("JWT");
 
-        entity.HasOne(c => c.City).WithMany(ct => ct.Companies).HasForeignKey(c => c.CityId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(c => c.Country).WithMany(co => co.Companies).HasForeignKey(c => c.CountryId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(c => c.ManagedByCompany).WithMany(c => c.ManagedCompanies).HasForeignKey(c => c.ManagedByCompanyId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(c => c.City)
+            .WithMany(ct => ct.Companies)
+            .HasForeignKey(c => c.CityId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(c => c.Country)
+            .WithMany(co => co.Companies)
+            .HasForeignKey(c => c.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(c => c.ManagedByCompany)
+            .WithMany(c => c.ManagedCompanies)
+            .HasForeignKey(c => c.ManagedByCompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -51,8 +63,16 @@ public class ContractTypeConfiguration : IEntityTypeConfiguration<ContractType>
         entity.ToTable("ContractTypes");
         entity.Property(ct => ct.ContractTypeName).IsRequired().HasMaxLength(200);
         entity.HasOne(ct => ct.Company).WithMany().HasForeignKey(ct => ct.CompanyId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(ct => ct.LegalContractType).WithMany().HasForeignKey(ct => ct.LegalContractTypeId).OnDelete(DeleteBehavior.SetNull);
-        entity.HasOne(ct => ct.StateEmploymentProgram).WithMany().HasForeignKey(ct => ct.StateEmploymentProgramId).OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(ct => ct.LegalContractType)
+            .WithMany()
+            .HasForeignKey(ct => ct.LegalContractTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity
+            .HasOne(ct => ct.StateEmploymentProgram)
+            .WithMany()
+            .HasForeignKey(ct => ct.StateEmploymentProgramId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 
@@ -77,7 +97,11 @@ public class HolidayConfiguration : IEntityTypeConfiguration<Holiday>
         entity.Property(h => h.HolidayType).HasMaxLength(50);
         entity.Property(h => h.RecurrenceRule).HasMaxLength(200);
         entity.HasOne(h => h.Company).WithMany().HasForeignKey(h => h.CompanyId).OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(h => h.Country).WithMany(c => c.Holidays).HasForeignKey(h => h.CountryId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(h => h.Country)
+            .WithMany(c => c.Holidays)
+            .HasForeignKey(h => h.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 
@@ -98,6 +122,10 @@ public class CompanyDocumentConfiguration : IEntityTypeConfiguration<CompanyDocu
         entity.Property(cd => cd.Name).IsRequired().HasMaxLength(500);
         entity.Property(cd => cd.FilePath).IsRequired().HasMaxLength(1000);
         entity.Property(cd => cd.DocumentType).HasMaxLength(100);
-        entity.HasOne(cd => cd.Company).WithMany(c => c.Documents).HasForeignKey(cd => cd.CompanyId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(cd => cd.Company)
+            .WithMany(c => c.Documents)
+            .HasForeignKey(cd => cd.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

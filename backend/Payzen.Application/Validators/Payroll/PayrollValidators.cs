@@ -21,10 +21,13 @@ public class PayrollBatchRequestValidator : AbstractValidator<PayrollBatchReques
         RuleFor(x => x.PayMonth).InclusiveBetween(1, 12).WithMessage("Le mois doit être entre 1 et 12");
         RuleFor(x => x.PayYear).InclusiveBetween(2020, 2100).WithMessage("L'année doit être entre 2020 et 2100");
 
-        When(x => x.EmployeeIds != null, () =>
-            RuleFor(x => x.EmployeeIds!)
-                .Must(ids => ids.Count > 0 && ids.All(id => id > 0))
-                .WithMessage("Les IDs d'employés doivent être valides"));
+        When(
+            x => x.EmployeeIds != null,
+            () =>
+                RuleFor(x => x.EmployeeIds!)
+                    .Must(ids => ids.Count > 0 && ids.All(id => id > 0))
+                    .WithMessage("Les IDs d'employés doivent être valides")
+        );
     }
 }
 
@@ -43,18 +46,23 @@ public class SalaryPackageCreateValidator : AbstractValidator<SalaryPackageCreat
             .Must(s => ValidStatuses.Contains(s))
             .WithMessage("Le statut doit être : draft, published ou deprecated");
 
-        When(x => x.TemplateType != null, () =>
-            RuleFor(x => x.TemplateType!)
-                .Must(t => ValidTemplateTypes.Contains(t))
-                .WithMessage("TemplateType doit être OFFICIAL ou COMPANY"));
+        When(
+            x => x.TemplateType != null,
+            () =>
+                RuleFor(x => x.TemplateType!)
+                    .Must(t => ValidTemplateTypes.Contains(t))
+                    .WithMessage("TemplateType doit être OFFICIAL ou COMPANY")
+        );
 
-        When(x => x.CimrRate.HasValue, () =>
-            RuleFor(x => x.CimrRate!.Value)
-                .InclusiveBetween(0, 0.12m)
-                .WithMessage("Le taux CIMR doit être entre 0 et 12%"));
+        When(
+            x => x.CimrRate.HasValue,
+            () =>
+                RuleFor(x => x.CimrRate!.Value)
+                    .InclusiveBetween(0, 0.12m)
+                    .WithMessage("Le taux CIMR doit être entre 0 et 12%")
+        );
 
-        When(x => x.Description != null, () =>
-            RuleFor(x => x.Description!).MaximumLength(1000));
+        When(x => x.Description != null, () => RuleFor(x => x.Description!).MaximumLength(1000));
 
         RuleFor(x => x.BaseSalary).GreaterThanOrEqualTo(0);
 
@@ -72,29 +80,47 @@ public class SalaryPackageUpdateValidator : AbstractValidator<SalaryPackageUpdat
         When(x => x.Name != null, () => RuleFor(x => x.Name!).Length(2, 200));
         When(x => x.Category != null, () => RuleFor(x => x.Category!).Length(2, 100));
 
-        When(x => x.Status != null, () =>
-            RuleFor(x => x.Status!)
-                .Must(s => ValidStatuses.Contains(s))
-                .WithMessage("Le statut doit être : draft, published ou deprecated"));
+        When(
+            x => x.Status != null,
+            () =>
+                RuleFor(x => x.Status!)
+                    .Must(s => ValidStatuses.Contains(s))
+                    .WithMessage("Le statut doit être : draft, published ou deprecated")
+        );
 
-        When(x => x.TemplateType != null, () =>
-            RuleFor(x => x.TemplateType!)
-                .Must(t => ValidTemplateTypes.Contains(t))
-                .WithMessage("TemplateType doit être OFFICIAL ou COMPANY"));
+        When(
+            x => x.TemplateType != null,
+            () =>
+                RuleFor(x => x.TemplateType!)
+                    .Must(t => ValidTemplateTypes.Contains(t))
+                    .WithMessage("TemplateType doit être OFFICIAL ou COMPANY")
+        );
 
-        When(x => x.CimrRate.HasValue, () =>
-            RuleFor(x => x.CimrRate!.Value)
-                .InclusiveBetween(0, 0.12m)
-                .WithMessage("Le taux CIMR doit être entre 0 et 12%"));
+        When(
+            x => x.CimrRate.HasValue,
+            () =>
+                RuleFor(x => x.CimrRate!.Value)
+                    .InclusiveBetween(0, 0.12m)
+                    .WithMessage("Le taux CIMR doit être entre 0 et 12%")
+        );
 
-        When(x => x.Items != null, () =>
-            RuleForEach(x => x.Items!).SetValidator(new SalaryPackageItemWriteValidator()));
+        When(
+            x => x.Items != null,
+            () => RuleForEach(x => x.Items!).SetValidator(new SalaryPackageItemWriteValidator())
+        );
     }
 }
 
 public class SalaryPackageItemWriteValidator : AbstractValidator<SalaryPackageItemWriteDto>
 {
-    private static readonly string[] ValidTypes = ["base_salary", "allowance", "bonus", "benefit_in_kind", "social_charge"];
+    private static readonly string[] ValidTypes =
+    [
+        "base_salary",
+        "allowance",
+        "bonus",
+        "benefit_in_kind",
+        "social_charge",
+    ];
 
     public SalaryPackageItemWriteValidator()
     {
@@ -107,8 +133,7 @@ public class SalaryPackageItemWriteValidator : AbstractValidator<SalaryPackageIt
 
         RuleFor(x => x.DefaultValue).GreaterThanOrEqualTo(0);
 
-        When(x => x.ExemptionLimit.HasValue, () =>
-            RuleFor(x => x.ExemptionLimit!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.ExemptionLimit.HasValue, () => RuleFor(x => x.ExemptionLimit!.Value).GreaterThanOrEqualTo(0));
     }
 }
 
@@ -128,10 +153,11 @@ public class SalaryPreviewRequestValidator : AbstractValidator<SalaryPreviewRequ
     public SalaryPreviewRequestValidator()
     {
         RuleFor(x => x.BaseSalary).GreaterThanOrEqualTo(0).WithMessage("Le salaire de base doit être positif");
-        RuleFor(x => x.Dependents).GreaterThanOrEqualTo(0).WithMessage("Le nombre de personnes à charge doit être positif");
+        RuleFor(x => x.Dependents)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Le nombre de personnes à charge doit être positif");
 
-        When(x => x.YearsOfService.HasValue, () =>
-            RuleFor(x => x.YearsOfService!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.YearsOfService.HasValue, () => RuleFor(x => x.YearsOfService!.Value).GreaterThanOrEqualTo(0));
 
         RuleForEach(x => x.Items).SetValidator(new SalaryPackageItemWriteValidator());
     }
@@ -139,14 +165,22 @@ public class SalaryPreviewRequestValidator : AbstractValidator<SalaryPreviewRequ
 
 public class PayComponentWriteValidator : AbstractValidator<PayComponentWriteDto>
 {
-    private static readonly string[] ValidTypes = ["base_salary", "allowance", "bonus", "benefit_in_kind", "social_charge"];
+    private static readonly string[] ValidTypes =
+    [
+        "base_salary",
+        "allowance",
+        "bonus",
+        "benefit_in_kind",
+        "social_charge",
+    ];
 
     public PayComponentWriteValidator()
     {
         RuleFor(x => x.Code)
             .NotEmpty()
             .Length(2, 50)
-            .Matches("^[A-Z0-9_]+$").WithMessage("Le code doit contenir uniquement des lettres majuscules, chiffres et underscores");
+            .Matches("^[A-Z0-9_]+$")
+            .WithMessage("Le code doit contenir uniquement des lettres majuscules, chiffres et underscores");
 
         RuleFor(x => x.NameFr).NotEmpty().Length(2, 200);
 
@@ -158,11 +192,9 @@ public class PayComponentWriteValidator : AbstractValidator<PayComponentWriteDto
         When(x => x.NameAr != null, () => RuleFor(x => x.NameAr!).MaximumLength(200));
         When(x => x.NameEn != null, () => RuleFor(x => x.NameEn!).MaximumLength(200));
 
-        When(x => x.ExemptionLimit.HasValue, () =>
-            RuleFor(x => x.ExemptionLimit!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.ExemptionLimit.HasValue, () => RuleFor(x => x.ExemptionLimit!.Value).GreaterThanOrEqualTo(0));
 
-        When(x => x.DefaultAmount.HasValue, () =>
-            RuleFor(x => x.DefaultAmount!.Value).GreaterThanOrEqualTo(0));
+        When(x => x.DefaultAmount.HasValue, () => RuleFor(x => x.DefaultAmount!.Value).GreaterThanOrEqualTo(0));
     }
 }
 
@@ -172,7 +204,6 @@ public class SalaryPackageCloneValidator : AbstractValidator<SalaryPackageCloneD
     {
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de la société est requis");
 
-        When(x => x.Name != null, () =>
-            RuleFor(x => x.Name!).Length(2, 200));
+        When(x => x.Name != null, () => RuleFor(x => x.Name!).Length(2, 200));
     }
 }

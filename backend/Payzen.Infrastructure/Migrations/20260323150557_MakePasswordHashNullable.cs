@@ -18,7 +18,8 @@ namespace Payzen.Infrastructure.Migrations
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(500)",
-                oldMaxLength: 500);
+                oldMaxLength: 500
+            );
         }
 
         /// <inheritdoc />
@@ -34,7 +35,8 @@ namespace Payzen.Infrastructure.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(500)",
                 oldMaxLength: 500,
-                oldNullable: true);
+                oldNullable: true
+            );
         }
     }
 }

@@ -17,8 +17,7 @@ public class UsersConfiguration : IEntityTypeConfiguration<Users>
         entity.Property(u => u.IsActive).HasDefaultValue(true);
         entity.HasIndex(u => u.Email).IsUnique().HasFilter("[DeletedAt] IS NULL");
         entity.HasIndex(u => u.Username).IsUnique().HasFilter("[DeletedAt] IS NULL");
-        entity.HasIndex(u => u.ExternalId)
-              .HasFilter("[ExternalId] IS NOT NULL AND [DeletedAt] IS NULL");
+        entity.HasIndex(u => u.ExternalId).HasFilter("[ExternalId] IS NOT NULL AND [DeletedAt] IS NULL");
         entity.HasOne(u => u.Employee).WithMany().HasForeignKey(u => u.EmployeeId).OnDelete(DeleteBehavior.SetNull);
     }
 }

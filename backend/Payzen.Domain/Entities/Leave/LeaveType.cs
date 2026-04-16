@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Payzen.Domain.Enums;
 using Payzen.Domain.Common;
+using Payzen.Domain.Enums;
 
 namespace Payzen.Domain.Entities.Leave;
 
@@ -23,16 +23,10 @@ public class LeaveType : BaseEntity
 
     public LeaveScope Scope { get; set; } = LeaveScope.Global;
     public bool IsActive { get; set; } = true;
-    public int? CompanyId
-    {
-        get; set;
-    }
+    public int? CompanyId { get; set; }
 
     // Navigation properties
-    public Company.Company? Company
-    {
-        get; set;
-    }
+    public Company.Company? Company { get; set; }
     public ICollection<LeaveTypeLegalRule> LegalRules { get; set; } = new List<LeaveTypeLegalRule>();
     public ICollection<LeaveTypePolicy> Policies { get; set; } = new List<LeaveTypePolicy>();
 }

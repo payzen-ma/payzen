@@ -10,21 +10,16 @@ namespace Payzen.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_PayrollResults_EmployeeId_Year_Month",
-                table: "PayrollResults");
+            migrationBuilder.DropIndex(name: "IX_PayrollResults_EmployeeId_Year_Month", table: "PayrollResults");
 
-            migrationBuilder.AddColumn<int>(
-                name: "PayHalf",
-                table: "PayrollResults",
-                type: "int",
-                nullable: true);
+            migrationBuilder.AddColumn<int>(name: "PayHalf", table: "PayrollResults", type: "int", nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PayrollResults_EmployeeId_Year_Month_PayHalf",
                 table: "PayrollResults",
                 columns: new[] { "EmployeeId", "Year", "Month", "PayHalf" },
-                filter: "[DeletedAt] IS NULL");
+                filter: "[DeletedAt] IS NULL"
+            );
         }
 
         /// <inheritdoc />
@@ -32,17 +27,17 @@ namespace Payzen.Infrastructure.Migrations
         {
             migrationBuilder.DropIndex(
                 name: "IX_PayrollResults_EmployeeId_Year_Month_PayHalf",
-                table: "PayrollResults");
+                table: "PayrollResults"
+            );
 
-            migrationBuilder.DropColumn(
-                name: "PayHalf",
-                table: "PayrollResults");
+            migrationBuilder.DropColumn(name: "PayHalf", table: "PayrollResults");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PayrollResults_EmployeeId_Year_Month",
                 table: "PayrollResults",
                 columns: new[] { "EmployeeId", "Year", "Month" },
-                filter: "[DeletedAt] IS NULL");
+                filter: "[DeletedAt] IS NULL"
+            );
         }
     }
 }

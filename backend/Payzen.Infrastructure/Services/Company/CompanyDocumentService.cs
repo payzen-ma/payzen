@@ -17,7 +17,11 @@ public class CompanyDocumentService : ICompanyDocumentService
     public CompanyDocumentService(IWebHostEnvironment env) => _env = env;
 
     public async Task<ServiceResult<string>> SaveFileAsync(
-        IFormFile file, int companyId, string? documentType, CancellationToken ct = default)
+        IFormFile file,
+        int companyId,
+        string? documentType,
+        CancellationToken ct = default
+    )
     {
         if (file == null || file.Length == 0)
             return ServiceResult<string>.Fail("Fichier vide ou manquant.");
@@ -33,8 +37,7 @@ public class CompanyDocumentService : ICompanyDocumentService
         await using var stream = new FileStream(fullPath, FileMode.Create);
         await file.CopyToAsync(stream, ct);
 
-        var relativePath = Path.Combine("uploads", "companies", companyId.ToString(), fileName)
-                               .Replace('\\', '/');
+        var relativePath = Path.Combine("uploads", "companies", companyId.ToString(), fileName).Replace('\\', '/');
         return ServiceResult<string>.Ok(relativePath);
     }
 
@@ -51,7 +54,9 @@ public class CompanyDocumentService : ICompanyDocumentService
     }
 
     public async Task<ServiceResult<(byte[] fileBytes, string contentType, string fileName)>> GetFileAsync(
-        string filePath, CancellationToken ct = default)
+        string filePath,
+        CancellationToken ct = default
+    )
     {
         if (string.IsNullOrWhiteSpace(filePath))
             return ServiceResult<(byte[], string, string)>.Fail("Chemin de fichier manquant.");
@@ -68,7 +73,7 @@ public class CompanyDocumentService : ICompanyDocumentService
             ".pdf" => "application/pdf",
             ".jpg" or ".jpeg" => "image/jpeg",
             ".png" => "image/png",
-            _ => "application/octet-stream"
+            _ => "application/octet-stream",
         };
         return ServiceResult<(byte[], string, string)>.Ok((bytes, contentType, Path.GetFileName(fullPath)));
     }

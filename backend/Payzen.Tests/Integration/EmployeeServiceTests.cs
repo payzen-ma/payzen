@@ -39,37 +39,43 @@ public class EmployeeServiceTests : IDisposable
         _svc = new EmployeeService(_db, env, eventLog, identityProv, emailService, leaveRecalc, logger);
 
         // Données référentielles minimales
-        _db.Companies.Add(new Company
-        {
-            Id = CompanyId,
-            CompanyName = "Société Test SARL",
-            Email = "societe@test.ma",
-            PhoneNumber = "0600000000",
-            CompanyAddress = "Adresse Test",
-            CityId = 1,
-            CountryId = 1,
-            CreatedBy = UserId
-        });
-        _db.Genders.Add(new Gender
-        {
-            Id = 1,
-            Code = "M",
-            NameFr = "Homme",
-            NameAr = "HommeAR",
-            NameEn = "Man",
-            IsActive = true,
-            CreatedBy = 0
-        });
-        _db.Statuses.Add(new Status
-        {
-            Id = 1,
-            Code = "Active",
-            NameFr = "Actif",
-            NameAr = "ActifAR",
-            NameEn = "Active",
-            IsActive = true,
-            CreatedBy = 0
-        });
+        _db.Companies.Add(
+            new Company
+            {
+                Id = CompanyId,
+                CompanyName = "Société Test SARL",
+                Email = "societe@test.ma",
+                PhoneNumber = "0600000000",
+                CompanyAddress = "Adresse Test",
+                CityId = 1,
+                CountryId = 1,
+                CreatedBy = UserId,
+            }
+        );
+        _db.Genders.Add(
+            new Gender
+            {
+                Id = 1,
+                Code = "M",
+                NameFr = "Homme",
+                NameAr = "HommeAR",
+                NameEn = "Man",
+                IsActive = true,
+                CreatedBy = 0,
+            }
+        );
+        _db.Statuses.Add(
+            new Status
+            {
+                Id = 1,
+                Code = "Active",
+                NameFr = "Actif",
+                NameAr = "ActifAR",
+                NameEn = "Active",
+                IsActive = true,
+                CreatedBy = 0,
+            }
+        );
         _db.SaveChanges();
     }
 
@@ -89,7 +95,7 @@ public class EmployeeServiceTests : IDisposable
             GenderId = 1,
             StatusId = 1,
             DateOfBirth = new DateOnly(1990, 5, 15),
-            CountryPhoneCode = "+212"
+            CountryPhoneCode = "+212",
         };
 
         var result = await _svc.CreateAsync(dto, UserId);
@@ -113,7 +119,7 @@ public class EmployeeServiceTests : IDisposable
             GenderId = 1,
             StatusId = 1,
             DateOfBirth = new DateOnly(1988, 3, 20),
-            CountryPhoneCode = "+212"
+            CountryPhoneCode = "+212",
         };
         var created = await _svc.CreateAsync(dto, UserId);
         var id = created.Data!.Id;
@@ -147,7 +153,7 @@ public class EmployeeServiceTests : IDisposable
             GenderId = 1,
             StatusId = 1,
             DateOfBirth = new DateOnly(1985, 7, 10),
-            CountryPhoneCode = "+212"
+            CountryPhoneCode = "+212",
         };
         var created = await _svc.CreateAsync(dto, UserId);
         var id = created.Data!.Id;
@@ -165,19 +171,22 @@ public class EmployeeServiceTests : IDisposable
         // Créer 2 employés pour CompanyId=1
         for (int i = 0; i < 2; i++)
         {
-            await _svc.CreateAsync(new EmployeeCreateDto
-            {
-                FirstName = $"Prénom{i}",
-                LastName = $"Nom{i}",
-                Email = $"test{i}@test.ma",
-                CinNumber = $"CIN{i + 1:000}",
-                Phone = $"06000000{i + 10}",
-                CompanyId = CompanyId,
-                GenderId = 1,
-                StatusId = 1,
-                DateOfBirth = new DateOnly(1990, 1, 1),
-                CountryPhoneCode = "+212"
-            }, UserId);
+            await _svc.CreateAsync(
+                new EmployeeCreateDto
+                {
+                    FirstName = $"Prénom{i}",
+                    LastName = $"Nom{i}",
+                    Email = $"test{i}@test.ma",
+                    CinNumber = $"CIN{i + 1:000}",
+                    Phone = $"06000000{i + 10}",
+                    CompanyId = CompanyId,
+                    GenderId = 1,
+                    StatusId = 1,
+                    DateOfBirth = new DateOnly(1990, 1, 1),
+                    CountryPhoneCode = "+212",
+                },
+                UserId
+            );
         }
 
         var result = await _svc.GetAllAsync(CompanyId);

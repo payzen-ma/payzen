@@ -9,28 +9,16 @@ namespace Payzen.Domain.Entities.Payroll;
 /// </summary>
 public class PayrollResultPrime : BaseEntity
 {
-    public int PayrollResultId
-    {
-        get; set;
-    }
+    public int PayrollResultId { get; set; }
 
     public string Label { get; set; } = string.Empty;
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Montant
-    {
-        get; set;
-    }
+    public decimal Montant { get; set; }
 
-    public int Ordre
-    {
-        get; set;
-    }
+    public int Ordre { get; set; }
 
-    public bool IsTaxable
-    {
-        get; set;
-    }
+    public bool IsTaxable { get; set; }
 
     // Navigation
     public PayrollResult PayrollResult { get; set; } = null!;

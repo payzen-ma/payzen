@@ -12,12 +12,15 @@ namespace Payzen.Infrastructure.Services.Employee;
 public partial class EmployeeOvertimeService
 {
     private async Task<ServiceResult<EmployeeOvertimeCreateOutcomeDto>> CreateOvertimesFullAsync(
-        EmployeeOvertimeCreateDto dto, int createdBy, CancellationToken ct)
+        EmployeeOvertimeCreateDto dto,
+        int createdBy,
+        CancellationToken ct
+    )
     {
         var isRhOrAdmin = await UserIsRhOrAdminAsync(createdBy, ct);
 
-        var employee = await _db.Employees
-            .Include(e => e.Company)
+        var employee = await _db
+            .Employees.Include(e => e.Company)
             .FirstOrDefaultAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
         if (employee == null)
             return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail("Employé non trouvé");
@@ -31,7 +34,9 @@ public partial class EmployeeOvertimeService
         {
             case OvertimeEntryMode.HoursRange:
                 if (dto.StartTime == null || dto.EndTime == null)
-                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail("StartTime et EndTime requis pour mode HoursRange");
+                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail(
+                        "StartTime et EndTime requis pour mode HoursRange"
+                    );
                 effectiveStartTime = dto.StartTime.Value;
                 effectiveEndTime = dto.EndTime.Value;
                 var start = dto.StartTime.Value;
@@ -51,13 +56,17 @@ public partial class EmployeeOvertimeService
 
             case OvertimeEntryMode.DurationOnly:
                 if (!dto.DurationInHours.HasValue || dto.DurationInHours <= 0)
-                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail("DurationInHours requis pour mode DurationOnly");
+                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail(
+                        "DurationInHours requis pour mode DurationOnly"
+                    );
                 calculatedDuration = dto.DurationInHours.Value;
                 break;
 
             case OvertimeEntryMode.FullDay:
                 if (!dto.StandardDayHours.HasValue || dto.StandardDayHours <= 0)
-                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail("StandardDayHours requis pour mode FullDay");
+                    return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail(
+                        "StandardDayHours requis pour mode FullDay"
+                    );
                 calculatedDuration = dto.StandardDayHours.Value;
                 break;
 
@@ -65,16 +74,18 @@ public partial class EmployeeOvertimeService
                 return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Fail("Mode de saisie invalide");
         }
 
-        var holiday = await _db.Holidays
-            .Where(h => h.DeletedAt == null && h.IsActive)
+        var holiday = await _db
+            .Holidays.Where(h => h.DeletedAt == null && h.IsActive)
             .Where(h => h.HolidayDate == dto.OvertimeDate)
             .Where(h => h.CompanyId == null || h.CompanyId == employee.CompanyId)
             .OrderByDescending(h => h.CompanyId)
             .FirstOrDefaultAsync(ct);
 
         var dayOfWeek = (int)dto.OvertimeDate.DayOfWeek;
-        var workingCalendarDay = await _db.WorkingCalendars
-            .Where(wc => wc.CompanyId == employee.CompanyId && wc.DayOfWeek == dayOfWeek && wc.DeletedAt == null)
+        var workingCalendarDay = await _db
+            .WorkingCalendars.Where(wc =>
+                wc.CompanyId == employee.CompanyId && wc.DayOfWeek == dayOfWeek && wc.DeletedAt == null
+            )
             .FirstOrDefaultAsync(ct);
 
         var isWeeklyRest = workingCalendarDay != null && !workingCalendarDay.IsWorkingDay;
@@ -91,7 +102,15 @@ public partial class EmployeeOvertimeService
         {
             var nightStart = new TimeOnly(21, 0);
             var nightEnd = new TimeOnly(6, 0);
-            if (CheckNightWorkOverlap(effectiveStartTime.Value, effectiveEndTime.Value, crossesMidnight, nightStart, nightEnd))
+            if (
+                CheckNightWorkOverlap(
+                    effectiveStartTime.Value,
+                    effectiveEndTime.Value,
+                    crossesMidnight,
+                    nightStart,
+                    nightEnd
+                )
+            )
                 overtimeType |= OvertimeType.Night;
         }
 
@@ -115,13 +134,26 @@ public partial class EmployeeOvertimeService
         if (needsSplit && effectiveStartTime != null && effectiveEndTime != null)
         {
             var splitResult = await CreateSplitOvertimesAsync(
-                dto, employee, createdBy, effectiveStartTime.Value, effectiveEndTime.Value, holiday?.Id, ct);
+                dto,
+                employee,
+                createdBy,
+                effectiveStartTime.Value,
+                effectiveEndTime.Value,
+                holiday?.Id,
+                ct
+            );
             overtimesToCreate.AddRange(splitResult);
         }
         else
         {
             var rateRule = await FindBestRateRuleAsync(
-                dto.OvertimeDate, overtimeType, effectiveStartTime, effectiveEndTime, calculatedDuration, ct);
+                dto.OvertimeDate,
+                overtimeType,
+                effectiveStartTime,
+                effectiveEndTime,
+                calculatedDuration,
+                ct
+            );
             var overtime = new EmployeeOvertime
             {
                 EmployeeId = dto.EmployeeId,
@@ -144,7 +176,7 @@ public partial class EmployeeOvertimeService
                 ApprovedAt = isRhOrAdmin ? DateTimeOffset.UtcNow : null,
                 EmployeeComment = dto.EmployeeComment?.Trim(),
                 CreatedBy = createdBy,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow,
             };
             overtimesToCreate.Add(overtime);
         }
@@ -163,7 +195,8 @@ public partial class EmployeeOvertimeService
         await _db.SaveChangesAsync(ct);
 
         var ids = overtimesToCreate.Select(x => x.Id).ToList();
-        var reloaded = await _db.EmployeeOvertimes.AsNoTracking()
+        var reloaded = await _db
+            .EmployeeOvertimes.AsNoTracking()
             .Include(o => o.Employee)
             .Include(o => o.Holiday)
             .Where(o => ids.Contains(o.Id))
@@ -179,22 +212,26 @@ public partial class EmployeeOvertimeService
         }
 
         var splitBatchId = reloaded.FirstOrDefault()?.SplitBatchId;
-        return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Ok(new EmployeeOvertimeCreateOutcomeDto
-        {
-            Overtimes = readDtos,
-            SplitBatchId = splitBatchId
-        });
+        return ServiceResult<EmployeeOvertimeCreateOutcomeDto>.Ok(
+            new EmployeeOvertimeCreateOutcomeDto { Overtimes = readDtos, SplitBatchId = splitBatchId }
+        );
     }
 
     private async Task<bool> UserIsRhOrAdminAsync(int userId, CancellationToken ct)
     {
-        var user = await _db.Users.AsNoTracking()
-            .Include(u => u.UsersRoles!).ThenInclude(ur => ur.Role)
+        var user = await _db
+            .Users.AsNoTracking()
+            .Include(u => u.UsersRoles!)
+                .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null, ct);
         return user?.UsersRoles?.Any(ur =>
-            ur.Role != null &&
-            (ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase) ||
-             ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase))) ?? false;
+                ur.Role != null
+                && (
+                    ur.Role.Name.Equals("RH", StringComparison.OrdinalIgnoreCase)
+                    || ur.Role.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                )
+            )
+            ?? false;
     }
 
     private async Task<List<EmployeeOvertime>> CreateSplitOvertimesAsync(
@@ -204,7 +241,8 @@ public partial class EmployeeOvertimeService
         TimeOnly startTime,
         TimeOnly endTime,
         int? holidayId,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         var splitBatchId = Guid.NewGuid();
         var overtimes = new List<EmployeeOvertime>();
@@ -215,7 +253,9 @@ public partial class EmployeeOvertimeService
         var currentStart = startTime;
         var sequence = 1;
         var crossesMidnight = endTime < startTime;
-        var breakPoints = new List<TimeOnly> { dayStart, dayEnd, midnight }.OrderBy(t => t).ToList();
+        var breakPoints = new List<TimeOnly> { dayStart, dayEnd, midnight }
+            .OrderBy(t => t)
+            .ToList();
 
         while (true)
         {
@@ -284,8 +324,8 @@ public partial class EmployeeOvertimeService
                 segmentHolidayId = holidayId;
             else
             {
-                var nextDayHoliday = await _db.Holidays
-                    .Where(h => h.DeletedAt == null && h.IsActive)
+                var nextDayHoliday = await _db
+                    .Holidays.Where(h => h.DeletedAt == null && h.IsActive)
                     .Where(h => h.HolidayDate == segmentDate)
                     .Where(h => h.CompanyId == null || h.CompanyId == employee.CompanyId)
                     .OrderByDescending(h => h.CompanyId)
@@ -297,33 +337,42 @@ public partial class EmployeeOvertimeService
             if (isNightSegment)
                 segmentType |= OvertimeType.Night;
 
-            var rateRule = await FindBestRateRuleAsync(segmentDate, segmentType, currentStart, segmentEnd, segmentDuration, ct);
+            var rateRule = await FindBestRateRuleAsync(
+                segmentDate,
+                segmentType,
+                currentStart,
+                segmentEnd,
+                segmentDuration,
+                ct
+            );
 
-            overtimes.Add(new EmployeeOvertime
-            {
-                EmployeeId = dto.EmployeeId,
-                OverTimeType = segmentType,
-                EntryMode = dto.EntryMode,
-                HolidayId = segmentHolidayId,
-                OvertimeDate = segmentDate,
-                StartTime = currentStart,
-                EndTime = segmentEnd,
-                CrossesMidnight = false,
-                DurationInHours = segmentDuration,
-                StandardDayHours = dto.StandardDayHours,
-                RateRuleId = rateRule?.Id,
-                RateRuleCodeApplied = rateRule?.Code,
-                RateRuleNameApplied = rateRule?.NameFr,
-                RateMultiplierApplied = rateRule?.Multiplier ?? 1.00m,
-                MultiplierCalculationDetails = rateRule != null ? CreateCalculationDetails(rateRule) : null,
-                SplitBatchId = splitBatchId,
-                SplitSequence = sequence,
-                SplitTotalSegments = 0,
-                Status = OvertimeStatus.Draft,
-                EmployeeComment = dto.EmployeeComment?.Trim(),
-                CreatedBy = userId,
-                CreatedAt = DateTimeOffset.UtcNow
-            });
+            overtimes.Add(
+                new EmployeeOvertime
+                {
+                    EmployeeId = dto.EmployeeId,
+                    OverTimeType = segmentType,
+                    EntryMode = dto.EntryMode,
+                    HolidayId = segmentHolidayId,
+                    OvertimeDate = segmentDate,
+                    StartTime = currentStart,
+                    EndTime = segmentEnd,
+                    CrossesMidnight = false,
+                    DurationInHours = segmentDuration,
+                    StandardDayHours = dto.StandardDayHours,
+                    RateRuleId = rateRule?.Id,
+                    RateRuleCodeApplied = rateRule?.Code,
+                    RateRuleNameApplied = rateRule?.NameFr,
+                    RateMultiplierApplied = rateRule?.Multiplier ?? 1.00m,
+                    MultiplierCalculationDetails = rateRule != null ? CreateCalculationDetails(rateRule) : null,
+                    SplitBatchId = splitBatchId,
+                    SplitSequence = sequence,
+                    SplitTotalSegments = 0,
+                    Status = OvertimeStatus.Draft,
+                    EmployeeComment = dto.EmployeeComment?.Trim(),
+                    CreatedBy = userId,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                }
+            );
 
             sequence++;
             if (isLastSegment)
@@ -344,20 +393,33 @@ public partial class EmployeeOvertimeService
         return overtimes;
     }
 
-    private async Task<OvertimeType> DetermineOvertimeTypeAsync(DateOnly date, int companyId, int? holidayId, CancellationToken ct)
+    private async Task<OvertimeType> DetermineOvertimeTypeAsync(
+        DateOnly date,
+        int companyId,
+        int? holidayId,
+        CancellationToken ct
+    )
     {
         var type = OvertimeType.None;
-        if (holidayId.HasValue || await _db.Holidays.AnyAsync(h =>
-                h.HolidayDate == date && h.DeletedAt == null && h.IsActive &&
-                (h.CompanyId == null || h.CompanyId == companyId), ct))
+        if (
+            holidayId.HasValue
+            || await _db.Holidays.AnyAsync(
+                h =>
+                    h.HolidayDate == date
+                    && h.DeletedAt == null
+                    && h.IsActive
+                    && (h.CompanyId == null || h.CompanyId == companyId),
+                ct
+            )
+        )
         {
             type |= OvertimeType.PublicHoliday;
             return type;
         }
 
         var dow = (int)date.DayOfWeek;
-        var workingCalendarDay = await _db.WorkingCalendars
-            .Where(wc => wc.CompanyId == companyId && wc.DayOfWeek == dow && wc.DeletedAt == null)
+        var workingCalendarDay = await _db
+            .WorkingCalendars.Where(wc => wc.CompanyId == companyId && wc.DayOfWeek == dow && wc.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
 
         if (workingCalendarDay != null && !workingCalendarDay.IsWorkingDay)
@@ -369,7 +431,13 @@ public partial class EmployeeOvertimeService
         return OvertimeType.Standard;
     }
 
-    private static bool CheckNightWorkOverlap(TimeOnly start, TimeOnly end, bool crossesMidnight, TimeOnly nightStart, TimeOnly nightEnd)
+    private static bool CheckNightWorkOverlap(
+        TimeOnly start,
+        TimeOnly end,
+        bool crossesMidnight,
+        TimeOnly nightStart,
+        TimeOnly nightEnd
+    )
     {
         if (!crossesMidnight)
         {
@@ -394,7 +462,7 @@ public partial class EmployeeOvertimeService
             RuleName = rule.NameFr,
             Multiplier = rule.Multiplier,
             AppliedOn = DateTime.UtcNow,
-            Category = rule.Category
+            Category = rule.Category,
         };
         return JsonSerializer.Serialize(details);
     }

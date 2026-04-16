@@ -18,25 +18,20 @@ public interface ILlmService
         string regleContent,
         EmployeePayrollDto payrollData,
         string instruction,
-        CancellationToken ct = default);
+        CancellationToken ct = default
+    );
 
     /// <summary>
     /// Simule des compositions de salaire (ex: "Je veux un net de 10 000 DH").
     /// Miroir de IClaudeSimulationService.SimulationSalaryAsync.
     /// </summary>
-    Task<string> SimulationSalaryAsync(
-        string regleContent,
-        string instruction,
-        CancellationToken ct = default);
+    Task<string> SimulationSalaryAsync(string regleContent, string instruction, CancellationToken ct = default);
 
     /// <summary>
     /// Même simulation mais via HTTP non-streaming.
     /// Miroir de IClaudeSimulationService.SimulationSalaryStreamAsync.
     /// </summary>
-    Task<string> SimulationSalaryStreamAsync(
-        string regleContent,
-        string instruction,
-        CancellationToken ct = default);
+    Task<string> SimulationSalaryStreamAsync(string regleContent, string instruction, CancellationToken ct = default);
 
     /// <summary>Simulation rapide (réponse courte).</summary>
     Task<string> SimulateQuickAsync(string regleContent, string instruction, CancellationToken ct = default);

@@ -8,54 +8,43 @@ namespace Payzen.Api.Controllers.Auth;
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
-    {
+{
     private readonly IAuthService _auth;
+
     public AuthController(IAuthService auth) => _auth = auth;
 
     [HttpPost("entra-login")]
     [AllowAnonymous]
     [Produces("application/json")]
     public async Task<ActionResult> EntraLogin([FromBody] EntraLoginRequestDto dto, CancellationToken ct)
-        {
+    {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var result = await _auth.LoginWithEntraAsync(dto, ct);
 
-        return result.Success ? Ok(result.Data) : Unauthorized(new
-            {
-            Message = result.Error
-            });
-        }
+        return result.Success ? Ok(result.Data) : Unauthorized(new { Message = result.Error });
+    }
 
     [HttpGet("me")]
     [Authorize]
     [Produces("application/json")]
     public async Task<ActionResult> Me()
-        {
+    {
         var userId = User.FindFirst("uid")?.Value;
 
         if (userId == null)
-            return Unauthorized(new
-                {
-                Message = "Utilisateur non authentifié"
-                });
+            return Unauthorized(new { Message = "Utilisateur non authentifié" });
 
         var result = await _auth.GetMeAsync(int.Parse(userId));
 
-        return result.Success ? Ok(result.Data) : NotFound(new
-            {
-            result.Error
-            });
-        }
+        return result.Success ? Ok(result.Data) : NotFound(new { result.Error });
+    }
 
     [HttpPost("logout")]
     [Produces("application/json")]
     public ActionResult Logout()
-        {
-        return Ok(new
-            {
-            Message = "Déconnexion réussie."
-            });
-        }
+    {
+        return Ok(new { Message = "Déconnexion réussie." });
     }
+}

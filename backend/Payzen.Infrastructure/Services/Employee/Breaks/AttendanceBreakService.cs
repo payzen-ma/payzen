@@ -10,10 +10,13 @@ namespace Payzen.Infrastructure.Services.Employee.Breaks;
 public class AttendanceBreakService : IEmployeeAttendanceBreakService
 {
     private readonly AppDbContext _db;
+
     public AttendanceBreakService(AppDbContext db) => _db = db;
 
     public async Task<ServiceResult<EmployeeAttendanceBreakReadDto>> GetByIdAsync(
-        int id, CancellationToken ct = default)
+        int id,
+        CancellationToken ct = default
+    )
     {
         var b = await _db.EmployeeAttendanceBreaks.FindAsync(new object[] { id }, ct);
         return b == null
@@ -22,10 +25,12 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
     }
 
     public async Task<ServiceResult<IEnumerable<EmployeeAttendanceBreakReadDto>>> GetByAttendanceAsync(
-        int attendanceId, CancellationToken ct = default)
+        int attendanceId,
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeAttendanceBreaks
-            .AsNoTracking()
+        var list = await _db
+            .EmployeeAttendanceBreaks.AsNoTracking()
             .Where(b => b.EmployeeAttendanceId == attendanceId)
             .OrderBy(b => b.BreakStart)
             .ToListAsync(ct);
@@ -33,15 +38,22 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
     }
 
     public async Task<ServiceResult<EmployeeAttendanceBreakReadDto>> StartBreakAsync(
-        StartBreakDto dto, int userId, CancellationToken ct = default)
+        StartBreakDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var attendance = await _db.EmployeeAttendances.FindAsync(new object[] { dto.AttendanceId }, ct);
         if (attendance == null)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("Pointage introuvable.");
         if (!attendance.CheckIn.HasValue)
-            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("Impossible de démarrer une pause avant le check-in.");
-        var hasOpen = await _db.EmployeeAttendanceBreaks
-            .AnyAsync(b => b.EmployeeAttendanceId == dto.AttendanceId && b.BreakEnd == null, ct);
+            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail(
+                "Impossible de démarrer une pause avant le check-in."
+            );
+        var hasOpen = await _db.EmployeeAttendanceBreaks.AnyAsync(
+            b => b.EmployeeAttendanceId == dto.AttendanceId && b.BreakEnd == null,
+            ct
+        );
         if (hasOpen)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("Une pause est déjà en cours.");
 
@@ -50,7 +62,7 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
             EmployeeAttendanceId = dto.AttendanceId,
             BreakStart = dto.BreakStart,
             BreakType = dto.BreakType,
-            CreatedBy = userId
+            CreatedBy = userId,
         };
         _db.EmployeeAttendanceBreaks.Add(breakRecord);
         await _db.SaveChangesAsync(ct);
@@ -58,15 +70,21 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
     }
 
     public async Task<ServiceResult<EmployeeAttendanceBreakReadDto>> EndBreakAsync(
-        int attendanceId, EndBreakDto dto, int userId, CancellationToken ct = default)
+        int attendanceId,
+        EndBreakDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
-        var openBreak = await _db.EmployeeAttendanceBreaks
-            .OrderByDescending(b => b.BreakStart)
+        var openBreak = await _db
+            .EmployeeAttendanceBreaks.OrderByDescending(b => b.BreakStart)
             .FirstOrDefaultAsync(b => b.EmployeeAttendanceId == attendanceId && b.BreakEnd == null, ct);
         if (openBreak == null)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("Aucune pause ouverte.");
         if (dto.BreakEnd <= openBreak.BreakStart)
-            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("L'heure de fin doit être après l'heure de début.");
+            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail(
+                "L'heure de fin doit être après l'heure de début."
+            );
 
         openBreak.BreakEnd = dto.BreakEnd;
         openBreak.UpdatedBy = userId;
@@ -77,13 +95,19 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
     }
 
     public async Task<ServiceResult<EmployeeAttendanceBreakReadDto>> UpdateAsync(
-        int id, EmployeeAttendanceBreakUpdateDto dto, int updatedBy, CancellationToken ct = default)
+        int id,
+        EmployeeAttendanceBreakUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var b = await _db.EmployeeAttendanceBreaks.FindAsync(new object[] { id }, ct);
         if (b == null)
             return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("Pause introuvable.");
         if (dto.BreakEnd <= dto.BreakStart)
-            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail("L'heure de fin doit être après l'heure de début.");
+            return ServiceResult<EmployeeAttendanceBreakReadDto>.Fail(
+                "L'heure de fin doit être après l'heure de début."
+            );
 
         b.BreakStart = dto.BreakStart;
         b.BreakEnd = dto.BreakEnd;
@@ -107,33 +131,33 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<object>> GetTotalBreakTimeAsync(
-        int attendanceId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetTotalBreakTimeAsync(int attendanceId, CancellationToken ct = default)
     {
-        var breaks = await _db.EmployeeAttendanceBreaks
-            .Where(b => b.EmployeeAttendanceId == attendanceId && b.BreakEnd.HasValue)
+        var breaks = await _db
+            .EmployeeAttendanceBreaks.Where(b => b.EmployeeAttendanceId == attendanceId && b.BreakEnd.HasValue)
             .ToListAsync(ct);
 
         var totalMinutes = breaks.Sum(b => (b.BreakEnd!.Value - b.BreakStart).TotalMinutes);
-        return ServiceResult<object>.Ok(new
-        {
-            attendanceId,
-            totalBreakMinutes = (int)totalMinutes,
-            totalBreakTime = TimeSpan.FromMinutes(totalMinutes).ToString(@"hh\:mm"),
-            breakCount = breaks.Count
-        });
+        return ServiceResult<object>.Ok(
+            new
+            {
+                attendanceId,
+                totalBreakMinutes = (int)totalMinutes,
+                totalBreakTime = TimeSpan.FromMinutes(totalMinutes).ToString(@"hh\:mm"),
+                breakCount = breaks.Count,
+            }
+        );
     }
 
     private async Task RecalculateWorkedHoursAsync(int attendanceId, CancellationToken ct)
     {
-        var attendance = await _db.EmployeeAttendances
-            .FirstOrDefaultAsync(a => a.Id == attendanceId, ct);
+        var attendance = await _db.EmployeeAttendances.FirstOrDefaultAsync(a => a.Id == attendanceId, ct);
         if (attendance == null || !attendance.CheckIn.HasValue || !attendance.CheckOut.HasValue)
             return;
 
         var totalMinutes = (attendance.CheckOut.Value - attendance.CheckIn.Value).TotalMinutes;
-        var breakMinutes = await _db.EmployeeAttendanceBreaks
-            .Where(b => b.EmployeeAttendanceId == attendanceId && b.BreakEnd.HasValue)
+        var breakMinutes = await _db
+            .EmployeeAttendanceBreaks.Where(b => b.EmployeeAttendanceId == attendanceId && b.BreakEnd.HasValue)
             .SumAsync(b => EF.Functions.DateDiffMinute(b.BreakStart, b.BreakEnd!.Value), ct);
 
         attendance.BreakMinutesApplied = (int)breakMinutes;
@@ -141,13 +165,14 @@ public class AttendanceBreakService : IEmployeeAttendanceBreakService
         await _db.SaveChangesAsync(ct);
     }
 
-    private static EmployeeAttendanceBreakReadDto ToDto(EmployeeAttendanceBreak b) => new()
-    {
-        Id = b.Id,
-        BreakStart = b.BreakStart,
-        BreakEnd = b.BreakEnd,
-        BreakType = b.BreakType ?? string.Empty,
-        CreatedAt = b.CreatedAt,
-        ModifiedAt = b.UpdatedAt
-    };
+    private static EmployeeAttendanceBreakReadDto ToDto(EmployeeAttendanceBreak b) =>
+        new()
+        {
+            Id = b.Id,
+            BreakStart = b.BreakStart,
+            BreakEnd = b.BreakEnd,
+            BreakType = b.BreakType ?? string.Empty,
+            CreatedAt = b.CreatedAt,
+            ModifiedAt = b.UpdatedAt,
+        };
 }

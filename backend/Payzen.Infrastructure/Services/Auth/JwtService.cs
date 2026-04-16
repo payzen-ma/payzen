@@ -1,12 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Auth;
 using Payzen.Infrastructure.Persistence;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace Payzen.Infrastructure.Services.Auth;
 
@@ -26,7 +26,8 @@ public class JwtService : IJwtService
         if (_key.Length < 32)
             throw new InvalidOperationException("JwtSettings:Key trop courte. Utilisez au moins 32 caractères.");
         _issuer = config["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JwtSettings:Issuer manquant");
-        _audience = config["JwtSettings:Audience"] ?? throw new InvalidOperationException("JwtSettings:Audience manquant");
+        _audience =
+            config["JwtSettings:Audience"] ?? throw new InvalidOperationException("JwtSettings:Audience manquant");
         _expiresMinutes = int.Parse(config["JwtSettings:ExpiresInMinutes"] ?? "120");
         _db = db;
     }
@@ -34,8 +35,8 @@ public class JwtService : IJwtService
     public async Task<string> GenerateTokenAsync(Users user, CancellationToken ct = default)
     {
         // Récupère les rôles actifs de l'utilisateur
-        var roles = await _db.UsersRoles
-            .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
+        var roles = await _db
+            .UsersRoles.Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
             .Include(ur => ur.Role)
             .Where(ur => ur.Role.DeletedAt == null)
             .Select(ur => ur.Role.Name)
@@ -43,13 +44,13 @@ public class JwtService : IJwtService
             .ToListAsync(ct);
 
         // Récupère les permissions via les rôles
-        var roleIds = await _db.UsersRoles
-            .Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
+        var roleIds = await _db
+            .UsersRoles.Where(ur => ur.UserId == user.Id && ur.DeletedAt == null)
             .Select(ur => ur.RoleId)
             .ToListAsync(ct);
 
-        var permissions = await _db.RolesPermissions
-            .Where(rp => roleIds.Contains(rp.RoleId) && rp.DeletedAt == null)
+        var permissions = await _db
+            .RolesPermissions.Where(rp => roleIds.Contains(rp.RoleId) && rp.DeletedAt == null)
             .Include(rp => rp.Permission)
             .Where(rp => rp.Permission.DeletedAt == null)
             .Select(rp => rp.Permission.Name)
@@ -58,11 +59,11 @@ public class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub,        user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Email,       user.Email),
-            new(JwtRegisteredClaimNames.UniqueName,  user.Username),
-            new(JwtRegisteredClaimNames.Jti,         Guid.NewGuid().ToString()),
-            new("uid",                               user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("uid", user.Id.ToString()),
         };
 
         foreach (var role in roles)
@@ -79,7 +80,8 @@ public class JwtService : IJwtService
             audience: _audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(_expiresMinutes),
-            signingCredentials: creds);
+            signingCredentials: creds
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
@@ -99,15 +101,13 @@ public class JwtService : IJwtService
                 ValidateAudience = true,
                 ValidAudience = _audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
             };
 
             var principal = handler.ValidateToken(token, parameters, out _);
             var uidClaim = principal.FindFirst("uid") ?? principal.FindFirst(JwtRegisteredClaimNames.Sub);
 
-            return uidClaim != null && int.TryParse(uidClaim.Value, out var userId)
-                ? userId
-                : null;
+            return uidClaim != null && int.TryParse(uidClaim.Value, out var userId) ? userId : null;
         }
         catch
         {

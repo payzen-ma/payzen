@@ -7,6 +7,6 @@ namespace Payzen.Domain.Enums
     public enum EmployeeCategoryMode
     {
         Attendance = 1,
-        Absence = 2
+        Absence = 2,
     }
 }

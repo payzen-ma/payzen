@@ -18,20 +18,20 @@ public sealed class UserInviteService : IUserInviteService
 
     public async Task<ServiceResult> InviteUserAsync(UserInviteDto dto, int createdBy, CancellationToken ct = default)
     {
-        var company = await _db.Companies
-            .FirstOrDefaultAsync(c => c.Id == dto.CompanyId && c.DeletedAt == null, ct);
+        var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == dto.CompanyId && c.DeletedAt == null, ct);
 
         if (company == null)
             return ServiceResult.Fail("Company introuvable.");
 
-        var employee = await _db.Employees
-            .FirstOrDefaultAsync(e => e.CompanyId == dto.CompanyId && e.Email == dto.Email && e.DeletedAt == null, ct);
+        var employee = await _db.Employees.FirstOrDefaultAsync(
+            e => e.CompanyId == dto.CompanyId && e.Email == dto.Email && e.DeletedAt == null,
+            ct
+        );
 
         if (employee == null)
             return ServiceResult.Fail("Aucun employe trouve pour cet email et cette societe.");
 
-        var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Email == dto.Email && u.DeletedAt == null, ct);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && u.DeletedAt == null, ct);
 
         if (user == null)
         {
@@ -56,7 +56,7 @@ public sealed class UserInviteService : IUserInviteService
                 IsActive = true,
                 EmployeeId = employee.Id,
                 CreatedBy = createdBy,
-                Source = company.AuthType == "C" ? "entra" : null
+                Source = company.AuthType == "C" ? "entra" : null,
             };
 
             _db.Users.Add(user);
@@ -72,24 +72,25 @@ public sealed class UserInviteService : IUserInviteService
             await _db.SaveChangesAsync(ct);
         }
 
-        var role = await _db.Roles
-            .FirstOrDefaultAsync(r => r.Id == dto.RoleId && r.DeletedAt == null, ct);
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == dto.RoleId && r.DeletedAt == null, ct);
 
         if (role == null)
             return ServiceResult.Fail("Role introuvable.");
 
-        var relation = await _db.UsersRoles
-            .IgnoreQueryFilters()
+        var relation = await _db
+            .UsersRoles.IgnoreQueryFilters()
             .FirstOrDefaultAsync(ur => ur.UserId == user.Id && ur.RoleId == role.Id, ct);
 
         if (relation == null)
         {
-            _db.UsersRoles.Add(new UsersRoles
-            {
-                UserId = user.Id,
-                RoleId = role.Id,
-                CreatedBy = createdBy
-            });
+            _db.UsersRoles.Add(
+                new UsersRoles
+                {
+                    UserId = user.Id,
+                    RoleId = role.Id,
+                    CreatedBy = createdBy,
+                }
+            );
         }
         else
         {

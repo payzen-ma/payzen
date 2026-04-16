@@ -9,7 +9,7 @@ namespace Payzen.Domain.Enums.Dashboard
         CNSS = 1,
         AMO = 2,
         IR = 3,
-        OTHER = 4
+        OTHER = 4,
     }
 
     public enum DashboardHrDeclarationStatus
@@ -17,12 +17,12 @@ namespace Payzen.Domain.Enums.Dashboard
         PENDING = 1,
         SUBMITTED = 2,
         REJECTED = 3,
-        OVERDUE = 4
+        OVERDUE = 4,
     }
 
     public enum DashboardHrMovementType
     {
         ENTRY = 1,
-        EXIT = 2
+        EXIT = 2,
     }
 }

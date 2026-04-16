@@ -8,38 +8,15 @@ namespace Payzen.Domain.Entities.Payroll.Referentiel;
 /// </summary>
 public class LegalParameter : BaseEntity
 {
-
     /// <summary>Immutable machine-readable key (e.g. "CNSS_PLAFOND"). Set once, never updated.</summary>
-    public required string Code
-    {
-        get; set;
-    }
+    public required string Code { get; set; }
 
-    public required string Label
-    {
-        get; set;
-    }
-    public decimal Value
-    {
-        get; set;
-    }
-    public required string Unit
-    {
-        get; set;
-    }
-    public string? Source
-    {
-        get; set;
-    }
-    public DateOnly EffectiveFrom
-    {
-        get; set;
-    }
-    public DateOnly? EffectiveTo
-    {
-        get; set;
-    }
-
+    public required string Label { get; set; }
+    public decimal Value { get; set; }
+    public required string Unit { get; set; }
+    public string? Source { get; set; }
+    public DateOnly EffectiveFrom { get; set; }
+    public DateOnly? EffectiveTo { get; set; }
 
     // Navigation
     public virtual ICollection<RuleFormula> RuleFormulas { get; set; } = new List<RuleFormula>();

@@ -11,18 +11,25 @@ namespace Payzen.Infrastructure.Services;
 public class WorkingDaysCalculatorService : IWorkingDaysCalculator
 {
     private readonly AppDbContext _db;
+
     public WorkingDaysCalculatorService(AppDbContext db) => _db = db;
 
     public async Task<decimal> CalculateWorkingDaysAsync(
-        int companyId, DateOnly startDate, DateOnly endDate, CancellationToken ct = default)
+        int companyId,
+        DateOnly startDate,
+        DateOnly endDate,
+        CancellationToken ct = default
+    )
     {
-        var holidays = await _db.Holidays
-            .AsNoTracking()
-            .Where(h => h.DeletedAt == null
-                     && (h.CompanyId == companyId || h.CompanyId == null)
-                     && h.HolidayDate >= startDate
-                     && h.HolidayDate <= endDate
-                     && h.IsMandatory)
+        var holidays = await _db
+            .Holidays.AsNoTracking()
+            .Where(h =>
+                h.DeletedAt == null
+                && (h.CompanyId == companyId || h.CompanyId == null)
+                && h.HolidayDate >= startDate
+                && h.HolidayDate <= endDate
+                && h.IsMandatory
+            )
             .Select(h => h.HolidayDate)
             .ToListAsync(ct);
 

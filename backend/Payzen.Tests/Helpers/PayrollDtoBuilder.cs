@@ -90,44 +90,50 @@ public class PayrollDtoBuilder
     public PayrollDtoBuilder WithAbsenceDays(int days)
     {
         for (int i = 0; i < days; i++)
-            _dto.Absences.Add(new PayrollAbsenceDto
-            {
-                // PayrollCalculationEngine attend :
-                // - Status = "Approved"
-                // - AbsenceType != "MATERNITE"
-                // - DurationType ∈ {"FullDay","HalfDay"}
-                AbsenceDate = DateTime.Today.AddDays(-i),
-                AbsenceType = "ABSENCE",
-                DurationType = "FullDay",
-                Status = "Approved"
-            });
+            _dto.Absences.Add(
+                new PayrollAbsenceDto
+                {
+                    // PayrollCalculationEngine attend :
+                    // - Status = "Approved"
+                    // - AbsenceType != "MATERNITE"
+                    // - DurationType ∈ {"FullDay","HalfDay"}
+                    AbsenceDate = DateTime.Today.AddDays(-i),
+                    AbsenceType = "ABSENCE",
+                    DurationType = "FullDay",
+                    Status = "Approved",
+                }
+            );
         return this;
     }
 
     public PayrollDtoBuilder WithPackageItem(string label, decimal amount, bool isTaxable = true)
     {
-        _dto.PackageItems.Add(new PayrollPackageItemDto
-        {
-            Label = label,
-            DefaultValue = amount,
-            IsTaxable = isTaxable,
-            // Flags non utilisés dans les tests actuels
-            IsSocial = false,
-            IsCIMR = false
-        });
+        _dto.PackageItems.Add(
+            new PayrollPackageItemDto
+            {
+                Label = label,
+                DefaultValue = amount,
+                IsTaxable = isTaxable,
+                // Flags non utilisés dans les tests actuels
+                IsSocial = false,
+                IsCIMR = false,
+            }
+        );
         return this;
     }
 
     public PayrollDtoBuilder WithSalaryComponent(string componentType, decimal amount, bool isTaxable)
     {
-        _dto.SalaryComponents.Add(new PayrollSalaryComponentDto
-        {
-            ComponentType = componentType,
-            Amount = amount,
-            IsTaxable = isTaxable,
-            IsSocial = true,
-            IsCIMR = false
-        });
+        _dto.SalaryComponents.Add(
+            new PayrollSalaryComponentDto
+            {
+                ComponentType = componentType,
+                Amount = amount,
+                IsTaxable = isTaxable,
+                IsSocial = true,
+                IsCIMR = false,
+            }
+        );
         return this;
     }
 

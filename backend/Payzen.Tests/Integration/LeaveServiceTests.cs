@@ -38,45 +38,52 @@ public class LeaveServiceTests : IDisposable
             _db,
             new WorkingDaysCalculatorService(_db),
             new LeaveEventLogService(_db),
-            new LeaveBalanceRecalculationService(_db));
+            new LeaveBalanceRecalculationService(_db)
+        );
 
         // Seed minimal requis par le service
-        _db.Employees.Add(new Employee
-        {
-            Id = EmployeeId,
-            CompanyId = CompanyId,
-            CinNumber = "AA123456",
-            DateOfBirth = DateOnly.FromDateTime(DateTime.Today.AddYears(-30)),
-            Phone = "0600000000",
-            Email = "employee@test.ma",
-            FirstName = "Test",
-            LastName = "Employé",
-            CreatedBy = UserId
-        });
-        _db.LeaveTypes.Add(new LeaveType
-        {
-            Id = 1,
-            CompanyId = CompanyId,
-            Scope = LeaveScope.Company,
-            LeaveCode = "ANNUAL",
-            LeaveNameFr = "Congé annuel",
-            LeaveNameAr = "Congé annuel",
-            LeaveNameEn = "Annual leave",
-            LeaveDescription = "Congé annuel test",
-            IsActive = true,
-            CreatedBy = UserId
-        });
-        _db.LeaveTypePolicies.Add(new LeaveTypePolicy
-        {
-            Id = 1,
-            CompanyId = CompanyId,
-            LeaveTypeId = 1,
-            IsEnabled = true,
-            RequiresBalance = false,
-            AllowNegativeBalance = true,
-            AccrualMethod = LeaveAccrualMethod.Monthly,
-            CreatedBy = UserId
-        });
+        _db.Employees.Add(
+            new Employee
+            {
+                Id = EmployeeId,
+                CompanyId = CompanyId,
+                CinNumber = "AA123456",
+                DateOfBirth = DateOnly.FromDateTime(DateTime.Today.AddYears(-30)),
+                Phone = "0600000000",
+                Email = "employee@test.ma",
+                FirstName = "Test",
+                LastName = "Employé",
+                CreatedBy = UserId,
+            }
+        );
+        _db.LeaveTypes.Add(
+            new LeaveType
+            {
+                Id = 1,
+                CompanyId = CompanyId,
+                Scope = LeaveScope.Company,
+                LeaveCode = "ANNUAL",
+                LeaveNameFr = "Congé annuel",
+                LeaveNameAr = "Congé annuel",
+                LeaveNameEn = "Annual leave",
+                LeaveDescription = "Congé annuel test",
+                IsActive = true,
+                CreatedBy = UserId,
+            }
+        );
+        _db.LeaveTypePolicies.Add(
+            new LeaveTypePolicy
+            {
+                Id = 1,
+                CompanyId = CompanyId,
+                LeaveTypeId = 1,
+                IsEnabled = true,
+                RequiresBalance = false,
+                AllowNegativeBalance = true,
+                AccrualMethod = LeaveAccrualMethod.Monthly,
+                CreatedBy = UserId,
+            }
+        );
         _db.SaveChanges();
     }
 
@@ -92,7 +99,7 @@ public class LeaveServiceTests : IDisposable
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
             EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(11)),
-            EmployeeNote = "Vacances été"
+            EmployeeNote = "Vacances été",
         };
 
         var result = await _svc.CreateLeaveRequestAsync(EmployeeId, dto, UserId);
@@ -110,7 +117,7 @@ public class LeaveServiceTests : IDisposable
         {
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(11))
+            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(11)),
         };
 
         var result = await _svc.CreateLeaveRequestAsync(9999, dto, UserId); // ID inexistant
@@ -127,7 +134,7 @@ public class LeaveServiceTests : IDisposable
         {
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9))
+            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9)),
         };
         var created = await _svc.CreateLeaveRequestAsync(EmployeeId, createDto, UserId);
         var id = created.Data!.Id;
@@ -147,7 +154,7 @@ public class LeaveServiceTests : IDisposable
         {
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9))
+            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9)),
         };
         var created = await _svc.CreateLeaveRequestAsync(EmployeeId, createDto, UserId);
         var id = created.Data!.Id;
@@ -167,7 +174,7 @@ public class LeaveServiceTests : IDisposable
         {
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9))
+            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9)),
         };
         var created = await _svc.CreateLeaveRequestAsync(EmployeeId, createDto, UserId);
         var id = created.Data!.Id;
@@ -186,7 +193,7 @@ public class LeaveServiceTests : IDisposable
         {
             LeaveTypeId = 1,
             StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
-            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9))
+            EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9)),
         };
         var created = await _svc.CreateLeaveRequestAsync(EmployeeId, createDto, UserId);
         var id = created.Data!.Id;
@@ -208,7 +215,7 @@ public class LeaveServiceTests : IDisposable
             {
                 LeaveTypeId = 1,
                 StartDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7 + i * 14)),
-                EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9 + i * 14))
+                EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(9 + i * 14)),
             };
             await _svc.CreateLeaveRequestAsync(EmployeeId, dto, UserId);
         }

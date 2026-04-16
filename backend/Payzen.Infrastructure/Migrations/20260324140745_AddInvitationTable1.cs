@@ -15,8 +15,7 @@ namespace Payzen.Infrastructure.Migrations
                 name: "Invitations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<int>(type: "int", nullable: false).Annotation("SqlServer:Identity", "1, 1"),
                     Token = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     CompanyId = table.Column<int>(type: "int", nullable: false),
@@ -29,7 +28,7 @@ namespace Payzen.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     UpdatedBy = table.Column<int>(type: "int", nullable: true),
                     DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedBy = table.Column<int>(type: "int", nullable: true)
+                    DeletedBy = table.Column<int>(type: "int", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -39,37 +38,34 @@ namespace Payzen.Infrastructure.Migrations
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Restrict
+                    );
                     table.ForeignKey(
                         name: "FK_Invitations_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
+                        onDelete: ReferentialAction.Restrict
+                    );
+                }
+            );
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Invitations_CompanyId",
-                table: "Invitations",
-                column: "CompanyId");
+            migrationBuilder.CreateIndex(name: "IX_Invitations_CompanyId", table: "Invitations", column: "CompanyId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Invitations_RoleId",
-                table: "Invitations",
-                column: "RoleId");
+            migrationBuilder.CreateIndex(name: "IX_Invitations_RoleId", table: "Invitations", column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invitations_Token",
                 table: "Invitations",
                 column: "Token",
-                unique: true);
+                unique: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Invitations");
+            migrationBuilder.DropTable(name: "Invitations");
         }
     }
 }

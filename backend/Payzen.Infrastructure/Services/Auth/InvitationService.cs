@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.Interfaces;
 using Payzen.Domain.Entities.Auth;
-using Payzen.Infrastructure.Persistence;
 using Payzen.Domain.Enums.Auth;
+using Payzen.Infrastructure.Persistence;
 
 namespace Payzen.Infrastructure.Services.Auth;
 
@@ -30,7 +30,8 @@ public class InvitationService : IInvitationService
             dto.Email,
             dto.CompanyId,
             dto.RoleId,
-            token);
+            token
+        );
 
         var invitation = new Invitation
         {
@@ -41,29 +42,21 @@ public class InvitationService : IInvitationService
             EmployeeId = null,
             Status = InvitationStatus.Pending,
             ExpiresAt = DateTime.UtcNow.AddHours(48),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
 
         _db.Invitations.Add(invitation);
         await _db.SaveChangesAsync(ct);
 
         // Envoyer l'email d'invitation
-        var company = await _db.Companies
-            .Where(c => c.Id == dto.CompanyId)
+        var company = await _db
+            .Companies.Where(c => c.Id == dto.CompanyId)
             .Select(c => c.CompanyName)
             .FirstOrDefaultAsync(ct);
 
-        var role = await _db.Roles
-            .Where(r => r.Id == dto.RoleId)
-            .Select(r => r.Name)
-            .FirstOrDefaultAsync(ct);
+        var role = await _db.Roles.Where(r => r.Id == dto.RoleId).Select(r => r.Name).FirstOrDefaultAsync(ct);
 
-        await _emailService.SendInvitationEmailAsync(
-            dto.Email,
-            company ?? "Payzen",
-            role ?? "Admin",
-            token,
-            ct);
+        await _emailService.SendInvitationEmailAsync(dto.Email, company ?? "Payzen", role ?? "Admin", token, ct);
 
         return token;
     }
@@ -77,7 +70,8 @@ public class InvitationService : IInvitationService
             dto.CompanyId,
             dto.RoleId,
             dto.EmployeeId,
-            token);
+            token
+        );
 
         var invitation = new Invitation
         {
@@ -88,36 +82,28 @@ public class InvitationService : IInvitationService
             EmployeeId = dto.EmployeeId,
             Status = InvitationStatus.Pending,
             ExpiresAt = DateTime.UtcNow.AddHours(48),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
 
         _db.Invitations.Add(invitation);
         await _db.SaveChangesAsync(ct);
 
-        var company = await _db.Companies
-            .Where(c => c.Id == dto.CompanyId)
+        var company = await _db
+            .Companies.Where(c => c.Id == dto.CompanyId)
             .Select(c => c.CompanyName)
             .FirstOrDefaultAsync(ct);
 
-        var role = await _db.Roles
-            .Where(r => r.Id == dto.RoleId)
-            .Select(r => r.Name)
-            .FirstOrDefaultAsync(ct);
+        var role = await _db.Roles.Where(r => r.Id == dto.RoleId).Select(r => r.Name).FirstOrDefaultAsync(ct);
 
-        await _emailService.SendInvitationEmailAsync(
-            dto.Email,
-            company ?? "Payzen",
-            role ?? "Employé",
-            token,
-            ct);
+        await _emailService.SendInvitationEmailAsync(dto.Email, company ?? "Payzen", role ?? "Employé", token, ct);
 
         return token;
     }
 
     public async Task<ValidateInvitationResponseDto?> ValidateTokenAsync(string token, CancellationToken ct = default)
     {
-        var invitation = await _db.Invitations
-            .Include(i => i.Company)
+        var invitation = await _db
+            .Invitations.Include(i => i.Company)
             .Include(i => i.Role)
             .Where(i => i.Token == token && i.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
@@ -137,14 +123,18 @@ public class InvitationService : IInvitationService
             CompanyName = invitation.Company?.CompanyName ?? "Payzen",
             RoleName = invitation.Role?.Name ?? "Utilisateur",
             MaskedEmail = MaskEmail(invitation.Email),
-            ExpiresAt = invitation.ExpiresAt
+            ExpiresAt = invitation.ExpiresAt,
         };
     }
 
-    public async Task<InvitationAcceptResult> AcceptViaIdpAsync(string token, int? jwtUserId, CancellationToken ct = default)
+    public async Task<InvitationAcceptResult> AcceptViaIdpAsync(
+        string token,
+        int? jwtUserId,
+        CancellationToken ct = default
+    )
     {
-        var invitation = await _db.Invitations
-            .Include(i => i.Company)
+        var invitation = await _db
+            .Invitations.Include(i => i.Company)
             .Include(i => i.Role)
             .Where(i => i.Token == token && i.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
@@ -168,8 +158,7 @@ public class InvitationService : IInvitationService
         Users? user = null;
         if (jwtUserId.HasValue)
         {
-            var byId = await _db.Users
-                .FirstOrDefaultAsync(u => u.Id == jwtUserId.Value && u.DeletedAt == null, ct);
+            var byId = await _db.Users.FirstOrDefaultAsync(u => u.Id == jwtUserId.Value && u.DeletedAt == null, ct);
             if (byId != null)
             {
                 if (!string.Equals(byId.Email.Trim(), invitation.Email.Trim(), StringComparison.OrdinalIgnoreCase))
@@ -182,10 +171,10 @@ public class InvitationService : IInvitationService
         // 2) Secours : même e-mail que l’invitation (normalisé)
         if (user == null)
         {
-            user = await _db.Users
-                .FirstOrDefaultAsync(
-                    u => u.Email.ToLower() == normalizedInvitationEmail && u.DeletedAt == null,
-                    ct);
+            user = await _db.Users.FirstOrDefaultAsync(
+                u => u.Email.ToLower() == normalizedInvitationEmail && u.DeletedAt == null,
+                ct
+            );
         }
 
         if (user == null)
@@ -197,20 +186,23 @@ public class InvitationService : IInvitationService
         }
         else
         {
-            var empForCompany = await _db.Employees
-                .FirstOrDefaultAsync(
-                    e => e.Email.ToLower() == normalizedInvitationEmail
-                         && e.CompanyId == invitation.CompanyId
-                         && e.DeletedAt == null,
-                    ct);
+            var empForCompany = await _db.Employees.FirstOrDefaultAsync(
+                e =>
+                    e.Email.ToLower() == normalizedInvitationEmail
+                    && e.CompanyId == invitation.CompanyId
+                    && e.DeletedAt == null,
+                ct
+            );
             if (empForCompany != null)
             {
                 user.EmployeeId = empForCompany.Id;
             }
             else
             {
-                var activeStatus = await _db.Statuses
-                    .FirstOrDefaultAsync(s => s.Code.ToLower() == "active" && s.DeletedAt == null, ct);
+                var activeStatus = await _db.Statuses.FirstOrDefaultAsync(
+                    s => s.Code.ToLower() == "active" && s.DeletedAt == null,
+                    ct
+                );
                 if (activeStatus == null)
                     return InvitationAcceptResult.MissingActiveStatus();
 
@@ -225,7 +217,7 @@ public class InvitationService : IInvitationService
                     DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)),
                     CompanyId = invitation.CompanyId,
                     StatusId = activeStatus.Id,
-                    CreatedBy = user.Id
+                    CreatedBy = user.Id,
                 };
                 _db.Employees.Add(newEmployee);
                 await _db.SaveChangesAsync(ct);
@@ -235,18 +227,20 @@ public class InvitationService : IInvitationService
 
         invitation.Status = InvitationStatus.Accepted;
 
-        var existingRole = await _db.UsersRoles
-            .Where(ur => ur.UserId == user.Id && ur.RoleId == invitation.RoleId && ur.DeletedAt == null)
+        var existingRole = await _db
+            .UsersRoles.Where(ur => ur.UserId == user.Id && ur.RoleId == invitation.RoleId && ur.DeletedAt == null)
             .FirstOrDefaultAsync(ct);
 
         if (existingRole == null)
         {
-            _db.UsersRoles.Add(new UsersRoles
-            {
-                UserId = user.Id,
-                RoleId = invitation.RoleId,
-                CreatedBy = 1
-            });
+            _db.UsersRoles.Add(
+                new UsersRoles
+                {
+                    UserId = user.Id,
+                    RoleId = invitation.RoleId,
+                    CreatedBy = 1,
+                }
+            );
         }
 
         await _db.SaveChangesAsync(ct);

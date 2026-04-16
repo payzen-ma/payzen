@@ -12,7 +12,8 @@ public interface ILeaveBalanceRecalculationService
         int endMonth,
         int userId,
         CancellationToken ct = default,
-        DateOnly? referenceDateForExpiry = null);
+        DateOnly? referenceDateForExpiry = null
+    );
 
     /// <summary>Équivalent à <see cref="RecalculateRangeThroughMonthAsync"/> pour le mois de <paramref name="asOfDate"/> uniquement (même chaîne complète).</summary>
     Task<LeaveBalanceMonthRecalcResult> RecalculateAsync(
@@ -22,26 +23,17 @@ public interface ILeaveBalanceRecalculationService
         DateOnly asOfDate,
         int userId,
         CancellationToken ct = default,
-        DateOnly? referenceDateForExpiry = null);
+        DateOnly? referenceDateForExpiry = null
+    );
 }
 
 public sealed class LeaveBalanceMonthRecalcResult
 {
-    public bool Success
-    {
-        get; private init;
-    }
-    public string? ErrorMessage
-    {
-        get; private init;
-    }
+    public bool Success { get; private init; }
+    public string? ErrorMessage { get; private init; }
 
     public static LeaveBalanceMonthRecalcResult Ok() => new() { Success = true };
 
     public static LeaveBalanceMonthRecalcResult Fail(string message) =>
-        new()
-        {
-            Success = false,
-            ErrorMessage = message
-        };
+        new() { Success = false, ErrorMessage = message };
 }

@@ -9,7 +9,8 @@ internal static class EmployeeDetailHistoryFormatter
     public static List<EmployeeDetailHistoryEventDto> Build(
         IReadOnlyList<EmployeeEventLog> logs,
         bool canViewSensitiveDetails,
-        IReadOnlyDictionary<int, (string Name, string Role)> modifiersByUserId)
+        IReadOnlyDictionary<int, (string Name, string Role)> modifiersByUserId
+    )
     {
         var list = new List<EmployeeDetailHistoryEventDto>(logs.Count);
         foreach (var log in logs)
@@ -29,7 +30,8 @@ internal static class EmployeeDetailHistoryFormatter
         EmployeeEventLog log,
         bool rh,
         string modifierName,
-        string modifierRole)
+        string modifierRole
+    )
     {
         var mb = new EmployeeDetailHistoryModifierDto { Name = modifierName, Role = modifierRole };
         var dateStr = log.CreatedAt.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
@@ -49,53 +51,45 @@ internal static class EmployeeDetailHistoryFormatter
                     {
                         OldSalary = log.oldValue,
                         NewSalary = log.newValue,
-                        Currency = "MAD"
+                        Currency = "MAD",
                     }
                     : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
             EmployeeEventLogNames.JobPositionChanged => new EmployeeDetailHistoryEventDto
             {
                 Type = "promotion",
                 Title = "Promotion",
                 Date = dateStr,
-                Description = rh
-                    ? $"{log.oldValue} → {log.newValue}"
-                    : "Changement de poste",
+                Description = rh ? $"{log.oldValue} → {log.newValue}" : "Changement de poste",
                 Details = rh
                     ? new EmployeeHistoryEventDetailsDto { OldPosition = log.oldValue, NewPosition = log.newValue }
                     : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
             EmployeeEventLogNames.ContractCreated => new EmployeeDetailHistoryEventDto
             {
                 Type = "contract_created",
                 Title = "Nouveau contrat",
                 Date = dateStr,
-                Description = rh
-                    ? $"Contrat créé: {log.newValue}"
-                    : "Nouveau contrat créé",
-                Details = rh
-                    ? new EmployeeHistoryEventDetailsDto { ContractInfo = log.newValue }
-                    : null,
+                Description = rh ? $"Contrat créé: {log.newValue}" : "Nouveau contrat créé",
+                Details = rh ? new EmployeeHistoryEventDetailsDto { ContractInfo = log.newValue } : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
             EmployeeEventLogNames.ContractTerminated => new EmployeeDetailHistoryEventDto
             {
                 Type = "contract_terminated",
                 Title = "Fin de contrat",
                 Date = dateStr,
-                Description = rh
-                    ? $"Contrat {log.oldValue} terminé le {log.newValue}"
-                    : "Fin de contrat",
+                Description = rh ? $"Contrat {log.oldValue} terminé le {log.newValue}" : "Fin de contrat",
                 Details = rh
                     ? new EmployeeHistoryEventDetailsDto { ContractInfo = log.oldValue, EndDate = log.newValue }
                     : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
             EmployeeEventLogNames.StatusChanged => MapStatusChanged(log, rh, mb, dateStr),
             EmployeeEventLogNames.DepartmentChanged => new EmployeeDetailHistoryEventDto
@@ -103,48 +97,45 @@ internal static class EmployeeDetailHistoryFormatter
                 Type = "department_change",
                 Title = "Changement de département",
                 Date = dateStr,
-                Description = rh
-                    ? $"{log.oldValue} → {log.newValue}"
-                    : "Département modifié",
+                Description = rh ? $"{log.oldValue} → {log.newValue}" : "Département modifié",
                 Details = rh
-                    ? new EmployeeHistoryEventDetailsDto
-                    {
-                        OldDepartment = log.oldValue,
-                        NewDepartment = log.newValue
-                    }
+                    ? new EmployeeHistoryEventDetailsDto { OldDepartment = log.oldValue, NewDepartment = log.newValue }
                     : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
             EmployeeEventLogNames.ManagerChanged => new EmployeeDetailHistoryEventDto
             {
                 Type = "manager_change",
                 Title = "Changement de manager",
                 Date = dateStr,
-                Description = rh
-                    ? $"{log.oldValue ?? "Aucun"} → {log.newValue}"
-                    : "Manager modifié",
+                Description = rh ? $"{log.oldValue ?? "Aucun"} → {log.newValue}" : "Manager modifié",
                 Details = rh
                     ? new EmployeeHistoryEventDetailsDto { OldManager = log.oldValue, NewManager = log.newValue }
                     : null,
                 ModifiedBy = mb,
-                Timestamp = log.CreatedAt
+                Timestamp = log.CreatedAt,
             },
-            EmployeeEventLogNames.AddressUpdated or EmployeeEventLogNames.AddressCreated => new EmployeeDetailHistoryEventDto
-            {
-                Type = log.eventName == EmployeeEventLogNames.AddressCreated ? "address_created" : "address_updated",
-                Title = log.eventName == EmployeeEventLogNames.AddressCreated ? "Ajout d'adresse" : "Modification d'adresse",
-                Date = dateStr,
-                Description = rh
-                    ? (log.oldValue != null ? $"{log.oldValue} → {log.newValue}" : log.newValue ?? string.Empty)
-                    : "Adresse modifiée",
-                Details = rh
-                    ? new EmployeeHistoryEventDetailsDto { OldAddress = log.oldValue, NewAddress = log.newValue }
-                    : null,
-                ModifiedBy = mb,
-                Timestamp = log.CreatedAt
-            },
-            _ => MapDefaultEvent(log, rh, mb, dateStr)
+            EmployeeEventLogNames.AddressUpdated or EmployeeEventLogNames.AddressCreated =>
+                new EmployeeDetailHistoryEventDto
+                {
+                    Type =
+                        log.eventName == EmployeeEventLogNames.AddressCreated ? "address_created" : "address_updated",
+                    Title =
+                        log.eventName == EmployeeEventLogNames.AddressCreated
+                            ? "Ajout d'adresse"
+                            : "Modification d'adresse",
+                    Date = dateStr,
+                    Description = rh
+                        ? (log.oldValue != null ? $"{log.oldValue} → {log.newValue}" : log.newValue ?? string.Empty)
+                        : "Adresse modifiée",
+                    Details = rh
+                        ? new EmployeeHistoryEventDetailsDto { OldAddress = log.oldValue, NewAddress = log.newValue }
+                        : null,
+                    ModifiedBy = mb,
+                    Timestamp = log.CreatedAt,
+                },
+            _ => MapDefaultEvent(log, rh, mb, dateStr),
         };
     }
 
@@ -152,17 +143,24 @@ internal static class EmployeeDetailHistoryFormatter
         EmployeeEventLog log,
         bool rh,
         EmployeeDetailHistoryModifierDto mb,
-        string dateStr)
+        string dateStr
+    )
     {
         var statusTitle = "Changement de statut";
         var statusDescription = "Statut modifié";
 
-        if (log.newValue != null &&
-            (log.newValue.Contains("Actif", StringComparison.OrdinalIgnoreCase) ||
-             log.newValue.Contains("Active", StringComparison.OrdinalIgnoreCase)) &&
-            log.oldValue != null &&
-            (log.oldValue.Contains("Essai", StringComparison.OrdinalIgnoreCase) ||
-             log.oldValue.Contains("Trial", StringComparison.OrdinalIgnoreCase)))
+        if (
+            log.newValue != null
+            && (
+                log.newValue.Contains("Actif", StringComparison.OrdinalIgnoreCase)
+                || log.newValue.Contains("Active", StringComparison.OrdinalIgnoreCase)
+            )
+            && log.oldValue != null
+            && (
+                log.oldValue.Contains("Essai", StringComparison.OrdinalIgnoreCase)
+                || log.oldValue.Contains("Trial", StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             statusTitle = "Fin de période d'essai";
             statusDescription = "Période d'essai validée avec succès";
@@ -182,7 +180,7 @@ internal static class EmployeeDetailHistoryFormatter
                 ? new EmployeeHistoryEventDetailsDto { OldStatus = log.oldValue, NewStatus = log.newValue }
                 : null,
             ModifiedBy = mb,
-            Timestamp = log.CreatedAt
+            Timestamp = log.CreatedAt,
         };
     }
 
@@ -190,7 +188,8 @@ internal static class EmployeeDetailHistoryFormatter
         EmployeeEventLog log,
         bool rh,
         EmployeeDetailHistoryModifierDto mb,
-        string dateStr)
+        string dateStr
+    )
     {
         var eventTitle = log.eventName switch
         {
@@ -207,7 +206,7 @@ internal static class EmployeeDetailHistoryFormatter
             EmployeeEventLogNames.CnssNumberChanged => "Modification du numéro CNSS",
             EmployeeEventLogNames.CimrNumberChanged => "Modification du numéro CIMR",
             EmployeeEventLogNames.ContractTypeChanged => "Modification du type de contrat",
-            _ => "Modification"
+            _ => "Modification",
         };
 
         return new EmployeeDetailHistoryEventDto
@@ -222,7 +221,7 @@ internal static class EmployeeDetailHistoryFormatter
                 ? new EmployeeHistoryEventDetailsDto { OldValue = log.oldValue, NewValue = log.newValue }
                 : null,
             ModifiedBy = mb,
-            Timestamp = log.CreatedAt
+            Timestamp = log.CreatedAt,
         };
     }
 }

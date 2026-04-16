@@ -8,8 +8,9 @@ public enum AbsenceDurationType
 {
     FullDay = 1,
     HalfDay = 2,
-    Hourly = 3
+    Hourly = 3,
 }
+
 public enum AbsenceStatus
 {
     Draft = 0,
@@ -17,5 +18,5 @@ public enum AbsenceStatus
     Approved = 2,
     Rejected = 3,
     Cancelled = 4,
-    Expired = 5
+    Expired = 5,
 }

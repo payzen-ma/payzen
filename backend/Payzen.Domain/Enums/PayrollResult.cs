@@ -10,6 +10,6 @@ namespace Payzen.Domain.Enums
         Processing = 1,
         OK = 2,
         Error = 3,
-        ManualReviewRequired = 4
+        ManualReviewRequired = 4,
     }
 }

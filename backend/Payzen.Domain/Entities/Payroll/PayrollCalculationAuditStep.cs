@@ -8,16 +8,10 @@ namespace Payzen.Domain.Entities.Payroll;
 /// </summary>
 public class PayrollCalculationAuditStep : BaseEntity
 {
-    public int PayrollResultId
-    {
-        get; set;
-    }
+    public int PayrollResultId { get; set; }
 
     /// <summary>Ordre d'exécution du module (1 à 13).</summary>
-    public int StepOrder
-    {
-        get; set;
-    }
+    public int StepOrder { get; set; }
 
     /// <summary>Nom du module (ex. "Module01_Anciennete", "Module06_Cnss").</summary>
     public string ModuleName { get; set; } = string.Empty;
@@ -26,16 +20,10 @@ public class PayrollCalculationAuditStep : BaseEntity
     public string FormulaDescription { get; set; } = string.Empty;
 
     /// <summary>Entrées du module (JSON).</summary>
-    public string? InputsJson
-    {
-        get; set;
-    }
+    public string? InputsJson { get; set; }
 
     /// <summary>Sorties du module (JSON).</summary>
-    public string? OutputsJson
-    {
-        get; set;
-    }
+    public string? OutputsJson { get; set; }
 
     public PayrollResult PayrollResult { get; set; } = null!;
 }

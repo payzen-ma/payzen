@@ -12,11 +12,10 @@ public partial class EmployeeOvertimeService
         TimeOnly? startTime,
         TimeOnly? endTime,
         decimal duration,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        var rules = await _db.OvertimeRateRules
-            .Where(r => r.DeletedAt == null && r.IsActive)
-            .ToListAsync(ct);
+        var rules = await _db.OvertimeRateRules.Where(r => r.DeletedAt == null && r.IsActive).ToListAsync(ct);
 
         if (rules.Count == 0)
             return null;
@@ -39,21 +38,25 @@ public partial class EmployeeOvertimeService
 
         if (applicableRules.Count == 0)
         {
-            applicableRules = rules.Where(r =>
-            {
-                var ruleSpecificFlags = r.AppliesTo & ~OvertimeType.Standard;
-                if (!requestIsPureStandard)
-                    return (ruleSpecificFlags & requestedSpecificFlags) != OvertimeType.None;
-                return (r.AppliesTo & OvertimeType.Standard) != 0;
-            }).ToList();
+            applicableRules = rules
+                .Where(r =>
+                {
+                    var ruleSpecificFlags = r.AppliesTo & ~OvertimeType.Standard;
+                    if (!requestIsPureStandard)
+                        return (ruleSpecificFlags & requestedSpecificFlags) != OvertimeType.None;
+                    return (r.AppliesTo & OvertimeType.Standard) != 0;
+                })
+                .ToList();
         }
 
         if (applicableRules.Count == 0)
             return null;
 
         applicableRules = applicableRules
-            .Where(r => (!r.MinimumDurationHours.HasValue || duration >= r.MinimumDurationHours.Value) &&
-                        (!r.MaximumDurationHours.HasValue || duration <= r.MaximumDurationHours.Value))
+            .Where(r =>
+                (!r.MinimumDurationHours.HasValue || duration >= r.MinimumDurationHours.Value)
+                && (!r.MaximumDurationHours.HasValue || duration <= r.MaximumDurationHours.Value)
+            )
             .ToList();
 
         if (applicableRules.Count == 0)
@@ -73,7 +76,8 @@ public partial class EmployeeOvertimeService
                         endTime.Value,
                         r.StartTime.Value,
                         r.EndTime.Value,
-                        r.TimeRangeType);
+                        r.TimeRangeType
+                    );
                 })
                 .ToList();
         }
@@ -92,8 +96,8 @@ public partial class EmployeeOvertimeService
 
                 var ruleSpecificFlags = r.AppliesTo & ~OvertimeType.Standard;
                 var ruleIsOnlyStandardOrNight =
-                    ((r.AppliesTo & (OvertimeType.Standard | OvertimeType.Night)) != 0) &&
-                    (ruleSpecificFlags == OvertimeType.Night || ruleSpecificFlags == OvertimeType.None);
+                    ((r.AppliesTo & (OvertimeType.Standard | OvertimeType.Night)) != 0)
+                    && (ruleSpecificFlags == OvertimeType.Night || ruleSpecificFlags == OvertimeType.None);
 
                 if (ruleIsOnlyStandardOrNight)
                     return true;
@@ -111,22 +115,23 @@ public partial class EmployeeOvertimeService
                 var ruleSpecificFlags = r.AppliesTo & ~OvertimeType.Standard;
                 var flagsCovered = CountFlags(r.AppliesTo & overtimeType);
                 var exactMatchBonus =
-                    (!requestIsPureStandard && ruleSpecificFlags == requestedSpecificFlags)
-                        ? 1000
-                        : 0;
+                    (!requestIsPureStandard && ruleSpecificFlags == requestedSpecificFlags) ? 1000 : 0;
                 var specificityScore = CountFlags(ruleSpecificFlags) * 100;
-                var standardPenalty =
-                    (!requestIsPureStandard && (r.AppliesTo & OvertimeType.Standard) != 0)
-                        ? -500
-                        : 0;
+                var standardPenalty = (!requestIsPureStandard && (r.AppliesTo & OvertimeType.Standard) != 0) ? -500 : 0;
 
                 var timeRangeScore = 0;
-                if (startTime.HasValue && endTime.HasValue && r.StartTime.HasValue && r.EndTime.HasValue &&
-                    r.TimeRangeType != TimeRangeType.AllDay)
+                if (
+                    startTime.HasValue
+                    && endTime.HasValue
+                    && r.StartTime.HasValue
+                    && r.EndTime.HasValue
+                    && r.TimeRangeType != TimeRangeType.AllDay
+                )
                 {
-                    var ruleDuration = r.EndTime.Value < r.StartTime.Value
-                        ? (24 - (r.StartTime.Value - r.EndTime.Value).TotalHours)
-                        : (r.EndTime.Value - r.StartTime.Value).TotalHours;
+                    var ruleDuration =
+                        r.EndTime.Value < r.StartTime.Value
+                            ? (24 - (r.StartTime.Value - r.EndTime.Value).TotalHours)
+                            : (r.EndTime.Value - r.StartTime.Value).TotalHours;
                     timeRangeScore = (int)(50 - Math.Abs(ruleDuration - (double)duration));
                 }
 
@@ -136,7 +141,7 @@ public partial class EmployeeOvertimeService
                 {
                     Rule = r,
                     TotalScore = totalScore,
-                    FlagsCovered = flagsCovered
+                    FlagsCovered = flagsCovered,
                 };
             })
             .OrderByDescending(x => x.TotalScore)
@@ -160,7 +165,13 @@ public partial class EmployeeOvertimeService
         return count;
     }
 
-    private static bool CheckTimeRangeOverlap(TimeOnly start1, TimeOnly end1, TimeOnly start2, TimeOnly end2, TimeRangeType rangeType)
+    private static bool CheckTimeRangeOverlap(
+        TimeOnly start1,
+        TimeOnly end1,
+        TimeOnly start2,
+        TimeOnly end2,
+        TimeRangeType rangeType
+    )
     {
         if (rangeType == TimeRangeType.AllDay)
             return true;

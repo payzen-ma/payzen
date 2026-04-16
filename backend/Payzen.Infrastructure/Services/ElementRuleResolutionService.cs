@@ -13,57 +13,72 @@ namespace Payzen.Infrastructure.Services;
 public class ElementRuleResolutionService : IElementRuleResolutionService
 {
     private readonly AppDbContext _db;
+
     public ElementRuleResolutionService(AppDbContext db) => _db = db;
 
     public async Task<decimal?> GetParameterValueEffectiveAtAsync(
-        string code, DateOnly asOfDate, CancellationToken ct = default)
+        string code,
+        DateOnly asOfDate,
+        CancellationToken ct = default
+    )
     {
         if (string.IsNullOrWhiteSpace(code))
             return null;
-        return await _db.LegalParameters
-            .AsNoTracking()
-            .Where(p => p.Code.ToLower() == code.Trim().ToLower()
-                     && p.DeletedAt == null
-                     && p.EffectiveFrom <= asOfDate
-                     && (p.EffectiveTo == null || p.EffectiveTo >= asOfDate))
+        return await _db
+            .LegalParameters.AsNoTracking()
+            .Where(p =>
+                p.Code.ToLower() == code.Trim().ToLower()
+                && p.DeletedAt == null
+                && p.EffectiveFrom <= asOfDate
+                && (p.EffectiveTo == null || p.EffectiveTo >= asOfDate)
+            )
             .OrderByDescending(p => p.EffectiveFrom)
             .Select(p => (decimal?)p.Value)
             .FirstOrDefaultAsync(ct);
     }
 
     public async Task<IReadOnlyDictionary<string, decimal>> GetParameterValuesEffectiveAtAsync(
-        DateOnly asOfDate, CancellationToken ct = default)
+        DateOnly asOfDate,
+        CancellationToken ct = default
+    )
     {
-        var parameters = await _db.LegalParameters
-            .AsNoTracking()
-            .Where(p => p.DeletedAt == null
-                     && p.EffectiveFrom <= asOfDate
-                     && (p.EffectiveTo == null || p.EffectiveTo >= asOfDate))
+        var parameters = await _db
+            .LegalParameters.AsNoTracking()
+            .Where(p =>
+                p.DeletedAt == null
+                && p.EffectiveFrom <= asOfDate
+                && (p.EffectiveTo == null || p.EffectiveTo >= asOfDate)
+            )
             .ToListAsync(ct);
 
         return parameters
             .GroupBy(p => p.Code)
-            .ToDictionary(
-                g => g.Key,
-                g => g.OrderByDescending(p => p.EffectiveFrom).First().Value);
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.EffectiveFrom).First().Value);
     }
 
     public async Task<IReadOnlyList<ElementRule>> GetRulesForElementAuthorityEffectiveAtAsync(
-        int elementId, int authorityId, DateOnly asOfDate, CancellationToken ct = default)
+        int elementId,
+        int authorityId,
+        DateOnly asOfDate,
+        CancellationToken ct = default
+    )
     {
-        return await _db.ElementRules
-            .AsNoTracking()
+        return await _db
+            .ElementRules.AsNoTracking()
             .Include(r => r.Cap)
-            .Include(r => r.Formula!).ThenInclude(f => f.Parameter)
+            .Include(r => r.Formula!)
+                .ThenInclude(f => f.Parameter)
             .Include(r => r.Percentage)
             .Include(r => r.DualCap)
             .Include(r => r.Tiers)
             .Include(r => r.Variants)
-            .Where(r => r.ElementId == elementId
-                     && r.AuthorityId == authorityId
-                     && r.DeletedAt == null
-                     && r.EffectiveFrom <= asOfDate
-                     && (r.EffectiveTo == null || r.EffectiveTo >= asOfDate))
+            .Where(r =>
+                r.ElementId == elementId
+                && r.AuthorityId == authorityId
+                && r.DeletedAt == null
+                && r.EffectiveFrom <= asOfDate
+                && (r.EffectiveTo == null || r.EffectiveTo >= asOfDate)
+            )
             .OrderByDescending(r => r.EffectiveFrom)
             .ToListAsync(ct);
     }
@@ -72,8 +87,8 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
     {
         if (string.IsNullOrWhiteSpace(code))
             return null;
-        return await _db.Authorities
-            .AsNoTracking()
+        return await _db
+            .Authorities.AsNoTracking()
             .Where(a => a.Code.ToLower() == code.Trim().ToLower() && a.DeletedAt == null)
             .Select(a => (int?)a.Id)
             .FirstOrDefaultAsync(ct);
@@ -86,25 +101,28 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
         decimal? grossSalary,
         decimal? sbi,
         IReadOnlyDictionary<string, decimal>? paramValuesByCode,
-        int workingDaysPerMonth = 26)
+        int workingDaysPerMonth = 26
+    )
     {
         paramValuesByCode ??= new Dictionary<string, decimal>();
 
-        decimal GetBaseRef(BaseReference br) => br switch
-        {
-            BaseReference.BASE_SALARY => baseSalary ?? 0,
-            BaseReference.GROSS_SALARY => grossSalary ?? 0,
-            BaseReference.SBI => sbi ?? 0,
-            _ => baseSalary ?? 0
-        };
+        decimal GetBaseRef(BaseReference br) =>
+            br switch
+            {
+                BaseReference.BASE_SALARY => baseSalary ?? 0,
+                BaseReference.GROSS_SALARY => grossSalary ?? 0,
+                BaseReference.SBI => sbi ?? 0,
+                _ => baseSalary ?? 0,
+            };
 
-        decimal CapToMonthly(decimal amount, CapUnit unit) => unit switch
-        {
-            CapUnit.PER_MONTH => amount,
-            CapUnit.PER_DAY => amount * workingDaysPerMonth,
-            CapUnit.PER_YEAR => amount / 12,
-            _ => amount
-        };
+        decimal CapToMonthly(decimal amount, CapUnit unit) =>
+            unit switch
+            {
+                CapUnit.PER_MONTH => amount,
+                CapUnit.PER_DAY => amount * workingDaysPerMonth,
+                CapUnit.PER_YEAR => amount / 12,
+                _ => amount,
+            };
 
         switch (rule.ExemptionType)
         {
@@ -158,7 +176,7 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
                     CapUnit.PER_DAY => workingDaysPerMonth,
                     CapUnit.PER_MONTH => 1,
                     CapUnit.PER_YEAR => 1,
-                    _ => 1
+                    _ => 1,
                 };
                 var effDualCap = rule.DualCap.CalculateEffectiveCap(dualBase, periodsInUnit);
                 if (rule.DualCap.FixedCapUnit == CapUnit.PER_YEAR)
@@ -173,8 +191,7 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
         }
     }
 
-    private static decimal? ResolveFormulaCap(
-        ElementRule rule, IReadOnlyDictionary<string, decimal> paramValuesByCode)
+    private static decimal? ResolveFormulaCap(ElementRule rule, IReadOnlyDictionary<string, decimal> paramValuesByCode)
     {
         if (rule.Formula == null)
             return null;
@@ -188,7 +205,8 @@ public class ElementRuleResolutionService : IElementRuleResolutionService
     {
         if (rule.Tiers == null || !rule.Tiers.Any())
             return 0;
-        decimal exempt = 0, remaining = lineAmount;
+        decimal exempt = 0,
+            remaining = lineAmount;
         foreach (var tier in rule.Tiers.OrderBy(t => t.TierOrder))
         {
             var segmentEnd = Math.Min(tier.ToAmount ?? lineAmount, lineAmount);

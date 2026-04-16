@@ -17,7 +17,8 @@ public sealed class PublicSignupService : IPublicSignupService
     public PublicSignupService(
         ICompanyService companySvc,
         IValidator<CompanyCreateDto> createValidator,
-        AppDbContext db)
+        AppDbContext db
+    )
     {
         _companySvc = companySvc;
         _createValidator = createValidator;
@@ -27,8 +28,8 @@ public sealed class PublicSignupService : IPublicSignupService
     public async Task<ServiceResult<object>> SignupCompanyAdminAsync(PublicSignupRequest request, CancellationToken ct)
     {
         // 1. Récupération du pays par défaut
-        var fallbackCountry = await _db.Countries
-            .AsNoTracking()
+        var fallbackCountry = await _db
+            .Countries.AsNoTracking()
             .Where(c => c.DeletedAt == null)
             .OrderBy(c => c.Id)
             .Select(c => new { c.Id, c.CountryPhoneCode })
@@ -53,16 +54,14 @@ public sealed class PublicSignupService : IPublicSignupService
             AdminLastName = request.AdminLastName.Trim(),
             AdminEmail = request.AdminEmail.Trim(),
             AdminPhone = request.AdminPhone.Trim(),
-            isActive = true
+            isActive = true,
         };
 
         // 3. Validation FluentValidation
         var validation = await _createValidator.ValidateAsync(mapped, ct);
         if (!validation.IsValid)
         {
-            var errors = validation.Errors
-                .Select(e => $"{e.PropertyName}: {e.ErrorMessage}")
-                .ToList();
+            var errors = validation.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}").ToList();
             return ServiceResult<object>.Fail(errors);
         }
 
@@ -79,18 +78,18 @@ public sealed class PublicSignupService : IPublicSignupService
         AuthenticatedCompanySignupDto request,
         int currentUserId,
         string currentUserEmail,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        var currentUser = await _db.Users
-            .FirstOrDefaultAsync(u => u.Id == currentUserId && u.DeletedAt == null, ct);
+        var currentUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId && u.DeletedAt == null, ct);
         if (currentUser is null)
             return ServiceResult<object>.Fail("Utilisateur introuvable.");
 
         if (currentUser.EmployeeId.HasValue)
             return ServiceResult<object>.Fail("Ce compte est déjà rattaché à une entreprise.");
 
-        var fallbackCountry = await _db.Countries
-            .AsNoTracking()
+        var fallbackCountry = await _db
+            .Countries.AsNoTracking()
             .Where(c => c.DeletedAt == null)
             .OrderBy(c => c.Id)
             .Select(c => new { c.Id, c.CountryPhoneCode })
@@ -118,14 +117,14 @@ public sealed class PublicSignupService : IPublicSignupService
             AdminLastName = request.AdminLastName.Trim(),
             AdminEmail = currentUserEmail.Trim(),
             AdminPhone = request.AdminPhone.Trim(),
-            isActive = true
+            isActive = true,
         };
 
         var validation = await _createValidator.ValidateAsync(mapped, ct);
         if (!validation.IsValid)
         {
-            var errors = validation.Errors
-                .GroupBy(e => e.PropertyName)
+            var errors = validation
+                .Errors.GroupBy(e => e.PropertyName)
                 .Select(g => $"{g.Key}: {string.Join(" | ", g.Select(x => x.ErrorMessage))}")
                 .ToList();
 
@@ -137,7 +136,8 @@ public sealed class PublicSignupService : IPublicSignupService
             createdBy: currentUserId,
             ct: ct,
             sendInvitation: false,
-            existingAdminUserId: currentUserId);
+            existingAdminUserId: currentUserId
+        );
 
         if (!result.Success)
             return ServiceResult<object>.Fail(result.Error ?? "Erreur lors de la création.");
@@ -150,21 +150,27 @@ public sealed class PublicSignupService : IPublicSignupService
         currentUser.Source = "entra";
         currentUser.IsActive = true;
 
-        var adminRole = await _db.Roles
-            .FirstOrDefaultAsync(x => x.Name.ToLower() == "admin" && x.DeletedAt == null, ct);
+        var adminRole = await _db.Roles.FirstOrDefaultAsync(
+            x => x.Name.ToLower() == "admin" && x.DeletedAt == null,
+            ct
+        );
         if (adminRole is null)
             return ServiceResult<object>.Fail("Rôle Admin introuvable.");
 
-        var existingRole = await _db.UsersRoles
-            .FirstOrDefaultAsync(ur => ur.UserId == currentUser.Id && ur.RoleId == adminRole.Id && ur.DeletedAt == null, ct);
+        var existingRole = await _db.UsersRoles.FirstOrDefaultAsync(
+            ur => ur.UserId == currentUser.Id && ur.RoleId == adminRole.Id && ur.DeletedAt == null,
+            ct
+        );
         if (existingRole is null)
         {
-            _db.UsersRoles.Add(new UsersRoles
-            {
-                UserId = currentUser.Id,
-                RoleId = adminRole.Id,
-                CreatedBy = currentUser.Id
-            });
+            _db.UsersRoles.Add(
+                new UsersRoles
+                {
+                    UserId = currentUser.Id,
+                    RoleId = adminRole.Id,
+                    CreatedBy = currentUser.Id,
+                }
+            );
         }
 
         await _db.SaveChangesAsync(ct);

@@ -28,22 +28,25 @@ public static class DependencyInjection
     /// Enregistre toutes les implémentations Infrastructure.
     /// À appeler dans Payzen.Api/Program.cs : builder.Services.AddInfrastructure(builder.Configuration);
     /// </summary>
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // ── EF Core ──────────────────────────────────────────────────────────
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
-                sql => sql.MigrationsAssembly("Payzen.Infrastructure")));
+                sql => sql.MigrationsAssembly("Payzen.Infrastructure")
+            )
+        );
 
         // ── HTTP Client (Claude LLM) ──────────────────────────────────────────
-        services.AddHttpClient("Claude", client =>
-        {
-            client.BaseAddress = new Uri("https://api.anthropic.com/");
-            client.Timeout = TimeSpan.FromSeconds(120);
-        });
+        services.AddHttpClient(
+            "Claude",
+            client =>
+            {
+                client.BaseAddress = new Uri("https://api.anthropic.com/");
+                client.Timeout = TimeSpan.FromSeconds(120);
+            }
+        );
 
         // ── Auth ─────────────────────────────────────────────────────────────
         services.AddScoped<IJwtService, JwtService>();

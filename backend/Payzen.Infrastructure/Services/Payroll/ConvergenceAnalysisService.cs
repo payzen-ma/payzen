@@ -19,8 +19,8 @@ public class ConvergenceAnalysisService : IConvergenceService
 
     public async Task<ServiceResult<bool>> RecalculateAllAsync(CancellationToken ct = default)
     {
-        var elements = await _db.ReferentielElements
-            .Include(e => e.Rules)
+        var elements = await _db
+            .ReferentielElements.Include(e => e.Rules)
             .Where(e => e.DeletedAt == null)
             .ToListAsync(ct);
 
@@ -35,8 +35,8 @@ public class ConvergenceAnalysisService : IConvergenceService
 
     public async Task<ServiceResult<bool>> RecalculateElementAsync(int elementId, CancellationToken ct = default)
     {
-        var element = await _db.ReferentielElements
-            .Include(e => e.Rules)
+        var element = await _db
+            .ReferentielElements.Include(e => e.Rules)
             .FirstOrDefaultAsync(e => e.Id == elementId && e.DeletedAt == null, ct);
 
         if (element == null)

@@ -18,12 +18,13 @@ public enum LeaveStatus
 
     Cancelled,
 
-    PendingCancellation
+    PendingCancellation,
 }
+
 public enum LeaveScope
 {
     Global = 0,
-    Company = 1
+    Company = 1,
 }
 
 public enum LeaveAccrualMethod
@@ -31,8 +32,9 @@ public enum LeaveAccrualMethod
     None = 0,
     Monthly = 1,
     Yearly = 2,
-    ServiceBased = 3
+    ServiceBased = 3,
 }
+
 public enum LeaveRequestStatus
 {
     Draft = 0,
@@ -40,7 +42,7 @@ public enum LeaveRequestStatus
     Approved = 2,
     Rejected = 3,
     Cancelled = 4,
-    Renounced = 5
+    Renounced = 5,
 }
 
 public enum LeaveApprovalAction
@@ -49,12 +51,12 @@ public enum LeaveApprovalAction
     Approved = 2,
     Rejected = 3,
     Returned = 4,
-    Cancelled = 5
+    Cancelled = 5,
 }
 
 public enum LeaveExemptionReasonType
 {
     Holiday = 1,
     EmployeeAbsence = 2,
-    AdminOverride = 3
+    AdminOverride = 3,
 }

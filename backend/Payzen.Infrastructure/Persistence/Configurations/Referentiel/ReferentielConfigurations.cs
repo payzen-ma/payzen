@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Payzen.Domain.Entities.Referentiel;
 using Payzen.Domain.Entities.Events;
+using Payzen.Domain.Entities.Referentiel;
 
 namespace Payzen.Infrastructure.Persistence.Configurations.Referentiel;
 
@@ -24,7 +24,11 @@ public class CityConfiguration : IEntityTypeConfiguration<City>
     {
         entity.ToTable("Cities");
         entity.Property(c => c.CityName).IsRequired().HasMaxLength(100);
-        entity.HasOne(c => c.Country).WithMany(co => co.Cities).HasForeignKey(c => c.CountryId).OnDelete(DeleteBehavior.Restrict);
+        entity
+            .HasOne(c => c.Country)
+            .WithMany(co => co.Cities)
+            .HasForeignKey(c => c.CountryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

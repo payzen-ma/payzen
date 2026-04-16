@@ -19,6 +19,7 @@ public class EmployeeContractService : IEmployeeContractService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
+
     public EmployeeContractService(AppDbContext db, IEmployeeEventLogService eventLog)
     {
         _db = db;
@@ -27,18 +28,29 @@ public class EmployeeContractService : IEmployeeContractService
 
     public async Task<ServiceResult<IEnumerable<EmployeeContractReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
-        var list = await _db.EmployeeContracts.AsNoTracking()
+        var list = await _db
+            .EmployeeContracts.AsNoTracking()
             .Where(c => c.DeletedAt == null)
-            .Include(c => c.Employee).Include(c => c.Company).Include(c => c.JobPosition).Include(c => c.ContractType)
+            .Include(c => c.Employee)
+            .Include(c => c.Company)
+            .Include(c => c.JobPosition)
+            .Include(c => c.ContractType)
             .OrderByDescending(c => c.StartDate)
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeContractReadDto>>.Ok(list.Select(MapContract));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeContractReadDto>>> GetByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeContractReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeContracts.Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
-            .Include(c => c.Employee).Include(c => c.Company).Include(c => c.JobPosition).Include(c => c.ContractType)
+        var list = await _db
+            .EmployeeContracts.Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
+            .Include(c => c.Employee)
+            .Include(c => c.Company)
+            .Include(c => c.JobPosition)
+            .Include(c => c.ContractType)
             .OrderByDescending(c => c.StartDate)
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeContractReadDto>>.Ok(list.Select(MapContract));
@@ -46,29 +58,63 @@ public class EmployeeContractService : IEmployeeContractService
 
     public async Task<ServiceResult<EmployeeContractReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var c = await _db.EmployeeContracts
-            .Include(c => c.Employee).Include(c => c.Company).Include(c => c.JobPosition).Include(c => c.ContractType)
+        var c = await _db
+            .EmployeeContracts.Include(c => c.Employee)
+            .Include(c => c.Company)
+            .Include(c => c.JobPosition)
+            .Include(c => c.ContractType)
             .FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null, ct);
-        return c == null ? ServiceResult<EmployeeContractReadDto>.Fail("Contrat introuvable.") : ServiceResult<EmployeeContractReadDto>.Ok(MapContract(c));
+        return c == null
+            ? ServiceResult<EmployeeContractReadDto>.Fail("Contrat introuvable.")
+            : ServiceResult<EmployeeContractReadDto>.Ok(MapContract(c));
     }
 
-    public async Task<ServiceResult<EmployeeContractReadDto>> CreateAsync(EmployeeContractCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeContractReadDto>> CreateAsync(
+        EmployeeContractCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var c = new EmployeeContract { EmployeeId = dto.EmployeeId, CompanyId = dto.CompanyId, JobPositionId = dto.JobPositionId, ContractTypeId = dto.ContractTypeId, StartDate = dto.StartDate, EndDate = dto.EndDate, CreatedBy = createdBy };
+        var c = new EmployeeContract
+        {
+            EmployeeId = dto.EmployeeId,
+            CompanyId = dto.CompanyId,
+            JobPositionId = dto.JobPositionId,
+            ContractTypeId = dto.ContractTypeId,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeContracts.Add(c);
         await _db.SaveChangesAsync(ct);
-        var created = await _db.EmployeeContracts
-            .Include(x => x.Employee).Include(x => x.Company).Include(x => x.JobPosition).Include(x => x.ContractType)
+        var created = await _db
+            .EmployeeContracts.Include(x => x.Employee)
+            .Include(x => x.Company)
+            .Include(x => x.JobPosition)
+            .Include(x => x.ContractType)
             .FirstAsync(x => x.Id == c.Id, ct);
-        var contractInfo = $"{created.ContractType?.ContractTypeName} — {created.JobPosition?.Name} (dès {created.StartDate:dd/MM/yyyy})";
-        await _eventLog.LogSimpleEventAsync(dto.EmployeeId, EmployeeEventLogNames.ContractCreated, null, contractInfo, createdBy, ct);
+        var contractInfo =
+            $"{created.ContractType?.ContractTypeName} — {created.JobPosition?.Name} (dès {created.StartDate:dd/MM/yyyy})";
+        await _eventLog.LogSimpleEventAsync(
+            dto.EmployeeId,
+            EmployeeEventLogNames.ContractCreated,
+            null,
+            contractInfo,
+            createdBy,
+            ct
+        );
         return ServiceResult<EmployeeContractReadDto>.Ok(MapContract(created));
     }
 
-    public async Task<ServiceResult<EmployeeContractReadDto>> UpdateAsync(int id, EmployeeContractUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeContractReadDto>> UpdateAsync(
+        int id,
+        EmployeeContractUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
-        var c = await _db.EmployeeContracts
-            .Include(x => x.JobPosition)
+        var c = await _db
+            .EmployeeContracts.Include(x => x.JobPosition)
             .Include(x => x.ContractType)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
         if (c == null)
@@ -79,15 +125,41 @@ public class EmployeeContractService : IEmployeeContractService
         if (dto.JobPositionId is > 0 && dto.JobPositionId != c.JobPositionId)
         {
             var oldName = c.JobPosition?.Name;
-            var newName = await _db.JobPositions.AsNoTracking().Where(j => j.Id == dto.JobPositionId.Value).Select(j => j.Name).FirstOrDefaultAsync(ct);
-            pendingContractLogs.Add(() => _eventLog.LogSimpleEventAsync(c.EmployeeId, EmployeeEventLogNames.JobPositionChanged, oldName, newName, updatedBy, ct));
+            var newName = await _db
+                .JobPositions.AsNoTracking()
+                .Where(j => j.Id == dto.JobPositionId.Value)
+                .Select(j => j.Name)
+                .FirstOrDefaultAsync(ct);
+            pendingContractLogs.Add(() =>
+                _eventLog.LogSimpleEventAsync(
+                    c.EmployeeId,
+                    EmployeeEventLogNames.JobPositionChanged,
+                    oldName,
+                    newName,
+                    updatedBy,
+                    ct
+                )
+            );
             c.JobPositionId = dto.JobPositionId.Value;
         }
         if (dto.ContractTypeId is > 0 && dto.ContractTypeId != c.ContractTypeId)
         {
             var oldType = c.ContractType?.ContractTypeName;
-            var newType = await _db.ContractTypes.AsNoTracking().Where(ct2 => ct2.Id == dto.ContractTypeId.Value).Select(ct2 => ct2.ContractTypeName).FirstOrDefaultAsync(ct);
-            pendingContractLogs.Add(() => _eventLog.LogSimpleEventAsync(c.EmployeeId, EmployeeEventLogNames.ContractTypeChanged, oldType, newType, updatedBy, ct));
+            var newType = await _db
+                .ContractTypes.AsNoTracking()
+                .Where(ct2 => ct2.Id == dto.ContractTypeId.Value)
+                .Select(ct2 => ct2.ContractTypeName)
+                .FirstOrDefaultAsync(ct);
+            pendingContractLogs.Add(() =>
+                _eventLog.LogSimpleEventAsync(
+                    c.EmployeeId,
+                    EmployeeEventLogNames.ContractTypeChanged,
+                    oldType,
+                    newType,
+                    updatedBy,
+                    ct
+                )
+            );
             c.ContractTypeId = dto.ContractTypeId.Value;
         }
         if (dto.StartDate.HasValue)
@@ -98,7 +170,16 @@ public class EmployeeContractService : IEmployeeContractService
             {
                 var endInfo = dto.EndDate.Value.ToString("dd/MM/yyyy");
                 var startStr = c.StartDate.ToString("dd/MM/yyyy");
-                pendingContractLogs.Add(() => _eventLog.LogSimpleEventAsync(c.EmployeeId, EmployeeEventLogNames.ContractTerminated, startStr, endInfo, updatedBy, ct));
+                pendingContractLogs.Add(() =>
+                    _eventLog.LogSimpleEventAsync(
+                        c.EmployeeId,
+                        EmployeeEventLogNames.ContractTerminated,
+                        startStr,
+                        endInfo,
+                        updatedBy,
+                        ct
+                    )
+                );
             }
             c.EndDate = dto.EndDate;
         }
@@ -107,8 +188,11 @@ public class EmployeeContractService : IEmployeeContractService
         await _db.SaveChangesAsync(ct);
         foreach (var runLog in pendingContractLogs)
             await runLog();
-        var updated = await _db.EmployeeContracts
-            .Include(x => x.Employee).Include(x => x.Company).Include(x => x.JobPosition).Include(x => x.ContractType)
+        var updated = await _db
+            .EmployeeContracts.Include(x => x.Employee)
+            .Include(x => x.Company)
+            .Include(x => x.JobPosition)
+            .Include(x => x.ContractType)
             .FirstAsync(x => x.Id == id, ct);
         return ServiceResult<EmployeeContractReadDto>.Ok(MapContract(updated));
     }
@@ -124,21 +208,22 @@ public class EmployeeContractService : IEmployeeContractService
         return ServiceResult.Ok();
     }
 
-    private static EmployeeContractReadDto MapContract(EmployeeContract c) => new()
-    {
-        Id = c.Id,
-        EmployeeId = c.EmployeeId,
-        EmployeeFullName = c.Employee != null ? $"{c.Employee.FirstName} {c.Employee.LastName}" : string.Empty,
-        CompanyId = c.CompanyId,
-        CompanyName = c.Company?.CompanyName ?? string.Empty,
-        JobPositionId = c.JobPositionId,
-        JobPositionName = c.JobPosition?.Name ?? string.Empty,
-        ContractTypeId = c.ContractTypeId,
-        ContractTypeName = c.ContractType?.ContractTypeName ?? string.Empty,
-        StartDate = c.StartDate,
-        EndDate = c.EndDate,
-        CreatedAt = c.CreatedAt.DateTime
-    };
+    private static EmployeeContractReadDto MapContract(EmployeeContract c) =>
+        new()
+        {
+            Id = c.Id,
+            EmployeeId = c.EmployeeId,
+            EmployeeFullName = c.Employee != null ? $"{c.Employee.FirstName} {c.Employee.LastName}" : string.Empty,
+            CompanyId = c.CompanyId,
+            CompanyName = c.Company?.CompanyName ?? string.Empty,
+            JobPositionId = c.JobPositionId,
+            JobPositionName = c.JobPosition?.Name ?? string.Empty,
+            ContractTypeId = c.ContractTypeId,
+            ContractTypeName = c.ContractType?.ContractTypeName ?? string.Empty,
+            StartDate = c.StartDate,
+            EndDate = c.EndDate,
+            CreatedAt = c.CreatedAt.DateTime,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -149,15 +234,19 @@ public class EmployeeSalaryService : IEmployeeSalaryService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
+
     public EmployeeSalaryService(AppDbContext db, IEmployeeEventLogService eventLog)
     {
         _db = db;
         _eventLog = eventLog;
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetAllSalariesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetAllSalariesAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeSalaries.AsNoTracking()
+        var list = await _db
+            .EmployeeSalaries.AsNoTracking()
             .Where(s => s.DeletedAt == null)
             .Include(s => s.Employee)
             .OrderByDescending(s => s.EffectiveDate)
@@ -165,9 +254,13 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         return ServiceResult<IEnumerable<EmployeeSalaryReadDto>>.Ok(list.Select(MapSalary));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeSalaries.Where(s => s.EmployeeId == employeeId && s.DeletedAt == null)
+        var list = await _db
+            .EmployeeSalaries.Where(s => s.EmployeeId == employeeId && s.DeletedAt == null)
             .Include(s => s.Employee)
             .Include(s => s.Components)
             .OrderByDescending(s => s.EffectiveDate)
@@ -177,17 +270,26 @@ public class EmployeeSalaryService : IEmployeeSalaryService
 
     public async Task<ServiceResult<EmployeeSalaryReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var s = await _db.EmployeeSalaries.Include(x => x.Components).Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        return s == null ? ServiceResult<EmployeeSalaryReadDto>.Fail("Salaire introuvable.") : ServiceResult<EmployeeSalaryReadDto>.Ok(MapSalary(s));
+        var s = await _db
+            .EmployeeSalaries.Include(x => x.Components)
+            .Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        return s == null
+            ? ServiceResult<EmployeeSalaryReadDto>.Fail("Salaire introuvable.")
+            : ServiceResult<EmployeeSalaryReadDto>.Ok(MapSalary(s));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetByContractAsync(int contractId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryReadDto>>> GetByContractAsync(
+        int contractId,
+        CancellationToken ct = default
+    )
     {
         var contractExists = await _db.EmployeeContracts.AnyAsync(c => c.Id == contractId && c.DeletedAt == null, ct);
         if (!contractExists)
             return ServiceResult<IEnumerable<EmployeeSalaryReadDto>>.Fail("Contrat introuvable.");
 
-        var list = await _db.EmployeeSalaries.Where(s => s.ContractId == contractId && s.DeletedAt == null)
+        var list = await _db
+            .EmployeeSalaries.Where(s => s.ContractId == contractId && s.DeletedAt == null)
             .Include(s => s.Employee)
             .Include(s => s.Components)
             .OrderByDescending(s => s.EffectiveDate)
@@ -195,14 +297,20 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         return ServiceResult<IEnumerable<EmployeeSalaryReadDto>>.Ok(list.Select(MapSalary));
     }
 
-    public async Task<ServiceResult<EmployeeSalaryReadDto>> CreateAsync(EmployeeSalaryCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSalaryReadDto>> CreateAsync(
+        EmployeeSalaryCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
         if (!employeeExists)
             return ServiceResult<EmployeeSalaryReadDto>.Fail("Employé introuvable.");
 
-        var contract = await _db.EmployeeContracts
-            .FirstOrDefaultAsync(c => c.Id == dto.ContractId && c.DeletedAt == null, ct);
+        var contract = await _db.EmployeeContracts.FirstOrDefaultAsync(
+            c => c.Id == dto.ContractId && c.DeletedAt == null,
+            ct
+        );
         if (contract == null)
             return ServiceResult<EmployeeSalaryReadDto>.Fail("Contrat introuvable.");
 
@@ -220,17 +328,28 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             BaseSalaryHourly = dto.BaseSalaryHourly,
             EffectiveDate = dto.EffectiveDate,
             EndDate = dto.EndDate,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.EmployeeSalaries.Add(s);
         await _db.SaveChangesAsync(ct);
-        await _eventLog.LogSimpleEventAsync(dto.EmployeeId, EmployeeEventLogNames.SalaryUpdated,
-            null, dto.BaseSalary?.ToString("F2"), createdBy, ct);
+        await _eventLog.LogSimpleEventAsync(
+            dto.EmployeeId,
+            EmployeeEventLogNames.SalaryUpdated,
+            null,
+            dto.BaseSalary?.ToString("F2"),
+            createdBy,
+            ct
+        );
         var created = await _db.EmployeeSalaries.Include(x => x.Employee).FirstAsync(x => x.Id == s.Id, ct);
         return ServiceResult<EmployeeSalaryReadDto>.Ok(MapSalary(created));
     }
 
-    public async Task<ServiceResult<EmployeeSalaryReadDto>> UpdateAsync(int id, EmployeeSalaryUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSalaryReadDto>> UpdateAsync(
+        int id,
+        EmployeeSalaryUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var s = await _db.EmployeeSalaries.FindAsync(new object[] { id }, ct);
         if (s == null || s.DeletedAt != null)
@@ -242,8 +361,14 @@ public class EmployeeSalaryService : IEmployeeSalaryService
 
         if (dto.BaseSalary != null && dto.BaseSalary != s.BaseSalary)
         {
-            await _eventLog.LogSimpleEventAsync(s.EmployeeId, EmployeeEventLogNames.SalaryUpdated,
-                s.BaseSalary?.ToString("F2"), dto.BaseSalary.Value.ToString("F2"), updatedBy, ct);
+            await _eventLog.LogSimpleEventAsync(
+                s.EmployeeId,
+                EmployeeEventLogNames.SalaryUpdated,
+                s.BaseSalary?.ToString("F2"),
+                dto.BaseSalary.Value.ToString("F2"),
+                updatedBy,
+                ct
+            );
             s.BaseSalary = dto.BaseSalary;
         }
         if (dto.BaseSalaryHourly != null)
@@ -264,8 +389,10 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         if (s == null || s.DeletedAt != null)
             return ServiceResult.Fail("Salaire introuvable.");
 
-        var hasComponents = await _db.EmployeeSalaryComponents
-            .AnyAsync(c => c.EmployeeSalaryId == id && c.DeletedAt == null, ct);
+        var hasComponents = await _db.EmployeeSalaryComponents.AnyAsync(
+            c => c.EmployeeSalaryId == id && c.DeletedAt == null,
+            ct
+        );
         if (hasComponents)
             return ServiceResult.Fail("Impossible de supprimer ce salaire car il contient des composants.");
 
@@ -275,56 +402,103 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetAllSalaryComponentsAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetAllSalaryComponentsAsync(
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeSalaryComponents.AsNoTracking()
+        var list = await _db
+            .EmployeeSalaryComponents.AsNoTracking()
             .Where(c => c.DeletedAt == null)
             .OrderByDescending(c => c.EffectiveDate)
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(list.Select(MapComp));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetComponentsAsync(int salaryId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetComponentsAsync(
+        int salaryId,
+        CancellationToken ct = default
+    )
     {
         var salaryExists = await _db.EmployeeSalaries.AnyAsync(s => s.Id == salaryId && s.DeletedAt == null, ct);
         if (!salaryExists)
             return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Fail("Salaire introuvable.");
 
-        var list = await _db.EmployeeSalaryComponents.Where(c => c.EmployeeSalaryId == salaryId && c.DeletedAt == null).Select(c => MapComp(c)).ToListAsync(ct);
+        var list = await _db
+            .EmployeeSalaryComponents.Where(c => c.EmployeeSalaryId == salaryId && c.DeletedAt == null)
+            .Select(c => MapComp(c))
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> GetComponentByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> GetComponentByIdAsync(
+        int id,
+        CancellationToken ct = default
+    )
     {
         var c = await _db.EmployeeSalaryComponents.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        return c == null ? ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Composante introuvable.") : ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
+        return c == null
+            ? ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Composante introuvable.")
+            : ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetComponentsByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>> GetComponentsByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var salaryId = await _db.EmployeeSalaries.Where(s => s.EmployeeId == employeeId && s.DeletedAt == null).OrderByDescending(s => s.EffectiveDate).Select(s => (int?)s.Id).FirstOrDefaultAsync(ct);
+        var salaryId = await _db
+            .EmployeeSalaries.Where(s => s.EmployeeId == employeeId && s.DeletedAt == null)
+            .OrderByDescending(s => s.EffectiveDate)
+            .Select(s => (int?)s.Id)
+            .FirstOrDefaultAsync(ct);
         if (!salaryId.HasValue)
-            return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(Array.Empty<EmployeeSalaryComponentReadDto>());
+            return ServiceResult<IEnumerable<EmployeeSalaryComponentReadDto>>.Ok(
+                Array.Empty<EmployeeSalaryComponentReadDto>()
+            );
         return await GetComponentsAsync(salaryId.Value, ct);
     }
 
-    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> CreateComponentAsync(EmployeeSalaryComponentCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> CreateComponentAsync(
+        EmployeeSalaryComponentCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var salaryExists = await _db.EmployeeSalaries
-            .AnyAsync(s => s.Id == dto.EmployeeSalaryId && s.DeletedAt == null, ct);
+        var salaryExists = await _db.EmployeeSalaries.AnyAsync(
+            s => s.Id == dto.EmployeeSalaryId && s.DeletedAt == null,
+            ct
+        );
         if (!salaryExists)
             return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Salaire introuvable.");
 
         if (dto.EndDate.HasValue && dto.EndDate.Value < dto.EffectiveDate)
-            return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("La date de fin doit être après la date d'effet.");
+            return ServiceResult<EmployeeSalaryComponentReadDto>.Fail(
+                "La date de fin doit être après la date d'effet."
+            );
 
-        var c = new EmployeeSalaryComponent { EmployeeSalaryId = dto.EmployeeSalaryId, ComponentType = dto.ComponentType, IsTaxable = dto.IsTaxable, IsSocial = true, IsCIMR = false, Amount = dto.Amount, EffectiveDate = dto.EffectiveDate, EndDate = dto.EndDate, CreatedBy = createdBy };
+        var c = new EmployeeSalaryComponent
+        {
+            EmployeeSalaryId = dto.EmployeeSalaryId,
+            ComponentType = dto.ComponentType,
+            IsTaxable = dto.IsTaxable,
+            IsSocial = true,
+            IsCIMR = false,
+            Amount = dto.Amount,
+            EffectiveDate = dto.EffectiveDate,
+            EndDate = dto.EndDate,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeSalaryComponents.Add(c);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
     }
 
-    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> UpdateComponentAsync(int id, EmployeeSalaryComponentUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSalaryComponentReadDto>> UpdateComponentAsync(
+        int id,
+        EmployeeSalaryComponentUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var c = await _db.EmployeeSalaryComponents.FindAsync(new object[] { id }, ct);
         if (c == null || c.DeletedAt != null)
@@ -340,7 +514,9 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         if (dto.EndDate.HasValue)
         {
             if (dto.EndDate.Value < c.EffectiveDate)
-                return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("La date de fin doit être après la date d'effet.");
+                return ServiceResult<EmployeeSalaryComponentReadDto>.Fail(
+                    "La date de fin doit être après la date d'effet."
+                );
             c.EndDate = dto.EndDate;
         }
         c.UpdatedBy = updatedBy;
@@ -359,7 +535,12 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<object>> ReviseSalaryComponentAsync(int id, EmployeeSalaryComponentUpdateDto dto, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ReviseSalaryComponentAsync(
+        int id,
+        EmployeeSalaryComponentUpdateDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var old = await _db.EmployeeSalaryComponents.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (old == null)
@@ -380,52 +561,52 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             IsCIMR = old.IsCIMR,
             EffectiveDate = newEff,
             EndDate = dto.EndDate,
-            CreatedBy = userId
+            CreatedBy = userId,
         };
         _db.EmployeeSalaryComponents.Add(neu);
         await _db.SaveChangesAsync(ct);
-        return ServiceResult<object>.Ok(new
-        {
-            Message = "Composant révisé avec succès",
-            OldVersion = new
+        return ServiceResult<object>.Ok(
+            new
             {
-                old.Id,
-                old.EndDate
-            },
-            NewVersion = new
-            {
-                neu.Id,
-                neu.Amount,
-                neu.EffectiveDate,
-                neu.EndDate
+                Message = "Composant révisé avec succès",
+                OldVersion = new { old.Id, old.EndDate },
+                NewVersion = new
+                {
+                    neu.Id,
+                    neu.Amount,
+                    neu.EffectiveDate,
+                    neu.EndDate,
+                },
             }
-        });
+        );
     }
 
-    private static EmployeeSalaryReadDto MapSalary(EmployeeSalary s) => new()
-    {
-        Id = s.Id,
-        EmployeeId = s.EmployeeId,
-        EmployeeFullName = s.Employee != null ? $"{s.Employee.FirstName} {s.Employee.LastName}" : string.Empty,
-        ContractId = s.ContractId,
-        BaseSalary = s.BaseSalary,
-        BaseSalaryHourly = s.BaseSalaryHourly,
-        EffectiveDate = s.EffectiveDate,
-        EndDate = s.EndDate,
-        CreatedAt = s.CreatedAt.DateTime
-    };
+    private static EmployeeSalaryReadDto MapSalary(EmployeeSalary s) =>
+        new()
+        {
+            Id = s.Id,
+            EmployeeId = s.EmployeeId,
+            EmployeeFullName = s.Employee != null ? $"{s.Employee.FirstName} {s.Employee.LastName}" : string.Empty,
+            ContractId = s.ContractId,
+            BaseSalary = s.BaseSalary,
+            BaseSalaryHourly = s.BaseSalaryHourly,
+            EffectiveDate = s.EffectiveDate,
+            EndDate = s.EndDate,
+            CreatedAt = s.CreatedAt.DateTime,
+        };
 
-    private static EmployeeSalaryComponentReadDto MapComp(EmployeeSalaryComponent c) => new()
-    {
-        Id = c.Id,
-        EmployeeSalaryId = c.EmployeeSalaryId,
-        ComponentType = c.ComponentType,
-        IsTaxable = c.IsTaxable,
-        Amount = c.Amount,
-        EffectiveDate = c.EffectiveDate,
-        EndDate = c.EndDate,
-        CreatedAt = c.CreatedAt.DateTime
-    };
+    private static EmployeeSalaryComponentReadDto MapComp(EmployeeSalaryComponent c) =>
+        new()
+        {
+            Id = c.Id,
+            EmployeeSalaryId = c.EmployeeSalaryId,
+            ComponentType = c.ComponentType,
+            IsTaxable = c.IsTaxable,
+            Amount = c.Amount,
+            EffectiveDate = c.EffectiveDate,
+            EndDate = c.EndDate,
+            CreatedAt = c.CreatedAt.DateTime,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -436,6 +617,7 @@ public class EmployeeDocumentService : IEmployeeDocumentService
 {
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
+
     public EmployeeDocumentService(AppDbContext db, IWebHostEnvironment env)
     {
         _db = db;
@@ -444,7 +626,8 @@ public class EmployeeDocumentService : IEmployeeDocumentService
 
     public async Task<ServiceResult<IEnumerable<EmployeeDocumentReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _db.EmployeeDocuments.AsNoTracking()
+        var entities = await _db
+            .EmployeeDocuments.AsNoTracking()
             .Where(d => d.DeletedAt == null)
             .Include(d => d.Employee)
             .OrderByDescending(d => d.CreatedAt)
@@ -454,20 +637,25 @@ public class EmployeeDocumentService : IEmployeeDocumentService
 
     public async Task<ServiceResult<EmployeeDocumentReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var d = await _db.EmployeeDocuments
-            .Include(x => x.Employee)
+        var d = await _db
+            .EmployeeDocuments.Include(x => x.Employee)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        return d == null ? ServiceResult<EmployeeDocumentReadDto>.Fail("Document introuvable.") : ServiceResult<EmployeeDocumentReadDto>.Ok(Map(d));
+        return d == null
+            ? ServiceResult<EmployeeDocumentReadDto>.Fail("Document introuvable.")
+            : ServiceResult<EmployeeDocumentReadDto>.Ok(Map(d));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeDocumentReadDto>>> GetByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeDocumentReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
         if (!employeeExists)
             return ServiceResult<IEnumerable<EmployeeDocumentReadDto>>.Fail("Employé introuvable.");
 
-        var list = await _db.EmployeeDocuments
-            .Where(d => d.EmployeeId == employeeId && d.DeletedAt == null)
+        var list = await _db
+            .EmployeeDocuments.Where(d => d.EmployeeId == employeeId && d.DeletedAt == null)
             .Include(d => d.Employee)
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => Map(d))
@@ -475,22 +663,37 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         return ServiceResult<IEnumerable<EmployeeDocumentReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EmployeeDocumentReadDto>> CreateAsync(EmployeeDocumentCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeDocumentReadDto>> CreateAsync(
+        EmployeeDocumentCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
         if (!employeeExists)
             return ServiceResult<EmployeeDocumentReadDto>.Fail("Employé introuvable.");
 
-        var d = new EmployeeDocument { EmployeeId = dto.EmployeeId, Name = dto.Name, FilePath = dto.FilePath, DocumentType = dto.DocumentType, ExpirationDate = dto.ExpirationDate, CreatedBy = createdBy };
+        var d = new EmployeeDocument
+        {
+            EmployeeId = dto.EmployeeId,
+            Name = dto.Name,
+            FilePath = dto.FilePath,
+            DocumentType = dto.DocumentType,
+            ExpirationDate = dto.ExpirationDate,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeDocuments.Add(d);
         await _db.SaveChangesAsync(ct);
-        var created = await _db.EmployeeDocuments
-            .Include(x => x.Employee)
-            .FirstAsync(x => x.Id == d.Id, ct);
+        var created = await _db.EmployeeDocuments.Include(x => x.Employee).FirstAsync(x => x.Id == d.Id, ct);
         return ServiceResult<EmployeeDocumentReadDto>.Ok(Map(created));
     }
 
-    public async Task<ServiceResult<EmployeeDocumentReadDto>> UpdateAsync(int id, EmployeeDocumentUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeDocumentReadDto>> UpdateAsync(
+        int id,
+        EmployeeDocumentUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var d = await _db.EmployeeDocuments.FindAsync(new object[] { id }, ct);
         if (d == null || d.DeletedAt != null)
@@ -520,17 +723,19 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         return ServiceResult.Ok();
     }
 
-    private static EmployeeDocumentReadDto Map(EmployeeDocument d) => new()
-    {
-        Id = d.Id,
-        EmployeeId = d.EmployeeId,
-        EmployeeFullName = d.Employee != null ? $"{d.Employee.FirstName} {d.Employee.LastName}".Trim() : string.Empty,
-        Name = d.Name,
-        FilePath = d.FilePath,
-        DocumentType = d.DocumentType,
-        ExpirationDate = d.ExpirationDate,
-        CreatedAt = d.CreatedAt.DateTime
-    };
+    private static EmployeeDocumentReadDto Map(EmployeeDocument d) =>
+        new()
+        {
+            Id = d.Id,
+            EmployeeId = d.EmployeeId,
+            EmployeeFullName =
+                d.Employee != null ? $"{d.Employee.FirstName} {d.Employee.LastName}".Trim() : string.Empty,
+            Name = d.Name,
+            FilePath = d.FilePath,
+            DocumentType = d.DocumentType,
+            ExpirationDate = d.ExpirationDate,
+            CreatedAt = d.CreatedAt.DateTime,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -541,6 +746,7 @@ public class EmployeeAddressService : IEmployeeAddressService
 {
     private readonly AppDbContext _db;
     private readonly IEmployeeEventLogService _eventLog;
+
     public EmployeeAddressService(AppDbContext db, IEmployeeEventLogService eventLog)
     {
         _db = db;
@@ -549,7 +755,8 @@ public class EmployeeAddressService : IEmployeeAddressService
 
     public async Task<ServiceResult<IEnumerable<EmployeeAddressReadDto>>> GetAllAsync(CancellationToken ct = default)
     {
-        var entities = await _db.EmployeeAddresses.AsNoTracking()
+        var entities = await _db
+            .EmployeeAddresses.AsNoTracking()
             .Where(a => a.DeletedAt == null)
             .Include(a => a.City)
             .OrderByDescending(a => a.CreatedAt)
@@ -559,36 +766,49 @@ public class EmployeeAddressService : IEmployeeAddressService
 
     public async Task<ServiceResult<EmployeeAddressReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var a = await _db.EmployeeAddresses
-            .Include(x => x.Employee)
-            .Include(x => x.City).ThenInclude(c => c!.Country)
+        var a = await _db
+            .EmployeeAddresses.Include(x => x.Employee)
+            .Include(x => x.City)
+                .ThenInclude(c => c!.Country)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        return a == null ? ServiceResult<EmployeeAddressReadDto>.Fail("Adresse introuvable.") : ServiceResult<EmployeeAddressReadDto>.Ok(Map(a));
+        return a == null
+            ? ServiceResult<EmployeeAddressReadDto>.Fail("Adresse introuvable.")
+            : ServiceResult<EmployeeAddressReadDto>.Ok(Map(a));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeAddressReadDto>>> GetByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeAddressReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
         if (!employeeExists)
             return ServiceResult<IEnumerable<EmployeeAddressReadDto>>.Fail("Employé introuvable.");
 
-        var list = await _db.EmployeeAddresses
-            .Where(a => a.EmployeeId == employeeId && a.DeletedAt == null)
+        var list = await _db
+            .EmployeeAddresses.Where(a => a.EmployeeId == employeeId && a.DeletedAt == null)
             .Include(a => a.Employee)
-            .Include(a => a.City).ThenInclude(c => c!.Country)
+            .Include(a => a.City)
+                .ThenInclude(c => c!.Country)
             .OrderByDescending(a => a.CreatedAt)
             .Select(a => Map(a))
             .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeAddressReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EmployeeAddressReadDto>> CreateAsync(EmployeeAddressCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAddressReadDto>> CreateAsync(
+        EmployeeAddressCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
         var employeeExists = await _db.Employees.AnyAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
         if (!employeeExists)
             return ServiceResult<EmployeeAddressReadDto>.Fail("Employé introuvable.");
 
-        var city = await _db.Cities.AsNoTracking().FirstOrDefaultAsync(c => c.Id == dto.CityId && c.DeletedAt == null, ct);
+        var city = await _db
+            .Cities.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == dto.CityId && c.DeletedAt == null, ct);
         if (city == null)
             return ServiceResult<EmployeeAddressReadDto>.Fail("Ville introuvable.");
 
@@ -599,22 +819,44 @@ public class EmployeeAddressService : IEmployeeAddressService
         if (city.CountryId != dto.CountryId)
             return ServiceResult<EmployeeAddressReadDto>.Fail("La ville ne correspond pas au pays spécifié.");
 
-        var a = new EmployeeAddress { EmployeeId = dto.EmployeeId, AddressLine1 = dto.AddressLine1, AddressLine2 = dto.AddressLine2, ZipCode = dto.ZipCode, CityId = dto.CityId, CreatedBy = createdBy };
+        var a = new EmployeeAddress
+        {
+            EmployeeId = dto.EmployeeId,
+            AddressLine1 = dto.AddressLine1,
+            AddressLine2 = dto.AddressLine2,
+            ZipCode = dto.ZipCode,
+            CityId = dto.CityId,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeAddresses.Add(a);
         await _db.SaveChangesAsync(ct);
-        var created = await _db.EmployeeAddresses
-            .Include(x => x.Employee)
-            .Include(x => x.City).ThenInclude(c => c!.Country)
+        var created = await _db
+            .EmployeeAddresses.Include(x => x.Employee)
+            .Include(x => x.City)
+                .ThenInclude(c => c!.Country)
             .FirstAsync(x => x.Id == a.Id, ct);
         var newAddrStr = $"{dto.AddressLine1}, {created.City?.CityName}";
-        await _eventLog.LogSimpleEventAsync(dto.EmployeeId, EmployeeEventLogNames.AddressCreated, null, newAddrStr, createdBy, ct);
+        await _eventLog.LogSimpleEventAsync(
+            dto.EmployeeId,
+            EmployeeEventLogNames.AddressCreated,
+            null,
+            newAddrStr,
+            createdBy,
+            ct
+        );
         return ServiceResult<EmployeeAddressReadDto>.Ok(Map(created));
     }
 
-    public async Task<ServiceResult<EmployeeAddressReadDto>> UpdateAsync(int id, EmployeeAddressUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAddressReadDto>> UpdateAsync(
+        int id,
+        EmployeeAddressUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAddresses
-            .Include(x => x.City).ThenInclude(c => c!.Country)
+        var a = await _db
+            .EmployeeAddresses.Include(x => x.City)
+                .ThenInclude(c => c!.Country)
             .FirstOrDefaultAsync(x => x.Id == id, ct);
         if (a == null || a.DeletedAt != null)
             return ServiceResult<EmployeeAddressReadDto>.Fail("Adresse introuvable.");
@@ -637,24 +879,37 @@ public class EmployeeAddressService : IEmployeeAddressService
 
         if (dto.CountryId.HasValue)
         {
-            var countryExists = await _db.Countries.AnyAsync(c => c.Id == dto.CountryId.Value && c.DeletedAt == null, ct);
+            var countryExists = await _db.Countries.AnyAsync(
+                c => c.Id == dto.CountryId.Value && c.DeletedAt == null,
+                ct
+            );
             if (!countryExists)
                 return ServiceResult<EmployeeAddressReadDto>.Fail("Pays introuvable.");
 
             var currentCityId = dto.CityId ?? a.CityId;
-            var city = await _db.Cities.AsNoTracking().FirstOrDefaultAsync(c => c.Id == currentCityId && c.DeletedAt == null, ct);
+            var city = await _db
+                .Cities.AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == currentCityId && c.DeletedAt == null, ct);
             if (city == null || city.CountryId != dto.CountryId.Value)
                 return ServiceResult<EmployeeAddressReadDto>.Fail("La ville ne correspond pas au pays spécifié.");
         }
 
         a.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
-        var updated = await _db.EmployeeAddresses
-            .Include(x => x.Employee)
-            .Include(x => x.City).ThenInclude(c => c!.Country)
+        var updated = await _db
+            .EmployeeAddresses.Include(x => x.Employee)
+            .Include(x => x.City)
+                .ThenInclude(c => c!.Country)
             .FirstAsync(x => x.Id == id, ct);
         var newAddrStr = $"{updated.AddressLine1}, {updated.City?.CityName}";
-        await _eventLog.LogSimpleEventAsync(a.EmployeeId, EmployeeEventLogNames.AddressUpdated, oldAddrStr, newAddrStr, updatedBy, ct);
+        await _eventLog.LogSimpleEventAsync(
+            a.EmployeeId,
+            EmployeeEventLogNames.AddressUpdated,
+            oldAddrStr,
+            newAddrStr,
+            updatedBy,
+            ct
+        );
         return ServiceResult<EmployeeAddressReadDto>.Ok(Map(updated));
     }
 
@@ -669,20 +924,22 @@ public class EmployeeAddressService : IEmployeeAddressService
         return ServiceResult.Ok();
     }
 
-    private static EmployeeAddressReadDto Map(EmployeeAddress a) => new()
-    {
-        Id = a.Id,
-        EmployeeId = a.EmployeeId,
-        EmployeeFullName = a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}".Trim() : string.Empty,
-        AddressLine1 = a.AddressLine1,
-        AddressLine2 = a.AddressLine2,
-        ZipCode = a.ZipCode,
-        CityId = a.CityId,
-        CityName = a.City?.CityName ?? string.Empty,
-        CountryId = a.City?.CountryId ?? 0,
-        CountryName = a.City?.Country?.CountryName ?? string.Empty,
-        CreatedAt = a.CreatedAt.DateTime
-    };
+    private static EmployeeAddressReadDto Map(EmployeeAddress a) =>
+        new()
+        {
+            Id = a.Id,
+            EmployeeId = a.EmployeeId,
+            EmployeeFullName =
+                a.Employee != null ? $"{a.Employee.FirstName} {a.Employee.LastName}".Trim() : string.Empty,
+            AddressLine1 = a.AddressLine1,
+            AddressLine2 = a.AddressLine2,
+            ZipCode = a.ZipCode,
+            CityId = a.CityId,
+            CityName = a.City?.CityName ?? string.Empty,
+            CountryId = a.City?.CountryId ?? 0,
+            CountryName = a.City?.Country?.CountryName ?? string.Empty,
+            CreatedAt = a.CreatedAt.DateTime,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -692,29 +949,57 @@ public class EmployeeAddressService : IEmployeeAddressService
 public class EmployeeFamilyService : IEmployeeFamilyService
 {
     private readonly AppDbContext _db;
+
     public EmployeeFamilyService(AppDbContext db) => _db = db;
 
     public async Task<ServiceResult<EmployeeChildReadDto>> GetChildByIdAsync(int id, CancellationToken ct = default)
     {
         var c = await _db.EmployeeChildren.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
-        return c == null ? ServiceResult<EmployeeChildReadDto>.Fail("Enfant introuvable.") : ServiceResult<EmployeeChildReadDto>.Ok(MapChild(c));
+        return c == null
+            ? ServiceResult<EmployeeChildReadDto>.Fail("Enfant introuvable.")
+            : ServiceResult<EmployeeChildReadDto>.Ok(MapChild(c));
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeChildReadDto>>> GetChildrenAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeChildReadDto>>> GetChildrenAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeChildren.Where(c => c.EmployeeId == employeeId).Select(c => MapChild(c)).ToListAsync(ct);
+        var list = await _db
+            .EmployeeChildren.Where(c => c.EmployeeId == employeeId)
+            .Select(c => MapChild(c))
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeChildReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EmployeeChildReadDto>> CreateChildAsync(EmployeeChildCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeChildReadDto>> CreateChildAsync(
+        EmployeeChildCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var c = new EmployeeChild { EmployeeId = dto.EmployeeId, FirstName = dto.FirstName, LastName = dto.LastName, DateOfBirth = dto.DateOfBirth, GenderId = dto.GenderId, IsDependent = dto.IsDependent, IsStudent = dto.IsStudent, CreatedBy = createdBy };
+        var c = new EmployeeChild
+        {
+            EmployeeId = dto.EmployeeId,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            DateOfBirth = dto.DateOfBirth,
+            GenderId = dto.GenderId,
+            IsDependent = dto.IsDependent,
+            IsStudent = dto.IsStudent,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeChildren.Add(c);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeChildReadDto>.Ok(MapChild(c));
     }
 
-    public async Task<ServiceResult<EmployeeChildReadDto>> UpdateChildAsync(int id, EmployeeChildUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeChildReadDto>> UpdateChildAsync(
+        int id,
+        EmployeeChildUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var c = await _db.EmployeeChildren.FindAsync(new object[] { id }, ct);
         if (c == null)
@@ -737,21 +1022,46 @@ public class EmployeeFamilyService : IEmployeeFamilyService
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeSpouseReadDto>>> GetSpousesAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeSpouseReadDto>>> GetSpousesAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var list = await _db.EmployeeSpouses.Where(s => s.EmployeeId == employeeId).Select(s => MapSpouse(s)).ToListAsync(ct);
+        var list = await _db
+            .EmployeeSpouses.Where(s => s.EmployeeId == employeeId)
+            .Select(s => MapSpouse(s))
+            .ToListAsync(ct);
         return ServiceResult<IEnumerable<EmployeeSpouseReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<EmployeeSpouseReadDto>> CreateSpouseAsync(EmployeeSpouseCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSpouseReadDto>> CreateSpouseAsync(
+        EmployeeSpouseCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var s = new EmployeeSpouse { EmployeeId = dto.EmployeeId, FirstName = dto.FirstName, LastName = dto.LastName, DateOfBirth = dto.DateOfBirth, GenderId = dto.GenderId, CinNumber = dto.CinNumber, IsDependent = dto.IsDependent, CreatedBy = createdBy };
+        var s = new EmployeeSpouse
+        {
+            EmployeeId = dto.EmployeeId,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            DateOfBirth = dto.DateOfBirth,
+            GenderId = dto.GenderId,
+            CinNumber = dto.CinNumber,
+            IsDependent = dto.IsDependent,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeSpouses.Add(s);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSpouseReadDto>.Ok(MapSpouse(s));
     }
 
-    public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseAsync(int id, EmployeeSpouseUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseAsync(
+        int id,
+        EmployeeSpouseUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var s = await _db.EmployeeSpouses.FindAsync(new object[] { id }, ct);
         if (s == null || s.DeletedAt != null)
@@ -762,9 +1072,17 @@ public class EmployeeFamilyService : IEmployeeFamilyService
         return ServiceResult<EmployeeSpouseReadDto>.Ok(MapSpouse(s));
     }
 
-    public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseByEmployeeAsync(int employeeId, EmployeeSpouseUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeSpouseReadDto>> UpdateSpouseByEmployeeAsync(
+        int employeeId,
+        EmployeeSpouseUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
-        var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(x => x.EmployeeId == employeeId && x.DeletedAt == null, ct);
+        var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(
+            x => x.EmployeeId == employeeId && x.DeletedAt == null,
+            ct
+        );
         if (s == null)
             return ServiceResult<EmployeeSpouseReadDto>.Fail("Aucun conjoint trouvé.");
         ApplySpouseUpdate(s, dto);
@@ -784,9 +1102,16 @@ public class EmployeeFamilyService : IEmployeeFamilyService
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> DeleteSpouseByEmployeeAsync(int employeeId, int deletedBy, CancellationToken ct = default)
+    public async Task<ServiceResult> DeleteSpouseByEmployeeAsync(
+        int employeeId,
+        int deletedBy,
+        CancellationToken ct = default
+    )
     {
-        var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(x => x.EmployeeId == employeeId && x.DeletedAt == null, ct);
+        var s = await _db.EmployeeSpouses.FirstOrDefaultAsync(
+            x => x.EmployeeId == employeeId && x.DeletedAt == null,
+            ct
+        );
         if (s == null)
             return ServiceResult.Fail("Aucun conjoint trouvé.");
         s.DeletedAt = DateTimeOffset.UtcNow;
@@ -805,18 +1130,30 @@ public class EmployeeFamilyService : IEmployeeFamilyService
         s.IsDependent = dto.IsDependent;
     }
 
-    private static EmployeeChildReadDto MapChild(EmployeeChild c) => new() { Id = c.Id, EmployeeId = c.EmployeeId, FirstName = c.FirstName, LastName = c.LastName, DateOfBirth = c.DateOfBirth, IsDependent = c.IsDependent, IsStudent = c.IsStudent };
-    private static EmployeeSpouseReadDto MapSpouse(EmployeeSpouse s) => new()
-    {
-        Id = s.Id,
-        EmployeeId = s.EmployeeId,
-        FirstName = s.FirstName,
-        LastName = s.LastName,
-        DateOfBirth = s.DateOfBirth,
-        GenderId = s.GenderId,
-        CinNumber = s.CinNumber,
-        IsDependent = s.IsDependent
-    };
+    private static EmployeeChildReadDto MapChild(EmployeeChild c) =>
+        new()
+        {
+            Id = c.Id,
+            EmployeeId = c.EmployeeId,
+            FirstName = c.FirstName,
+            LastName = c.LastName,
+            DateOfBirth = c.DateOfBirth,
+            IsDependent = c.IsDependent,
+            IsStudent = c.IsStudent,
+        };
+
+    private static EmployeeSpouseReadDto MapSpouse(EmployeeSpouse s) =>
+        new()
+        {
+            Id = s.Id,
+            EmployeeId = s.EmployeeId,
+            FirstName = s.FirstName,
+            LastName = s.LastName,
+            DateOfBirth = s.DateOfBirth,
+            GenderId = s.GenderId,
+            CinNumber = s.CinNumber,
+            IsDependent = s.IsDependent,
+        };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -826,9 +1163,17 @@ public class EmployeeFamilyService : IEmployeeFamilyService
 public class EmployeeAttendanceService : IEmployeeAttendanceService
 {
     private readonly AppDbContext _db;
+
     public EmployeeAttendanceService(AppDbContext db) => _db = db;
 
-    public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetAllAsync(DateOnly? startDate, DateOnly? endDate, int? employeeId, AttendanceStatus? status, bool includeBreaks = false, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetAllAsync(
+        DateOnly? startDate,
+        DateOnly? endDate,
+        int? employeeId,
+        AttendanceStatus? status,
+        bool includeBreaks = false,
+        CancellationToken ct = default
+    )
     {
         var q = _db.EmployeeAttendances.AsNoTracking().Where(a => a.DeletedAt == null);
         if (startDate.HasValue)
@@ -842,10 +1187,18 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var list = await q.OrderByDescending(a => a.WorkDate).ToListAsync(ct);
-        return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Ok(list.Select(a => MapAttendance(a, includeBreaks)));
+        return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Ok(
+            list.Select(a => MapAttendance(a, includeBreaks))
+        );
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetByEmployeeAsync(int employeeId, DateOnly? from, DateOnly? to, bool includeBreaks = false, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        DateOnly? from,
+        DateOnly? to,
+        bool includeBreaks = false,
+        CancellationToken ct = default
+    )
     {
         var q = _db.EmployeeAttendances.AsNoTracking().Where(a => a.EmployeeId == employeeId && a.DeletedAt == null);
         if (from.HasValue)
@@ -855,12 +1208,20 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var list = await q.OrderByDescending(a => a.WorkDate).ToListAsync(ct);
-        return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Ok(list.Select(a => MapAttendance(a, includeBreaks)));
+        return ServiceResult<IEnumerable<EmployeeAttendanceReadDto>>.Ok(
+            list.Select(a => MapAttendance(a, includeBreaks))
+        );
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> GetByIdAsync(int id, bool includeBreaks = false, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> GetByIdAsync(
+        int id,
+        bool includeBreaks = false,
+        CancellationToken ct = default
+    )
     {
-        IQueryable<EmployeeAttendance> q = _db.EmployeeAttendances.AsNoTracking().Where(x => x.Id == id && x.DeletedAt == null);
+        IQueryable<EmployeeAttendance> q = _db
+            .EmployeeAttendances.AsNoTracking()
+            .Where(x => x.Id == id && x.DeletedAt == null);
         if (includeBreaks)
             q = q.Include(a => a.Breaks);
         var a = await q.FirstOrDefaultAsync(ct);
@@ -869,15 +1230,34 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, includeBreaks));
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CreateAsync(EmployeeAttendanceCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CreateAsync(
+        EmployeeAttendanceCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var a = new EmployeeAttendance { EmployeeId = dto.EmployeeId, WorkDate = dto.WorkDate, CheckIn = dto.CheckIn, CheckOut = dto.CheckOut, WorkedHours = 0m, Status = AttendanceStatus.Present, Source = dto.Source, CreatedBy = createdBy };
+        var a = new EmployeeAttendance
+        {
+            EmployeeId = dto.EmployeeId,
+            WorkDate = dto.WorkDate,
+            CheckIn = dto.CheckIn,
+            CheckOut = dto.CheckOut,
+            WorkedHours = 0m,
+            Status = AttendanceStatus.Present,
+            Source = dto.Source,
+            CreatedBy = createdBy,
+        };
         _db.EmployeeAttendances.Add(a);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, false));
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> UpdateAsync(int id, EmployeeAttendanceUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> UpdateAsync(
+        int id,
+        EmployeeAttendanceUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var a = await _db.EmployeeAttendances.FindAsync(new object[] { id }, ct);
         if (a == null)
@@ -891,7 +1271,12 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, false));
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> PutAsync(int id, EmployeeAttendanceCreateDto dto, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> PutAsync(
+        int id,
+        EmployeeAttendanceCreateDto dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var a = await _db.EmployeeAttendances.FindAsync(new object[] { id }, ct);
         if (a == null || a.DeletedAt != null)
@@ -907,12 +1292,19 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(a, false));
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CheckInAsync(int employeeId, EmployeeAttendanceCreateDto? dto, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CheckInAsync(
+        int employeeId,
+        EmployeeAttendanceCreateDto? dto,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var date = DateOnly.FromDateTime(DateTime.UtcNow);
         var now = TimeOnly.FromDateTime(DateTime.UtcNow);
-        var attendance = await _db.EmployeeAttendances
-            .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.WorkDate == date && a.DeletedAt == null, ct);
+        var attendance = await _db.EmployeeAttendances.FirstOrDefaultAsync(
+            a => a.EmployeeId == employeeId && a.WorkDate == date && a.DeletedAt == null,
+            ct
+        );
 
         if (attendance != null && attendance.CheckIn.HasValue)
             return ServiceResult<EmployeeAttendanceReadDto>.Fail("L'employé a déjà pointé son entrée aujourd'hui.");
@@ -928,7 +1320,7 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
                 WorkedHours = 0m,
                 Status = AttendanceStatus.Present,
                 Source = dto?.Source ?? AttendanceSource.Manual,
-                CreatedBy = userId
+                CreatedBy = userId,
             };
             _db.EmployeeAttendances.Add(attendance);
         }
@@ -944,14 +1336,24 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         return ServiceResult<EmployeeAttendanceReadDto>.Ok(MapAttendance(attendance, false));
     }
 
-    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CheckOutAsync(int employeeId, int? attendanceId, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAttendanceReadDto>> CheckOutAsync(
+        int employeeId,
+        int? attendanceId,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         var date = DateOnly.FromDateTime(DateTime.UtcNow);
         EmployeeAttendance? att;
         if (attendanceId.HasValue)
-            att = await _db.EmployeeAttendances.FirstOrDefaultAsync(a => a.Id == attendanceId.Value && a.EmployeeId == employeeId, ct);
+            att = await _db.EmployeeAttendances.FirstOrDefaultAsync(
+                a => a.Id == attendanceId.Value && a.EmployeeId == employeeId,
+                ct
+            );
         else
-            att = await _db.EmployeeAttendances.OrderByDescending(a => a.WorkDate).FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.WorkDate == date && a.CheckOut == null, ct);
+            att = await _db
+                .EmployeeAttendances.OrderByDescending(a => a.WorkDate)
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.WorkDate == date && a.CheckOut == null, ct);
         if (att == null)
             return ServiceResult<EmployeeAttendanceReadDto>.Fail("Pointage introuvable ou déjà clôturé.");
         att.CheckOut = TimeOnly.FromDateTime(DateTime.UtcNow);
@@ -974,12 +1376,19 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
         return ServiceResult.Ok();
     }
 
-    public Task<ServiceResult<TimesheetImportResultDto>> ImportTimesheetAsync(int companyId, int month, int year, IEnumerable<object> rows, int userId, CancellationToken ct = default)
-
+    public Task<ServiceResult<TimesheetImportResultDto>> ImportTimesheetAsync(
+        int companyId,
+        int month,
+        int year,
+        IEnumerable<object> rows,
+        int userId,
+        CancellationToken ct = default
+    )
     {
         // Import timesheet géré par TimesheetImportController (api/timesheets/import)
-        return Task.FromResult(ServiceResult<TimesheetImportResultDto>.Fail(
-            "Utilisez l'endpoint POST api/timesheets/import directement."));
+        return Task.FromResult(
+            ServiceResult<TimesheetImportResultDto>.Fail("Utilisez l'endpoint POST api/timesheets/import directement.")
+        );
     }
 
     private static EmployeeAttendanceReadDto MapAttendance(EmployeeAttendance a, bool includeBreaks)
@@ -994,12 +1403,12 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
             WorkedHours = a.WorkedHours,
             BreakMinutesApplied = a.BreakMinutesApplied,
             Status = a.Status,
-            Source = a.Source
+            Source = a.Source,
         };
         if (includeBreaks && a.Breaks != null && a.Breaks.Count > 0)
         {
-            dto.Breaks = a.Breaks
-                .OrderBy(b => b.BreakStart)
+            dto.Breaks = a
+                .Breaks.OrderBy(b => b.BreakStart)
                 .Select(b => new EmployeeAttendanceBreakReadDto
                 {
                     Id = b.Id,
@@ -1007,7 +1416,7 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
                     BreakEnd = b.BreakEnd,
                     BreakType = b.BreakType ?? string.Empty,
                     CreatedAt = b.CreatedAt,
-                    ModifiedAt = b.UpdatedAt
+                    ModifiedAt = b.UpdatedAt,
                 })
                 .ToList();
         }
@@ -1022,27 +1431,39 @@ public class EmployeeAttendanceService : IEmployeeAttendanceService
 public class EmployeeAbsenceService : IEmployeeAbsenceService
 {
     private readonly AppDbContext _db;
+
     public EmployeeAbsenceService(AppDbContext db) => _db = db;
 
-    private static string DurationDescription(AbsenceDurationType t) => t switch
-    {
-        AbsenceDurationType.FullDay => "Journée entière",
-        AbsenceDurationType.HalfDay => "Demi-journée",
-        AbsenceDurationType.Hourly => "Horaire",
-        _ => t.ToString()
-    };
+    private static string DurationDescription(AbsenceDurationType t) =>
+        t switch
+        {
+            AbsenceDurationType.FullDay => "Journée entière",
+            AbsenceDurationType.HalfDay => "Demi-journée",
+            AbsenceDurationType.Hourly => "Horaire",
+            _ => t.ToString(),
+        };
 
     private static string? HalfDayDescription(AbsenceDurationType dt, bool? isMorning) =>
         dt == AbsenceDurationType.HalfDay
-            ? (isMorning == true ? "Matin" : isMorning == false ? "Après-midi" : null)
+            ? (
+                isMorning == true ? "Matin"
+                : isMorning == false ? "Après-midi"
+                : null
+            )
             : null;
 
     private async Task<bool> IsRhOrAdminAsync(int userId, CancellationToken ct)
     {
         // Pas de StringComparison dans LINQ → EF ne peut pas traduire en SQL
-        return await _db.UsersRoles.AsNoTracking()
+        return await _db
+            .UsersRoles.AsNoTracking()
             .Where(ur => ur.UserId == userId && ur.DeletedAt == null)
-            .Join(_db.Roles.AsNoTracking().Where(r => r.DeletedAt == null), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+            .Join(
+                _db.Roles.AsNoTracking().Where(r => r.DeletedAt == null),
+                ur => ur.RoleId,
+                r => r.Id,
+                (ur, r) => r.Name
+            )
             .AnyAsync(n => n.ToLower() == "rh" || n.ToLower() == "admin", ct);
     }
 
@@ -1053,14 +1474,16 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         string? createdName = null;
         if (a.DecisionBy.HasValue)
         {
-            decisionName = await _db.Users.AsNoTracking()
+            decisionName = await _db
+                .Users.AsNoTracking()
                 .Where(u => u.Id == a.DecisionBy.Value)
                 .Select(u => u.Username)
                 .FirstOrDefaultAsync(ct);
         }
         if (a.CreatedBy > 0)
         {
-            createdName = await _db.Users.AsNoTracking()
+            createdName = await _db
+                .Users.AsNoTracking()
                 .Where(u => u.Id == a.CreatedBy)
                 .Select(u => u.Username)
                 .FirstOrDefaultAsync(ct);
@@ -1093,13 +1516,17 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
             DecisionComment = a.DecisionComment,
             CreatedAt = a.CreatedAt.UtcDateTime,
             CreatedBy = a.CreatedBy,
-            CreatedByName = createdName
+            CreatedByName = createdName,
         };
     }
 
-    public async Task<ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>> GetByEmployeeAsync(int employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>> GetByEmployeeAsync(
+        int employeeId,
+        CancellationToken ct = default
+    )
     {
-        var rows = await _db.EmployeeAbsences.AsNoTracking()
+        var rows = await _db
+            .EmployeeAbsences.AsNoTracking()
             .Where(a => a.EmployeeId == employeeId && a.DeletedAt == null)
             .OrderByDescending(a => a.AbsenceDate)
             .ToListAsync(ct);
@@ -1110,22 +1537,36 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
     }
 
     public async Task<ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>> GetByCompanyAsync(
-        int companyId, int? employeeId, DateOnly? startDate, DateOnly? endDate,
-        AbsenceDurationType? durationType, AbsenceStatus? status, string? absenceType, int limit, CancellationToken ct = default)
+        int companyId,
+        int? employeeId,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        AbsenceDurationType? durationType,
+        AbsenceStatus? status,
+        string? absenceType,
+        int limit,
+        CancellationToken ct = default
+    )
     {
         if (limit <= 0 || limit > 10000)
             return ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>.Fail("Le limit doit être entre 1 et 10000.");
 
-        var companyExists = await _db.Companies.AsNoTracking().AnyAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+        var companyExists = await _db
+            .Companies.AsNoTracking()
+            .AnyAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
         if (!companyExists)
             return ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>.Fail("Société non trouvée");
 
-        var query = _db.EmployeeAbsences.AsNoTracking()
+        var query = _db
+            .EmployeeAbsences.AsNoTracking()
             .Where(a => a.DeletedAt == null && a.Employee.CompanyId == companyId && a.Employee.DeletedAt == null);
 
         if (employeeId.HasValue)
         {
-            var ok = await _db.Employees.AnyAsync(e => e.Id == employeeId && e.CompanyId == companyId && e.DeletedAt == null, ct);
+            var ok = await _db.Employees.AnyAsync(
+                e => e.Id == employeeId && e.CompanyId == companyId && e.DeletedAt == null,
+                ct
+            );
             if (!ok)
                 return ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>.Fail("Employé non trouvé pour cette société");
             query = query.Where(a => a.EmployeeId == employeeId.Value);
@@ -1145,10 +1586,7 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
             query = query.Where(a => a.AbsenceType == t);
         }
 
-        var absences = await query
-            .OrderByDescending(a => a.AbsenceDate)
-            .Take(limit)
-            .ToListAsync(ct);
+        var absences = await query.OrderByDescending(a => a.AbsenceDate).Take(limit).ToListAsync(ct);
 
         var list = new List<EmployeeAbsenceReadDto>();
         foreach (var a in absences)
@@ -1156,13 +1594,19 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<IEnumerable<EmployeeAbsenceReadDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<IEnumerable<string>>> GetDistinctTypesAsync(int companyId, CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<string>>> GetDistinctTypesAsync(
+        int companyId,
+        CancellationToken ct = default
+    )
     {
-        var companyExists = await _db.Companies.AsNoTracking().AnyAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+        var companyExists = await _db
+            .Companies.AsNoTracking()
+            .AnyAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
         if (!companyExists)
             return ServiceResult<IEnumerable<string>>.Fail("Société non trouvée");
 
-        var types = await _db.EmployeeAbsences.AsNoTracking()
+        var types = await _db
+            .EmployeeAbsences.AsNoTracking()
             .Where(a => a.DeletedAt == null && a.Employee.CompanyId == companyId && a.Employee.DeletedAt == null)
             .Select(a => a.AbsenceType)
             .Distinct()
@@ -1173,25 +1617,35 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
 
     public async Task<ServiceResult<EmployeeAbsenceReadDto>> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var a = await _db.EmployeeAbsences.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceStatsDto>> GetStatsAsync(int companyId, int? employeeId, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceStatsDto>> GetStatsAsync(
+        int companyId,
+        int? employeeId,
+        CancellationToken ct = default
+    )
     {
-        var company = await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+        var company = await _db
+            .Companies.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
         if (company == null)
             return ServiceResult<EmployeeAbsenceStatsDto>.Fail("Société non trouvée");
 
-        var query = _db.EmployeeAbsences.AsNoTracking()
+        var query = _db
+            .EmployeeAbsences.AsNoTracking()
             .Where(a => a.DeletedAt == null && a.Employee.CompanyId == companyId && a.Employee.DeletedAt == null);
 
         string? employeeFullName = null;
         if (employeeId.HasValue)
         {
-            var empRow = await _db.Employees.AsNoTracking()
+            var empRow = await _db
+                .Employees.AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == employeeId && e.CompanyId == companyId && e.DeletedAt == null, ct);
             if (empRow == null)
                 return ServiceResult<EmployeeAbsenceStatsDto>.Fail("Employé non trouvé");
@@ -1210,7 +1664,7 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
                 SubmittedCount = g.Count(a => a.Status == AbsenceStatus.Submitted),
                 ApprovedCount = g.Count(a => a.Status == AbsenceStatus.Approved),
                 RejectedCount = g.Count(a => a.Status == AbsenceStatus.Rejected),
-                CancelledCount = g.Count(a => a.Status == AbsenceStatus.Cancelled)
+                CancelledCount = g.Count(a => a.Status == AbsenceStatus.Cancelled),
             })
             .FirstOrDefaultAsync(ct);
 
@@ -1228,7 +1682,7 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
             ApprovedCount = agg?.ApprovedCount ?? 0,
             RejectedCount = agg?.RejectedCount ?? 0,
             CancelledCount = agg?.CancelledCount ?? 0,
-            GeneratedAt = DateTimeOffset.UtcNow
+            GeneratedAt = DateTimeOffset.UtcNow,
         };
 
         var byType = await query
@@ -1239,18 +1693,29 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
 
         var byMonthRaw = await query
             .GroupBy(a => new { a.AbsenceDate.Year, a.AbsenceDate.Month })
-            .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                Count = g.Count(),
+            })
             .ToListAsync(ct);
         stats.AbsencesByMonth = byMonthRaw
-            .OrderBy(x => x.Year).ThenBy(x => x.Month)
+            .OrderBy(x => x.Year)
+            .ThenBy(x => x.Month)
             .ToDictionary(x => $"{x.Year:0000}-{x.Month:00}", x => x.Count);
 
         return ServiceResult<EmployeeAbsenceStatsDto>.Ok(stats);
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> CreateAsync(EmployeeAbsenceCreateDto dto, int createdBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> CreateAsync(
+        EmployeeAbsenceCreateDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
     {
-        var employee = await _db.Employees.AsNoTracking()
+        var employee = await _db
+            .Employees.AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == dto.EmployeeId && e.DeletedAt == null, ct);
         if (employee == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Employé non trouvé");
@@ -1261,38 +1726,67 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         if (dto.DurationType == AbsenceDurationType.Hourly)
         {
             if (!dto.StartTime.HasValue || !dto.EndTime.HasValue)
-                return ServiceResult<EmployeeAbsenceReadDto>.Fail("StartTime et EndTime sont requis pour une absence horaire");
+                return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                    "StartTime et EndTime sont requis pour une absence horaire"
+                );
             if (dto.StartTime >= dto.EndTime)
                 return ServiceResult<EmployeeAbsenceReadDto>.Fail("L'heure de fin doit être après l'heure de début");
         }
 
         if (dto.DurationType == AbsenceDurationType.Hourly)
         {
-            var overlapping = await _db.EmployeeAbsences
-                .Where(a => a.DeletedAt == null && a.EmployeeId == dto.EmployeeId && a.AbsenceDate == dto.AbsenceDate
+            var overlapping = await _db
+                .EmployeeAbsences.Where(a =>
+                    a.DeletedAt == null
+                    && a.EmployeeId == dto.EmployeeId
+                    && a.AbsenceDate == dto.AbsenceDate
                     && a.DurationType == AbsenceDurationType.Hourly
-                    && a.Status != AbsenceStatus.Rejected && a.Status != AbsenceStatus.Cancelled)
+                    && a.Status != AbsenceStatus.Rejected
+                    && a.Status != AbsenceStatus.Cancelled
+                )
                 .ToListAsync(ct);
             foreach (var existing in overlapping)
             {
-                if (existing.StartTime.HasValue && existing.EndTime.HasValue && dto.StartTime.HasValue && dto.EndTime.HasValue)
+                if (
+                    existing.StartTime.HasValue
+                    && existing.EndTime.HasValue
+                    && dto.StartTime.HasValue
+                    && dto.EndTime.HasValue
+                )
                 {
                     if (dto.StartTime < existing.EndTime && dto.EndTime > existing.StartTime)
                         return ServiceResult<EmployeeAbsenceReadDto>.Fail(
-                            $"Cette tranche horaire chevauche une absence existante ({existing.StartTime:HH\\:mm} - {existing.EndTime:HH\\:mm})");
+                            $"Cette tranche horaire chevauche une absence existante ({existing.StartTime:HH\\:mm} - {existing.EndTime:HH\\:mm})"
+                        );
                 }
             }
 
-            var fullOrHalf = await _db.EmployeeAbsences.AnyAsync(a => a.DeletedAt == null && a.EmployeeId == dto.EmployeeId && a.AbsenceDate == dto.AbsenceDate
-                && (a.DurationType == AbsenceDurationType.FullDay || a.DurationType == AbsenceDurationType.HalfDay)
-                && a.Status != AbsenceStatus.Rejected && a.Status != AbsenceStatus.Cancelled, ct);
+            var fullOrHalf = await _db.EmployeeAbsences.AnyAsync(
+                a =>
+                    a.DeletedAt == null
+                    && a.EmployeeId == dto.EmployeeId
+                    && a.AbsenceDate == dto.AbsenceDate
+                    && (a.DurationType == AbsenceDurationType.FullDay || a.DurationType == AbsenceDurationType.HalfDay)
+                    && a.Status != AbsenceStatus.Rejected
+                    && a.Status != AbsenceStatus.Cancelled,
+                ct
+            );
             if (fullOrHalf)
-                return ServiceResult<EmployeeAbsenceReadDto>.Fail("Une absence journée entière ou demi-journée existe déjà pour cette date");
+                return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                    "Une absence journée entière ou demi-journée existe déjà pour cette date"
+                );
         }
         else
         {
-            var exists = await _db.EmployeeAbsences.AnyAsync(a => a.DeletedAt == null && a.EmployeeId == dto.EmployeeId && a.AbsenceDate == dto.AbsenceDate
-                && a.Status != AbsenceStatus.Rejected && a.Status != AbsenceStatus.Cancelled, ct);
+            var exists = await _db.EmployeeAbsences.AnyAsync(
+                a =>
+                    a.DeletedAt == null
+                    && a.EmployeeId == dto.EmployeeId
+                    && a.AbsenceDate == dto.AbsenceDate
+                    && a.Status != AbsenceStatus.Rejected
+                    && a.Status != AbsenceStatus.Cancelled,
+                ct
+            );
             if (exists)
                 return ServiceResult<EmployeeAbsenceReadDto>.Fail("Une absence existe déjà pour cette date");
         }
@@ -1318,20 +1812,27 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
             DecisionAt = initial == AbsenceStatus.Approved ? DateTimeOffset.UtcNow : null,
             DecisionBy = initial == AbsenceStatus.Approved ? createdBy : null,
             DecisionComment = initial == AbsenceStatus.Approved ? "Approbation automatique (RH/Admin)" : null,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
         };
         _db.EmployeeAbsences.Add(absence);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(absence, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> UpdateAsync(int id, EmployeeAbsenceUpdateDto dto, int updatedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> UpdateAsync(
+        int id,
+        EmployeeAbsenceUpdateDto dto,
+        int updatedBy,
+        CancellationToken ct = default
+    )
     {
         var a = await _db.EmployeeAbsences.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Draft)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail("Seules les absences en brouillon peuvent être modifiées");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                "Seules les absences en brouillon peuvent être modifiées"
+            );
 
         if (dto.AbsenceDate.HasValue)
             a.AbsenceDate = dto.AbsenceDate.Value;
@@ -1353,15 +1854,28 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> DecideAsync(int id, EmployeeAbsenceDecisionDto dto, int decidedBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> DecideAsync(
+        int id,
+        EmployeeAbsenceDecisionDto dto,
+        int decidedBy,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
-        if (dto.Status != AbsenceStatus.Approved && dto.Status != AbsenceStatus.Rejected && dto.Status != AbsenceStatus.Cancelled)
+        if (
+            dto.Status != AbsenceStatus.Approved
+            && dto.Status != AbsenceStatus.Rejected
+            && dto.Status != AbsenceStatus.Cancelled
+        )
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Le statut doit être Approved, Rejected ou Cancelled");
         if (a.Status != AbsenceStatus.Submitted)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible de modifier une absence avec le statut {a.Status}");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                $"Impossible de modifier une absence avec le statut {a.Status}"
+            );
 
         a.Status = dto.Status;
         a.DecisionAt = DateTimeOffset.UtcNow;
@@ -1371,15 +1885,25 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> SubmitAsync(int id, int userId, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> SubmitAsync(
+        int id,
+        int userId,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Draft)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible de soumettre une absence avec le statut {a.Status}");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                $"Impossible de soumettre une absence avec le statut {a.Status}"
+            );
 
-        var user = await _db.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null, ct);
+        var user = await _db
+            .Users.Include(u => u.Employee)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.DeletedAt == null, ct);
         if (user?.Employee == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Utilisateur non associé à un employé");
         if (user.EmployeeId != a.EmployeeId)
@@ -1390,13 +1914,22 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> ApproveAsync(int id, int userId, string? comment, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> ApproveAsync(
+        int id,
+        int userId,
+        string? comment,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible d'approuver une absence avec le statut {a.Status}");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                $"Impossible d'approuver une absence avec le statut {a.Status}"
+            );
 
         a.Status = AbsenceStatus.Approved;
         a.DecisionAt = DateTimeOffset.UtcNow;
@@ -1406,13 +1939,22 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> RejectAsync(int id, int userId, string reason, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> RejectAsync(
+        int id,
+        int userId,
+        string reason,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible de rejeter une absence avec le statut {a.Status}");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                $"Impossible de rejeter une absence avec le statut {a.Status}"
+            );
 
         a.Status = AbsenceStatus.Rejected;
         a.DecisionAt = DateTimeOffset.UtcNow;
@@ -1422,15 +1964,26 @@ public class EmployeeAbsenceService : IEmployeeAbsenceService
         return ServiceResult<EmployeeAbsenceReadDto>.Ok(await ToReadDtoAsync(a, ct));
     }
 
-    public async Task<ServiceResult<EmployeeAbsenceReadDto>> CancelAsync(int id, EmployeeAbsenceCancellationDto dto, int cancelledBy, CancellationToken ct = default)
+    public async Task<ServiceResult<EmployeeAbsenceReadDto>> CancelAsync(
+        int id,
+        EmployeeAbsenceCancellationDto dto,
+        int cancelledBy,
+        CancellationToken ct = default
+    )
     {
-        var a = await _db.EmployeeAbsences.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        var a = await _db
+            .EmployeeAbsences.Include(x => x.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
         if (a == null)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Absence introuvable.");
         if (a.Status != AbsenceStatus.Submitted && a.Status != AbsenceStatus.Approved)
-            return ServiceResult<EmployeeAbsenceReadDto>.Fail($"Impossible d'annuler une absence avec le statut {a.Status}");
+            return ServiceResult<EmployeeAbsenceReadDto>.Fail(
+                $"Impossible d'annuler une absence avec le statut {a.Status}"
+            );
 
-        var user = await _db.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == cancelledBy && u.DeletedAt == null, ct);
+        var user = await _db
+            .Users.Include(u => u.Employee)
+            .FirstOrDefaultAsync(u => u.Id == cancelledBy && u.DeletedAt == null, ct);
         if (user?.Employee == null || user.EmployeeId != a.EmployeeId)
             return ServiceResult<EmployeeAbsenceReadDto>.Fail("Accès refusé.");
 

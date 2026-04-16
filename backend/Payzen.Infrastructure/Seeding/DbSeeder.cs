@@ -38,151 +38,246 @@ public static class DbSeeder
         // ===== Statuses =====
         if (!await db.Statuses.AnyAsync(s => s.Code.ToLower() == "active", ct))
         {
-            db.Statuses.Add(new Status
-            {
-                Code = "Active",
-                NameFr = "Actif",
-                NameAr = "",
-                NameEn = "Active",
-                IsActive = true,
-                AffectsAccess = true,
-                AffectsPayroll = false,
-                AffectsAttendance = false,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Statuses.Add(
+                new Status
+                {
+                    Code = "Active",
+                    NameFr = "Actif",
+                    NameAr = "",
+                    NameEn = "Active",
+                    IsActive = true,
+                    AffectsAccess = true,
+                    AffectsPayroll = false,
+                    AffectsAttendance = false,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         if (!await db.Statuses.AnyAsync(s => s.Code.ToLower() == "inactive", ct))
         {
-            db.Statuses.Add(new Status
-            {
-                Code = "Inactive",
-                NameFr = "Inactif",
-                NameAr = "",
-                NameEn = "Inactive",
-                IsActive = false,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Statuses.Add(
+                new Status
+                {
+                    Code = "Inactive",
+                    NameFr = "Inactif",
+                    NameAr = "",
+                    NameEn = "Inactive",
+                    IsActive = false,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         if (!await db.Statuses.AnyAsync(s => s.Code.ToLower() == "resigned", ct))
         {
-            db.Statuses.Add(new Status
-            {
-                Code = "RESIGNED",
-                NameFr = "Démissionnaire",
-                NameAr = "",
-                NameEn = "Resigned",
-                IsActive = true,
-                AffectsAccess = true,
-                AffectsPayroll = true,
-                AffectsAttendance = true,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Statuses.Add(
+                new Status
+                {
+                    Code = "RESIGNED",
+                    NameFr = "Démissionnaire",
+                    NameAr = "",
+                    NameEn = "Resigned",
+                    IsActive = true,
+                    AffectsAccess = true,
+                    AffectsPayroll = true,
+                    AffectsAttendance = true,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         if (!await db.Statuses.AnyAsync(s => s.Code.ToLower() == "retired", ct))
         {
-            db.Statuses.Add(new Status
-            {
-                Code = "RETIRED",
-                NameFr = "Retraité",
-                NameAr = "",
-                NameEn = "Retired",
-                IsActive = true,
-                AffectsAccess = true,
-                AffectsPayroll = true,
-                AffectsAttendance = true,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Statuses.Add(
+                new Status
+                {
+                    Code = "RETIRED",
+                    NameFr = "Retraité",
+                    NameAr = "",
+                    NameEn = "Retired",
+                    IsActive = true,
+                    AffectsAccess = true,
+                    AffectsPayroll = true,
+                    AffectsAttendance = true,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         // ===== Genders =====
         if (!await db.Genders.AnyAsync(g => g.Code.ToLower() == "m", ct))
         {
-            db.Genders.Add(new Gender
-            {
-                Code = "M",
-                NameFr = "Homme",
-                NameAr = "",
-                NameEn = "Male",
-                IsActive = true,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Genders.Add(
+                new Gender
+                {
+                    Code = "M",
+                    NameFr = "Homme",
+                    NameAr = "",
+                    NameEn = "Male",
+                    IsActive = true,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         if (!await db.Genders.AnyAsync(g => g.Code.ToLower() == "f", ct))
         {
-            db.Genders.Add(new Gender
-            {
-                Code = "F",
-                NameFr = "Femme",
-                NameAr = "",
-                NameEn = "Female",
-                IsActive = true,
-                CreatedAt = now,
-                CreatedBy = systemUserId
-            });
+            db.Genders.Add(
+                new Gender
+                {
+                    Code = "F",
+                    NameFr = "Femme",
+                    NameAr = "",
+                    NameEn = "Female",
+                    IsActive = true,
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         // ===== Marital Statuses =====
         var maritalStatuses = new[]
         {
-            new { Code = "SINGLE", NameFr = "Célibataire", NameAr = "", NameEn = "Single" },
-            new { Code = "MARRIED", NameFr = "Marié(e)", NameAr = "", NameEn = "Married" },
-            new { Code = "DIVORCED", NameFr = "Divorcé(e)", NameAr = "", NameEn = "Divorced" },
-            new { Code = "WIDOWED", NameFr = "Veuf / Veuve", NameAr = "", NameEn = "Widowed" },
-            new { Code = "PARTNER", NameFr = "En union libre", NameAr = "", NameEn = "Partner" }
+            new
+            {
+                Code = "SINGLE",
+                NameFr = "Célibataire",
+                NameAr = "",
+                NameEn = "Single",
+            },
+            new
+            {
+                Code = "MARRIED",
+                NameFr = "Marié(e)",
+                NameAr = "",
+                NameEn = "Married",
+            },
+            new
+            {
+                Code = "DIVORCED",
+                NameFr = "Divorcé(e)",
+                NameAr = "",
+                NameEn = "Divorced",
+            },
+            new
+            {
+                Code = "WIDOWED",
+                NameFr = "Veuf / Veuve",
+                NameAr = "",
+                NameEn = "Widowed",
+            },
+            new
+            {
+                Code = "PARTNER",
+                NameFr = "En union libre",
+                NameAr = "",
+                NameEn = "Partner",
+            },
         };
 
         foreach (var ms in maritalStatuses)
         {
             if (!await db.MaritalStatuses.AnyAsync(m => m.Code.ToLower() == ms.Code.ToLower(), ct))
             {
-                db.MaritalStatuses.Add(new MaritalStatus
-                {
-                    Code = ms.Code,
-                    NameFr = ms.NameFr,
-                    NameAr = ms.NameAr,
-                    NameEn = ms.NameEn,
-                    CreatedAt = now,
-                    CreatedBy = systemUserId
-                });
+                db.MaritalStatuses.Add(
+                    new MaritalStatus
+                    {
+                        Code = ms.Code,
+                        NameFr = ms.NameFr,
+                        NameAr = ms.NameAr,
+                        NameEn = ms.NameEn,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    }
+                );
             }
         }
 
         // ===== Education Levels =====
         var educationLevels = new[]
         {
-            new { Code = "NONE", NameFr = "Sans diplôme", NameAr = "", NameEn = "No formal education", Order = 1 },
-            new { Code = "PRIMARY", NameFr = "Primaire", NameAr = "", NameEn = "Primary", Order = 2 },
-            new { Code = "SECONDARY", NameFr = "Secondaire", NameAr = "", NameEn = "Secondary", Order = 3 },
-            new { Code = "BACC", NameFr = "Baccalauréat", NameAr = "", NameEn = "Baccalaureate", Order = 4 },
-            new { Code = "LIC", NameFr = "Licence", NameAr = "", NameEn = "Bachelor", Order = 5 },
-            new { Code = "MASTER", NameFr = "Master", NameAr = "", NameEn = "Master", Order = 6 },
-            new { Code = "PHD", NameFr = "Doctorat", NameAr = "", NameEn = "Doctorate", Order = 7 }
+            new
+            {
+                Code = "NONE",
+                NameFr = "Sans diplôme",
+                NameAr = "",
+                NameEn = "No formal education",
+                Order = 1,
+            },
+            new
+            {
+                Code = "PRIMARY",
+                NameFr = "Primaire",
+                NameAr = "",
+                NameEn = "Primary",
+                Order = 2,
+            },
+            new
+            {
+                Code = "SECONDARY",
+                NameFr = "Secondaire",
+                NameAr = "",
+                NameEn = "Secondary",
+                Order = 3,
+            },
+            new
+            {
+                Code = "BACC",
+                NameFr = "Baccalauréat",
+                NameAr = "",
+                NameEn = "Baccalaureate",
+                Order = 4,
+            },
+            new
+            {
+                Code = "LIC",
+                NameFr = "Licence",
+                NameAr = "",
+                NameEn = "Bachelor",
+                Order = 5,
+            },
+            new
+            {
+                Code = "MASTER",
+                NameFr = "Master",
+                NameAr = "",
+                NameEn = "Master",
+                Order = 6,
+            },
+            new
+            {
+                Code = "PHD",
+                NameFr = "Doctorat",
+                NameAr = "",
+                NameEn = "Doctorate",
+                Order = 7,
+            },
         };
 
         foreach (var el in educationLevels)
         {
             if (!await db.EducationLevels.AnyAsync(e => e.Code.ToLower() == el.Code.ToLower(), ct))
             {
-                db.EducationLevels.Add(new EducationLevel
-                {
-                    Code = el.Code,
-                    NameFr = el.NameFr,
-                    NameAr = el.NameAr,
-                    NameEn = el.NameEn,
-                    LevelOrder = el.Order,
-                    IsActive = true,
-                    CreatedAt = now,
-                    CreatedBy = systemUserId
-                });
+                db.EducationLevels.Add(
+                    new EducationLevel
+                    {
+                        Code = el.Code,
+                        NameFr = el.NameFr,
+                        NameAr = el.NameAr,
+                        NameEn = el.NameEn,
+                        LevelOrder = el.Order,
+                        IsActive = true,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    }
+                );
             }
         }
 
@@ -196,45 +291,82 @@ public static class DbSeeder
                 CountryCode = "MAR",
                 CountryPhoneCode = "+212",
                 CreatedAt = now,
-                CreatedBy = systemUserId
+                CreatedBy = systemUserId,
             };
             db.Countries.Add(morocco);
             await db.SaveChangesAsync(ct); // besoin de Id pour la ville
 
             if (!await db.Cities.AnyAsync(c => c.CountryId == morocco.Id && c.CityName.ToLower() == "casablanca", ct))
             {
-                db.Cities.Add(new City
-                {
-                    CityName = "Casablanca",
-                    CountryId = morocco.Id,
-                    CreatedAt = now,
-                    CreatedBy = systemUserId
-                });
+                db.Cities.Add(
+                    new City
+                    {
+                        CityName = "Casablanca",
+                        CountryId = morocco.Id,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    }
+                );
             }
         }
 
         // ===== Roles minimaux =====
         if (!await db.Roles.AnyAsync(r => r.Name.ToLower() == "admin payzen", ct))
         {
-            db.Roles.Add(new Roles { Name = "Admin Payzen", Description = "Admin Payzen", CreatedAt = now, CreatedBy = systemUserId });
+            db.Roles.Add(
+                new Roles
+                {
+                    Name = "Admin Payzen",
+                    Description = "Admin Payzen",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
         if (!await db.Roles.AnyAsync(r => r.Name.ToLower() == "admin", ct))
         {
-            db.Roles.Add(new Roles { Name = "Admin", Description = "Administrateur système", CreatedAt = now, CreatedBy = systemUserId });
+            db.Roles.Add(
+                new Roles
+                {
+                    Name = "Admin",
+                    Description = "Administrateur système",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
         if (!await db.Roles.AnyAsync(r => r.Name.ToLower() == "employee", ct))
         {
-            db.Roles.Add(new Roles { Name = "Employee", Description = "Rôle employé par défaut", CreatedAt = now, CreatedBy = systemUserId });
+            db.Roles.Add(
+                new Roles
+                {
+                    Name = "Employee",
+                    Description = "Rôle employé par défaut",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
         if (!await db.Roles.AnyAsync(r => r.Name.ToLower() == "rh", ct))
         {
-            db.Roles.Add(new Roles { Name = "RH", Description = "Ressources Humaines", CreatedAt = now, CreatedBy = systemUserId });
+            db.Roles.Add(
+                new Roles
+                {
+                    Name = "RH",
+                    Description = "Ressources Humaines",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                }
+            );
         }
 
         await db.SaveChangesAsync(ct);
 
         // ===== LeaveType for statutory/legal events (if absent) =====
-        var legalLeaveType = await db.LeaveTypes.FirstOrDefaultAsync(lt => lt.LeaveCode == "LEGAL" && lt.DeletedAt == null, ct);
+        var legalLeaveType = await db.LeaveTypes.FirstOrDefaultAsync(
+            lt => lt.LeaveCode == "LEGAL" && lt.DeletedAt == null,
+            ct
+        );
         if (legalLeaveType == null)
         {
             legalLeaveType = new LeaveType
@@ -247,7 +379,7 @@ public static class DbSeeder
                 Scope = LeaveScope.Global,
                 IsActive = true,
                 CreatedAt = now,
-                CreatedBy = systemUserId
+                CreatedBy = systemUserId,
             };
             db.LeaveTypes.Add(legalLeaveType);
             await db.SaveChangesAsync(ct);
@@ -256,29 +388,66 @@ public static class DbSeeder
         // ===== Seed LeaveTypeLegalRule (idempotent) =====
         var legalRules = new[]
         {
-            new { Code = "MARRIAGE_EMPLOYEE", Description = "Mariage du salarié", Days = 4, Article = "Article 274", CanBeDiscontinuous = false, MustWithinDays = (int?)null },
-            new { Code = "DEATH_CLOSE", Description = "Décès proche (conjoint/enfant)", Days = 3, Article = "Article 274", CanBeDiscontinuous = false, MustWithinDays = (int?)null },
-            new { Code = "DEATH_PARENT", Description = "Décès d'un parent", Days = 2, Article = "Article 274", CanBeDiscontinuous = false, MustWithinDays = (int?)null },
-            new { Code = "BIRTH", Description = "Naissance", Days = 2, Article = "Article 269", CanBeDiscontinuous = false, MustWithinDays = (int?)30 }
+            new
+            {
+                Code = "MARRIAGE_EMPLOYEE",
+                Description = "Mariage du salarié",
+                Days = 4,
+                Article = "Article 274",
+                CanBeDiscontinuous = false,
+                MustWithinDays = (int?)null,
+            },
+            new
+            {
+                Code = "DEATH_CLOSE",
+                Description = "Décès proche (conjoint/enfant)",
+                Days = 3,
+                Article = "Article 274",
+                CanBeDiscontinuous = false,
+                MustWithinDays = (int?)null,
+            },
+            new
+            {
+                Code = "DEATH_PARENT",
+                Description = "Décès d'un parent",
+                Days = 2,
+                Article = "Article 274",
+                CanBeDiscontinuous = false,
+                MustWithinDays = (int?)null,
+            },
+            new
+            {
+                Code = "BIRTH",
+                Description = "Naissance",
+                Days = 2,
+                Article = "Article 269",
+                CanBeDiscontinuous = false,
+                MustWithinDays = (int?)30,
+            },
         };
 
         foreach (var rule in legalRules)
         {
-            var exists = await db.LeaveTypeLegalRules.AnyAsync(r => r.EventCaseCode.ToLower() == rule.Code.ToLower() && r.LeaveTypeId == legalLeaveType.Id, ct);
+            var exists = await db.LeaveTypeLegalRules.AnyAsync(
+                r => r.EventCaseCode.ToLower() == rule.Code.ToLower() && r.LeaveTypeId == legalLeaveType.Id,
+                ct
+            );
             if (!exists)
             {
-                db.LeaveTypeLegalRules.Add(new LeaveTypeLegalRule
-                {
-                    LeaveTypeId = legalLeaveType.Id,
-                    EventCaseCode = rule.Code,
-                    Description = rule.Description,
-                    DaysGranted = rule.Days,
-                    LegalArticle = rule.Article,
-                    CanBeDiscountinuous = rule.CanBeDiscontinuous,
-                    MustBeUsedWithinDays = rule.MustWithinDays,
-                    CreatedAt = now,
-                    CreatedBy = systemUserId
-                });
+                db.LeaveTypeLegalRules.Add(
+                    new LeaveTypeLegalRule
+                    {
+                        LeaveTypeId = legalLeaveType.Id,
+                        EventCaseCode = rule.Code,
+                        Description = rule.Description,
+                        DaysGranted = rule.Days,
+                        LegalArticle = rule.Article,
+                        CanBeDiscountinuous = rule.CanBeDiscontinuous,
+                        MustBeUsedWithinDays = rule.MustWithinDays,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    }
+                );
             }
         }
 
@@ -288,13 +457,25 @@ public static class DbSeeder
         var adminCompanyEmail = "admin@payzen.local";
         if (!await db.Companies.AnyAsync(c => c.Email.ToLower() == adminCompanyEmail.ToLower(), ct))
         {
-            var country = await db.Countries.FirstOrDefaultAsync(c => c.CountryCode.ToUpper() == "MAR" || c.CountryName.ToLower() == "morocco", ct);
+            var country = await db.Countries.FirstOrDefaultAsync(
+                c => c.CountryCode.ToUpper() == "MAR" || c.CountryName.ToLower() == "morocco",
+                ct
+            );
             if (country != null)
             {
-                var city = await db.Cities.FirstOrDefaultAsync(c => c.CountryId == country.Id && c.CityName.ToLower() == "casablanca", ct);
+                var city = await db.Cities.FirstOrDefaultAsync(
+                    c => c.CountryId == country.Id && c.CityName.ToLower() == "casablanca",
+                    ct
+                );
                 if (city == null)
                 {
-                    city = new City { CityName = "Casablanca", CountryId = country.Id, CreatedAt = now, CreatedBy = systemUserId };
+                    city = new City
+                    {
+                        CityName = "Casablanca",
+                        CountryId = country.Id,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    };
                     db.Cities.Add(city);
                     await db.SaveChangesAsync(ct);
                 }
@@ -314,7 +495,7 @@ public static class DbSeeder
                     PayrollPeriodicity = "Mensuelle",
                     FiscalYearStartMonth = 1,
                     CreatedAt = now,
-                    CreatedBy = systemUserId
+                    CreatedBy = systemUserId,
                 };
                 db.Companies.Add(company);
                 await db.SaveChangesAsync(ct);
@@ -331,7 +512,7 @@ public static class DbSeeder
                     CompanyId = company.Id,
                     StatusId = activeStatus?.Id ?? 0,
                     CreatedAt = now,
-                    CreatedBy = systemUserId
+                    CreatedBy = systemUserId,
                 };
 
                 db.Employees.Add(adminEmployee);
@@ -355,7 +536,7 @@ public static class DbSeeder
                         Email = adminCompanyEmail,
                         IsActive = true,
                         CreatedAt = now,
-                        CreatedBy = systemUserId
+                        CreatedBy = systemUserId,
                     };
 
                     db.Users.Add(user);
@@ -364,7 +545,15 @@ public static class DbSeeder
                     var adminRole = await db.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "admin payzen", ct);
                     if (adminRole != null)
                     {
-                        db.UsersRoles.Add(new UsersRoles { UserId = user.Id, RoleId = adminRole.Id, CreatedAt = now, CreatedBy = systemUserId });
+                        db.UsersRoles.Add(
+                            new UsersRoles
+                            {
+                                UserId = user.Id,
+                                RoleId = adminRole.Id,
+                                CreatedAt = now,
+                                CreatedBy = systemUserId,
+                            }
+                        );
                         await db.SaveChangesAsync(ct);
                     }
                 }
@@ -376,32 +565,106 @@ public static class DbSeeder
         {
             var overtimeRules = new[]
             {
-                new { Code = "STD_DAY", NameFr = "Heures supplémentaires jours normaux", NameEn = "Standard day overtime", NameAr = "", Description = "Heures supplémentaires effectuées les jours ouvrables normaux", AppliesTo = OvertimeType.Standard, Multiplier = 1.25m, Priority = 10, Category = "Standard", TimeRangeType = TimeRangeType.AllDay },
-                new { Code = "NIGHT_STD", NameFr = "Travail de nuit standard", NameEn = "Standard night work", NameAr = "", Description = "Travail de nuit (21h-6h) les jours ouvrables", AppliesTo = OvertimeType.Standard | OvertimeType.Night, Multiplier = 1.50m, Priority = 5, Category = "Night", TimeRangeType = TimeRangeType.AllDay },
-                new { Code = "WEEKLY_REST", NameFr = "Travail jour de repos", NameEn = "Weekly rest day work", NameAr = "", Description = "Travail effectué pendant le jour de repos hebdomadaire", AppliesTo = OvertimeType.WeeklyRest, Multiplier = 1.50m, Priority = 5, Category = "WeeklyRest", TimeRangeType = TimeRangeType.AllDay },
-                new { Code = "WEEKLY_REST_NIGHT", NameFr = "Travail de nuit jour de repos", NameEn = "Night work on rest day", NameAr = "", Description = "Travail de nuit pendant le jour de repos hebdomadaire", AppliesTo = OvertimeType.WeeklyRest | OvertimeType.Night, Multiplier = 2.00m, Priority = 1, Category = "WeeklyRest+Night", TimeRangeType = TimeRangeType.AllDay },
-                new { Code = "HOLIDAY", NameFr = "Travail jour férié", NameEn = "Public holiday work", NameAr = "", Description = "Travail effectué pendant un jour férié", AppliesTo = OvertimeType.PublicHoliday, Multiplier = 2.00m, Priority = 5, Category = "Holiday", TimeRangeType = TimeRangeType.AllDay },
-                new { Code = "HOLIDAY_NIGHT", NameFr = "Travail de nuit jour férié", NameEn = "Night work on holiday", NameAr = "", Description = "Travail de nuit pendant un jour férié", AppliesTo = OvertimeType.PublicHoliday | OvertimeType.Night, Multiplier = 2.50m, Priority = 1, Category = "Holiday+Night", TimeRangeType = TimeRangeType.AllDay }
+                new
+                {
+                    Code = "STD_DAY",
+                    NameFr = "Heures supplémentaires jours normaux",
+                    NameEn = "Standard day overtime",
+                    NameAr = "",
+                    Description = "Heures supplémentaires effectuées les jours ouvrables normaux",
+                    AppliesTo = OvertimeType.Standard,
+                    Multiplier = 1.25m,
+                    Priority = 10,
+                    Category = "Standard",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
+                new
+                {
+                    Code = "NIGHT_STD",
+                    NameFr = "Travail de nuit standard",
+                    NameEn = "Standard night work",
+                    NameAr = "",
+                    Description = "Travail de nuit (21h-6h) les jours ouvrables",
+                    AppliesTo = OvertimeType.Standard | OvertimeType.Night,
+                    Multiplier = 1.50m,
+                    Priority = 5,
+                    Category = "Night",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
+                new
+                {
+                    Code = "WEEKLY_REST",
+                    NameFr = "Travail jour de repos",
+                    NameEn = "Weekly rest day work",
+                    NameAr = "",
+                    Description = "Travail effectué pendant le jour de repos hebdomadaire",
+                    AppliesTo = OvertimeType.WeeklyRest,
+                    Multiplier = 1.50m,
+                    Priority = 5,
+                    Category = "WeeklyRest",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
+                new
+                {
+                    Code = "WEEKLY_REST_NIGHT",
+                    NameFr = "Travail de nuit jour de repos",
+                    NameEn = "Night work on rest day",
+                    NameAr = "",
+                    Description = "Travail de nuit pendant le jour de repos hebdomadaire",
+                    AppliesTo = OvertimeType.WeeklyRest | OvertimeType.Night,
+                    Multiplier = 2.00m,
+                    Priority = 1,
+                    Category = "WeeklyRest+Night",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
+                new
+                {
+                    Code = "HOLIDAY",
+                    NameFr = "Travail jour férié",
+                    NameEn = "Public holiday work",
+                    NameAr = "",
+                    Description = "Travail effectué pendant un jour férié",
+                    AppliesTo = OvertimeType.PublicHoliday,
+                    Multiplier = 2.00m,
+                    Priority = 5,
+                    Category = "Holiday",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
+                new
+                {
+                    Code = "HOLIDAY_NIGHT",
+                    NameFr = "Travail de nuit jour férié",
+                    NameEn = "Night work on holiday",
+                    NameAr = "",
+                    Description = "Travail de nuit pendant un jour férié",
+                    AppliesTo = OvertimeType.PublicHoliday | OvertimeType.Night,
+                    Multiplier = 2.50m,
+                    Priority = 1,
+                    Category = "Holiday+Night",
+                    TimeRangeType = TimeRangeType.AllDay,
+                },
             };
 
             foreach (var rule in overtimeRules)
             {
-                db.OvertimeRateRules.Add(new OvertimeRateRule
-                {
-                    Code = rule.Code,
-                    NameFr = rule.NameFr,
-                    NameEn = rule.NameEn,
-                    NameAr = rule.NameAr,
-                    Description = rule.Description,
-                    AppliesTo = rule.AppliesTo,
-                    Multiplier = rule.Multiplier,
-                    Priority = rule.Priority,
-                    Category = rule.Category,
-                    TimeRangeType = rule.TimeRangeType,
-                    IsActive = true,
-                    CreatedAt = now,
-                    CreatedBy = systemUserId
-                });
+                db.OvertimeRateRules.Add(
+                    new OvertimeRateRule
+                    {
+                        Code = rule.Code,
+                        NameFr = rule.NameFr,
+                        NameEn = rule.NameEn,
+                        NameAr = rule.NameAr,
+                        Description = rule.Description,
+                        AppliesTo = rule.AppliesTo,
+                        Multiplier = rule.Multiplier,
+                        Priority = rule.Priority,
+                        Category = rule.Category,
+                        TimeRangeType = rule.TimeRangeType,
+                        IsActive = true,
+                        CreatedAt = now,
+                        CreatedBy = systemUserId,
+                    }
+                );
             }
 
             await db.SaveChangesAsync(ct);
@@ -412,11 +675,36 @@ public static class DbSeeder
         {
             var nationalities = new[]
             {
-                new Nationality { Name = "Marocain", CreatedAt = now, CreatedBy = systemUserId },
-                new Nationality { Name = "Algérien", CreatedAt = now, CreatedBy = systemUserId },
-                new Nationality { Name = "Tunisien", CreatedAt = now, CreatedBy = systemUserId },
-                new Nationality { Name = "Libyen", CreatedAt = now, CreatedBy = systemUserId },
-                new Nationality { Name = "Libanais", CreatedAt = now, CreatedBy = systemUserId }
+                new Nationality
+                {
+                    Name = "Marocain",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                },
+                new Nationality
+                {
+                    Name = "Algérien",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                },
+                new Nationality
+                {
+                    Name = "Tunisien",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                },
+                new Nationality
+                {
+                    Name = "Libyen",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                },
+                new Nationality
+                {
+                    Name = "Libanais",
+                    CreatedAt = now,
+                    CreatedBy = systemUserId,
+                },
             };
             db.Nationalities.AddRange(nationalities);
             await db.SaveChangesAsync(ct);
@@ -425,9 +713,40 @@ public static class DbSeeder
         // ===== State Employment Programs =====
         var statePrograms = new[]
         {
-            new StateEmploymentProgram { Code = "NONE", Name = "Régime normal", IsIrExempt = false, IsCnssEmployeeExempt = false, IsCnssEmployerExempt = false, CreatedAt = now, CreatedBy = systemUserId },
-            new StateEmploymentProgram { Code = "IDMAJ_M1", Name = "ANAPEC IDMAJ - Modèle 1", IsIrExempt = true, IsCnssEmployeeExempt = true, IsCnssEmployerExempt = true, MaxDurationMonths = 24, SalaryCeiling = 3125m, CreatedAt = now, CreatedBy = systemUserId },
-            new StateEmploymentProgram { Code = "TAHFIZ", Name = "Programme TAHFIZ", IsIrExempt = true, IsCnssEmployeeExempt = true, IsCnssEmployerExempt = true, MaxDurationMonths = 24, SalaryCeiling = 10000m, CreatedAt = now, CreatedBy = systemUserId }
+            new StateEmploymentProgram
+            {
+                Code = "NONE",
+                Name = "Régime normal",
+                IsIrExempt = false,
+                IsCnssEmployeeExempt = false,
+                IsCnssEmployerExempt = false,
+                CreatedAt = now,
+                CreatedBy = systemUserId,
+            },
+            new StateEmploymentProgram
+            {
+                Code = "IDMAJ_M1",
+                Name = "ANAPEC IDMAJ - Modèle 1",
+                IsIrExempt = true,
+                IsCnssEmployeeExempt = true,
+                IsCnssEmployerExempt = true,
+                MaxDurationMonths = 24,
+                SalaryCeiling = 3125m,
+                CreatedAt = now,
+                CreatedBy = systemUserId,
+            },
+            new StateEmploymentProgram
+            {
+                Code = "TAHFIZ",
+                Name = "Programme TAHFIZ",
+                IsIrExempt = true,
+                IsCnssEmployeeExempt = true,
+                IsCnssEmployerExempt = true,
+                MaxDurationMonths = 24,
+                SalaryCeiling = 10000m,
+                CreatedAt = now,
+                CreatedBy = systemUserId,
+            },
         };
 
         foreach (var prog in statePrograms)
@@ -444,10 +763,80 @@ public static class DbSeeder
             var rng = new Random(42);
 
             // données de génération
-            var firstNamesMale = new[] { "Mohamed", "Ahmed", "Youssef", "Omar", "Hamza", "Amine", "Karim", "Rachid", "Hassan", "Ali", "Mehdi", "Saad", "Zakaria", "Soufiane", "Ayoub", "Khalid" };
-            var firstNamesFemale = new[] { "Fatima", "Khadija", "Aicha", "Meryem", "Zineb", "Nadia", "Hafsa", "Salma", "Houda", "Loubna", "Sanaa", "Laila", "Imane", "Sara", "Yasmine", "Dounia" };
-            var lastNames = new[] { "Alami", "Benali", "Chraibi", "Daoudi", "ElMansouri", "Fakhouri", "Ghali", "Hammoudi", "Idrissi", "Jaouhari", "Kadiri", "Lahlou", "Mellouki", "Najimi", "Rachidi", "Sabiri", "Tazi" };
-            var jobTitles = new[] { "Développeur", "Comptable", "Responsable RH", "Commercial", "Technicien", "Analyste", "Chef de projet", "Ingénieur", "Designer", "Consultant", "Juriste", "Marketeur", "Administrateur" };
+            var firstNamesMale = new[]
+            {
+                "Mohamed",
+                "Ahmed",
+                "Youssef",
+                "Omar",
+                "Hamza",
+                "Amine",
+                "Karim",
+                "Rachid",
+                "Hassan",
+                "Ali",
+                "Mehdi",
+                "Saad",
+                "Zakaria",
+                "Soufiane",
+                "Ayoub",
+                "Khalid",
+            };
+            var firstNamesFemale = new[]
+            {
+                "Fatima",
+                "Khadija",
+                "Aicha",
+                "Meryem",
+                "Zineb",
+                "Nadia",
+                "Hafsa",
+                "Salma",
+                "Houda",
+                "Loubna",
+                "Sanaa",
+                "Laila",
+                "Imane",
+                "Sara",
+                "Yasmine",
+                "Dounia",
+            };
+            var lastNames = new[]
+            {
+                "Alami",
+                "Benali",
+                "Chraibi",
+                "Daoudi",
+                "ElMansouri",
+                "Fakhouri",
+                "Ghali",
+                "Hammoudi",
+                "Idrissi",
+                "Jaouhari",
+                "Kadiri",
+                "Lahlou",
+                "Mellouki",
+                "Najimi",
+                "Rachidi",
+                "Sabiri",
+                "Tazi",
+            };
+            var jobTitles = new[]
+            {
+                "Développeur",
+                "Comptable",
+                "Responsable RH",
+                "Commercial",
+                "Technicien",
+                "Analyste",
+                "Chef de projet",
+                "Ingénieur",
+                "Designer",
+                "Consultant",
+                "Juriste",
+                "Marketeur",
+                "Administrateur",
+            };
 
             // récupérations globales
             var statuses = await db.Statuses.Where(s => s.DeletedAt == null).Select(s => s.Id).ToListAsync(ct);
@@ -462,7 +851,8 @@ public static class DbSeeder
                 // Nombre cible d'employés
                 int target = rng.Next(10, 201); // 10..200
                 var existing = await db.Employees.CountAsync(e => e.CompanyId == companyId && e.DeletedAt == null, ct);
-                if (existing >= target) continue;
+                if (existing >= target)
+                    continue;
                 int toCreate = target - existing;
 
                 // assure quelques départements
@@ -472,7 +862,15 @@ public static class DbSeeder
                     var deptNames = new[] { "Développement", "Comptabilité", "RH", "Commercial", "Support" };
                     foreach (var dn in deptNames)
                     {
-                        db.Departements.Add(new Departement { DepartementName = dn, CompanyId = companyId, CreatedAt = DateTimeOffset.UtcNow, CreatedBy = systemUserId });
+                        db.Departements.Add(
+                            new Departement
+                            {
+                                DepartementName = dn,
+                                CompanyId = companyId,
+                                CreatedAt = DateTimeOffset.UtcNow,
+                                CreatedBy = systemUserId,
+                            }
+                        );
                     }
                     await db.SaveChangesAsync(ct);
                     existingDepts = await db.Departements.Where(d => d.CompanyId == companyId).ToListAsync(ct);
@@ -484,23 +882,44 @@ public static class DbSeeder
                 {
                     foreach (var jt in jobTitles)
                     {
-                        db.JobPositions.Add(new JobPosition { Name = jt, CompanyId = companyId, CreatedAt = DateTimeOffset.UtcNow, CreatedBy = systemUserId });
+                        db.JobPositions.Add(
+                            new JobPosition
+                            {
+                                Name = jt,
+                                CompanyId = companyId,
+                                CreatedAt = DateTimeOffset.UtcNow,
+                                CreatedBy = systemUserId,
+                            }
+                        );
                     }
                     await db.SaveChangesAsync(ct);
                     existingPositions = await db.JobPositions.Where(p => p.CompanyId == companyId).ToListAsync(ct);
                 }
 
                 // assure contract types
-                var existingContractTypes = await db.ContractTypes.Where(ctt => ctt.CompanyId == companyId).ToListAsync(ct);
+                var existingContractTypes = await db
+                    .ContractTypes.Where(ctt => ctt.CompanyId == companyId)
+                    .ToListAsync(ct);
                 if (!existingContractTypes.Any())
                 {
                     var ctNames = new[] { "Permanent", "CDD", "Stage", "Freelance" };
                     foreach (var name in ctNames)
                     {
-                        db.ContractTypes.Add(new ContractType { ContractTypeName = name, CompanyId = companyId, LegalContractTypeId = legalContractTypeId, CreatedAt = DateTimeOffset.UtcNow, CreatedBy = systemUserId });
+                        db.ContractTypes.Add(
+                            new ContractType
+                            {
+                                ContractTypeName = name,
+                                CompanyId = companyId,
+                                LegalContractTypeId = legalContractTypeId,
+                                CreatedAt = DateTimeOffset.UtcNow,
+                                CreatedBy = systemUserId,
+                            }
+                        );
                     }
                     await db.SaveChangesAsync(ct);
-                    existingContractTypes = await db.ContractTypes.Where(ctt => ctt.CompanyId == companyId).ToListAsync(ct);
+                    existingContractTypes = await db
+                        .ContractTypes.Where(ctt => ctt.CompanyId == companyId)
+                        .ToListAsync(ct);
                 }
 
                 // créer les employés en deux étapes : création Employee -> création Contract + Salary
@@ -508,7 +927,9 @@ public static class DbSeeder
                 for (int i = 0; i < toCreate; i++)
                 {
                     bool isMale = rng.Next(2) == 0;
-                    var first = isMale ? firstNamesMale[rng.Next(firstNamesMale.Length)] : firstNamesFemale[rng.Next(firstNamesFemale.Length)];
+                    var first = isMale
+                        ? firstNamesMale[rng.Next(firstNamesMale.Length)]
+                        : firstNamesFemale[rng.Next(firstNamesFemale.Length)];
                     var last = lastNames[rng.Next(lastNames.Length)];
 
                     var age = rng.Next(22, 56); // 22..55
@@ -525,10 +946,14 @@ public static class DbSeeder
                         CompanyId = companyId,
                         StatusId = statuses.Count > 0 ? statuses[rng.Next(statuses.Count)] : 0,
                         GenderId = genders.Count > 0 ? genders[rng.Next(genders.Count)] : (int?)null,
-                        NationalityId = nationalities.Count > 0 ? nationalities[rng.Next(nationalities.Count)] : (int?)null,
-                        EducationLevelId = educationLevelIds.Count > 0 ? educationLevelIds[rng.Next(educationLevelIds.Count)] : (int?)null,
+                        NationalityId =
+                            nationalities.Count > 0 ? nationalities[rng.Next(nationalities.Count)] : (int?)null,
+                        EducationLevelId =
+                            educationLevelIds.Count > 0
+                                ? educationLevelIds[rng.Next(educationLevelIds.Count)]
+                                : (int?)null,
                         CreatedAt = DateTimeOffset.UtcNow,
-                        CreatedBy = systemUserId
+                        CreatedBy = systemUserId,
                     };
                     newEmployees.Add(emp);
                 }
@@ -537,7 +962,11 @@ public static class DbSeeder
                 await db.SaveChangesAsync(ct);
 
                 // refresh lists
-                var employeesAdded = await db.Employees.Where(e => e.CompanyId == companyId && e.CreatedBy == systemUserId).OrderByDescending(e => e.Id).Take(toCreate).ToListAsync(ct);
+                var employeesAdded = await db
+                    .Employees.Where(e => e.CompanyId == companyId && e.CreatedBy == systemUserId)
+                    .OrderByDescending(e => e.Id)
+                    .Take(toCreate)
+                    .ToListAsync(ct);
                 var positionIds = existingPositions.Select(p => p.Id).ToArray();
                 var deptIds = existingDepts.Select(d => d.Id).ToArray();
                 var contractTypeIds = existingContractTypes.Select(ctt => ctt.Id).ToArray();
@@ -559,7 +988,7 @@ public static class DbSeeder
                         StartDate = start,
                         EndDate = end,
                         CreatedAt = DateTimeOffset.UtcNow,
-                        CreatedBy = systemUserId
+                        CreatedBy = systemUserId,
                     };
                     db.EmployeeContracts.Add(contract);
                     await db.SaveChangesAsync(ct);
@@ -576,7 +1005,7 @@ public static class DbSeeder
                         EffectiveDate = contract.StartDate,
                         EndDate = contract.EndDate,
                         CreatedAt = DateTimeOffset.UtcNow,
-                        CreatedBy = systemUserId
+                        CreatedBy = systemUserId,
                     };
                     db.EmployeeSalaries.Add(salary);
                     await db.SaveChangesAsync(ct);
@@ -594,7 +1023,7 @@ public static class DbSeeder
                             Amount = bonus,
                             EffectiveDate = salary.EffectiveDate,
                             CreatedAt = DateTimeOffset.UtcNow,
-                            CreatedBy = systemUserId
+                            CreatedBy = systemUserId,
                         };
                         db.EmployeeSalaryComponents.Add(comp);
                     }
@@ -602,7 +1031,17 @@ public static class DbSeeder
                     // adresse minimale
                     if (cities.Count > 0)
                     {
-                        db.EmployeeAddresses.Add(new EmployeeAddress { EmployeeId = e.Id, AddressLine1 = "Adresse Demo", ZipCode = "00000", CityId = cities[rng.Next(cities.Count)], CreatedAt = DateTimeOffset.UtcNow, CreatedBy = systemUserId });
+                        db.EmployeeAddresses.Add(
+                            new EmployeeAddress
+                            {
+                                EmployeeId = e.Id,
+                                AddressLine1 = "Adresse Demo",
+                                ZipCode = "00000",
+                                CityId = cities[rng.Next(cities.Count)],
+                                CreatedAt = DateTimeOffset.UtcNow,
+                                CreatedBy = systemUserId,
+                            }
+                        );
                     }
 
                     // assign department randomly

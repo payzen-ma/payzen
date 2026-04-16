@@ -21,16 +21,22 @@ public class CompanyCreateValidator : AbstractValidator<CompanyCreateDto>
         // Ville : soit CityId (existant), soit CityName (saisie libre), pas les deux
         RuleFor(x => x)
             .Must(x => !(x.CityId is > 0 && !string.IsNullOrWhiteSpace(x.CityName)))
-            .WithMessage("Veuillez choisir entre une ville existante (CityId) ou une nouvelle ville (CityName), pas les deux.");
+            .WithMessage(
+                "Veuillez choisir entre une ville existante (CityId) ou une nouvelle ville (CityName), pas les deux."
+            );
         RuleFor(x => x)
             .Must(x => (x.CityId ?? 0) > 0 || !string.IsNullOrWhiteSpace(x.CityName))
             .WithMessage("La ville est requise : sélectionnez une ville existante ou saisissez le nom de la ville.");
-        When(x => x.CityId is > 0, () =>
-            RuleFor(x => x)
-                .MustAsync((dto, ct) => companyService.CityExistsForCountryAsync(dto.CityId!.Value, dto.CountryId, ct))
-                .WithMessage("La ville sélectionnée n'existe pas ou n'appartient pas au pays choisi."));
-        When(x => !string.IsNullOrWhiteSpace(x.CityName), () =>
-            RuleFor(x => x.CityName!).MaximumLength(200));
+        When(
+            x => x.CityId is > 0,
+            () =>
+                RuleFor(x => x)
+                    .MustAsync(
+                        (dto, ct) => companyService.CityExistsForCountryAsync(dto.CityId!.Value, dto.CountryId, ct)
+                    )
+                    .WithMessage("La ville sélectionnée n'existe pas ou n'appartient pas au pays choisi.")
+        );
+        When(x => !string.IsNullOrWhiteSpace(x.CityName), () => RuleFor(x => x.CityName!).MaximumLength(200));
 
         RuleFor(x => x.CnssNumber).MaximumLength(100);
 
@@ -39,10 +45,13 @@ public class CompanyCreateValidator : AbstractValidator<CompanyCreateDto>
         RuleFor(x => x.AdminEmail).NotEmpty().EmailAddress().MaximumLength(500);
         RuleFor(x => x.AdminPhone).MaximumLength(20);
 
-        When(x => x.WebsiteUrl != null, () =>
-            RuleFor(x => x.WebsiteUrl!)
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-                .WithMessage("Format d'URL invalide"));
+        When(
+            x => x.WebsiteUrl != null,
+            () =>
+                RuleFor(x => x.WebsiteUrl!)
+                    .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                    .WithMessage("Format d'URL invalide")
+        );
     }
 }
 
@@ -59,26 +68,33 @@ public class CompanyUpdateValidator : AbstractValidator<CompanyUpdateDto>
 {
     public CompanyUpdateValidator()
     {
-        When(x => x.Email != null, () =>
-            RuleFor(x => x.Email!).EmailAddress().WithMessage("Format d'email invalide"));
+        When(x => x.Email != null, () => RuleFor(x => x.Email!).EmailAddress().WithMessage("Format d'email invalide"));
 
-        When(x => x.WebsiteUrl != null, () =>
-            RuleFor(x => x.WebsiteUrl!)
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-                .WithMessage("Format d'URL invalide"));
+        When(
+            x => x.WebsiteUrl != null,
+            () =>
+                RuleFor(x => x.WebsiteUrl!)
+                    .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                    .WithMessage("Format d'URL invalide")
+        );
 
-        When(x => x.CompanyName != null, () =>
-            RuleFor(x => x.CompanyName!).Length(2, 500));
+        When(x => x.CompanyName != null, () => RuleFor(x => x.CompanyName!).Length(2, 500));
 
-        When(x => x.PayrollPeriodicity != null, () =>
-            RuleFor(x => x.PayrollPeriodicity!)
-                .Must(p => p == "Mensuelle" || p == "Bimensuelle")
-                .WithMessage("La périodicité doit être 'Mensuelle' ou 'Bimensuelle'"));
+        When(
+            x => x.PayrollPeriodicity != null,
+            () =>
+                RuleFor(x => x.PayrollPeriodicity!)
+                    .Must(p => p == "Mensuelle" || p == "Bimensuelle")
+                    .WithMessage("La périodicité doit être 'Mensuelle' ou 'Bimensuelle'")
+        );
 
-        When(x => x.AuthType != null, () =>
-            RuleFor(x => x.AuthType!)
-                .Must(a => a == "JWT" || a == "C")
-                .WithMessage("AuthType doit être 'JWT' ou 'C'"));
+        When(
+            x => x.AuthType != null,
+            () =>
+                RuleFor(x => x.AuthType!)
+                    .Must(a => a == "JWT" || a == "C")
+                    .WithMessage("AuthType doit être 'JWT' ou 'C'")
+        );
     }
 }
 
@@ -95,11 +111,9 @@ public class DepartementUpdateValidator : AbstractValidator<DepartementUpdateDto
 {
     public DepartementUpdateValidator()
     {
-        When(x => x.DepartementName != null, () =>
-            RuleFor(x => x.DepartementName!).Length(2, 500));
+        When(x => x.DepartementName != null, () => RuleFor(x => x.DepartementName!).Length(2, 500));
 
-        When(x => x.CompanyId.HasValue, () =>
-            RuleFor(x => x.CompanyId!.Value).GreaterThan(0));
+        When(x => x.CompanyId.HasValue, () => RuleFor(x => x.CompanyId!.Value).GreaterThan(0));
     }
 }
 
@@ -116,8 +130,7 @@ public class JobPositionUpdateValidator : AbstractValidator<JobPositionUpdateDto
 {
     public JobPositionUpdateValidator()
     {
-        When(x => x.Name != null, () =>
-            RuleFor(x => x.Name!).Length(2, 200));
+        When(x => x.Name != null, () => RuleFor(x => x.Name!).Length(2, 200));
     }
 }
 
@@ -134,8 +147,7 @@ public class ContractTypeUpdateValidator : AbstractValidator<ContractTypeUpdateD
 {
     public ContractTypeUpdateValidator()
     {
-        When(x => x.ContractTypeName != null, () =>
-            RuleFor(x => x.ContractTypeName!).Length(2, 100));
+        When(x => x.ContractTypeName != null, () => RuleFor(x => x.ContractTypeName!).Length(2, 100));
     }
 }
 
@@ -150,11 +162,9 @@ public class HolidayCreateValidator : AbstractValidator<HolidayCreateDto>
         RuleFor(x => x.CountryId).GreaterThan(0).WithMessage("L'ID du pays est requis");
         RuleFor(x => x.HolidayType).NotEmpty().MaximumLength(50);
 
-        When(x => x.Year.HasValue, () =>
-            RuleFor(x => x.Year!.Value).InclusiveBetween(2020, 2100));
+        When(x => x.Year.HasValue, () => RuleFor(x => x.Year!.Value).InclusiveBetween(2020, 2100));
 
-        When(x => x.Description != null, () =>
-            RuleFor(x => x.Description!).MaximumLength(1000));
+        When(x => x.Description != null, () => RuleFor(x => x.Description!).MaximumLength(1000));
     }
 }
 
@@ -175,7 +185,9 @@ public class WorkingCalendarCreateValidator : AbstractValidator<WorkingCalendarC
     public WorkingCalendarCreateValidator()
     {
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de la société est requis");
-        RuleFor(x => x.DayOfWeek).InclusiveBetween(0, 6).WithMessage("Le jour doit être entre 0 (Dimanche) et 6 (Samedi)");
+        RuleFor(x => x.DayOfWeek)
+            .InclusiveBetween(0, 6)
+            .WithMessage("Le jour doit être entre 0 (Dimanche) et 6 (Samedi)");
     }
 }
 
@@ -186,7 +198,6 @@ public class CompanyDocumentCreateValidator : AbstractValidator<CompanyDocumentC
         RuleFor(x => x.CompanyId).GreaterThan(0).WithMessage("L'ID de l'entreprise est requis");
         RuleFor(x => x.Name).NotEmpty().MaximumLength(500);
         RuleFor(x => x.FilePath).NotEmpty().MaximumLength(1000);
-        When(x => x.DocumentType != null, () =>
-            RuleFor(x => x.DocumentType!).MaximumLength(100));
+        When(x => x.DocumentType != null, () => RuleFor(x => x.DocumentType!).MaximumLength(100));
     }
 }

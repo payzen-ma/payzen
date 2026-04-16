@@ -41,7 +41,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int month,
         LeaveTypePolicy policy,
         DateOnly refDateForExpiry,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         GetPreviousMonth(year, month, out int prevYear, out int prevMonth);
 
@@ -74,9 +75,18 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         DateOnly asOfDate,
         int userId,
         CancellationToken ct = default,
-        DateOnly? referenceDateForExpiry = null)
-        => RecalculateRangeThroughMonthAsync(
-            companyId, employeeId, leaveTypeId, asOfDate.Year, asOfDate.Month, userId, ct, referenceDateForExpiry);
+        DateOnly? referenceDateForExpiry = null
+    ) =>
+        RecalculateRangeThroughMonthAsync(
+            companyId,
+            employeeId,
+            leaveTypeId,
+            asOfDate.Year,
+            asOfDate.Month,
+            userId,
+            ct,
+            referenceDateForExpiry
+        );
 
     public async Task<LeaveBalanceMonthRecalcResult> RecalculateRangeThroughMonthAsync(
         int companyId,
@@ -86,7 +96,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int endMonth,
         int userId,
         CancellationToken ct = default,
-        DateOnly? referenceDateForExpiry = null)
+        DateOnly? referenceDateForExpiry = null
+    )
     {
         if (endMonth is < 1 or > 12)
             return LeaveBalanceMonthRecalcResult.Fail("Le mois doit être entre 1 et 12.");
@@ -97,16 +108,18 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
         var contractFirstMonth = new DateOnly(contractStart.Value.Year, contractStart.Value.Month, 1);
         var chainEnd = new DateOnly(endYear, endMonth, 1);
-        var isAnnualLeaveType = await _db.LeaveTypes
-            .AsNoTracking()
+        var isAnnualLeaveType = await _db
+            .LeaveTypes.AsNoTracking()
             .AnyAsync(lt => lt.Id == leaveTypeId && lt.DeletedAt == null && lt.LeaveCode == "ANNUAL", ct);
-        var employeeAnnualOpeningDays = await _db.Employees
-            .AsNoTracking()
-            .Where(e => e.Id == employeeId && e.DeletedAt == null)
-            .Select(e => (decimal?)e.AnnualLeaveOpeningDays)
-            .FirstOrDefaultAsync(ct) ?? 0m;
-        var employeeAnnualOpeningEffectiveFrom = await _db.Employees
-            .AsNoTracking()
+        var employeeAnnualOpeningDays =
+            await _db
+                .Employees.AsNoTracking()
+                .Where(e => e.Id == employeeId && e.DeletedAt == null)
+                .Select(e => (decimal?)e.AnnualLeaveOpeningDays)
+                .FirstOrDefaultAsync(ct)
+            ?? 0m;
+        var employeeAnnualOpeningEffectiveFrom = await _db
+            .Employees.AsNoTracking()
             .Where(e => e.Id == employeeId && e.DeletedAt == null)
             .Select(e => e.AnnualLeaveOpeningEffectiveFrom)
             .FirstOrDefaultAsync(ct);
@@ -117,7 +130,11 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             // Fallback compatibilité: anciennes données sans mois d'effet persistant.
             // On prend le mois du recalcul courant pour injecter la base utilisateur.
             annualOpeningMonth = employeeAnnualOpeningEffectiveFrom.HasValue
-                ? new DateOnly(employeeAnnualOpeningEffectiveFrom.Value.Year, employeeAnnualOpeningEffectiveFrom.Value.Month, 1)
+                ? new DateOnly(
+                    employeeAnnualOpeningEffectiveFrom.Value.Year,
+                    employeeAnnualOpeningEffectiveFrom.Value.Month,
+                    1
+                )
                 : chainEnd;
         }
 
@@ -134,21 +151,23 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         else
         {
             // Mode incrémental conservé pour les autres types de congé.
-            var latestExisting = await _db.LeaveBalances
-                .AsNoTracking()
+            var latestExisting = await _db
+                .LeaveBalances.AsNoTracking()
                 .Where(b =>
-                    b.EmployeeId == employeeId &&
-                    b.CompanyId == companyId &&
-                    b.LeaveTypeId == leaveTypeId &&
-                    b.DeletedAt == null)
+                    b.EmployeeId == employeeId
+                    && b.CompanyId == companyId
+                    && b.LeaveTypeId == leaveTypeId
+                    && b.DeletedAt == null
+                )
                 .OrderByDescending(b => b.Year)
                 .ThenByDescending(b => b.Month)
                 .Select(b => new { b.Year, b.Month })
                 .FirstOrDefaultAsync(ct);
 
-            chainStart = latestExisting == null
-                ? contractFirstMonth
-                : new DateOnly(latestExisting.Year, latestExisting.Month, 1);
+            chainStart =
+                latestExisting == null
+                    ? contractFirstMonth
+                    : new DateOnly(latestExisting.Year, latestExisting.Month, 1);
         }
 
         // Ne jamais recalculer avant le mois du début de contrat.
@@ -167,17 +186,29 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
             var policy = await ResolvePolicyAsync(companyId, leaveTypeId, asOfEndOfMonth, ct);
             if (policy == null)
-                return LeaveBalanceMonthRecalcResult.Fail("Aucune politique active trouvée pour ce type de congé (company/global).");
+                return LeaveBalanceMonthRecalcResult.Fail(
+                    "Aucune politique active trouvée pour ce type de congé (company/global)."
+                );
 
             var openingDaysForCreate = 0m;
-            var isAnnualOpeningMonth = isAnnualLeaveType
+            var isAnnualOpeningMonth =
+                isAnnualLeaveType
                 && annualOpeningMonth.HasValue
                 && y == annualOpeningMonth.Value.Year
                 && m == annualOpeningMonth.Value.Month;
             if (isAnnualOpeningMonth && employeeAnnualOpeningDays > 0m)
                 openingDaysForCreate = employeeAnnualOpeningDays;
 
-            var balance = await GetOrCreateBalanceAsync(companyId, employeeId, leaveTypeId, y, m, userId, ct, openingDaysForCreate);
+            var balance = await GetOrCreateBalanceAsync(
+                companyId,
+                employeeId,
+                leaveTypeId,
+                y,
+                m,
+                userId,
+                ct,
+                openingDaysForCreate
+            );
 
             // Injecte la base "congé annuel initial" même si la ligne du mois existe déjà.
             // Sans cela, un premier recalcul qui a créé OpeningDays=0 empêcherait
@@ -190,7 +221,15 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             balance.CarryInDays = isAnnualOpeningMonth
                 ? 0m
                 : await ComputeCarryInFromPreviousMonthAsync(
-                    companyId, employeeId, leaveTypeId, y, m, policy, refDate, ct);
+                    companyId,
+                    employeeId,
+                    leaveTypeId,
+                    y,
+                    m,
+                    policy,
+                    refDate,
+                    ct
+                );
 
             balance.CarryOutDays = 0m;
             balance.ClosingDays = ComputeClosingDays(balance);
@@ -218,10 +257,15 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         return LeaveBalanceMonthRecalcResult.Ok();
     }
 
-    private async Task<LeaveTypePolicy?> ResolvePolicyAsync(int companyId, int leaveTypeId, DateOnly asOfDate, CancellationToken ct)
+    private async Task<LeaveTypePolicy?> ResolvePolicyAsync(
+        int companyId,
+        int leaveTypeId,
+        DateOnly asOfDate,
+        CancellationToken ct
+    )
     {
-        var companyPolicy = await _db.LeaveTypePolicies
-            .AsNoTracking()
+        var companyPolicy = await _db
+            .LeaveTypePolicies.AsNoTracking()
             .Where(p => p.DeletedAt == null && p.IsEnabled)
             .Where(p => p.LeaveTypeId == leaveTypeId && p.CompanyId == companyId)
             .Where(p => p.EffectiveFrom == null || p.EffectiveFrom <= asOfDate)
@@ -232,8 +276,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         if (companyPolicy != null)
             return companyPolicy;
 
-        return await _db.LeaveTypePolicies
-            .AsNoTracking()
+        return await _db
+            .LeaveTypePolicies.AsNoTracking()
             .Where(p => p.DeletedAt == null && p.IsEnabled)
             .Where(p => p.LeaveTypeId == leaveTypeId && p.CompanyId == null)
             .Where(p => p.EffectiveFrom == null || p.EffectiveFrom <= asOfDate)
@@ -244,8 +288,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
 
     private async Task<DateOnly?> GetEmployeeContractStartAsync(int employeeId, CancellationToken ct)
     {
-        var startDate = await _db.EmployeeContracts
-            .AsNoTracking()
+        var startDate = await _db
+            .EmployeeContracts.AsNoTracking()
             .Where(c => c.EmployeeId == employeeId && c.DeletedAt == null)
             .OrderBy(c => c.StartDate)
             .Select(c => c.StartDate)
@@ -263,17 +307,21 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int leaveTypeId,
         int year,
         int month,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        return await _db.LeaveBalances
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b =>
-                b.CompanyId == companyId &&
-                b.EmployeeId == employeeId &&
-                b.LeaveTypeId == leaveTypeId &&
-                b.Year == year &&
-                b.Month == month &&
-                b.DeletedAt == null, ct);
+        return await _db
+            .LeaveBalances.AsNoTracking()
+            .FirstOrDefaultAsync(
+                b =>
+                    b.CompanyId == companyId
+                    && b.EmployeeId == employeeId
+                    && b.LeaveTypeId == leaveTypeId
+                    && b.Year == year
+                    && b.Month == month
+                    && b.DeletedAt == null,
+                ct
+            );
     }
 
     private async Task<LeaveBalance> GetOrCreateBalanceAsync(
@@ -284,16 +332,19 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int month,
         int userId,
         CancellationToken ct,
-        decimal openingDaysForCreate = 0m)
+        decimal openingDaysForCreate = 0m
+    )
     {
-        var balance = await _db.LeaveBalances
-            .FirstOrDefaultAsync(b =>
-                b.CompanyId == companyId &&
-                b.EmployeeId == employeeId &&
-                b.LeaveTypeId == leaveTypeId &&
-                b.Year == year &&
-                b.Month == month &&
-                b.DeletedAt == null, ct);
+        var balance = await _db.LeaveBalances.FirstOrDefaultAsync(
+            b =>
+                b.CompanyId == companyId
+                && b.EmployeeId == employeeId
+                && b.LeaveTypeId == leaveTypeId
+                && b.Year == year
+                && b.Month == month
+                && b.DeletedAt == null,
+            ct
+        );
 
         if (balance != null)
             return balance;
@@ -313,7 +364,7 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
             ClosingDays = openingDaysForCreate < 0m ? 0m : openingDaysForCreate,
             LastRecalculatedAt = DateTimeOffset.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow,
-            CreatedBy = userId
+            CreatedBy = userId,
         };
         balance.CarryoverExpiresOn = balance.GetBalanceExpiresOn();
 
@@ -329,14 +380,13 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         int leaveTypeId,
         int year,
         int month,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        return await _db.LeaveRequests
-            .AsNoTracking()
+        return await _db
+            .LeaveRequests.AsNoTracking()
             .Where(lr => lr.DeletedAt == null)
-            .Where(lr => lr.CompanyId == companyId
-                         && lr.EmployeeId == employeeId
-                         && lr.LeaveTypeId == leaveTypeId)
+            .Where(lr => lr.CompanyId == companyId && lr.EmployeeId == employeeId && lr.LeaveTypeId == leaveTypeId)
             // Les congés annulés / renoncés ne doivent jamais être déduits.
             .Where(lr => lr.Status == LeaveRequestStatus.Approved)
             .Where(lr => !lr.IsRenounced)
@@ -349,7 +399,8 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         LeaveTypePolicy policy,
         DateOnly contractStart,
         int year,
-        int month)
+        int month
+    )
     {
         if (policy.AccrualMethod == LeaveAccrualMethod.None)
             return 0m;
@@ -363,7 +414,11 @@ public sealed class LeaveBalanceRecalculationService : ILeaveBalanceRecalculatio
         {
             var accrued = policy.DaysPerMonthAdult;
 
-            if (month == 1 && policy.BonusDaysPerYearAfter5Years > 0m && HasAtLeast5YearsSeniority(contractStart, monthEnd))
+            if (
+                month == 1
+                && policy.BonusDaysPerYearAfter5Years > 0m
+                && HasAtLeast5YearsSeniority(contractStart, monthEnd)
+            )
                 accrued += policy.BonusDaysPerYearAfter5Years;
 
             return accrued;

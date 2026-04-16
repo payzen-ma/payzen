@@ -19,14 +19,21 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendInvitationEmailAsync(string toEmail, string companyName, string roleName, string invitationToken, CancellationToken ct = default)
+    public async Task SendInvitationEmailAsync(
+        string toEmail,
+        string companyName,
+        string roleName,
+        string invitationToken,
+        CancellationToken ct = default
+    )
     {
         var appBaseUrl = _config["Email:InvitationAppBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
         var acceptUrl = $"{appBaseUrl}/auth/accept-invite?token={invitationToken}";
 
         var subject = $"Invitation à rejoindre {companyName} sur Payzen HR";
 
-        var body = $@"
+        var body =
+            $@"
             <html>
             <body>
                 <h2>Bienvenue sur Payzen HR</h2>
@@ -47,7 +54,8 @@ public class EmailService : IEmailService
                 toEmail,
                 subject,
                 acceptUrl,
-                body.Length);
+                body.Length
+            );
             return;
         }
 
@@ -60,7 +68,8 @@ public class EmailService : IEmailService
         string login,
         string temporaryPassword,
         string loginUrl,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
     {
         var safeLoginUrl = string.IsNullOrWhiteSpace(loginUrl)
             ? (_config["Email:InvitationAppBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200") + "/login"
@@ -68,7 +77,8 @@ public class EmailService : IEmailService
 
         var subject = $"Bienvenue sur Payzen HR - Vos identifiants";
 
-        var body = $@"
+        var body =
+            $@"
             <html>
             <body>
                 <h2>Bienvenue sur Payzen HR</h2>
@@ -92,7 +102,8 @@ public class EmailService : IEmailService
                 toEmail,
                 login,
                 safeLoginUrl,
-                body.Length);
+                body.Length
+            );
             return;
         }
 
@@ -108,11 +119,15 @@ public class EmailService : IEmailService
         var port = _config.GetValue<int?>("Email:SmtpPort") ?? 587;
         var enableSsl = _config.GetValue<bool?>("Email:SmtpEnableSsl") ?? true;
 
-        if (string.IsNullOrWhiteSpace(host)
+        if (
+            string.IsNullOrWhiteSpace(host)
             || string.IsNullOrWhiteSpace(username)
-            || string.IsNullOrWhiteSpace(password))
+            || string.IsNullOrWhiteSpace(password)
+        )
         {
-            throw new InvalidOperationException("Configuration SMTP incomplète (Email:SmtpHost, Email:SmtpUsername, Email:SmtpPassword).");
+            throw new InvalidOperationException(
+                "Configuration SMTP incomplète (Email:SmtpHost, Email:SmtpUsername, Email:SmtpPassword)."
+            );
         }
 
         var sender = string.IsNullOrWhiteSpace(from) ? username : from;
@@ -127,7 +142,7 @@ public class EmailService : IEmailService
         using var smtp = new SmtpClient(host, port)
         {
             EnableSsl = enableSsl,
-            Credentials = new NetworkCredential(username, password)
+            Credentials = new NetworkCredential(username, password),
         };
 
         try
