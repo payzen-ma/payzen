@@ -321,8 +321,6 @@ ir_final = MAX(0, ir_brut - deduction_bareme - (situation_fam * 30))`
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Oui, supprimer',
       rejectLabel: 'Annuler',
-      acceptButtonStyleClass: 'bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors ml-2',
-      rejectButtonStyleClass: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-md transition-colors',
       accept: () => {
         this.payrollService.deleteCustomRule(rule.dbId!).subscribe({
           next: () => {

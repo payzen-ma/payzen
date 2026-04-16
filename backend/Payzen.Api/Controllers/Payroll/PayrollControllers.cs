@@ -520,6 +520,48 @@ public class PayrollExportsCompatController : ControllerBase
     }
 }
 
+// ── Payroll Custom Rules ──────────────────────────────────────────────────────
+
+[ApiController]
+[Route("api/payroll/custom-rules")]
+[Authorize]
+public class PayrollCustomRulesController : ControllerBase
+{
+    private readonly IPayrollService _svc;
+
+    public PayrollCustomRulesController(IPayrollService svc) => _svc = svc;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] int companyId, CancellationToken ct)
+    {
+        var r = await _svc.GetCustomRulesAsync(companyId, ct);
+        return r.Success ? Ok(r.Data) : BadRequest(new { error = r.Error });
+    }
+
+    [HttpPost("preview")]
+    public async Task<IActionResult> Preview([FromBody] CreatePayrollCustomRuleRequestDto dto, CancellationToken ct)
+    {
+        var r = await _svc.PreviewCustomRuleAsync(dto, ct);
+        if (!r.Success)
+            return BadRequest(new { error = r.Error });
+        return Ok(new { dslSnippet = r.Data });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromQuery] int companyId, [FromBody] CreatePayrollCustomRuleRequestDto dto, CancellationToken ct)
+    {
+        var r = await _svc.CreateCustomRuleAsync(companyId, dto, User.GetUserId(), ct);
+        return r.Success ? Ok(r.Data) : BadRequest(new { error = r.Error });
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var r = await _svc.DeleteCustomRuleAsync(id, User.GetUserId(), ct);
+        return r.Success ? Ok() : BadRequest(new { error = r.Error });
+    }
+}
+
 // ── Claude Simulation ─────────────────────────────────────────────────────────
 
 [ApiController]

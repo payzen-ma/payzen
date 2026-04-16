@@ -17,7 +17,7 @@ namespace Payzen.Infrastructure.Services.Payroll;
 ///
 /// Pipeline :
 ///   1. Charger toutes les données employé depuis DB → EmployeePayrollDto
-///   2. Appeler PayrollCalculationEngine.CalculatePayroll(dto)  [moteur pur Phase 2]
+///   2. Appeler PayrollCalculationEngine.CalculatePayroll(dto)
 ///   3. Mapper PayrollCalculationResult → entité PayrollResult
 ///   4. Persister PayrollResult + Primes + AuditSteps
 /// </summary>

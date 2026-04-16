@@ -2,6 +2,160 @@
   animation: fadeIn 0.4s ease-out;
 }
 
+.payroll-rules__header {
+  margin-bottom: var(--space-2);
+}
+
+.payroll-rules__table-shell,
+.payroll-rules__section-shell {
+  background: var(--bg-element);
+}
+
+.payroll-rules__table-scroll {
+  overflow-x: auto;
+}
+
+.payroll-rules__table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  text-align: left;
+}
+
+.payroll-rules__table-head {
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.payroll-rules__table-heading {
+  padding: 0.75rem 1.5rem;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.payroll-rules__table-body {
+  background: var(--bg-element);
+}
+
+.payroll-rules__table-row {
+  transition: background-color 0.15s ease;
+}
+
+.payroll-rules__table-row + .payroll-rules__table-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.payroll-rules__table-row:hover {
+  background: var(--bg-hover);
+}
+
+.payroll-rules__table-cell {
+  padding: 1rem 1.5rem;
+  color: var(--text-primary);
+}
+
+.payroll-rules__table-cell--constant {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--primary-700, var(--primary));
+}
+
+.payroll-rules__description {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.payroll-rules__code-block,
+.payroll-rules__preview-code {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+}
+
+.payroll-rules__code-block {
+  padding: 1rem;
+}
+
+.payroll-rules__editor-panel {
+  border-color: color-mix(in srgb, var(--primary) 14%, var(--border-subtle));
+}
+
+.payroll-rules__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.payroll-rules__required {
+  color: var(--danger);
+}
+
+.payroll-rules__textarea-shell {
+  padding: 0.25rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  background: var(--bg-element);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.payroll-rules__textarea-shell:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.payroll-rules__helper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.payroll-rules__preview-panel {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border-subtle));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--primary) 6%, var(--bg-element));
+}
+
+.payroll-rules__preview-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--primary-700, var(--primary));
+}
+
+.payroll-rules__preview-copy {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: color-mix(in srgb, var(--primary) 72%, var(--text-secondary));
+}
+
+.payroll-rules__preview-code {
+  padding: 0.75rem;
+  background: var(--bg-element);
+}
+
+.payroll-rules__actions {
+  border-top: 1px solid var(--border-subtle);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -1,7 +1,7 @@
 <section class="leave-requests-page leave-requests-page--app">
   <div class="leave-requests-shell">
     <!-- Header -->
-    <header class="payslip-app-header" role="banner" style="margin-bottom: 2rem;">
+    <header class="payslip-app-header payroll-rules__header" role="banner">
       <div class="payslip-app-header__start">
         <div class="payslip-app-header__icon" aria-hidden="true">
           <i class="pi pi-sliders-h"></i>
@@ -26,20 +26,20 @@
         </div>
       </p-accordion-header>
       <p-accordion-content>
-        <div class="leave-requests-app-table-shell mt-4">
-          <div class="bg-white overflow-x-auto">
-            <table class="min-w-full text-sm text-left">
-              <thead class="bg-gray-50 border-b border-gray-200">
+        <div class="leave-requests-app-table-shell payroll-rules__table-shell mt-4">
+          <div class="payroll-rules__table-scroll">
+            <table class="payroll-rules__table">
+              <thead class="payroll-rules__table-head">
                 <tr>
-                  <th scope="col" class="px-6 py-3 font-semibold text-gray-700 uppercase tracking-wide text-[13px]">Nom de la constante</th>
-                  <th scope="col" class="px-6 py-3 font-semibold text-gray-700 uppercase tracking-wide text-[13px]">Valeur appliquée</th>
+                  <th scope="col" class="payroll-rules__table-heading">Nom de la constante</th>
+                  <th scope="col" class="payroll-rules__table-heading">Valeur appliquée</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200">
+              <tbody class="payroll-rules__table-body">
                 @for (constant of constants(); track constant.name) {
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-mono text-blue-700 font-medium">{{ constant.name }}</td>
-                    <td class="px-6 py-4 text-gray-900">{{ constant.value }}</td>
+                  <tr class="payroll-rules__table-row">
+                    <td class="payroll-rules__table-cell payroll-rules__table-cell--constant">{{ constant.name }}</td>
+                    <td class="payroll-rules__table-cell">{{ constant.value }}</td>
                   </tr>
                 }
               </tbody>
@@ -57,16 +57,16 @@
         </div>
       </p-accordion-header>
       <p-accordion-content>
-        <div class="leave-requests-app-table-shell mt-4 bg-white">
+        <div class="leave-requests-app-table-shell payroll-rules__section-shell mt-4">
           <p-accordion [multiple]="true">
             @for (rule of globalRules(); track rule.id) {
               <p-accordion-panel [value]="rule.id">
                 <p-accordion-header>{{ rule.title }}</p-accordion-header>
                 <p-accordion-content>
-                  <p class="text-sm text-(--text-secondary) mb-3">
+                  <p class="payroll-rules__description mb-3">
                     {{ rule.description }}
                   </p>
-                  <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto shadow-inner">
+                  <div class="payroll-rules__code-block">
                     {{ rule.code }}
                   </div>
                 </p-accordion-content>
@@ -85,9 +85,9 @@
         </div>
       </p-accordion-header>
       <p-accordion-content>
-        <div class="leave-requests-app-table-shell mt-4 bg-white">
+        <div class="leave-requests-app-table-shell payroll-rules__section-shell mt-4">
           @if (customRules().length === 0) {
-            <p class="text-sm text-(--text-secondary) m-0">
+            <p class="payroll-rules__description m-0">
               Aucune règle personnalisée pour le moment. Ajoutez une règle depuis la section ci-dessous.
             </p>
           } @else {
@@ -96,10 +96,10 @@
                 <p-accordion-panel [value]="rule.id">
                   <p-accordion-header>{{ rule.title }}</p-accordion-header>
                   <p-accordion-content>
-                    <p class="text-sm text-(--text-secondary) mb-3">
+                    <p class="payroll-rules__description mb-3">
                       {{ rule.description }}
                     </p>
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto shadow-inner">
+                    <div class="payroll-rules__code-block">
                       {{ rule.code }}
                     </div>
                     <div class="flex justify-end mt-4">
@@ -127,7 +127,7 @@
 
   <!-- Section Inline: Espace pour écrire ses propres règles -->
   @if (isCreatingRule()) {
-  <section id="new-rule-section" class="leave-requests-app-panel mb-10 shadow-md border border-blue-50">
+  <section id="new-rule-section" class="leave-requests-app-panel payroll-rules__editor-panel mb-10">
     <div class="flex justify-between items-center mb-4">
       <h2 class="leave-requests-app-panel__title m-0">Créer une règle personnalisée</h2>
     </div>
@@ -136,32 +136,32 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
         
         <div class="col-span-1 md:col-span-2">
-          <label class="block text-sm font-medium text-(--text-primary) mb-2">Titre de la règle <span class="text-red-500">*</span></label>
+          <label class="payroll-rules__label">Titre de la règle <span class="payroll-rules__required">*</span></label>
           <input pInputText [(ngModel)]="newRuleName" placeholder="Ex: Prime d'assiduité 2026" class="w-full leave-request-control" />
         </div>
 
         <div class="col-span-1 md:col-span-2">
-          <label class="block text-sm font-medium text-(--text-primary) mb-2">Explication de la règle en langage naturel <span class="text-red-500">*</span></label>
-          <div class="p-1 rounded bg-white border border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+          <label class="payroll-rules__label">Explication de la règle en langage naturel <span class="payroll-rules__required">*</span></label>
+          <div class="payroll-rules__textarea-shell">
             <textarea pInputTextarea [(ngModel)]="newRuleDescription" rows="8" 
                       placeholder="Veuillez décrire la règle avec vos propres mots de manière claire. Exemple : Si le collaborateur a plus de 2 ans d'ancienneté, appliquer une prime de présence de 500 MAD par mois..." 
                       class="w-full text-sm border-none bg-transparent resize-y focus:outline-none focus:ring-0"></textarea>
           </div>
-          <p class="text-xs text-gray-500 mt-2"><i class="pi pi-info-circle"></i> Cette règle sera automatiquement comprise par Payzen IA pour définir sa formule mathématique associée (Payzen DSL).</p>
+          <p class="payroll-rules__helper mt-2"><i class="pi pi-info-circle"></i> Cette règle sera automatiquement comprise par Payzen IA pour définir sa formule mathématique associée (Payzen DSL).</p>
         </div>
 
       </div>
 
       @if (draftDslSnippet()) {
-        <div class="mt-6 p-4 border border-blue-200 bg-blue-50 rounded-lg">
-          <h3 class="text-sm font-semibold text-blue-900 mb-2">Voici la règle générée par l'IA :</h3>
-          <p class="text-xs text-blue-800 mb-3">Vérifiez la règle DSL ci-dessous. Est-ce bien la règle que vous voulez ajouter ?</p>
-          <div class="bg-white border border-gray-200 rounded p-3 font-mono text-sm text-gray-800 whitespace-pre-wrap">
+        <div class="payroll-rules__preview-panel mt-6">
+          <h3 class="payroll-rules__preview-title mb-2">Voici la règle générée par l'IA :</h3>
+          <p class="payroll-rules__preview-copy mb-3">Vérifiez la règle DSL ci-dessous. Est-ce bien la règle que vous voulez ajouter ?</p>
+          <div class="payroll-rules__preview-code">
             {{ draftDslSnippet() }}
           </div>
           
           <div class="flex justify-end gap-3 mt-4">
-            <button type="button" class="leave-request-dialog__btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50" (click)="abortPreview()" [disabled]="isGeneratingRule()">
+            <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--secondary" (click)="abortPreview()" [disabled]="isGeneratingRule()">
               Non, annuler
             </button>
             <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--primary" (click)="confirmRule()" [disabled]="isGeneratingRule()">
@@ -177,8 +177,8 @@
       }
 
       @if (!draftDslSnippet()) {
-      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-        <button type="button" class="leave-request-dialog__btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50" (click)="cancelCreateRule()" [disabled]="isGeneratingRule()">
+      <div class="flex justify-end gap-3 mt-6 pt-4 payroll-rules__actions">
+        <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--secondary" (click)="cancelCreateRule()" [disabled]="isGeneratingRule()">
           Annuler
         </button>
         <button type="button" class="leave-request-dialog__btn leave-request-dialog__btn--secondary" (click)="resetForm()" [disabled]="isGeneratingRule()">
