@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
@@ -22,11 +25,20 @@ public class PayrollService : IPayrollService
 {
     private readonly AppDbContext _db;
     private readonly PayrollCalculationEngine _engine;
+    private readonly IWebHostEnvironment _env;
+    private readonly ILlmService _llmService;
 
-    public PayrollService(AppDbContext db, PayrollCalculationEngine engine)
+    public PayrollService(
+        AppDbContext db,
+        PayrollCalculationEngine engine,
+        IWebHostEnvironment env,
+        ILlmService llmService
+    )
     {
         _db = db;
         _engine = engine;
+        _env = env;
+        _llmService = llmService;
     }
 
     // ── Calcul ────────────────────────────────────────────────────────────────
@@ -40,6 +52,23 @@ public class PayrollService : IPayrollService
         var eligibility = await CheckPayrollEligibilityAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, ct);
         if (!eligibility.IsEligible)
             return ServiceResult<PayrollResultReadDto>.Fail(eligibility.Reason);
+
+        // Verification Snapshotting
+        var isApproved = await _db.PayrollResults.AnyAsync(
+            pr =>
+                pr.DeletedAt == null
+                && pr.EmployeeId == dto.EmployeeId
+                && pr.Month == dto.PayMonth
+                && pr.Year == dto.PayYear
+                && pr.PayHalf == dto.PayHalf
+                && pr.Status == PayrollResultStatus.Approved,
+            ct
+        );
+
+        if (isApproved)
+            return ServiceResult<PayrollResultReadDto>.Fail(
+                "La paie de ce mois est verrouillée (Approuvée) et ne peut plus être recalculée."
+            );
 
         var data = await HydrateAsync(dto.EmployeeId, dto.PayMonth, dto.PayYear, dto.PayHalf, ct);
         if (data == null)
@@ -429,6 +458,23 @@ public class PayrollService : IPayrollService
         CancellationToken ct = default
     )
     {
+        // Verification Snapshotting
+        var isApproved = await _db.PayrollResults.AnyAsync(
+            pr =>
+                pr.DeletedAt == null
+                && pr.EmployeeId == employeeId
+                && pr.Month == month
+                && pr.Year == year
+                && pr.PayHalf == payHalf
+                && pr.Status == PayrollResultStatus.Approved,
+            ct
+        );
+
+        if (isApproved)
+            return ServiceResult<PayrollResultReadDto>.Fail(
+                "La paie de ce mois est verrouillée (Approuvée) et ne peut plus être recalculée."
+            );
+
         // Supprimer le résultat existant s'il existe
         var existing = await _db.PayrollResults.FirstOrDefaultAsync(
             pr => pr.EmployeeId == employeeId && pr.Month == month && pr.Year == year && pr.PayHalf == payHalf,
@@ -450,77 +496,232 @@ public class PayrollService : IPayrollService
         return await CalculateAsync(simDto, userId, ct);
     }
 
+    public async Task<ServiceResult<List<PayrollCustomRuleDto>>> GetCustomRulesAsync(
+        int companyId,
+        CancellationToken ct = default
+    )
+    {
+        var items = await _db
+            .PayrollCustomRules.AsNoTracking()
+            .Where(x => x.CompanyId == companyId && x.DeletedAt == null)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new PayrollCustomRuleDto
+            {
+                Id = x.Id,
+                Title = x.Title,
+                Description = x.Description,
+                DslSnippet = x.DslSnippet,
+                CreatedAt = x.CreatedAt,
+            })
+            .ToListAsync(ct);
+
+        return ServiceResult<List<PayrollCustomRuleDto>>.Ok(items);
+    }
+
+    public async Task<ServiceResult<string>> PreviewCustomRuleAsync(
+        CreatePayrollCustomRuleRequestDto dto,
+        CancellationToken ct = default
+    )
+    {
+        var title = dto.Title?.Trim();
+        var description = dto.Description?.Trim();
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(description))
+            return ServiceResult<string>.Fail("Le titre et la description sont requis.");
+
+        var safeTitle = title.Replace("\r", " ").Replace("\n", " ");
+        string generatedDsl;
+        try
+        {
+            generatedDsl = await _llmService.GenerateDslFromNaturalLanguageAsync(safeTitle, description, ct);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.Fail(
+                $"Le service IA est temporairement indisponible ({ex.Message}). Veuillez réessayer plus tard."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(generatedDsl))
+            return ServiceResult<string>.Fail("L'IA n'a pas réussi à générer le code DSL.");
+
+        return ServiceResult<string>.Ok(generatedDsl.Trim());
+    }
+
+    public async Task<ServiceResult<PayrollCustomRuleDto>> CreateCustomRuleAsync(
+        int companyId,
+        CreatePayrollCustomRuleRequestDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    )
+    {
+        var title = dto.Title?.Trim();
+        var description = dto.Description?.Trim();
+        var dslSnippet = dto.DslSnippet?.Trim();
+
+        if (
+            string.IsNullOrWhiteSpace(title)
+            || string.IsNullOrWhiteSpace(description)
+            || string.IsNullOrWhiteSpace(dslSnippet)
+        )
+            return ServiceResult<PayrollCustomRuleDto>.Fail(
+                "Le titre, la description et la règle générée sont requis."
+            );
+
+        var entity = new PayrollCustomRule
+        {
+            CompanyId = companyId,
+            Title = title,
+            Description = description,
+            DslSnippet = dslSnippet,
+            CreatedBy = createdBy,
+            GeneratedFilePath = string.Empty,
+        };
+        _db.PayrollCustomRules.Add(entity);
+        await _db.SaveChangesAsync(ct);
+
+        var generatedPath = await GenerateRulesFileForCompanyAsync(companyId, ct);
+        entity.GeneratedFilePath = generatedPath;
+        entity.UpdatedBy = createdBy;
+        await _db.SaveChangesAsync(ct);
+
+        return ServiceResult<PayrollCustomRuleDto>.Ok(
+            new PayrollCustomRuleDto
+            {
+                Id = entity.Id,
+                Title = entity.Title,
+                Description = entity.Description,
+                DslSnippet = entity.DslSnippet,
+                CreatedAt = entity.CreatedAt,
+            }
+        );
+    }
+
+    public async Task<ServiceResult> DeleteCustomRuleAsync(int id, int deletedBy, CancellationToken ct = default)
+    {
+        var rule = await _db.PayrollCustomRules.FindAsync(new object[] { id }, ct);
+        if (rule == null || rule.DeletedAt != null)
+            return ServiceResult.Fail("Règle personnalisée introuvable.");
+
+        rule.DeletedAt = DateTimeOffset.UtcNow;
+        rule.DeletedBy = deletedBy;
+
+        await _db.SaveChangesAsync(ct);
+
+        await GenerateRulesFileForCompanyAsync(rule.CompanyId, ct);
+
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> UpdateResultStatusAsync(
+        int id,
+        PayrollResultStatus status,
+        int updatedBy,
+        CancellationToken ct = default
+    )
+    {
+        var pr = await _db.PayrollResults.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        if (pr == null)
+            return ServiceResult.Fail("Résultat introuvable.");
+
+        pr.Status = status;
+        pr.UpdatedAt = DateTimeOffset.UtcNow;
+        pr.UpdatedBy = updatedBy;
+
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
+    }
+
     public async Task<ServiceResult> DeleteResultAsync(int id, int deletedBy, CancellationToken ct = default)
     {
         var pr = await _db.PayrollResults.FindAsync(new object[] { id }, ct);
         if (pr == null)
             return ServiceResult.Fail("Résultat introuvable.");
+        if (pr.Status == PayrollResultStatus.Approved)
+            return ServiceResult.Fail("La paie est verrouillée, suppression interdite.");
         pr.DeletedAt = DateTimeOffset.UtcNow;
         pr.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
         return ServiceResult.Ok();
     }
 
-    private async Task<(bool IsEligible, string Reason)> CheckPayrollEligibilityAsync(
+    public async Task<ServiceResult> ApprovePeriodAsync(
+        int companyId,
+        int month,
+        int year,
+        int? payHalf,
+        int userId,
+        CancellationToken ct = default
+    )
+    {
+        if (companyId <= 0)
+            return ServiceResult.Fail("companyId invalide.");
+        if (month < 1 || month > 12)
+            return ServiceResult.Fail("month invalide (1-12).");
+        if (year < 2000 || year > 2100)
+            return ServiceResult.Fail("year invalide.");
+
+        var q = _db.PayrollResults.Where(pr =>
+            pr.CompanyId == companyId && pr.Year == year && pr.Month == month && pr.DeletedAt == null
+        );
+        if (payHalf.HasValue)
+            q = q.Where(pr => pr.PayHalf == payHalf.Value);
+
+        var toApprove = await q.Where(pr => pr.Status == PayrollResultStatus.OK).ToListAsync(ct);
+        if (toApprove == null || toApprove.Count == 0)
+            return ServiceResult.Fail($"Aucun bulletin OK à approuver pour {month:D2}/{year}.");
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var pr in toApprove)
+        {
+            pr.Status = PayrollResultStatus.Approved;
+            pr.UpdatedAt = now;
+            pr.UpdatedBy = userId;
+        }
+
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
+    }
+
+    private async Task<(bool IsEligible, string? Reason)> CheckPayrollEligibilityAsync(
         int employeeId,
         int month,
         int year,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
-        var payDate = new DateTime(year, month, 1);
-
-        var employee = await _db
-            .Employees.AsNoTracking()
-            .Include(e => e.Status)
-            .FirstOrDefaultAsync(e => e.Id == employeeId && e.DeletedAt == null, ct);
-
-        if (employee == null)
+        if (month < 1 || month > 12)
+            return (false, "Mois invalide.");
+        if (year < 2000 || year > 2100)
+            return (false, "Année invalide.");
+        var emp = await _db.Employees.FindAsync(new object[] { employeeId }, ct);
+        if (emp == null)
             return (false, "Employé introuvable.");
-
-        if (!IsStatusEligibleForPayroll(employee.Status))
-            return (false, "La paie ne s'applique qu'aux employés actifs ou en congé.");
-
-        var hasPositiveSalary = await _db
-            .EmployeeSalaries.AsNoTracking()
-            .AnyAsync(
-                s =>
-                    s.EmployeeId == employeeId
-                    && s.EffectiveDate <= payDate
-                    && (s.EndDate == null || s.EndDate >= payDate)
-                    && s.BaseSalary > 0m,
-                ct
-            );
-
-        if (!hasPositiveSalary)
-            return (false, "La paie ne s'applique qu'aux employés avec un salaire de base strictement supérieur à 0.");
-
-        return (true, string.Empty);
+        return (true, null);
     }
 
-    private static bool IsStatusEligibleForPayroll(Domain.Entities.Referentiel.Status? status)
+    private async Task<string> GenerateRulesFileForCompanyAsync(int companyId, CancellationToken ct = default)
     {
-        if (status == null)
-            return false;
+        try
+        {
+            var snippets = await _db
+                .PayrollCustomRules.AsNoTracking()
+                .Where(r => r.CompanyId == companyId && r.DeletedAt == null)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => r.DslSnippet)
+                .ToListAsync(ct);
 
-        var code = NormalizeStatusToken(status.Code);
-        var nameFr = NormalizeStatusToken(status.NameFr);
-        var nameEn = NormalizeStatusToken(status.NameEn);
-
-        return IsAllowedStatusToken(code) || IsAllowedStatusToken(nameFr) || IsAllowedStatusToken(nameEn);
-    }
-
-    private static bool IsAllowedStatusToken(string token) =>
-        token is "ACTIVE" or "ACTIF" or "ONLEAVE" or "ENCONGE" or "CONGE";
-
-    private static string NormalizeStatusToken(string? value)
-    {
-        return (value ?? string.Empty)
-            .Trim()
-            .ToUpperInvariant()
-            .Replace("_", string.Empty)
-            .Replace("-", string.Empty)
-            .Replace(" ", string.Empty);
+            var content = string.Join("\n\n", snippets);
+            var dir = Path.Combine(_env.ContentRootPath ?? ".", "payroll-rules");
+            Directory.CreateDirectory(dir);
+            var fileName = $"payroll-rules-{companyId}-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.dsl";
+            var path = Path.Combine(dir, fileName);
+            await File.WriteAllTextAsync(path, content, ct);
+            return path;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     // ── Hydratation ───────────────────────────────────────────────────────────

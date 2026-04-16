@@ -32,6 +32,39 @@ public class PayrollController : ControllerBase
         };
     }
 
+    private static bool TryParseResultStatus(string? rawStatus, out Domain.Enums.PayrollResultStatus status)
+    {
+        status = Domain.Enums.PayrollResultStatus.Pending;
+        if (string.IsNullOrWhiteSpace(rawStatus))
+            return false;
+
+        var raw = rawStatus.Trim().ToUpperInvariant();
+        switch (raw)
+        {
+            case "SUCCESS":
+            case "OK":
+                status = Domain.Enums.PayrollResultStatus.OK;
+                return true;
+            case "ERROR":
+            case "ERREUR":
+            case "FAILED":
+                status = Domain.Enums.PayrollResultStatus.Error;
+                return true;
+            case "PENDING":
+            case "EN_ATTENTE":
+            case "EN ATTENTE":
+                status = Domain.Enums.PayrollResultStatus.Pending;
+                return true;
+            case "APPROVED":
+            case "APPROUVEE":
+            case "APPROUVÉE":
+                status = Domain.Enums.PayrollResultStatus.Approved;
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /// <summary>
     /// Calcul paie : soit corps JSON (un employé, parité simulate/calculate interne),
     /// soit paramètres query <c>companyId</c>, <c>month</c>, <c>year</c> comme l’ancien backend (page bulletin).

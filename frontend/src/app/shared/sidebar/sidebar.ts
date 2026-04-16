@@ -272,6 +272,16 @@ export class Sidebar {
       itemBadge: null
     },
     {
+      label: 'Règles de Paie',
+      icon: 'pi pi-sliders-v',
+      routerLink: '/payroll/rules',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null
+    },
+    {
       label: 'nav.payslips',
       icon: 'pi pi-file-pdf',
       routerLink: '/payroll/payslip',

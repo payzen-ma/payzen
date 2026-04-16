@@ -38,12 +38,13 @@ public static class DependencyInjection
             )
         );
 
-        // ── HTTP Client (Claude LLM) ──────────────────────────────────────────
+        // ── HTTP Client (Gemini LLM) ──────────────────────────────────────────
         services.AddHttpClient(
-            "Claude",
+            "Gemini",
             client =>
             {
-                client.BaseAddress = new Uri("https://api.anthropic.com/");
+                // L'URL de base n'est pas configurée ici car elle varie avec le modèle,
+            // utilisée directement lors de l'appel HTTP.
                 client.Timeout = TimeSpan.FromSeconds(120);
             }
         );
@@ -99,8 +100,8 @@ public static class DependencyInjection
         // ── Dashboard ─────────────────────────────────────────────────────────
         services.AddScoped<IDashboardService, DashboardService>();
 
-        // ── LLM ───────────────────────────────────────────────────────────────
-        services.AddScoped<ILlmService, ClaudeService>();
+        // ── LLM (Gemini) ───────────────────────────────────────────────────────
+        services.AddScoped<ILlmService, GeminiService>();
 
         // ── Timesheet Import ───────────────────────────────────────────────────
         services.AddScoped<ITimesheetImportService, TimesheetImportService>();

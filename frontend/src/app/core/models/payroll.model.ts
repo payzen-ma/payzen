@@ -3,7 +3,8 @@
 export enum PayrollResultStatus {
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR',
-  PENDING = 'PENDING'
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED'
 }
 
 export interface PayrollResult {

@@ -51,6 +51,7 @@ export class BulletinComponent implements OnInit {
   // État
   readonly loading = signal(false);
   readonly calculating = signal(false);
+  readonly approving = signal(false);
   readonly employees = signal<Employee[]>([]);
   readonly payrollResults = signal<PayrollResult[]>([]);
 
@@ -58,6 +59,9 @@ export class BulletinComponent implements OnInit {
   readonly showDetailModal = signal(false);
   readonly detailLoading = signal(false);
   readonly selectedDetail = signal<PayrollDetail | null>(null);
+  readonly showEditStatusModal = signal(false);
+  readonly editingResult = signal<PayrollResult | null>(null);
+  readonly selectedEditStatus = signal<PayrollResultStatus | null>(null);
 
   // Alert box (remplace alert())
   readonly showAlert = signal(false);
@@ -90,6 +94,7 @@ export class BulletinComponent implements OnInit {
     { label: '', value: null, disabled: true }
   ]);
   readonly statusOptions = signal<SelectOption[]>([]);
+  readonly editStatusOptions = signal<SelectOption[]>([]);
 
   // Données filtrées
   readonly filteredResults = computed(() => {
@@ -142,7 +147,15 @@ export class BulletinComponent implements OnInit {
       { label: this.translate.instant('payrollBulletin.allStatuses'), value: null },
       { label: this.translate.instant('payrollBulletin.statusSuccess'), value: PayrollResultStatus.SUCCESS },
       { label: this.translate.instant('payrollBulletin.statusError'), value: PayrollResultStatus.ERROR },
-      { label: this.translate.instant('payrollBulletin.statusPending'), value: PayrollResultStatus.PENDING }
+      { label: this.translate.instant('payrollBulletin.statusPending'), value: PayrollResultStatus.PENDING },
+      { label: this.translate.instant('payrollBulletin.statusApproved') === 'payrollBulletin.statusApproved' ? 'Approuvée' : this.translate.instant('payrollBulletin.statusApproved'), value: PayrollResultStatus.APPROVED }
+    ]);
+
+    this.editStatusOptions.set([
+      { label: this.translate.instant('payrollBulletin.statusSuccess'), value: PayrollResultStatus.SUCCESS },
+      { label: this.translate.instant('payrollBulletin.statusError'), value: PayrollResultStatus.ERROR },
+      { label: this.translate.instant('payrollBulletin.statusPending'), value: PayrollResultStatus.PENDING },
+      { label: this.translate.instant('payrollBulletin.statusApproved') === 'payrollBulletin.statusApproved' ? 'Approuvée' : this.translate.instant('payrollBulletin.statusApproved'), value: PayrollResultStatus.APPROVED }
     ]);
   }
 
@@ -359,6 +372,15 @@ export class BulletinComponent implements OnInit {
       return PayrollResultStatus.PENDING;
     }
 
+    if (
+      raw === PayrollResultStatus.APPROVED ||
+      raw === 'APPROVED' || 
+      raw === 'APPROUVÉE' ||
+      raw === 'APPROUVEE'
+    ) {
+      return PayrollResultStatus.APPROVED;
+    }
+
     // Par défaut, tout le reste est traité comme "succès"
     return PayrollResultStatus.SUCCESS;
   }
@@ -372,6 +394,8 @@ export class BulletinComponent implements OnInit {
         return 'danger';
       case PayrollResultStatus.PENDING:
         return 'warning';
+      case PayrollResultStatus.APPROVED:
+        return 'success';
       default:
         return 'info';
     }
@@ -386,9 +410,16 @@ export class BulletinComponent implements OnInit {
         return this.translate.instant('payrollBulletin.statusError');
       case PayrollResultStatus.PENDING:
         return this.translate.instant('payrollBulletin.statusPending');
+      case PayrollResultStatus.APPROVED:
+        const approvedLabel = this.translate.instant('payrollBulletin.statusApproved');
+        return approvedLabel === 'payrollBulletin.statusApproved' ? 'Approuvée' : approvedLabel;
       default:
         return status;
     }
+  }
+
+  isApproved(status: PayrollResultStatus | string | null | undefined): boolean {
+    return this.normalizeStatus(status) === PayrollResultStatus.APPROVED;
   }
 
   formatCurrency(amount: number | undefined | null): string {
@@ -529,6 +560,79 @@ export class BulletinComponent implements OnInit {
         const errorMessage = this.extractErrorMessage(
           error,
           this.translate.instant('payrollBulletin.deleteError')
+        );
+        this.toastService.error(errorMessage);
+      }
+    });
+  }
+
+  async editResult(result: PayrollResult): Promise<void> {
+    this.editingResult.set(result);
+    this.selectedEditStatus.set(this.normalizeStatus(result.status));
+    this.showEditStatusModal.set(true);
+  }
+
+  closeEditStatusModal(): void {
+    this.showEditStatusModal.set(false);
+    this.editingResult.set(null);
+    this.selectedEditStatus.set(null);
+  }
+
+  saveStatusChange(): void {
+    const result = this.editingResult();
+    const status = this.selectedEditStatus();
+
+    if (!result || !status) {
+      this.toastService.warning(this.translate.instant('payrollBulletin.selectStatusRequired'));
+      return;
+    }
+
+    this.calculating.set(true);
+    this.payrollService.updatePayrollResultStatus(result.id, status).subscribe({
+      next: () => {
+        this.calculating.set(false);
+        this.closeEditStatusModal();
+        this.toastService.success(
+          this.translate.instant('payrollBulletin.editStatusSuccess', { name: result.employeeName })
+        );
+        this.loadPayrollResults();
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour du statut du bulletin:', error);
+        this.calculating.set(false);
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.editStatusError')
+        );
+        this.toastService.error(errorMessage);
+      }
+    });
+  }
+
+  async approvePeriod(): Promise<void> {
+    const ok = await this.openConfirm(
+      this.translate.instant('payrollBulletin.confirmApproveTitle') || 'Verrouiller la période',
+      this.translate.instant('payrollBulletin.confirmApproveMessage') || 'Voulez-vous figer définitivement les bulletins de cette période ? Cette action interdira toute modification.'
+    );
+    if (!ok) return;
+
+    this.approving.set(true);
+    this.payrollService.approvePeriod(
+      this.selectedMonth(),
+      this.selectedYear(),
+      this.selectedHalf() ?? undefined
+    ).subscribe({
+      next: () => {
+        this.approving.set(false);
+        this.toastService.success(this.translate.instant('payrollBulletin.approveSuccess') || 'La période a été verrouillée avec succès.');
+        this.loadPayrollResults();
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'approbation:', error);
+        this.approving.set(false);
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.approveError') || 'Impossible de verrouiller la période.'
         );
         this.toastService.error(errorMessage);
       }

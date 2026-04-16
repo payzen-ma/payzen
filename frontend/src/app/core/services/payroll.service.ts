@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { 
   PayrollResult, 
@@ -126,6 +128,60 @@ export class PayrollService {
     return this.http.delete(`${this.PAYROLL_URL}/results/${id}`);
   }
 
+  updatePayrollResultStatus(id: number, status: PayrollResultStatus): Observable<any> {
+    const payload = { status };
+    return this.http.patch(`${this.PAYROLL_URL}/results/${id}/status`, payload).pipe(
+      catchError((error) => {
+        if (error?.status === 404) {
+          return this.http.patch(`${this.PAYROLL_URL}/${id}/status`, payload);
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getCustomRules(companyId: number): Observable<Array<{
+    id: number;
+    title: string;
+    description: string;
+    dslSnippet: string;
+    createdAt: string;
+  }>> {
+    const params = new HttpParams().set('companyId', companyId.toString());
+    return this.http.get<Array<{
+      id: number;
+      title: string;
+      description: string;
+      dslSnippet: string;
+      createdAt: string;
+    }>>(`${this.PAYROLL_URL}/custom-rules`, { params });
+  }
+
+  previewCustomRule(payload: { title: string; description: string }): Observable<{ dslSnippet: string }> {
+    return this.http.post<{ dslSnippet: string }>(`${this.PAYROLL_URL}/custom-rules/preview`, payload);
+  }
+
+  createCustomRule(companyId: number, payload: { title: string; description: string; dslSnippet: string }): Observable<{
+    id: number;
+    title: string;
+    description: string;
+    dslSnippet: string;
+    createdAt: string;
+  }> {
+    const params = new HttpParams().set('companyId', companyId.toString());
+    return this.http.post<{
+      id: number;
+      title: string;
+      description: string;
+      dslSnippet: string;
+      createdAt: string;
+    }>(`${this.PAYROLL_URL}/custom-rules`, payload, { params });
+  }
+
+  deleteCustomRule(id: number): Observable<any> {
+    return this.http.delete(`${this.PAYROLL_URL}/custom-rules/${id}`);
+  }
+
   /**
    * Télécharge la fiche de paie PDF pour un employé et une période.
    * GET: /api/payslip/employee/{employeeId}/period/{year}/{month}
@@ -176,5 +232,26 @@ export class PayrollService {
       years.push(i);
     }
     return years;
+  }
+
+  /**
+   * Approuve (verrouille) tous les bulletins valides d'une période
+   */
+  approvePeriod(month: number, year: number, half?: number): Observable<any> {
+    const contextCompanyId = this.contextService.companyId();
+    const companyId = contextCompanyId ? parseInt(contextCompanyId.toString()) : undefined;
+    
+    if (!companyId) {
+      throw new Error('CompanyId est requis pour approuver la paie');
+    }
+    
+    let params = new HttpParams()
+      .set('companyId', companyId.toString())
+      .set('month', month.toString())
+      .set('year', year.toString());
+    const normalizedHalf = this.normalizeHalfParam(half as unknown);
+    if (normalizedHalf !== undefined) params = params.set('half', normalizedHalf.toString());
+
+    return this.http.post(`${this.PAYROLL_URL}/approve`, null, { params });
   }
 }

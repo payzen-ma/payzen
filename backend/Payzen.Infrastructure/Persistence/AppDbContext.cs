@@ -76,6 +76,7 @@ public class AppDbContext : DbContext
     public DbSet<PayrollResult> PayrollResults { get; set; }
     public DbSet<PayrollResultPrime> PayrollResultPrimes { get; set; }
     public DbSet<PayrollCalculationAuditStep> PayrollCalculationAuditSteps { get; set; }
+    public DbSet<PayrollCustomRule> PayrollCustomRules { get; set; }
     public DbSet<SalaryPackage> SalaryPackages { get; set; }
     public DbSet<SalaryPackageItem> SalaryPackageItems { get; set; }
     public DbSet<SalaryPackageAssignment> SalaryPackageAssignments { get; set; }

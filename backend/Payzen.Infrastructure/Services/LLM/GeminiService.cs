@@ -8,25 +8,22 @@ using Payzen.Application.Interfaces;
 
 namespace Payzen.Infrastructure.Services.LLM;
 
-public class ClaudeService : ILlmService
+public class GeminiService : ILlmService
 {
     private readonly HttpClient _http;
     private readonly string _apiKey;
     private readonly string _model;
     private readonly IWebHostEnvironment _env;
 
-    public ClaudeService(IHttpClientFactory httpFactory, IConfiguration config, IWebHostEnvironment env)
+    public GeminiService(IHttpClientFactory httpFactory, IConfiguration config, IWebHostEnvironment env)
     {
-        _http = httpFactory.CreateClient("Claude");
+        _http = httpFactory.CreateClient("Gemini");
         _apiKey =
-            config["Anthropic:ApiKey"]
-            ?? throw new InvalidOperationException("Anthropic:ApiKey manquant dans la configuration.");
-        _model = config["Anthropic:Model"] ?? "claude-sonnet-4-20250514";
+            config["GoogleGemini:ApiKey"]
+            ?? throw new InvalidOperationException("GoogleGemini:ApiKey manquant dans la configuration.");
+        _model = config["GoogleGemini:Model"] ?? "gemini-1.5-pro";
         _env = env;
     }
-
-    public async Task<string> CompleteAsync(string systemPrompt, string userMessage, CancellationToken ct = default) =>
-        await CallApiAsync(systemPrompt, userMessage, ct);
 
     public async Task<string> AnalyseSalarieAsync(
         string regleContent,
@@ -64,6 +61,29 @@ public class ClaudeService : ILlmService
         CancellationToken ct = default
     ) => await SimulationSalaryAsync(regleContent, "Réponds en une phrase courte : " + instruction, ct);
 
+    public async Task<string> GenerateDslFromNaturalLanguageAsync(
+        string title,
+        string description,
+        CancellationToken ct = default
+    )
+    {
+        var rulesContent = await GetRulesAsync(ct);
+        var systemPrompt =
+            $@"Tu es un expert développeur en langage 'Payzen DSL'.
+Tu dois traduire l'explication métier de l'utilisateur en un code strictement conforme à ce langage métier.
+Voici les règles globales existantes pour comprendre la syntaxe :
+{rulesContent}
+
+Consignes strictes :
+- Le résultat doit être encapsulé dans un bloc MODULE[CUSTOM_...] {title}.
+- Le module doit contenir une instruction RULE (ex: RULE custom.xxx).
+- Tu ne dois retourner QUE le code généré, sans blabla, sans introduction et sans marqueurs Markdown comme ```dsl. Le texte retourné sera compilé directement.";
+
+        var userMessage =
+            $"Voici la règle RH à traduire en DSL : \nTitre : {title}\nDescription textuelle : {description}";
+        return await CallApiAsync(systemPrompt, userMessage, ct);
+    }
+
     public async Task<string> GetRulesAsync(CancellationToken ct = default)
     {
         var generatedRulesDirectory = Path.Combine(_env.ContentRootPath, "rules", "generated");
@@ -86,80 +106,53 @@ public class ClaudeService : ILlmService
             Path.Combine(_env.ContentRootPath, "rules", "regles_paie.txt"),
             Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "root", "regles_paie.txt"),
             Path.Combine(_env.ContentRootPath, "rules", "regle_simulateur.md"),
-            // Fallback temporaire pendant la migration backend -> monolith.
-            Path.GetFullPath(
-                Path.Combine(
-                    _env.ContentRootPath,
-                    "..",
-                    "..",
-                    "payzen",
-                    "payzen_backend",
-                    "payzen_backend",
-                    "rules",
-                    "regles_paie_compact.txt"
-                )
-            ),
-            Path.GetFullPath(
-                Path.Combine(
-                    _env.ContentRootPath,
-                    "..",
-                    "..",
-                    "payzen",
-                    "payzen_backend",
-                    "payzen_backend",
-                    "rules",
-                    "regles_paie.txt"
-                )
-            ),
         };
 
         var existingPath = candidatePaths.FirstOrDefault(File.Exists);
         if (existingPath == null)
-        {
-            throw new FileNotFoundException(
-                "Aucun fichier de règles DSL introuvable. Placez le fichier dans Payzen.Api/rules/regles_paie_compact.txt."
-            );
-        }
+            throw new FileNotFoundException("Aucun fichier de règles DSL introuvable.");
 
         return await File.ReadAllTextAsync(existingPath, ct);
     }
 
     private async Task<string> CallApiAsync(string systemPrompt, string userMessage, CancellationToken ct)
     {
+        // Structure de la requête API Gemini
         var request = new
         {
-            model = _model,
-            max_tokens = 4096,
-            system = systemPrompt,
-            messages = new[] { new { role = "user", content = userMessage } },
+            systemInstruction = new { parts = new[] { new { text = systemPrompt } } },
+            contents = new[] { new { parts = new[] { new { text = userMessage } } } },
+            generationConfig = new
+            {
+                temperature = 0.2, // Faible température pour du code prédictif
+                maxOutputTokens = 4096,
+            },
         };
 
         var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-        _http.DefaultRequestHeaders.Clear();
-        _http.DefaultRequestHeaders.Add("x-api-key", _apiKey);
-        _http.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
 
-        var response = await _http.PostAsync("https://api.anthropic.com/v1/messages", content, ct);
-        response.EnsureSuccessStatusCode();
+        var response = await _http.PostAsync(url, content, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            var err = await response.Content.ReadAsStringAsync(ct);
+            throw new Exception($"Gemini API Error: {response.StatusCode} - {err}");
+        }
 
         var result = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
-        return result.GetProperty("content")[0].GetProperty("text").GetString() ?? string.Empty;
-    }
-
-    public async Task<string> GenerateDslFromNaturalLanguageAsync(string title, string description, CancellationToken ct = default)
-    {
-        var rulesContent = await GetRulesAsync(ct);
-        var systemPrompt = $@"Tu es un expert développeur en langage 'Payzen DSL'.
-Tu dois traduire l'explication métier de l'utilisateur en un code strictement conforme à ce langage métier.
-Voici les règles globales existantes pour comprendre la syntaxe :
-{rulesContent}
-
-Consignes strictes :
-- Le résultat doit être encapsulé dans un bloc MODULE[CUSTOM_...] {title}.
-- Le module doit contenir une instruction RULE (ex: RULE custom.xxx).
-- Tu ne dois retourner QUE le code généré, sans blabla, sans introduction et sans marqueurs Markdown comme ```dsl. Le texte retourné sera compilé directement.";
-
-        var userMessage = $"Voici la règle RH à traduire en DSL : \nTitre : {title}\nDescription textuelle : {description}";
-        return await CallApiAsync(systemPrompt, userMessage, ct);
+        try
+        {
+            return result
+                    .GetProperty("candidates")[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString()
+                ?? string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
     }
 }

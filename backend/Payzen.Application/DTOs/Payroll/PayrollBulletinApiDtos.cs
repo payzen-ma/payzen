@@ -155,3 +155,24 @@ public class PayrollBulletinLeaveDto
     public decimal WorkingDaysDeducted { get; set; }
     public string? LeaveTypeName { get; set; }
 }
+
+public class PayrollUpdateStatusRequestDto
+{
+    public string Status { get; set; } = string.Empty;
+}
+
+public class CreatePayrollCustomRuleRequestDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? DslSnippet { get; set; }
+}
+
+public class PayrollCustomRuleDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string DslSnippet { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+}

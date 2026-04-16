@@ -1,5 +1,6 @@
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
+using Payzen.Domain.Enums;
 
 namespace Payzen.Application.Interfaces;
 
@@ -51,5 +52,32 @@ public interface IPayrollService
         int userId,
         CancellationToken ct = default
     );
+
+    Task<ServiceResult> UpdateResultStatusAsync(
+        int id,
+        PayrollResultStatus status,
+        int updatedBy,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<List<PayrollCustomRuleDto>>> GetCustomRulesAsync(int companyId, CancellationToken ct = default);
+    Task<ServiceResult<PayrollCustomRuleDto>> CreateCustomRuleAsync(
+        int companyId,
+        CreatePayrollCustomRuleRequestDto dto,
+        int createdBy,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult<string>> PreviewCustomRuleAsync(
+        CreatePayrollCustomRuleRequestDto dto,
+        CancellationToken ct = default
+    );
     Task<ServiceResult> DeleteResultAsync(int id, int deletedBy, CancellationToken ct = default);
+    Task<ServiceResult> ApprovePeriodAsync(
+        int companyId,
+        int month,
+        int year,
+        int? payHalf,
+        int userId,
+        CancellationToken ct = default
+    );
+    Task<ServiceResult> DeleteCustomRuleAsync(int id, int deletedBy, CancellationToken ct = default);
 }
