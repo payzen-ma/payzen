@@ -59,6 +59,9 @@ export class BulletinComponent implements OnInit {
   readonly showDetailModal = signal(false);
   readonly detailLoading = signal(false);
   readonly selectedDetail = signal<PayrollDetail | null>(null);
+  readonly showEditStatusModal = signal(false);
+  readonly editingResult = signal<PayrollResult | null>(null);
+  readonly selectedEditStatus = signal<PayrollResultStatus | null>(null);
 
   // Alert box (remplace alert())
   readonly showAlert = signal(false);
@@ -91,6 +94,7 @@ export class BulletinComponent implements OnInit {
     { label: '', value: null, disabled: true }
   ]);
   readonly statusOptions = signal<SelectOption[]>([]);
+  readonly editStatusOptions = signal<SelectOption[]>([]);
 
   // Données filtrées
   readonly filteredResults = computed(() => {
@@ -141,6 +145,13 @@ export class BulletinComponent implements OnInit {
   private refreshStatusOptions(): void {
     this.statusOptions.set([
       { label: this.translate.instant('payrollBulletin.allStatuses'), value: null },
+      { label: this.translate.instant('payrollBulletin.statusSuccess'), value: PayrollResultStatus.SUCCESS },
+      { label: this.translate.instant('payrollBulletin.statusError'), value: PayrollResultStatus.ERROR },
+      { label: this.translate.instant('payrollBulletin.statusPending'), value: PayrollResultStatus.PENDING },
+      { label: this.translate.instant('payrollBulletin.statusApproved') === 'payrollBulletin.statusApproved' ? 'Approuvée' : this.translate.instant('payrollBulletin.statusApproved'), value: PayrollResultStatus.APPROVED }
+    ]);
+
+    this.editStatusOptions.set([
       { label: this.translate.instant('payrollBulletin.statusSuccess'), value: PayrollResultStatus.SUCCESS },
       { label: this.translate.instant('payrollBulletin.statusError'), value: PayrollResultStatus.ERROR },
       { label: this.translate.instant('payrollBulletin.statusPending'), value: PayrollResultStatus.PENDING },
@@ -546,6 +557,49 @@ export class BulletinComponent implements OnInit {
         const errorMessage = this.extractErrorMessage(
           error,
           this.translate.instant('payrollBulletin.deleteError')
+        );
+        this.toastService.error(errorMessage);
+      }
+    });
+  }
+
+  async editResult(result: PayrollResult): Promise<void> {
+    this.editingResult.set(result);
+    this.selectedEditStatus.set(this.normalizeStatus(result.status));
+    this.showEditStatusModal.set(true);
+  }
+
+  closeEditStatusModal(): void {
+    this.showEditStatusModal.set(false);
+    this.editingResult.set(null);
+    this.selectedEditStatus.set(null);
+  }
+
+  saveStatusChange(): void {
+    const result = this.editingResult();
+    const status = this.selectedEditStatus();
+
+    if (!result || !status) {
+      this.toastService.warning(this.translate.instant('payrollBulletin.selectStatusRequired'));
+      return;
+    }
+
+    this.calculating.set(true);
+    this.payrollService.updatePayrollResultStatus(result.id, status).subscribe({
+      next: () => {
+        this.calculating.set(false);
+        this.closeEditStatusModal();
+        this.toastService.success(
+          this.translate.instant('payrollBulletin.editStatusSuccess', { name: result.employeeName })
+        );
+        this.loadPayrollResults();
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour du statut du bulletin:', error);
+        this.calculating.set(false);
+        const errorMessage = this.extractErrorMessage(
+          error,
+          this.translate.instant('payrollBulletin.editStatusError')
         );
         this.toastService.error(errorMessage);
       }

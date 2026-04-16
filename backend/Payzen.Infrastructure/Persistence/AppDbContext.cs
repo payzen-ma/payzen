@@ -222,6 +222,10 @@ public class AppDbContext : DbContext
     {
         get; set;
     }
+    public DbSet<PayrollCustomRule> PayrollCustomRules
+    {
+        get; set;
+    }
     public DbSet<SalaryPackage> SalaryPackages
     {
         get; set;

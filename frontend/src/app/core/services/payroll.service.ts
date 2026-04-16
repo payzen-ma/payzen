@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { environment } from '@environments/environment';
 import { 
   PayrollResult, 
@@ -124,6 +126,60 @@ export class PayrollService {
    */
   deletePayrollResult(id: number): Observable<any> {
     return this.http.delete(`${this.PAYROLL_URL}/results/${id}`);
+  }
+
+  updatePayrollResultStatus(id: number, status: PayrollResultStatus): Observable<any> {
+    const payload = { status };
+    return this.http.patch(`${this.PAYROLL_URL}/results/${id}/status`, payload).pipe(
+      catchError((error) => {
+        if (error?.status === 404) {
+          return this.http.patch(`${this.PAYROLL_URL}/${id}/status`, payload);
+        }
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getCustomRules(companyId: number): Observable<Array<{
+    id: number;
+    title: string;
+    description: string;
+    dslSnippet: string;
+    createdAt: string;
+  }>> {
+    const params = new HttpParams().set('companyId', companyId.toString());
+    return this.http.get<Array<{
+      id: number;
+      title: string;
+      description: string;
+      dslSnippet: string;
+      createdAt: string;
+    }>>(`${this.PAYROLL_URL}/custom-rules`, { params });
+  }
+
+  previewCustomRule(payload: { title: string; description: string }): Observable<{ dslSnippet: string }> {
+    return this.http.post<{ dslSnippet: string }>(`${this.PAYROLL_URL}/custom-rules/preview`, payload);
+  }
+
+  createCustomRule(companyId: number, payload: { title: string; description: string; dslSnippet: string }): Observable<{
+    id: number;
+    title: string;
+    description: string;
+    dslSnippet: string;
+    createdAt: string;
+  }> {
+    const params = new HttpParams().set('companyId', companyId.toString());
+    return this.http.post<{
+      id: number;
+      title: string;
+      description: string;
+      dslSnippet: string;
+      createdAt: string;
+    }>(`${this.PAYROLL_URL}/custom-rules`, payload, { params });
+  }
+
+  deleteCustomRule(id: number): Observable<any> {
+    return this.http.delete(`${this.PAYROLL_URL}/custom-rules/${id}`);
   }
 
   /**

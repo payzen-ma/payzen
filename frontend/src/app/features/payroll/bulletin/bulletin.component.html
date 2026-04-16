@@ -270,6 +270,11 @@
                   [title]="'payrollBulletin.viewDetails' | translate">
                   <i class="pi pi-eye"></i>
                 </button>
+                <button (click)="editResult(result)"
+                  class="p-2 text-(--text-secondary) hover:text-(--warning) hover:bg-(--warning)/10 rounded-lg transition-colors"
+                  [title]="'payrollBulletin.edit' | translate">
+                  <i class="pi pi-pencil"></i>
+                </button>
                 @if (!isApproved(result.status)) {
                 <button (click)="deleteResult(result)"
                   class="p-2 text-(--text-secondary) hover:text-(--danger) hover:bg-(--danger)/10 rounded-lg transition-colors"
@@ -701,6 +706,31 @@
   <ng-template pTemplate="footer">
     <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">
       {{ 'payrollBulletin.close' | translate }}
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal modification statut -->
+<p-dialog [visible]="showEditStatusModal()" (onHide)="closeEditStatusModal()" [modal]="true"
+  [style]="{ width: 'min(520px, 95vw)' }" [draggable]="false" [resizable]="false"
+  styleClass="app-dialog app-dialog--narrow" [header]="'payrollBulletin.editStatusTitle' | translate"
+  (visibleChange)="!$event && closeEditStatusModal()">
+  @if (editingResult(); as result) {
+  <div class="space-y-4">
+    <p class="text-sm text-(--text-secondary)">
+      {{ 'payrollBulletin.editStatusFor' | translate:{ name: result.employeeName } }}
+    </p>
+    <app-select [label]="'payrollBulletin.status' | translate" [options]="editStatusOptions()"
+      [value]="selectedEditStatus()" (valueChange)="selectedEditStatus.set($event)"
+      [placeholder]="'payrollBulletin.placeholderStatus' | translate" />
+  </div>
+  }
+  <ng-template pTemplate="footer">
+    <button type="button" class="btn btn-secondary" (click)="closeEditStatusModal()">
+      {{ 'payrollBulletin.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" [disabled]="!selectedEditStatus()" (click)="saveStatusChange()">
+      {{ 'payrollBulletin.saveStatus' | translate }}
     </button>
   </ng-template>
 </p-dialog>

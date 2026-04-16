@@ -76,6 +76,19 @@ public class PayrollCalculationAuditStepConfiguration : IEntityTypeConfiguration
     }
 }
 
+public class PayrollCustomRuleConfiguration : IEntityTypeConfiguration<PayrollCustomRule>
+{
+    public void Configure(EntityTypeBuilder<PayrollCustomRule> entity)
+    {
+        entity.ToTable("PayrollCustomRules");
+        entity.Property(x => x.Title).IsRequired().HasMaxLength(300);
+        entity.Property(x => x.Description).IsRequired().HasMaxLength(4000);
+        entity.Property(x => x.DslSnippet).IsRequired();
+        entity.Property(x => x.GeneratedFilePath).IsRequired().HasMaxLength(500);
+        entity.HasIndex(x => new { x.CompanyId, x.CreatedAt });
+    }
+}
+
 public class SalaryPackageConfiguration : IEntityTypeConfiguration<SalaryPackage>
 {
     public void Configure(EntityTypeBuilder<SalaryPackage> entity)

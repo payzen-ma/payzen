@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
 using Payzen.Application.Interfaces;
@@ -22,11 +23,15 @@ public class PayrollService : IPayrollService
 {
     private readonly AppDbContext             _db;
     private readonly PayrollCalculationEngine _engine;
+    private readonly IWebHostEnvironment _env;
+    private readonly ILlmService _llmService;
 
-    public PayrollService(AppDbContext db, PayrollCalculationEngine engine)
+    public PayrollService(AppDbContext db, PayrollCalculationEngine engine, IWebHostEnvironment env, ILlmService llmService)
     {
         _db     = db;
         _engine = engine;
+        _env = env;
+        _llmService = llmService;
     }
 
     // ── Calcul ────────────────────────────────────────────────────────────────
@@ -385,6 +390,118 @@ public class PayrollService : IPayrollService
 
         var simDto = new PayrollSimulateRequestDto { EmployeeId = employeeId, PayMonth = month, PayYear = year, PayHalf = payHalf };
         return await CalculateAsync(simDto, userId, ct);
+    }
+
+    public async Task<ServiceResult<List<PayrollCustomRuleDto>>> GetCustomRulesAsync(int companyId, CancellationToken ct = default)
+    {
+        var items = await _db.PayrollCustomRules
+            .AsNoTracking()
+            .Where(x => x.CompanyId == companyId && x.DeletedAt == null)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new PayrollCustomRuleDto
+            {
+                Id = x.Id,
+                Title = x.Title,
+                Description = x.Description,
+                DslSnippet = x.DslSnippet,
+                CreatedAt = x.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        return ServiceResult<List<PayrollCustomRuleDto>>.Ok(items);
+    }
+
+    public async Task<ServiceResult<string>> PreviewCustomRuleAsync(CreatePayrollCustomRuleRequestDto dto, CancellationToken ct = default)
+    {
+        var title = dto.Title?.Trim();
+        var description = dto.Description?.Trim();
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(description))
+            return ServiceResult<string>.Fail("Le titre et la description sont requis.");
+
+        var safeTitle = title.Replace("\r", " ").Replace("\n", " ");
+        string generatedDsl;
+        try
+        {
+            generatedDsl = await _llmService.GenerateDslFromNaturalLanguageAsync(safeTitle, description, ct);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<string>.Fail($"Le service IA est temporairement indisponible ({ex.Message}). Veuillez réessayer plus tard.");
+        }
+        
+        if (string.IsNullOrWhiteSpace(generatedDsl))
+            return ServiceResult<string>.Fail("L'IA n'a pas réussi à générer le code DSL.");
+
+        return ServiceResult<string>.Ok(generatedDsl.Trim());
+    }
+
+    public async Task<ServiceResult<PayrollCustomRuleDto>> CreateCustomRuleAsync(
+        int companyId,
+        CreatePayrollCustomRuleRequestDto dto,
+        int createdBy,
+        CancellationToken ct = default)
+    {
+        var title = dto.Title?.Trim();
+        var description = dto.Description?.Trim();
+        var dslSnippet = dto.DslSnippet?.Trim();
+
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(dslSnippet))
+            return ServiceResult<PayrollCustomRuleDto>.Fail("Le titre, la description et la règle générée sont requis.");
+
+        var entity = new PayrollCustomRule
+        {
+            CompanyId = companyId,
+            Title = title,
+            Description = description,
+            DslSnippet = dslSnippet,
+            CreatedBy = createdBy,
+            GeneratedFilePath = string.Empty
+        };
+        _db.PayrollCustomRules.Add(entity);
+        await _db.SaveChangesAsync(ct);
+
+        var generatedPath = await GenerateRulesFileForCompanyAsync(companyId, ct);
+        entity.GeneratedFilePath = generatedPath;
+        entity.UpdatedBy = createdBy;
+        await _db.SaveChangesAsync(ct);
+
+        return ServiceResult<PayrollCustomRuleDto>.Ok(new PayrollCustomRuleDto
+        {
+            Id = entity.Id,
+            Title = entity.Title,
+            Description = entity.Description,
+            DslSnippet = entity.DslSnippet,
+            CreatedAt = entity.CreatedAt
+        });
+    }
+
+    public async Task<ServiceResult> DeleteCustomRuleAsync(int id, int deletedBy, CancellationToken ct = default)
+    {
+        var rule = await _db.PayrollCustomRules.FindAsync(new object[] { id }, ct);
+        if (rule == null || rule.DeletedAt != null) 
+            return ServiceResult.Fail("Règle personnalisée introuvable.");
+
+        rule.DeletedAt = DateTimeOffset.UtcNow;
+        rule.DeletedBy = deletedBy;
+        
+        await _db.SaveChangesAsync(ct);
+
+        await GenerateRulesFileForCompanyAsync(rule.CompanyId, ct);
+
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> UpdateResultStatusAsync(int id, PayrollResultStatus status, int updatedBy, CancellationToken ct = default)
+    {
+        var pr = await _db.PayrollResults.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null, ct);
+        if (pr == null) return ServiceResult.Fail("Résultat introuvable.");
+
+        pr.Status = status;
+        pr.UpdatedAt = DateTimeOffset.UtcNow;
+        pr.UpdatedBy = updatedBy;
+
+        await _db.SaveChangesAsync(ct);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult> DeleteResultAsync(int id, int deletedBy, CancellationToken ct = default)
@@ -753,4 +870,53 @@ public class PayrollService : IPayrollService
         Primes                = pr.Primes?.Select(p => new PayrollResultPrimeDto { Label = p.Label, Montant = p.Montant, IsTaxable = p.IsTaxable }).ToList() ?? new(),
         AuditSteps            = pr.CalculationAuditSteps?.OrderBy(s => s.StepOrder).Select(s => new PayrollAuditStepDto { StepOrder = s.StepOrder, ModuleName = s.ModuleName, FormulaDescription = s.FormulaDescription }).ToList()
     };
+
+    private async Task<string> GenerateRulesFileForCompanyAsync(int companyId, CancellationToken ct)
+    {
+        var baseRulesPath = ResolveBaseRulesPath();
+        var baseContent = await File.ReadAllTextAsync(baseRulesPath, ct);
+        var customRules = await _db.PayrollCustomRules
+            .AsNoTracking()
+            .Where(x => x.CompanyId == companyId && x.DeletedAt == null)
+            .OrderBy(x => x.CreatedAt)
+            .ToListAsync(ct);
+
+        var generatedDir = Path.Combine(_env.ContentRootPath, "rules", "generated");
+        Directory.CreateDirectory(generatedDir);
+
+        var merged = new System.Text.StringBuilder();
+        merged.AppendLine(baseContent.TrimEnd());
+        merged.AppendLine();
+        merged.AppendLine(";;; ============================================================");
+        merged.AppendLine($";;; RÈGLES PERSONNALISÉES - Société {companyId}");
+        merged.AppendLine($";;; Généré le: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+        merged.AppendLine(";;; ============================================================");
+        merged.AppendLine();
+
+        foreach (var rule in customRules)
+        {
+            merged.AppendLine(rule.DslSnippet);
+            merged.AppendLine();
+        }
+
+        var fileName = $"regles_paie_company_{companyId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
+        var fullPath = Path.Combine(generatedDir, fileName);
+        await File.WriteAllTextAsync(fullPath, merged.ToString(), ct);
+        return fullPath;
+    }
+
+    private string ResolveBaseRulesPath()
+    {
+        var candidatePaths = new[]
+        {
+            Path.Combine(_env.ContentRootPath, "rules", "regles_paie_compact.txt"),
+            Path.Combine(_env.ContentRootPath, "rules", "regles_paie.txt"),
+            Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "root", "regles_paie.txt")
+        };
+
+        var existingPath = candidatePaths.FirstOrDefault(File.Exists);
+        if (existingPath == null)
+            throw new FileNotFoundException("Fichier de base des règles introuvable (regles_paie.txt).");
+        return existingPath;
+    }
 }

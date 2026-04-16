@@ -31,6 +31,38 @@ public class PayrollController : ControllerBase
         };
     }
 
+    private static bool TryParseResultStatus(string? rawStatus, out Domain.Enums.PayrollResultStatus status)
+    {
+        status = Domain.Enums.PayrollResultStatus.Pending;
+        if (string.IsNullOrWhiteSpace(rawStatus)) return false;
+
+        var raw = rawStatus.Trim().ToUpperInvariant();
+        switch (raw)
+        {
+            case "SUCCESS":
+            case "OK":
+                status = Domain.Enums.PayrollResultStatus.OK;
+                return true;
+            case "ERROR":
+            case "ERREUR":
+            case "FAILED":
+                status = Domain.Enums.PayrollResultStatus.Error;
+                return true;
+            case "PENDING":
+            case "EN_ATTENTE":
+            case "EN ATTENTE":
+                status = Domain.Enums.PayrollResultStatus.Pending;
+                return true;
+            case "APPROVED":
+            case "APPROUVEE":
+            case "APPROUVÉE":
+                status = Domain.Enums.PayrollResultStatus.Approved;
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /// <summary>
     /// Calcul paie : soit corps JSON (un employé, parité simulate/calculate interne),
     /// soit paramètres query <c>companyId</c>, <c>month</c>, <c>year</c> comme l’ancien backend (page bulletin).
@@ -174,6 +206,58 @@ public class PayrollController : ControllerBase
         var r = await _svc.DeleteResultAsync(id, User.GetUserId());
         return r.Success ? Ok(new { message = "Résultat de paie supprimé avec succès." }) : BadRequest(new { error = r.Error });
     }
+
+    [HttpPatch("results/{id:int}/status")]
+    public async Task<ActionResult> UpdateResultStatus(int id, [FromBody] PayrollUpdateStatusRequestDto dto)
+    {
+        if (!TryParseResultStatus(dto?.Status, out var status))
+            return BadRequest(new { error = "Statut invalide. Valeurs attendues: PENDING, SUCCESS, ERROR, APPROVED." });
+
+        var r = await _svc.UpdateResultStatusAsync(id, status, User.GetUserId());
+        return r.Success ? Ok(new { message = "Statut du bulletin mis à jour avec succès." }) : BadRequest(new { error = r.Error });
+    }
+
+    // Alias de compatibilité: certains fronts appellent /api/payroll/{id}/status
+    [HttpPatch("{id:int}/status")]
+    public async Task<ActionResult> UpdateResultStatusCompat(int id, [FromBody] PayrollUpdateStatusRequestDto dto)
+    {
+        return await UpdateResultStatus(id, dto);
+    }
+
+    [HttpGet("custom-rules")]
+    public async Task<ActionResult> GetCustomRules([FromQuery] int companyId)
+    {
+        if (companyId <= 0)
+            return BadRequest(new { error = "companyId est requis." });
+
+        var r = await _svc.GetCustomRulesAsync(companyId);
+        return r.Success ? Ok(r.Data) : BadRequest(new { error = r.Error });
+    }
+
+    [HttpPost("custom-rules/preview")]
+    public async Task<ActionResult> PreviewCustomRule([FromBody] CreatePayrollCustomRuleRequestDto dto)
+    {
+        var r = await _svc.PreviewCustomRuleAsync(dto);
+        return r.Success ? Ok(new { dslSnippet = r.Data }) : BadRequest(new { error = r.Error });
+    }
+
+    [HttpPost("custom-rules")]
+    public async Task<ActionResult> CreateCustomRule([FromQuery] int companyId, [FromBody] CreatePayrollCustomRuleRequestDto dto)
+    {
+        if (companyId <= 0)
+            return BadRequest(new { error = "companyId est requis." });
+
+        var r = await _svc.CreateCustomRuleAsync(companyId, dto, User.GetUserId());
+        return r.Success ? Ok(r.Data) : BadRequest(new { error = r.Error });
+    }
+
+    [HttpDelete("custom-rules/{id:int}")]
+    public async Task<ActionResult> DeleteCustomRule(int id)
+    {
+        var r = await _svc.DeleteCustomRuleAsync(id, User.GetUserId());
+        return r.Success ? Ok(new { message = "Règle personnalisée supprimée avec succès." }) : BadRequest(new { error = r.Error });
+    }
+
     /// <summary>Verrouille les bulletins d'une période pour interdire tout futur recalcul</summary>
     [HttpPost("approve")]
     public async Task<ActionResult> Approve(

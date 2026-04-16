@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -8,13 +8,17 @@ import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PayrollService } from '@app/core/services/payroll.service';
+import { CompanyContextService } from '@app/core/services/companyContext.service';
 
 interface PayrollRuleModule {
   id: string;
   title: string;
   description: string;
   code: string;
+  dbId?: number;
 }
 
 @Component({
@@ -29,13 +33,16 @@ interface PayrollRuleModule {
     TextareaModule,
     InputTextModule,
     CardModule,
-    ToastModule
+    ToastModule,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './payroll-rules.component.html',
   styleUrls: ['./payroll-rules.component.css']
 })
-export class PayrollRulesComponent {
+export class PayrollRulesComponent implements OnInit {
+  private readonly payrollService = inject(PayrollService);
+  private readonly contextService = inject(CompanyContextService);
 
   // Modules extraits du PAYZEN DSL v3.1 (regles_paie.txt)
   readonly constants = signal<Array<{ name: string, value: string, details?: string }>>([
@@ -177,30 +184,24 @@ ir_final = MAX(0, ir_brut - deduction_bareme - (situation_fam * 30))`
     }
   ]);
 
-  // État de la vue
-  isCreatingNewRule = signal(false);
-
   // Formulaire pour la nouvelle règle
   newRuleName = signal('');
   newRuleDescription = signal('');
+  readonly customRules = signal<PayrollRuleModule[]>([]);
+  isCreatingRule = signal<boolean>(false);
+  isGeneratingRule = signal<boolean>(false);
+  draftDslSnippet = signal<string | null>(null);
 
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) {}
 
-  startNewRule() {
-    this.isCreatingNewRule.set(true);
-    // Scroll automatically to the editor section
-    setTimeout(() => {
-      const el = document.getElementById('new-rule-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+  ngOnInit(): void {
+    this.loadCustomRules();
   }
 
-  cancelNewRule() {
-    this.isCreatingNewRule.set(false);
-    this.resetForm();
-  }
-
-  saveNewRule() {
+  previewRule() {
     if (!this.newRuleName() || !this.newRuleDescription()) {
       this.messageService.add({
         severity: 'error',
@@ -210,19 +211,137 @@ ir_final = MAX(0, ir_brut - deduction_bareme - (situation_fam * 30))`
       return;
     }
 
-    // Simulation d'une sauvegarde
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Succès',
-      detail: 'Règle sauvegardée avec succès (Simulation).'
+    this.isGeneratingRule.set(true);
+    this.payrollService.previewCustomRule({
+      title: this.newRuleName().trim(),
+      description: this.newRuleDescription().trim()
+    }).subscribe({
+      next: (res) => {
+        this.draftDslSnippet.set(res.dslSnippet);
+        this.isGeneratingRule.set(false);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de générer le code DSL avec l\'IA.'
+        });
+        this.isGeneratingRule.set(false);
+      }
     });
+  }
 
-    this.isCreatingNewRule.set(false);
+  confirmRule() {
+    const dsl = this.draftDslSnippet();
+    if (!dsl) return;
+
+    const companyId = this.contextService.companyId();
+    if (!companyId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'Aucune société active. Impossible d\'enregistrer la règle.'
+      });
+      return;
+    }
+
+    this.isGeneratingRule.set(true);
+    this.payrollService.createCustomRule(parseInt(companyId.toString(), 10), {
+      title: this.newRuleName().trim(),
+      description: this.newRuleDescription().trim(),
+      dslSnippet: dsl
+    }).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: 'Règle personnalisée ajoutée avec succès.'
+        });
+        this.loadCustomRules();
+        this.resetForm();
+        this.isCreatingRule.set(false);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible d\'enregistrer la règle personnalisée.'
+        });
+        this.isGeneratingRule.set(false);
+      }
+    });
+  }
+
+  abortPreview() {
+    this.draftDslSnippet.set(null);
+  }
+
+  resetForm() {
+    this.newRuleName.set('');
+    this.newRuleDescription.set('');
+    this.draftDslSnippet.set(null);
+    this.isGeneratingRule.set(false);
+  }
+
+  cancelCreateRule() {
+    this.isCreatingRule.set(false);
     this.resetForm();
   }
 
-  private resetForm() {
-    this.newRuleName.set('');
-    this.newRuleDescription.set('');
+  private loadCustomRules(): void {
+    const companyId = this.contextService.companyId();
+    if (!companyId) {
+      this.customRules.set([]);
+      return;
+    }
+
+    this.payrollService.getCustomRules(parseInt(companyId.toString(), 10)).subscribe({
+      next: (rules) => {
+        this.customRules.set(
+          rules.map((rule, index) => ({
+            id: `C${(index + 1).toString().padStart(2, '0')}`,
+            title: rule.title,
+            description: rule.description,
+            code: rule.dslSnippet,
+            dbId: rule.id
+          }))
+        );
+      },
+      error: () => {
+        this.customRules.set([]);
+      }
+    });
+  }
+
+  deleteCustomRule(rule: PayrollRuleModule) {
+    if (!rule.dbId) return;
+    this.confirmationService.confirm({
+      message: 'Êtes-vous sûr de vouloir supprimer cette règle personnalisée ?',
+      header: 'Confirmation de suppression',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui, supprimer',
+      rejectLabel: 'Annuler',
+      acceptButtonStyleClass: 'bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors ml-2',
+      rejectButtonStyleClass: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-md transition-colors',
+      accept: () => {
+        this.payrollService.deleteCustomRule(rule.dbId!).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Succès',
+              detail: 'Règle personnalisée supprimée.'
+            });
+            this.loadCustomRules();
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Impossible de supprimer la règle.'
+            });
+          }
+        });
+      }
+    });
   }
 }

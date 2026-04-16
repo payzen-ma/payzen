@@ -43,4 +43,12 @@ public interface ILlmService
 
     /// <summary>Retourne les règles de paie utilisables par le LLM.</summary>
     Task<string> GetRulesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Génère un extrait de code DSL (Payzen DSL) à partir d'une description en langage naturel.
+    /// </summary>
+    Task<string> GenerateDslFromNaturalLanguageAsync(
+        string title,
+        string description,
+        CancellationToken ct = default);
 }
