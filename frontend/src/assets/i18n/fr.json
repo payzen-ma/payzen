@@ -1396,6 +1396,7 @@
       "position": {
         "position": "Poste",
         "department": "Département",
+        "matricule": "Matricule",
         "manager": "Manager",
         "contractType": "Type de Contrat",
         "status": "Statut d'Emploi",

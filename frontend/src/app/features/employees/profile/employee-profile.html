@@ -392,6 +392,15 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.position.matricule' | translate }}</label>
+                  @if (isEditMode()) {
+                  <input pInputText [ngModel]="employee().matricule" (ngModelChange)="updateField('matricule', $event)"
+                    class="w-full input" title="{{ 'employees.profile.position.matricule' | translate }}" />
+                  } @else {
+                  <p class="read-only-value">{{ employee().matricule || '-' }}</p>
+                  }
+                </div>
+                <div class="form-field">
                   <label class="form-label required">{{ 'employees.profile.position.position' | translate }}</label>
                   @if (isEditMode()) {
                   <p-autoComplete [suggestions]="filteredJobPositions()" (completeMethod)="searchJobPosition($event)"
@@ -515,7 +524,8 @@
                 @if (employee().assignedPackage) {
                 <div class="text-sm text-(--text-secondary)">
                   <p><strong>Package actif :</strong> {{ employee().assignedPackage?.salaryPackageName }}</p>
-                  <p><strong>Date d'effet :</strong> {{ employee().assignedPackage?.effectiveDate | date: 'dd/MM/yyyy' }}
+                  <p><strong>Date d'effet :</strong> {{ employee().assignedPackage?.effectiveDate | date: 'dd/MM/yyyy'
+                    }}
                   </p>
                 </div>
                 } @else {
@@ -528,14 +538,14 @@
                     <p-select [options]="availableSalaryPackages()" [ngModel]="assignmentPackageId()"
                       (ngModelChange)="assignmentPackageId.set($event)" optionLabel="name" optionValue="id"
                       [placeholder]="isLoadingSalaryPackages() ? 'Chargement...' : 'Sélectionnez un package'"
-                      [disabled]="isLoadingSalaryPackages() || isAssigningSalaryPackage()" class="w-full input"></p-select>
+                      [disabled]="isLoadingSalaryPackages() || isAssigningSalaryPackage()"
+                      class="w-full input"></p-select>
                   </div>
 
                   <div class="form-field">
                     <label class="form-label">Date d'effet</label>
                     <input pInputText type="date" class="w-full input" [ngModel]="assignmentEffectiveDate()"
-                      (ngModelChange)="assignmentEffectiveDate.set($event)"
-                      [disabled]="isAssigningSalaryPackage()" />
+                      (ngModelChange)="assignmentEffectiveDate.set($event)" [disabled]="isAssigningSalaryPackage()" />
                   </div>
                 </div>
 

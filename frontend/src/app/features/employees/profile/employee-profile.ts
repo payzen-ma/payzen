@@ -129,6 +129,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     '1': ['personalEmail', 'phone', 'address', 'countryId', 'countryName', 'city', 'addressLine1', 'addressLine2', 'zipCode'],
     '2': [], // Family - Spouse & Children managed by separate component
     '3': [
+      'matricule',
       'position',
       'jobPositionId',
       'department',
@@ -203,6 +204,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     firstName: 'First Name',
     lastName: 'Last Name',
     cin: 'National ID',
+    matricule: 'Matricule',
     maritalStatus: 'Marital Status',
     dateOfBirth: 'Date of Birth',
     //birthPlace: 'Place of Birth',
@@ -850,6 +852,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.id = d.Id != null ? String(d.Id) : (d.id ?? undefined);
     out.firstName = d.FirstName ?? d.firstName;
     out.lastName = d.LastName ?? d.lastName;
+    out.matricule = d.Matricule ?? d.matricule ?? d.MatriculeNumber ?? d.matriculeNumber ?? undefined;
     out.cin = d.CinNumber ?? d.Cin ?? d.cin;
 
     // Handle maritalStatus: convert MaritalStatusName to code (minuscules pour le frontend)
@@ -2485,6 +2488,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     return {
       id: '',
       firstName: '',
+      matricule: '',
       lastName: '',
       photo: undefined,
       cin: '',

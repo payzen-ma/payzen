@@ -64,6 +64,7 @@ export interface Employee {
   id: string;
   firstName: string;
   lastName: string;
+  matricule?: string | number;
   photo?: string;
   cin: string;
   maritalStatus: 'single' | 'married' | 'divorced' | 'widowed';

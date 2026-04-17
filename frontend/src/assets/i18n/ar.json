@@ -1327,6 +1327,7 @@
       "position": {
         "position": "المنصب",
         "department": "القسم",
+        "matricule": "الرقم الوظيفي",
         "manager": "المسؤول المباشر",
         "contractType": "نوع العقد",
         "status": "وضعية الشغل",

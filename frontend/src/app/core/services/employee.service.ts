@@ -12,6 +12,7 @@ export interface Employee {
   id: string;
   firstName: string;
   lastName: string;
+  matricule?: string | number;
   position: string;
   department: string;
   status?: string;
@@ -245,6 +246,8 @@ interface EmployeeDetailsResponse {
   id: string | number;
   firstName: string;
   lastName: string;
+  matricule?: string | number;
+  matriculeNumber?: string | number;
   cinNumber: string;
   maritalStatusName: string;
   dateOfBirth: string;
@@ -1039,6 +1042,7 @@ export class EmployeeService {
       id: this.toStringValue(employee.id || employee.Id),
       firstName: employee.firstName || employee.FirstName || '',
       lastName: employee.lastName || employee.LastName || '',
+      matricule: employee.matricule || employee.Matricule || employee.matriculeNumber || employee.MatriculeNumber || undefined,
       position:
         employee.position ||
         employee.Position ||
@@ -1135,6 +1139,7 @@ export class EmployeeService {
       firstName: payload.firstName ?? '',
       lastName: payload.lastName ?? '',
       photo: undefined,
+      matricule: payload.matricule ?? (payload as any).Matricule ?? payload.matriculeNumber ?? (payload as any).MatriculeNumber ?? undefined,
       cin: payload.cinNumber ?? '',
       maritalStatus: this.mapMaritalStatus(payload.maritalStatusName),
       //birthPlace: birthPlace,
