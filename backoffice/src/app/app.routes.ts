@@ -1,42 +1,42 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { CreateCompanyComponent } from './features/company/create-company/create-company.component';
 import { CompaniesComponent } from './features/company/companies/companies.component';
-import { ViewCompanyComponent } from './features/company/view-company/view-company.component';
+import { CreateCompanyComponent } from './features/company/create-company/create-company.component';
 import { EditCompanyComponent } from './features/company/edit-company/edit-company.component';
-import { UsersComponent } from './features/users/users/users.component';
-import { RolesComponent } from './features/roles/roles/roles.component';
-import { PermissionsComponent } from './features/permissions/permissions/permissions.component';
+import { ViewCompanyComponent } from './features/company/view-company/view-company.component';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { EventLogComponent } from './features/event-log/event-log.component';
-import { ReferentielComponent } from './features/referentiel/referentiel.component';
 import { HolidaysComponent } from './features/holidays/holidays/holidays.component';
 import { PayrollReferentielComponent } from './features/payroll-referentiel/payroll-referentiel.component';
-import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { PermissionsComponent } from './features/permissions/permissions/permissions.component';
+import { ReferentielComponent } from './features/referentiel/referentiel.component';
+import { RolesComponent } from './features/roles/roles/roles.component';
+import { SalaryPackagesComponent } from './features/salary-packages/salary-packages.component';
+import { UsersComponent } from './features/users/users/users.component';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
-import { SalaryPackagesComponent } from './features/salary-packages/salary-packages.component';
+import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     {
-      path: 'login',
-      canActivate: [guestGuard],
-      component: LoginComponent,
+        path: 'login',
+        canActivate: [guestGuard],
+        component: LoginComponent,
     },
     {
-      path: 'auth/callback',
-      loadComponent: () =>
-        import('./features/auth/entra-callback/entra-callback.component').then(
-          (m) => m.EntraCallbackComponent
-        ),
+        path: 'auth/callback',
+        loadComponent: () =>
+            import('./features/auth/entra-callback/entra-callback.component').then(
+                (m) => m.EntraCallbackComponent
+            ),
     },
     {
         path: 'dashboard',
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: DashboardComponent}
+            { path: '', component: DashboardComponent }
         ]
     },
     {
@@ -44,7 +44,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: CompaniesComponent}
+            { path: '', component: CompaniesComponent }
         ]
     },
     {
@@ -52,7 +52,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: CreateCompanyComponent}
+            { path: '', component: CreateCompanyComponent }
         ]
     },
     {
@@ -60,7 +60,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: ViewCompanyComponent}
+            { path: '', component: ViewCompanyComponent }
         ]
     },
     {
@@ -68,7 +68,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: EditCompanyComponent}
+            { path: '', component: EditCompanyComponent }
         ]
     },
     {
@@ -76,7 +76,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: UsersComponent}
+            { path: '', component: UsersComponent }
         ]
     },
     {
@@ -84,7 +84,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: RolesComponent}
+            { path: '', component: RolesComponent }
         ]
     },
     {
@@ -92,7 +92,7 @@ export const routes: Routes = [
         component: AdminLayoutComponent,
         canActivate: [authGuard],
         children: [
-            {path: '', component: PermissionsComponent}
+            { path: '', component: PermissionsComponent }
         ]
     },
     {

@@ -1,12 +1,12 @@
-import { Component, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { environment } from '@environments/environment';
 import { AuthService } from '@app/core/services/auth.service';
 import { CompanyContextService } from '@app/core/services/companyContext.service';
+import { environment } from '@environments/environment';
+import { TranslateModule } from '@ngx-translate/core';
 
 type ImportStep = 'upload' | 'importing' | 'results';
 type PeriodMode = 'monthly' | 'bi_monthly';
@@ -42,11 +42,12 @@ export class PointageImportComponent {
   readonly months = Array.from({ length: 12 }, (_, i) => i + 1);
   readonly years = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i);
   readonly monthsNames = [
-    'Janvier','Février','Mars','Avril','Mai','Juin',
-    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
   // Résumé (pour l'instant purement frontend, à brancher sur l'API plus tard)
+  readonly totalSheets = signal<number>(0);
   readonly totalLines = signal<number>(0);
   readonly successLines = signal<number>(0);
   readonly errorLines = signal<number>(0);
@@ -125,7 +126,7 @@ export class PointageImportComponent {
       params.set('companyId', companyId.toString());
     }
 
-    let url = `${environment.apiUrl}/timesheets/import`;
+    let url = `${environment.apiUrl}/import/timesheets`;
     const qs = params.toString();
     if (qs) {
       url += `?${qs}`;
@@ -133,6 +134,7 @@ export class PointageImportComponent {
 
     this.http.post<TimesheetImportResult>(url, formData).subscribe({
       next: (res) => {
+        this.totalSheets.set(res.totalSheets ?? 0);
         this.totalLines.set(res.totalLines ?? 0);
         this.successLines.set(res.successCount ?? 0);
         this.errorLines.set(res.errorCount ?? 0);
@@ -177,6 +179,7 @@ export class PointageImportComponent {
     this.selectedFile.set(null);
     this.isImporting.set(false);
     this.errorMessage.set(null);
+    this.totalSheets.set(0);
     this.totalLines.set(0);
     this.successLines.set(0);
     this.errorLines.set(0);
@@ -194,6 +197,7 @@ interface TimesheetImportResult {
   year: number;
   periodMode: string;
   half?: number;
+  totalSheets: number;
   totalLines: number;
   successCount: number;
   errorCount: number;

@@ -1,28 +1,25 @@
 import { Routes } from '@angular/router';
-import { MainLayout } from './layouts/main-layout/main-layout';
-import { AuthLayout } from './layouts/auth-layout/auth-layout';
-import { Dashboard } from './features/dashboard/dashboard';
-import { EmployeesPage } from './features/employees/employees';
-import { EmployeeProfile } from './features/employees/profile/employee-profile';
-import { EmployeeCreatePage } from './features/employees/create/employee-create';
-import { LoginComponent } from './features/auth/login/login.component';
-import { 
-  authGuard, 
-  guestGuard, 
-  rhGuard, 
-  ceoGuard,
+import {
+  authGuard,
   cabinetGuard,
-  contextGuard, 
+  ceoGuard,
+  contextGuard,
   contextSelectionGuard,
-  expertModeGuard,
-  expertClientViewGuard,
-  standardModeGuard,
-  viewPresenceGuard,
-  viewAbsenceGuard,
+  denyEmployeeFromHrDashboardsGuard,
   employeeDashboardGuard,
-  denyEmployeeFromHrDashboardsGuard
+  expertClientViewGuard,
+  expertModeGuard,
+  guestGuard,
+  rhGuard,
+  viewAbsenceGuard,
+  viewPresenceGuard
 } from '@app/core/guards/auth.guard';
 import { unsavedChangesGuard } from '@app/core/guards/unsaved-changes.guard';
+import { Dashboard } from './features/dashboard/dashboard';
+import { EmployeeCreatePage } from './features/employees/create/employee-create';
+import { EmployeesPage } from './features/employees/employees';
+import { EmployeeProfile } from './features/employees/profile/employee-profile';
+import { MainLayout } from './layouts/main-layout/main-layout';
 
 export const routes: Routes = [
   // ============================================
@@ -65,7 +62,7 @@ export const routes: Routes = [
   {
     path: 'select-context',
     canActivate: [authGuard, contextSelectionGuard],
-    loadComponent: () => 
+    loadComponent: () =>
       import('./features/auth/context-selection/context-selection')
         .then(m => m.ContextSelectionPage),
     title: 'Select Workspace - PayZen'
@@ -178,7 +175,7 @@ export const routes: Routes = [
       },
       {
         path: 'permissions',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/permissions/permission-management.component')
             .then(m => m.PermissionManagementComponent),
         canActivate: [rhGuard],
@@ -187,7 +184,7 @@ export const routes: Routes = [
       // Salary Packages
       {
         path: 'salary-packages',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/salary-packages/salary-packages')
             .then(m => m.SalaryPackagesPage),
         canActivate: [rhGuard],
@@ -203,7 +200,7 @@ export const routes: Routes = [
       },
       {
         path: 'salary-packages/:id',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/salary-packages/components/salary-package-view/salary-package-view')
             .then(m => m.SalaryPackageViewComponent),
         canActivate: [rhGuard],
@@ -342,6 +339,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/simulation/simulation.component').then(m => m.SimulationComponent),
         canActivate: [authGuard],
         title: 'Simulateur de Paie - PayZen'
+      },
+
+      // Administration - Import de données
+      {
+        path: 'import',
+        loadComponent: () => import('./features/import/import.component').then(m => m.ImportComponent),
+        canActivate: [rhGuard],
+        title: 'Importation - PayZen'
       }
     ]
   },
@@ -361,21 +366,21 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/cabinet/portfolio/cabinet-dashboard')
             .then(m => m.CabinetDashboard),
         title: 'Cabinet Dashboard - PayZen'
       },
       {
         path: 'permissions',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/cabinet/permissions/cabinet-permissions')
             .then(m => m.CabinetPermissionsComponent),
         title: 'Cabinet Permissions - PayZen'
       },
       {
         path: 'audit-log',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/cabinet/audit-log/cabinet-audit-log')
             .then(m => m.CabinetAuditLogComponent),
         title: 'Audit Log - PayZen'
@@ -398,7 +403,7 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./features/expert/dashboard/expert-dashboard')
             .then(m => m.ExpertDashboard),
         canActivate: [denyEmployeeFromHrDashboardsGuard],

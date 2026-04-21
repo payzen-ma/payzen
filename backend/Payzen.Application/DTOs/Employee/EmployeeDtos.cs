@@ -1381,6 +1381,7 @@ public class TimesheetImportResultDto
     public int Year { get; set; }
     public string PeriodMode { get; set; } = "monthly";
     public int? Half { get; set; }
+    public int TotalSheets { get; set; }
     public int TotalLines { get; set; }
     public int SuccessCount { get; set; }
     public int ErrorCount { get; set; }
@@ -1392,4 +1393,5 @@ public class TimesheetImportErrorDto
     public int Row { get; set; }
     public string? Matricule { get; set; }
     public string Message { get; set; } = string.Empty;
+    public string? Sheet { get; set; }
 }

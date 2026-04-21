@@ -46,17 +46,21 @@
         <label class="pi-filter-field__label">Mode de période</label>
         <div class="pi-radio-group">
           <label class="pi-radio-label">
-            <span class="pi-radio-btn" [class.pi-radio-btn--checked]="periodMode() === 'monthly'" (click)="periodMode.set('monthly')">
+            <span class="pi-radio-btn" [class.pi-radio-btn--checked]="periodMode() === 'monthly'"
+              (click)="periodMode.set('monthly')">
               <i class="pi pi-check" *ngIf="periodMode() === 'monthly'"></i>
             </span>
-            <input type="radio" value="monthly" [ngModel]="periodMode()" (ngModelChange)="periodMode.set($event)" class="pi-radio-native" />
+            <input type="radio" value="monthly" [ngModel]="periodMode()" (ngModelChange)="periodMode.set($event)"
+              class="pi-radio-native" />
             Mensuel
           </label>
           <label class="pi-radio-label">
-            <span class="pi-radio-btn" [class.pi-radio-btn--checked]="periodMode() === 'bi_monthly'" (click)="periodMode.set('bi_monthly')">
+            <span class="pi-radio-btn" [class.pi-radio-btn--checked]="periodMode() === 'bi_monthly'"
+              (click)="periodMode.set('bi_monthly')">
               <i class="pi pi-check" *ngIf="periodMode() === 'bi_monthly'"></i>
             </span>
-            <input type="radio" value="bi_monthly" [ngModel]="periodMode()" (ngModelChange)="periodMode.set($event)" class="pi-radio-native" />
+            <input type="radio" value="bi_monthly" [ngModel]="periodMode()" (ngModelChange)="periodMode.set($event)"
+              class="pi-radio-native" />
             Bimensuel
           </label>
         </div>
@@ -81,17 +85,12 @@
 
   <!-- Section : Fichier de pointage — Upload -->
   <div class="pi-card" *ngIf="step() === 'upload'">
-    <h2 class="pi-card__title">Fichier de pointage</h2>
+    <h2 class="pi-card__title">modifications accumulées</h2>
 
     <!-- Dropzone -->
-    <div
-      class="pi-dropzone"
-      [class.pi-dropzone--dragging]="isDragging()"
-      [class.pi-dropzone--has-file]="!!selectedFile()"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave()"
-      (drop)="onDrop($event)"
-      (click)="fileInput.click()">
+    <div class="pi-dropzone" [class.pi-dropzone--dragging]="isDragging()"
+      [class.pi-dropzone--has-file]="!!selectedFile()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)" (click)="fileInput.click()">
 
       <!-- État vide -->
       <ng-container *ngIf="!selectedFile()">
@@ -99,7 +98,7 @@
           <i class="pi pi-table pi-dropzone__icon"></i>
         </div>
         <div class="pi-dropzone__text">
-          <p class="pi-dropzone__title">Glissez-déposez votre fichier de pointage ici</p>
+          <p class="pi-dropzone__title">Glisser deposer votre fichier de modifications accumulées</p>
           <p class="pi-dropzone__sub">
             ou <span class="pi-dropzone__link">cliquez pour parcourir</span>
           </p>
@@ -117,7 +116,8 @@
             <p class="pi-dropzone__file-name">{{ selectedFile()!.name }}</p>
             <p class="pi-dropzone__file-size">{{ (selectedFile()!.size / 1024).toFixed(1) }} KB</p>
           </div>
-          <button type="button" class="pi-dropzone__file-remove" (click)="$event.stopPropagation(); removeFile()" title="Supprimer">
+          <button type="button" class="pi-dropzone__file-remove" (click)="$event.stopPropagation(); removeFile()"
+            title="Supprimer">
             <i class="pi pi-times"></i>
           </button>
         </div>
@@ -135,7 +135,8 @@
     <!-- Actions -->
     <div class="pi-card__actions">
       <button type="button" class="pi-btn pi-btn--cancel" (click)="newImport()">Annuler</button>
-      <button type="button" class="pi-btn pi-btn--import" [disabled]="!canImport() || isImporting()" (click)="startImport()">
+      <button type="button" class="pi-btn pi-btn--import" [disabled]="!canImport() || isImporting()"
+        (click)="startImport()">
         <i class="pi pi-file-import"></i>
         Importer
       </button>
@@ -159,8 +160,12 @@
 
     <div class="pi-results-grid">
       <div class="pi-result-stat pi-result-stat--neutral">
+        <p class="pi-result-stat__value">{{ totalSheets() }}</p>
+        <p class="pi-result-stat__label">Feuilles apportées</p>
+      </div>
+      <div class="pi-result-stat pi-result-stat--neutral">
         <p class="pi-result-stat__value">{{ totalLines() }}</p>
-        <p class="pi-result-stat__label">Lignes traitées</p>
+        <p class="pi-result-stat__label">Lignes apportées</p>
       </div>
       <div class="pi-result-stat pi-result-stat--success">
         <p class="pi-result-stat__value">{{ successLines() }}</p>
@@ -172,7 +177,8 @@
       </div>
     </div>
 
-    <p class="pi-results__note">Les heures ont été appliquées dans les présences des collaborateurs pour la période sélectionnée.</p>
+    <p class="pi-results__note">Les heures ont été appliquées dans les présences des collaborateurs pour la période
+      sélectionnée.</p>
 
     <!-- Détail des erreurs -->
     <div *ngIf="importErrors().length" class="pi-errors-table-wrap">

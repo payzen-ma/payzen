@@ -549,7 +549,7 @@ export class Sidebar {
       requiresCompanyContext: false,
       groupe: 'administration',
       itemBadge: null,
-      notImplemented: true
+      notImplemented: false
     },
     {
       label: 'nav.history',
