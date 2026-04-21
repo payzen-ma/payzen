@@ -222,6 +222,8 @@ interface SalaryComponentResponse {
   amount: number;
   isTaxable?: boolean;
   IsTaxable?: boolean; // Backend returns PascalCase
+  effectiveDate?: string;
+  EffectiveDate?: string;
 }
 
 export interface NonImposableOption {
@@ -250,6 +252,9 @@ interface EmployeeDetailsResponse {
   matriculeNumber?: string | number;
   cinNumber: string;
   maritalStatusName: string;
+  maritalStatusId?: number | null;
+  maritalStatusChangeDate?: string | null;
+  MaritalStatusChangeDate?: string | null;
   dateOfBirth: string;
   statusName: string;
   email: string;
@@ -264,7 +269,11 @@ interface EmployeeDetailsResponse {
   department?: string;
   departmentName?: string;
   managerName?: string | null;
+  managerChangeDate?: string | null;
+  ManagerChangeDate?: string | null;
   contractStartDate: string;
+  contractChangeDate?: string | null;
+  ContractChangeDate?: string | null;
   contractTypeName: string;
   baseSalary: number;
   baseSalaryHourly?: number | null;
@@ -277,7 +286,11 @@ interface EmployeeDetailsResponse {
   cimr?: string | number;
   cimrEmployeeRate?: number | null;
   cimrCompanyRate?: number | null;
+  cimrRatesChangeDate?: string | null;
+  CimrRatesChangeDate?: string | null;
   hasPrivateInsurance?: boolean;
+  privateInsuranceChangeDate?: string | null;
+  PrivateInsuranceChangeDate?: string | null;
   privateInsuranceNumber?: string | null;
   privateInsuranceRate?: number | null;
   disableAmo?: boolean;
@@ -290,6 +303,8 @@ interface EmployeeDetailsResponse {
   annualLeave?: number;
   probationPeriod?: string;
   CategoryName?: string;
+  categoryChangeDate?: string | null;
+  CategoryChangeDate?: string | null;
   events?: BackendEventResponse[];
   Events?: BackendEventResponse[];
 }
@@ -612,10 +627,8 @@ export class EmployeeService {
       body.dateOfBirth = this.formatForDateInput((payload as any).dateOfBirth);
       delete body.birthdate;
     }
-    if ((payload as any).startDate !== undefined && (payload as any).startDate !== null && (payload as any).startDate !== '') {
-      body.contractStartDate = this.formatForDateInput((payload as any).startDate);
-      delete body.startDate;
-    }
+    // startDate = date d'entree entreprise; ne pas l'utiliser pour piloter les contrats.
+    delete body.startDate;
     if ((payload as any).cin !== undefined) {
       body.cinNumber = (payload as any).cin;
       delete body.cin;
@@ -633,8 +646,13 @@ export class EmployeeService {
       delete body.baseSalary;
     }
     return this.http
-      .patch<EmployeeDetailsResponse>(`${this.EMPLOYEE_URL}/${id}`, body)
-      .pipe(map(response => this.mapEmployeeDetailsResponse(response)));
+      .patch<any>(`${this.EMPLOYEE_URL}/${id}`, body)
+      .pipe(
+        // PATCH /employee/{id} renvoie un DTO simplifié; on recharge le détail complet
+        // pour éviter de perdre des champs comme *ChangeDate dans l'état frontend.
+        switchMap(() => this.http.get<EmployeeDetailsResponse>(`${this.EMPLOYEE_URL}/${id}/details`)),
+        map(response => this.mapEmployeeDetailsResponse(response))
+      );
   }
 
   deleteEmployee(id: string): Observable<void> {
@@ -684,7 +702,8 @@ export class EmployeeService {
               employeeSalaryId: c.employeeSalaryId ?? c.EmployeeSalaryId,
               type: c.componentType ?? c.ComponentType,
               amount: c.amount ?? c.Amount,
-              isTaxable: c.isTaxable ?? c.IsTaxable ?? true
+              isTaxable: c.isTaxable ?? c.IsTaxable ?? true,
+              effectiveDate: c.effectiveDate ?? c.EffectiveDate ?? null
             }))
           }))
         );
@@ -1042,7 +1061,14 @@ export class EmployeeService {
       id: this.toStringValue(employee.id || employee.Id),
       firstName: employee.firstName || employee.FirstName || '',
       lastName: employee.lastName || employee.LastName || '',
-      matricule: employee.matricule || employee.Matricule || employee.matriculeNumber || employee.MatriculeNumber || undefined,
+      matricule:
+        employee.matriculeDisplay ||
+        employee.MatriculeDisplay ||
+        employee.matricule ||
+        employee.Matricule ||
+        employee.matriculeNumber ||
+        employee.MatriculeNumber ||
+        undefined,
       position:
         employee.position ||
         employee.Position ||
@@ -1110,7 +1136,8 @@ export class EmployeeService {
     const salaryComponents = (payload.salaryComponents ?? []).map(c => ({
       type: c.componentName,
       amount: c.amount,
-      isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true)
+      isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true),
+      effectiveDate: c.effectiveDate ?? c.EffectiveDate ?? null
     }));
 
 
@@ -1139,9 +1166,20 @@ export class EmployeeService {
       firstName: payload.firstName ?? '',
       lastName: payload.lastName ?? '',
       photo: undefined,
-      matricule: payload.matricule ?? (payload as any).Matricule ?? payload.matriculeNumber ?? (payload as any).MatriculeNumber ?? undefined,
+      matricule:
+        (payload as any).matriculeDisplay ??
+        (payload as any).MatriculeDisplay ??
+        payload.matricule ??
+        (payload as any).Matricule ??
+        payload.matriculeNumber ??
+        (payload as any).MatriculeNumber ??
+        undefined,
       cin: payload.cinNumber ?? '',
       maritalStatus: this.mapMaritalStatus(payload.maritalStatusName),
+      maritalStatusChangeDate:
+        (payload as any).maritalStatusChangeDate ??
+        (payload as any).MaritalStatusChangeDate ??
+        null,
       //birthPlace: birthPlace,
       professionalEmail: payload.email ?? '',
       personalEmail: payload.email ?? '',
@@ -1159,8 +1197,16 @@ export class EmployeeService {
       department: payload.department ?? payload.departmentName ?? payload.departments ?? '',
       departementId: payload.departementId ?? (payload as any).DepartementId ?? undefined,
       manager: payload.managerName ?? '',
+      managerChangeDate:
+        (payload as any).managerChangeDate ??
+        (payload as any).ManagerChangeDate ??
+        null,
       contractType: this.mapContractType(payload.contractTypeName),
       contractTypeId: payload.contractTypeId ?? (payload as any).ContractTypeId ?? undefined,
+      contractChangeDate:
+        (payload as any).contractChangeDate ??
+        (payload as any).ContractChangeDate ??
+        null,
 
       endDate: undefined,
       probationPeriod: payload.probationPeriod ?? '',
@@ -1184,7 +1230,15 @@ export class EmployeeService {
       cimr: cimrValue || undefined,
       cimrEmployeeRate: payload.cimrEmployeeRate ?? (payload as any).CimrEmployeeRate ?? null,
       cimrCompanyRate: payload.cimrCompanyRate ?? (payload as any).CimrCompanyRate ?? null,
+      cimrRatesChangeDate:
+        (payload as any).cimrRatesChangeDate ??
+        (payload as any).CimrRatesChangeDate ??
+        null,
       hasPrivateInsurance: payload.hasPrivateInsurance ?? (payload as any).HasPrivateInsurance ?? false,
+      privateInsuranceChangeDate:
+        (payload as any).privateInsuranceChangeDate ??
+        (payload as any).PrivateInsuranceChangeDate ??
+        null,
       privateInsuranceNumber: payload.privateInsuranceNumber ?? (payload as any).PrivateInsuranceNumber ?? null,
       privateInsuranceRate: payload.privateInsuranceRate ?? (payload as any).PrivateInsuranceRate ?? null,
       disableAmo: payload.disableAmo ?? (payload as any).DisableAmo ?? false,
@@ -1202,6 +1256,10 @@ export class EmployeeService {
       ) || undefined,
       employeeCategoryId: (payload as any).categoryId ?? (payload as any).CategoryId ?? (payload as any).employeeCategoryId ?? undefined,
       employeeCategoryName: (payload as any).categoryName ?? (payload as any).CategoryName ?? undefined,
+      categoryChangeDate:
+        (payload as any).categoryChangeDate ??
+        (payload as any).CategoryChangeDate ??
+        null,
       createdAt: payload.createdAt ? new Date(payload.createdAt) : undefined,
       updatedAt: payload.updatedAt ? new Date(payload.updatedAt) : undefined,
       dateOfBirth: this.formatForDateInput(payload.dateOfBirth),

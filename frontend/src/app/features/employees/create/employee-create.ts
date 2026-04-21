@@ -102,7 +102,7 @@ export class EmployeeCreatePage implements OnInit {
     birthDate: ['', Validators.required],
     phone: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
     phoneCountryId: [null as number | null, Validators.required],
-    statusId: [null, Validators.required],
+    statusId: [null as number | null, Validators.required],
     genderId: [null],
     educationLevelId: [null],
     maritalStatusId: [null],
@@ -240,6 +240,14 @@ export class EmployeeCreatePage implements OnInit {
     this.employeeService.getEmployeeFormData().subscribe({
       next: (data) => {
         this.formData.set(data);
+        if (!this.employeeForm.controls.statusId.value && data.statuses.length) {
+          const activeStatus =
+            data.statuses.find(s => (s.value ?? '').toLowerCase() === 'active') ??
+            data.statuses.find(s => s.label.toLowerCase().includes('actif') || s.label.toLowerCase().includes('active'));
+          if (activeStatus?.id != null) {
+            this.employeeForm.controls.statusId.setValue(activeStatus.id);
+          }
+        }
         if (data.countries.length) {
           const defaultCountry = this.findDefaultCountry(data.countries);
           if (!this.employeeForm.controls.phoneCountryId.value) {
@@ -344,6 +352,13 @@ export class EmployeeCreatePage implements OnInit {
       if (this.employeeForm.invalid) {
         this.employeeForm.markAllAsTouched();
         this.isSubmitting.set(false);
+        const validationMessage = this.translate.instant('employees.create.validation.required');
+        this.errorMessage.set(validationMessage);
+        this.messageService.add({
+          severity: 'warn',
+          summary: this.translate.instant('employees.create.errorTitle'),
+          detail: validationMessage
+        });
         return;
       }
       this.submitEmployee();
@@ -367,6 +382,13 @@ export class EmployeeCreatePage implements OnInit {
 
     if (this.employeeForm.invalid) {
       this.employeeForm.markAllAsTouched();
+      const validationMessage = this.translate.instant('employees.create.validation.required');
+      this.errorMessage.set(validationMessage);
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('employees.create.errorTitle'),
+        detail: validationMessage
+      });
       return;
     }
 
@@ -423,6 +445,7 @@ export class EmployeeCreatePage implements OnInit {
     const selectedPhoneCode = this.phoneCode();
     const selectedSalaryPackageId = value.salaryPackageId ? Number(value.salaryPackageId) : null;
     const inviteRoleId = value.inviteRoleId ? Number(value.inviteRoleId) : null;
+    const resolvedStatusId = value.statusId ? Number(value.statusId) : this.getActiveStatusId();
     const payload: CreateEmployeeRequest = {
       firstName: value.firstName ?? '',
       lastName: value.lastName ?? '',
@@ -430,7 +453,7 @@ export class EmployeeCreatePage implements OnInit {
       phone: String(value.phone ?? '').trim(),
       dateOfBirth: value.birthDate ?? '',
       cinNumber: value.cinNumber || null,
-      statusId: Number(value.statusId),
+      statusId: resolvedStatusId ?? 0,
       inviteRoleId: inviteRoleId,
       genderId: value.genderId ? Number(value.genderId) : null,
       educationLevelId: value.educationLevelId ? Number(value.educationLevelId) : null,
@@ -495,7 +518,7 @@ export class EmployeeCreatePage implements OnInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        const errorText = err.error?.message || this.translate.instant('employees.create.error');
+        const errorText = this.extractApiErrorMessage(err);
         this.errorMessage.set(errorText);
         this.messageService.add({
           severity: 'error',
@@ -581,6 +604,41 @@ export class EmployeeCreatePage implements OnInit {
 
   private getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  private getActiveStatusId(): number | null {
+    const statuses = this.formData().statuses ?? [];
+    const active =
+      statuses.find(s => (s.value ?? '').toLowerCase() === 'active') ??
+      statuses.find(s => s.label.toLowerCase().includes('actif') || s.label.toLowerCase().includes('active'));
+    return active?.id ?? null;
+  }
+
+  private extractApiErrorMessage(err: any): string {
+    const fallback = this.translate.instant('employees.create.error');
+    const payload = err?.error;
+
+    // ServiceResult BadRequest(new { Message = r.Error })
+    const directMessage = payload?.message ?? payload?.Message;
+    if (typeof directMessage === 'string' && directMessage.trim()) {
+      return directMessage;
+    }
+
+    // ApiController model validation: { errors: { field: [..] } }
+    const errorsObj = payload?.errors;
+    if (errorsObj && typeof errorsObj === 'object') {
+      const first = Object.values(errorsObj).find(v => Array.isArray(v) && v.length > 0) as string[] | undefined;
+      if (first?.[0]) {
+        return first[0];
+      }
+    }
+
+    // Generic ASP.NET ProblemDetails
+    if (typeof payload?.title === 'string' && payload.title.trim()) {
+      return payload.title;
+    }
+
+    return fallback;
   }
 
   private handleEmployeeCreationSuccess(showSalaryPackageWarning = false): void {

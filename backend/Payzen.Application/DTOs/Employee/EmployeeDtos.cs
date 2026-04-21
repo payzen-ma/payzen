@@ -56,6 +56,9 @@ public class EmployeeCreateDto
     public int? MaritalStatusId { get; set; }
     public string? CnssNumber { get; set; }
     public string? CimrNumber { get; set; }
+    public decimal? CimrEmployeeRate { get; set; }
+    public decimal? CimrCompanyRate { get; set; }
+    public bool? HasPrivateInsurance { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "L'ID de la catégorie doit être valide")]
     public int? CategoryId { get; set; }
@@ -132,12 +135,15 @@ public class EmployeeUpdateDto
     public int? DepartementId { get; set; }
 
     public int? ManagerId { get; set; }
+    public DateTime? ManagerChangeDate { get; set; }
     public int? StatusId { get; set; }
     public int? GenderId { get; set; }
     public int? NationalityId { get; set; }
     public int? EducationLevelId { get; set; }
     public int? MaritalStatusId { get; set; }
+    public DateTime? MaritalStatusChangeDate { get; set; }
     public int? CategoryId { get; set; }
+    public DateTime? CategoryChangeDate { get; set; }
 
     /// <summary>Numéro CNSS (chaîne). Clé JSON <c>cnss</c> pour alignement Angular.</summary>
     [JsonPropertyName("cnss")]
@@ -149,7 +155,9 @@ public class EmployeeUpdateDto
 
     public decimal? CimrEmployeeRate { get; set; }
     public decimal? CimrCompanyRate { get; set; }
+    public DateTime? CimrRatesChangeDate { get; set; }
     public bool? HasPrivateInsurance { get; set; }
+    public DateTime? PrivateInsuranceChangeDate { get; set; }
     public string? PrivateInsuranceNumber { get; set; }
     public decimal? PrivateInsuranceRate { get; set; }
     public bool? DisableAmo { get; set; }
@@ -161,6 +169,7 @@ public class EmployeeUpdateDto
     public int? JobPositionId { get; set; }
     public int? ContractTypeId { get; set; }
     public DateTime? ContractStartDate { get; set; }
+    public DateTime? ContractChangeDate { get; set; }
 
     [Range(0.01, double.MaxValue, ErrorMessage = "Le salaire doit être supérieur à 0")]
     public decimal? Salary { get; set; }
@@ -185,6 +194,7 @@ public class EmployeeReadDto
 {
     public int Id { get; set; }
     public int? Matricule { get; set; }
+    public string? MatriculeDisplay { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string CinNumber { get; set; } = string.Empty;
@@ -225,10 +235,13 @@ public class EmployeeDetailDto
 {
     public int Id { get; set; }
     public int? Matricule { get; set; }
+    public string? MatriculeDisplay { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string CinNumber { get; set; } = string.Empty;
     public string? MaritalStatusName { get; set; }
+    [JsonPropertyName("maritalStatusChangeDate")]
+    public DateTime? MaritalStatusChangeDate { get; set; }
     public int? CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public DateOnly DateOfBirth { get; set; }
@@ -247,8 +260,13 @@ public class EmployeeDetailDto
     public int? JobPositionId { get; set; }
     public string? JobPositionName { get; set; }
     public int? ContractTypeId { get; set; }
+    public int? ManagerId { get; set; }
     public string? ManagerName { get; set; }
+    [JsonPropertyName("managerChangeDate")]
+    public DateTime? ManagerChangeDate { get; set; }
     public DateTime? ContractStartDate { get; set; }
+    [JsonPropertyName("contractChangeDate")]
+    public DateTime? ContractChangeDate { get; set; }
     public string? ContractTypeName { get; set; }
     public int? DepartementId { get; set; }
     public string? departments { get; set; }
@@ -272,11 +290,17 @@ public class EmployeeDetailDto
     public string? cimr { get; set; }
     public decimal? cimrEmployeeRate { get; set; }
     public decimal? cimrCompanyRate { get; set; }
+    [JsonPropertyName("cimrRatesChangeDate")]
+    public DateTime? CimrRatesChangeDate { get; set; }
     public bool? hasPrivateInsurance { get; set; }
+    [JsonPropertyName("privateInsuranceChangeDate")]
+    public DateTime? PrivateInsuranceChangeDate { get; set; }
     public string? privateInsuranceNumber { get; set; }
     public decimal? privateInsuranceRate { get; set; }
     public bool disableAmo { get; set; }
     public decimal? annualLeave { get; set; }
+    [JsonPropertyName("categoryChangeDate")]
+    public DateTime? CategoryChangeDate { get; set; }
 
     // Événements
     public List<EmployeeDetailHistoryEventDto> Events { get; set; } = new();

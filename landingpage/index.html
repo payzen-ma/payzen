@@ -4,333 +4,334 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payzen HR — La paie conforme, décidée par vous.</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
-    rel="stylesheet">
+  <title>Payzen HR - Votre paie au Maroc, exécutée au millimètre près</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-
-  <div class="pbar" id="pbar"></div>
-
-  <!-- NAV -->
-  <nav id="nav">
-    <a class="logo" href="#">
-      <div class="logo-icon">
-        <div class="logo-bar"></div>
-        <div class="logo-dot"></div>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <div class="logo">
+          <span class="logo-text">Payzen<span class="logo-accent">HR</span></span>
+        </div>
+        <div class="nav-links">
+          <a href="#produit">Produit</a>
+          <a href="#conformite">Conformité</a>
+          <a href="#tarifs">Tarifs</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="nav-actions">
+          <a href="#" class="btn-link">Se connecter</a>
+          <a href="#" class="btn-primary">S'inscrire</a>
+        </div>
       </div>
-      <div class="logo-words">
-        <div class="logo-name">Payzen</div>
-        <div class="logo-hr">HR</div>
-      </div>
-    </a>
-    <div class="nav-links" id="navLinks">
-      <a href="#features" class="nav-a">Fonctionnalités</a>
-      <a href="#pricing" class="nav-a">Tarifs</a>
-      <button class="btn btn-outline" onclick="redirectToSignIn()">Se connecter</button>
-      <button class="btn" onclick="redirectToSignUp()">S'inscrire →</button>
     </div>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
   </nav>
 
-  <!-- HERO -->
+  <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-grid"></div>
-    <div class="hero-inner">
-      <div>
-        <div class="badge">
-          <div class="pdot"></div>Bêta 2026 · Places limitées
-        </div>
-        <h1>La paie conforme,<br>décidée par vous.</h1>
-        <p class="hero-sub">Payzen HR calcule, contrôle et déclare vos obligations CNSS, AMO et IR — en temps réel. Vous
-          gardez la main. L'IA accélère l'exécution.</p>
-        <div class="hero-ctas">
-          <button class="btn btn-lg" onclick="redirectToSignUp()">Commencer gratuitement →</button>
-          <button class="btn btn-outline btn-lg" onclick="redirectToSignIn()">Se connecter</button>
-        </div>
-        <p class="hero-note">Déjà <strong>127 entreprises</strong> nous font confiance · Aucun engagement</p>
-        <div class="proof">
-          <div class="pavs">
-            <div class="pav" style="background:linear-gradient(135deg,#2A2CE0,#6668f5)">MK</div>
-            <div class="pav" style="background:linear-gradient(135deg,#F5621C,#ff9a6b)">SB</div>
-            <div class="pav" style="background:linear-gradient(135deg,#0B8F50,#34d399)">YO</div>
-            <div class="pav" style="background:linear-gradient(135deg,#9333ea,#c084fc)">LM</div>
-          </div>
-          <p class="proof-t"><b>DRH, comptables, fondateurs</b> — déjà inscrits</p>
-        </div>
+    <div class="container">
+      <div class="beta-badge">
+        <span class="badge-icon">⚡</span>
+        <span>Bêta 2026 Places limitées — accès anticipé</span>
       </div>
-      <div class="hero-right">
-        <div class="mwin">
-          <div class="mtb">
-            <div class="mdt" style="background:#FF5F57"></div>
-            <div class="mdt" style="background:#FFBD2E"></div>
-            <div class="mdt" style="background:#28CA41"></div>
-            <div class="murl">app.payzenhr.com</div>
-            <div class="mst">
-              <div class="msd"></div>IA Active
-            </div>
-          </div>
-          <div class="mbody">
-            <div class="msb">
-              <div class="msb-logo">
-                <div class="msb-li">
-                  <div class="msb-lb"></div>
-                  <div class="msb-ld"></div>
-                </div>
-                <span class="msb-n">Payzen</span>
-              </div>
-              <div class="mss">Principal</div>
-              <div class="msi on">Tableau de bord</div>
-              <div class="msi">Salariés</div>
-              <div class="msi">Bulletins</div>
-              <div class="mss">IA</div>
-              <div class="msi" style="background:var(--blue-dim);color:var(--blue);font-weight:600">Copilote IA <span
-                  class="msbadge">IA</span></div>
-            </div>
-            <div class="mc">
-              <div class="ai-win">
-                <div class="ai-h">
-                  <div class="ai-ic">AI</div>
-                  <div>
-                    <div class="ai-tit">Agent Paie v2.5</div>
-                    <div class="ai-sub">Taux 2026 · CNSS / AMO / IR</div>
-                  </div>
-                  <div class="ai-ok">Actif</div>
-                </div>
-                <div class="ai-msgs" id="aiMsgs">
-                  <div class="aim">
-                    <div class="aim-av">AI</div>
-                    <div class="aim-b"><span class="ok">✓</span> Barèmes IR 2026 vérifiés et appliqués.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mkpis">
-                <div class="mk">
-                  <div class="mkl">Salariés</div>
-                  <div class="mkv">47</div>
-                  <div class="mkd">↑ 3 ce mois</div>
-                </div>
-                <div class="mk">
-                  <div class="mkl">Bulletins</div>
-                  <div class="mkv">47/47</div>
-                  <div class="mkd">✓ Complets</div>
-                </div>
-                <div class="mk">
-                  <div class="mkl">Conformité</div>
-                  <div class="mkv">100%</div>
-                  <div class="mkd">● Certifié</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- STATS -->
-  <div class="stats reveal">
-    <div class="stats-in">
-      <div class="st">
-        <div class="st-n" style="color:var(--blue)">–92%</div>
-        <div class="st-l"><strong>De saisies manuelles</strong>par cycle de paie complet</div>
-      </div>
-      <div class="st">
-        <div class="st-n" style="color:var(--orange)">100%</div>
-        <div class="st-l"><strong>des obligations légales couvertes</strong>CNSS · AMO · IR · Damancom</div>
-      </div>
-      <div class="st">
-        <div class="st-n" style="color:var(--green)">&lt; 3 min</div>
-        <div class="st-l"><strong>Pour clôturer un mois</strong>De la saisie au bulletin signé</div>
-      </div>
-    </div>
-  </div>
+      <h1 class="hero-title">
+        Votre paie au Maroc,<br>
+        exécutée <span class="highlight">au millimètre près.</span>
+      </h1>
 
-  <!-- FEATURES -->
-  <section class="sec reveal" id="features">
-    <div>
-      <div class="eyebrow">Fonctionnalités</div>
-      <h2>Moins de friction. Plus de maîtrise.</h2>
-      <p class="sub">Chaque processus RH simplifié. Chaque obligation légale couverte. Vous pilotez, Payzen HR exécute.
+      <p class="hero-subtitle">
+        Payzen HR calcule, contrôle et déclare vos obligations <strong>CNSS</strong>, <strong>AMO</strong> et
+        <strong>IR</strong> — aux taux 2026. Vous pilotez, l'IA exécute.
       </p>
-    </div>
-    <div class="fg">
-      <div class="fc wide">
-        <div class="fic o">⚡</div>
-        <div class="ftit">Vos règles métier, exécutées à la lettre.</div>
-        <div class="fdesc">Définissez une règle une fois en français naturel. Le moteur l'applique sur l'ensemble de vos
-          salariés, en conformité avec les taux 2026 — sans marge d'erreur.</div>
-        <div class="dsl">
-          <span class="cmt">"Si l'ancienneté est supérieure à 2 ans, prime de 5% du salaire de base.</span><br>
-          <span class="cmt"> Appliquer les cotisations sociales 2026."</span><br><br>
-          <span class="kw">SI</span> ancienneté &gt; <span class="vl">2 ans</span> <span class="kw">ALORS</span> prime =
-          salaire_base × <span class="vl">0.05</span><br>
-          <span class="kw">APPLIQUER</span> cotisations_<span class="vl">2026</span><br>
-          <span class="ok2">→ Calculé · Bulletins générés · Damancom prêt ✓</span>
+
+      <div class="hero-badges">
+        <span class="badge">Conformité CNSS AMO 2026</span>
+        <span class="badge">Barèmes IR actualisés</span>
+        <span class="badge">Export Damancom</span>
+        <span class="badge">CIMR intégré</span>
+      </div>
+
+      <div class="hero-cta">
+        <a href="#demo" class="btn-secondary">Voir une démo</a>
+        <a href="#signup" class="btn-primary">Commencer gratuitement</a>
+      </div>
+
+      <p class="hero-social-proof">
+        Déjà <strong>127 entreprises</strong> nous font confiance · Aucun engagement
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-value">-92%</div>
+          <div class="stat-label">De saisies manuelles<br>par cycle de paie complet</div>
         </div>
-        <span class="ftag">Exclusif Payzen HR</span>
-      </div>
-      <div class="fc">
-        <div class="fic o">🤖</div>
-        <div class="ftit">Un copilote, pas un remplaçant.</div>
-        <div class="fdesc">L'IA analyse, détecte les écarts légaux et exécute les tâches répétitives. Vous validez, vous
-          décidez.</div><span class="ftag">Agent Paie · RH · DG</span>
-      </div>
-      <div class="fc">
-        <div class="fic">🛡️</div>
-        <div class="ftit">Conformité vérifiée à chaque cycle.</div>
-        <div class="fdesc">CNSS, AMO, IR, CIMR. Taux 2026 mis à jour automatiquement. Chaque écart est signalé avant
-          qu'il devienne un redressement.</div>
-      </div>
-      <div class="fc">
-        <div class="fic">📄</div>
-        <div class="ftit">Du calcul au bulletin en 1 clic.</div>
-        <div class="fdesc">PDF généré, archivé et envoyé. Aucune ressaisie. Aucune vérification manuelle.</div>
-      </div>
-      <div class="fc">
-        <div class="fic">🏢</div>
-        <div class="ftit">Multi-sociétés natif.</div>
-        <div class="fdesc">Gérez 10 à 200 entités depuis un seul tableau de bord. Vue consolidée, actions bulk, export
-          cabinet instantané.</div><span class="ftag b">Cabinet ready</span>
-      </div>
-      <div class="fc">
-        <div class="fic o">📊</div>
-        <div class="ftit">Damancom en un clic.</div>
-        <div class="fdesc">Fichiers pré-remplis, contrôlés et prêts au dépôt. Zéro retraitement. Zéro risque de rejet.
+        <div class="stat-card">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">des obligations légales couvertes<br>CNSS AMO IR Damancom</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">&lt; 3 min</div>
+          <div class="stat-label">Pour clôturer un mois<br>De la saisie au bulletin signé</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- DASHBOARD -->
-  <div class="dash-sec reveal">
-    <div class="dash-sec-in">
-      <div class="dash-head">
-        <div class="eyebrow" style="justify-content:center">La plateforme</div>
-        <h2>Un seul endroit pour tout voir, tout décider.</h2>
-        <p class="sub">Chaque décision RH appuyée par des données conformes et à jour.</p>
+  <!-- Problem Section -->
+  <section class="problem-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">LE PROBLÈME</span>
+        <h2 class="section-title">La paie marocaine coûte plus<br>cher qu'elle ne le devrait.</h2>
+        <p class="section-subtitle">Excel, prestataires externes, retraitements Damancom — à chaque étape, le risque
+          monte et le temps file. Chiffres vécus par les entreprises que nous accompagnons.</p>
       </div>
-      <div class="dwin">
-        <div class="dtbar">
-          <div class="dtd" style="background:#FF5F57"></div>
-          <div class="dtd" style="background:#FFBD2E"></div>
-          <div class="dtd" style="background:#28CA41"></div>
-          <div class="dtu">app.payzenhr.com · Dashboard</div>
-          <div class="dtr">
-            <div class="dtlive"></div>Agent Paie v2.5 · Actif
+
+      <div class="problem-grid">
+        <div class="problem-card">
+          <div class="problem-number">01</div>
+          <div class="problem-title">Temps</div>
+          <div class="problem-stat">38 heures / mois</div>
+          <div class="problem-subtitle">Noyées dans la paie</div>
+          <p class="problem-description">Ressaisies, vérifications croisées, appels au cabinet. Pour 50 salariés, une
+            semaine entière chaque mois.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-number">02</div>
+          <div class="problem-title">Erreurs</div>
+          <div class="problem-stat">1 bulletin sur 8</div>
+          <div class="problem-subtitle">Contient une erreur</div>
+          <p class="problem-description">Taux non actualisés, primes mal calculées, anciennetés oubliées. Chaque erreur
+            se paie en redressement.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-number">03</div>
+          <div class="problem-title">Risque</div>
+          <div class="problem-stat">28K MAD</div>
+          <div class="problem-subtitle">Coût moyen d'un redressement</div>
+          <p class="problem-description">Un seul contrôle CNSS mal préparé peut effacer plusieurs mois de rentabilité.
+            Le plus coûteux reste le non conforme.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">COMMENT ÇA MARCHE</span>
+        <h2 class="section-title">Trois étapes. Zéro retraitement.</h2>
+        <p class="section-subtitle">Un cycle de paie complet en moins de trois minutes — de la saisie à la déclaration,
+          sans quitter Payzen HR.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <h3 class="step-title">Définissez vos règles</h3>
+          <p class="step-description">Écrivez vos règles en français naturel. Le moteur les compile en calculs appliqués
+            à tous vos salariés.</p>
+          <div class="code-preview">
+            <div class="code-header">📋 Règle ancienneté</div>
+            <div class="code-content">
+              <span class="code-keyword">SI</span> ancienneté > 2 ans<br>
+              <span class="code-keyword">ALORS</span> prime = base × 5%
+            </div>
           </div>
         </div>
-        <div class="dbody">
-          <div class="dsb">
-            <div class="dsb-logo">
-              <div class="dsb-li">
-                <div class="dsb-lb"></div>
-                <div class="dsb-ld"></div>
-              </div><span class="dsb-n">Payzen</span>
+
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <h3 class="step-title">Payzen calcule tout</h3>
+          <p class="step-description">Salaires bruts, cotisations, IR, primes, indemnités appliqués aux taux 2026 avec
+            audit complet.</p>
+          <div class="code-preview">
+            <div class="code-header">⚙️ Cycle Mars 2026</div>
+            <div class="code-content">
+              <span class="code-keyword">CALCULER</span> 47 bulletins<br>
+              <span class="code-success">✓</span> Conformité 100%
             </div>
-            <div class="dsb-s">Principal</div>
-            <div class="dsi on">Tableau de bord</div>
-            <div class="dsi">Salariés</div>
-            <div class="dsi">Bulletins</div>
-            <div class="dsi">Déclarations</div>
-            <div class="dsb-s">IA</div>
-            <div class="dsi" style="color:var(--blue);font-weight:600">Copilote IA <span class="dsnb">3</span></div>
-            <div class="dsb-s">Outils</div>
-            <div class="dsi">Simulateur</div>
-            <div class="dsi">Paramètres</div>
           </div>
-          <div class="dmain">
-            <div class="dph">
-              <div>
-                <div class="dpt">Tableau de bord — Mars 2026</div>
-                <div class="dps">CNSS · AMO · IR · Taux 2026 à jour · Damancom activé</div>
-              </div>
-              <div class="dchs">
-                <span class="dch"
-                  style="background:var(--green-dim);color:var(--green);border:1px solid rgba(11,143,80,.18)">✓
-                  Conforme</span>
-                <span class="dch" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bd)">⚡
-                  2026</span>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <h3 class="step-title">Déclarez en un clic</h3>
+          <p class="step-description">Bulletins PDF générés et archivés, fichier Damancom prêt au dépôt. Vous signez,
+            c'est terminé.</p>
+          <div class="code-preview">
+            <div class="code-header">📤 Export</div>
+            <div class="code-content">
+              <span class="code-keyword">GÉNÉRER</span> fichier Damancom<br>
+              <span class="code-success">✓</span> Prêt au dépôt
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Section -->
+  <section class="platform-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">PLATEFORME</span>
+        <h2 class="section-title">Toute la paie dans un seul outil.</h2>
+        <p class="section-subtitle">Conçue pour les équipes marocaines. Chaque fonctionnalité couvre un cas concret de
+          votre quotidien RH.</p>
+      </div>
+
+      <div class="feature-highlight">
+        <div class="feature-content">
+          <div class="exclusive-badge">Exclusif Payzen HR</div>
+          <h3 class="feature-title">Vos règles métier, exécutées à la lettre.</h3>
+          <p class="feature-description">Définissez une règle en français, une seule fois. Payzen l'applique à tous vos
+            salariés, chaque mois, aux taux légaux en vigueur.</p>
+        </div>
+        <div class="feature-demo">
+          <div class="code-block">
+            <div class="code-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <pre><code>// Règle personnalisée
+
+<span class="code-keyword">SI</span> ancienneté > 2 ans <span class="code-keyword">ALORS</span>
+  prime = salaire_base × 0.05
+
+<span class="code-keyword">APPLIQUER</span> cotisations_2026
+→ 47 bulletins générés · Damancom prêt</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h4 class="feature-card-title">Copilote IA</h4>
+          <p class="feature-card-description">Détecte les écarts légaux, propose les corrections, exécute les tâches
+            répétitives. Vous validez.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">✓</div>
+          <h4 class="feature-card-title">Conformité 2026</h4>
+          <p class="feature-card-description">CNSS, AMO, IR, CIMR. Taux légaux mis à jour au fil de l'eau. Aucun
+            rattrapage.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h4 class="feature-card-title">Bulletins en 1 clic</h4>
+          <p class="feature-card-description">PDF conformes générés, archivés, envoyés. Aucune ressaisie.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h4 class="feature-card-title">Damancom direct</h4>
+          <p class="feature-card-description">Fichiers pré-remplis, contrôlés et prêts au dépôt. Zéro retraitement. Zéro
+            risque de rejet.</p>
+        </div>
+      </div>
+
+      <div class="multi-companies">
+        <div class="multi-header">
+          <h3>Multi sociétés natif</h3>
+          <p>Gérez 10 à 200 entités depuis un seul tableau de bord. Vue consolidée, actions bulk, export cabinet en un
+            clic.</p>
+          <span class="cabinet-badge">Cabinet-ready</span>
+        </div>
+        <div class="companies-list">
+          <div class="company-item">
+            <div class="company-name">TC Tech Casa SARL</div>
+            <div class="company-employees">47 salariés</div>
+          </div>
+          <div class="company-item">
+            <div class="company-name">AR Atlas Retail</div>
+            <div class="company-employees">23 salariés</div>
+          </div>
+          <div class="company-item">
+            <div class="company-name">MB Maroc Bâtiment</div>
+            <div class="company-employees">124 salariés</div>
+          </div>
+          <div class="company-item">
+            <div class="company-name">KD Kenitra Distribution</div>
+            <div class="company-employees">18 salariés</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roles Section -->
+  <section class="roles-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">PAR MÉTIER</span>
+        <h2 class="section-title">Un outil, trois façons de l'aimer.</h2>
+        <p class="section-subtitle">DRH, comptables, fondateurs — chacun accède à ce qui lui importe. Le reste
+          disparaît.</p>
+      </div>
+
+      <div class="role-tabs">
+        <button class="role-tab active" data-role="drh">DRH</button>
+        <button class="role-tab" data-role="comptable">Comptable</button>
+        <button class="role-tab" data-role="fondateur">Fondateur</button>
+      </div>
+
+      <div class="role-content active" data-role="drh">
+        <div class="role-info">
+          <h3>Pilotez la paie sans micro-manager le détail.</h3>
+          <p>Validez les cycles d'un coup, détectez les anomalies avant qu'elles ne partent au dépôt, gardez une
+            traçabilité complète pour vos audits et vos contrôles internes.</p>
+          <ul class="role-features">
+            <li>Vue masse salariale consolidée, temps réel</li>
+            <li>Historique des modifications et signataires</li>
+            <li>Alertes automatiques sur écarts anormaux</li>
+            <li>Rapports RH exportables CSV / PDF</li>
+          </ul>
+        </div>
+        <div class="role-screenshot">
+          <div class="dashboard-mockup">
+            <div class="mockup-header">
+              <span>app.payzenhr.com / drh</span>
+              <div class="mockup-dots">
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
             </div>
-            <div class="dkpis">
-              <div class="dk">
-                <div class="dkl">Masse salariale</div>
-                <div class="dkv">284K MAD</div>
-                <div class="dkd">↑ 4.2% vs Fév</div>
-              </div>
-              <div class="dk">
-                <div class="dkl">Salariés actifs</div>
-                <div class="dkv">47</div>
-                <div class="dkd" style="color:var(--orange)">3 nouveaux</div>
-              </div>
-              <div class="dk">
-                <div class="dkl">Bulletins</div>
-                <div class="dkv">47 / 47</div>
-                <div class="dkd">✓ Clôturé</div>
-              </div>
-              <div class="dk">
-                <div class="dkl">Conformité</div>
-                <div class="dkv">100%</div>
-                <div class="dkd" style="color:#9333ea">Certifié</div>
-              </div>
-            </div>
-            <div class="dmid">
-              <div class="dcard ai">
-                <div class="dch2">Copilote IA — Activité <span class="dctag">Live</span></div>
-                <div class="daims" id="daims">
-                  <div class="daim">
-                    <div class="daim-av">AI</div>
-                    <div class="daim-b"><span class="ok">✓</span> Barèmes IR 2026 vérifiés.</div>
-                  </div>
-                  <div class="daim">
-                    <div class="daim-av">AI</div>
-                    <div class="daim-b"><span class="ok">✓</span> Fichier <span class="hl">Damancom</span> généré — prêt
-                      au dépôt.</div>
-                  </div>
-                  <div class="daim">
-                    <div class="daim-av">AI</div>
-                    <div class="daim-b"><span class="ok">✓</span> <span class="hl">47 bulletins</span> édités et
-                      archivés.</div>
-                  </div>
+            <div class="mockup-content">
+              <div class="dashboard-title">Tableau de bord RH — Mars 2026</div>
+              <div class="dashboard-stats">
+                <div class="dashboard-stat">
+                  <div class="stat-main">47 salariés</div>
+                  <div class="stat-status">Cycle clôturé</div>
                 </div>
               </div>
-              <div class="dcard">
-                <div class="dch2">Derniers bulletins <span class="dctag">Mars 2026</span></div>
-                <div class="el">
-                  <div class="er">
-                    <div class="ea" style="background:rgba(42,44,224,.1);color:var(--blue)">AK</div>
-                    <div style="flex:1">
-                      <div class="en">Amine Khalil</div>
-                      <div class="ero">Dev Senior</div>
-                    </div>
-                    <div class="ea2">18 400 MAD</div>
-                  </div>
-                  <div class="er">
-                    <div class="ea" style="background:rgba(245,98,28,.1);color:var(--orange)">SB</div>
-                    <div style="flex:1">
-                      <div class="en">Sara Benali</div>
-                      <div class="ero">DRH</div>
-                    </div>
-                    <div class="ea2">22 000 MAD</div>
-                  </div>
-                  <div class="er">
-                    <div class="ea" style="background:rgba(11,143,80,.1);color:var(--green)">YO</div>
-                    <div style="flex:1">
-                      <div class="en">Youssef Ouali</div>
-                      <div class="ero">Commercial</div>
-                    </div>
-                    <div class="ea2">14 800 MAD</div>
-                  </div>
+              <div class="dashboard-grid">
+                <div class="metric">
+                  <div class="metric-label">Masse salariale</div>
+                  <div class="metric-value">284K</div>
+                  <div class="metric-change positive">↑ 4.2%</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Effectif</div>
+                  <div class="metric-value">47</div>
+                  <div class="metric-change">+ 3 entrées</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Turnover</div>
+                  <div class="metric-value">2.1%</div>
+                  <div class="metric-change">Stable</div>
                 </div>
               </div>
             </div>
@@ -338,176 +339,443 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- SIMULATEUR -->
-  <div class="sim-sec reveal">
-    <div class="sim-head">
-      <div class="eyebrow" style="justify-content:center">Simulateur</div>
-      <h2>Calculez avant de décider.</h2>
-      <p class="sub">Salaire brut, ancienneté, statut — entrez vos données, obtenez le net à payer et le détail de
-        chaque cotisation.</p>
-    </div>
-    <div class="sim-win">
-      <div class="sim-tbar">
-        <div class="sim-dtd" style="background:#FF5F57"></div>
-        <div class="sim-dtd" style="background:#FFBD2E"></div>
-        <div class="sim-dtd" style="background:#28CA41"></div>
-        <div class="sim-url">app.payzenhr.com · Simulateur de paie</div>
-        <div class="sim-right">⚡ Taux 2026</div>
+  <!-- Copilot Section -->
+  <section class="copilot-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">COPILOTE IA</span>
+        <h2 class="section-title">Demandez. Le Copilote exécute.</h2>
+        <p class="section-subtitle">Posez vos questions en français. Il analyse votre paie, vérifie la conformité,
+          propose les corrections. Essayez — c'est connecté à une démo réelle.</p>
       </div>
-      <div class="sim-body">
-        <div class="sim-left-panel">
-          <div>
-            <div class="sim-section-label">Données du salarié</div>
-            <div class="sim-field">
-              <div class="sim-label">Salaire brut mensuel (MAD)</div>
-              <input type="number" id="simSalaire" class="sim-input active" value="15000" oninput="calcSim()" />
-            </div>
-            <div class="sim-row">
-              <div class="sim-field">
-                <div class="sim-label">Ancienneté (ans)</div>
-                <input type="number" id="simAnciennete" class="sim-input" value="3" min="0" max="40"
-                  oninput="calcSim()" />
-              </div>
-              <div class="sim-field">
-                <div class="sim-label">Nombre d'enfants</div>
-                <input type="number" id="simEnfants" class="sim-input" value="0" min="0" max="10" oninput="calcSim()" />
-              </div>
-            </div>
-            <div class="sim-field">
-              <div class="sim-label">Statut</div>
-              <select id="simStatut" class="sim-select" onchange="calcSim()">
-                <option value="celibataire">Célibataire</option>
-                <option value="marie">Marié(e)</option>
-                <option value="divorce">Divorcé(e)</option>
-                <option value="veuf">Veuf/Veuve</option>
-              </select>
-            </div>
-          </div>
-          <button class="sim-calc-btn" onclick="calcSim()">Calculer le bulletin ⚡</button>
-          <div class="sim-cnss-detail">
-            <div class="sim-cnss-title">Détail des cotisations — Taux 2026</div>
-            <div class="sim-cnss-row"><span class="sim-cnss-label">CNSS Salarié</span><span
-                class="sim-cnss-rate">4.48%</span><span class="sim-cnss-val" id="cnssVal">672 MAD</span></div>
-            <div class="sim-cnss-row"><span class="sim-cnss-label">AMO Salarié</span><span
-                class="sim-cnss-rate">2.26%</span><span class="sim-cnss-val" id="amoVal">339 MAD</span></div>
-            <div class="sim-cnss-row"><span class="sim-cnss-label">CNSS Patronal</span><span
-                class="sim-cnss-rate">21.09%</span><span class="sim-cnss-val" id="cnssPatVal">3 164 MAD</span></div>
-            <div class="sim-cnss-row"><span class="sim-cnss-label">AMO Patronal</span><span
-                class="sim-cnss-rate">4.11%</span><span class="sim-cnss-val" id="amoPatVal">617 MAD</span></div>
+
+      <div class="copilot-demo">
+        <div class="copilot-header">
+          <div class="copilot-title">
+            <span class="ai-badge">AI Agent Paie v2.5</span>
+            <span class="status-badges">
+              <span class="status-dot"></span> Connecté · Taux 2026 · CNSS / AMO / IR
+              <span class="online-badge">En ligne</span>
+            </span>
           </div>
         </div>
-        <div class="sim-right-panel">
-          <div class="sim-result-header">
-            <div class="sim-result-title">Résultat du calcul</div>
-            <div class="sim-status">
-              <div class="sim-status-dot"></div>Conforme 2026
+        <div class="copilot-chat">
+          <div class="chat-message bot">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <p>Bonjour. Je suis votre Copilote Paie. Posez-moi une question sur votre masse salariale, la conformité
+                2026 ou un calcul spécifique.</p>
             </div>
           </div>
-          <div class="sim-breakdown">
-            <div class="sim-line"><span class="sim-line-label">Salaire brut</span><span class="sim-line-val"
-                id="rBrut">15 000 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">Prime d'ancienneté</span><span class="sim-line-val pos"
-                id="rAnciennete">+ 750 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">CNSS salarié (4.48%)</span><span class="sim-line-val neg"
-                id="rCNSS">– 672 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">AMO salarié (2.26%)</span><span class="sim-line-val neg"
-                id="rAMO">– 339 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">Base imposable IR</span><span class="sim-line-val"
-                id="rBaseIR">14 313 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">IR retenu à la source</span><span
-                class="sim-line-val neg" id="rIR">– 2 186 MAD</span></div>
-            <div class="sim-line total"><span class="sim-line-label">Net à payer</span><span class="sim-line-val"
-                id="rNet">13 303 MAD</span></div>
-            <div class="sim-line"><span class="sim-line-label">Coût total employeur</span><span class="sim-line-val"
-                id="rCoutTotal">19 395 MAD</span></div>
+        </div>
+        <div class="copilot-suggestions">
+          <span class="suggestion-label">ESSAYEZ UNE QUESTION</span>
+          <div class="suggestions-grid">
+            <button class="suggestion-btn">Quels sont les taux IR 2026 ?</button>
+            <button class="suggestion-btn">Calcule la CNSS pour 15 000 MAD brut</button>
+            <button class="suggestion-btn">Audite la paie de mars 2026</button>
+            <button class="suggestion-btn">Génère le fichier Damancom</button>
           </div>
-          <p class="sim-disclaimer">Calcul indicatif basé sur les taux CNSS / AMO / IR en vigueur au Maroc en 2026. Non
-            contractuel.</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- PRICING -->
-  <div class="price-sec reveal" id="pricing">
-    <div class="price-in">
-      <div class="price-head">
-        <div class="eyebrow" style="justify-content:center">Tarifs</div>
-        <h2>Un investissement, pas un abonnement inutile.</h2>
-        <p class="sub" style="margin:0 auto">Pas de frais cachés. Un prix juste pour le marché marocain.</p>
+  <!-- Calculator Section -->
+  <section class="calculator-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">simulateur payzen</span>
+        <h2 class="section-title">Calculez avant de décider.</h2>
+        <p class="section-subtitle">Salaire brut, ancienneté, statut — entrez vos données, obtenez le net à payer et le
+          détail de chaque cotisation.</p>
       </div>
-      <div class="pgrid">
-        <div class="pcard">
-          <div class="pp">Starter</div>
-          <div class="pa">290</div>
-          <div class="pu">MAD / mois HT</div>
-          <div class="pscope">Jusqu'à 10 salariés</div>
-          <ul class="pfl">
-            <li class="pf">Bulletins illimités</li>
-            <li class="pf">CNSS · AMO · IR automatique</li>
-            <li class="pf">Export Damancom</li>
-            <li class="pf">Simulateur de paie</li>
-            <li class="pf">Copilote IA Paie</li>
+
+      <div class="calculator-tool">
+        <div class="calculator-input">
+          <div class="calc-header">
+            <h4>DONNÉES DU SALARIÉ</h4>
+          </div>
+          <div class="form-group">
+            <label>Salaire brut mensuel (MAD)</label>
+            <input type="number" id="salaire-brut" value="15000" class="form-input">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ancienneté (ans)</label>
+              <input type="number" id="anciennete" value="3" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>Nombre d'enfants</label>
+              <input type="number" id="enfants" value="0" class="form-input">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Statut</label>
+            <select id="statut" class="form-input">
+              <option value="celibataire">Célibataire</option>
+              <option value="marie">Marié(e)</option>
+            </select>
+          </div>
+          <button class="btn-calculate">Calculer le bulletin</button>
+        </div>
+
+        <div class="calculator-result">
+          <div class="result-header">
+            <h4>Résultat du calcul</h4>
+            <span class="conforme-badge">Conforme 2026</span>
+          </div>
+          <div class="result-breakdown">
+            <div class="result-line">
+              <span>Salaire brut</span>
+              <span class="amount">15.000 MAD</span>
+            </div>
+            <div class="result-line positive">
+              <span>Prime d'ancienneté</span>
+              <span class="amount">+ 750 MAD</span>
+            </div>
+            <div class="result-line negative">
+              <span>CNSS salarié (4.48%)</span>
+              <span class="amount">– 269 MAD</span>
+            </div>
+            <div class="result-line negative">
+              <span>AMO salarié (2.26%)</span>
+              <span class="amount">– 356 MAD</span>
+            </div>
+            <div class="result-line">
+              <span>Base imposable IR</span>
+              <span class="amount">12.625 MAD</span>
+            </div>
+            <div class="result-line negative">
+              <span>IR retenu à la source</span>
+              <span class="amount">– 2.859 MAD</span>
+            </div>
+            <div class="result-total">
+              <span>Net à payer</span>
+              <span class="amount-total">12.266 MAD</span>
+            </div>
+            <div class="result-employer">
+              <span>Coût total employeur</span>
+              <span class="amount">17.663 MAD</span>
+            </div>
+          </div>
+          <p class="result-disclaimer">Calcul indicatif basé sur les taux CNSS / AMO / IR en vigueur au Maroc en 2026.
+            Non contractuel.</p>
+
+          <div class="cotisations-detail">
+            <h5>DÉTAIL DES COTISATIONS — TAUX 2026</h5>
+            <div class="cotisation-line">
+              <span>CNSS Salarié</span>
+              <span class="rate">4.48%</span>
+              <span class="amount">269 MAD</span>
+            </div>
+            <div class="cotisation-line">
+              <span>AMO Salarié</span>
+              <span class="rate">2.26%</span>
+              <span class="amount">356 MAD</span>
+            </div>
+            <div class="cotisation-line">
+              <span>CNSS Patronal</span>
+              <span class="rate">21.09%</span>
+              <span class="amount">1.265 MAD</span>
+            </div>
+            <div class="cotisation-line">
+              <span>AMO Patronal</span>
+              <span class="rate">4.11%</span>
+              <span class="amount">647 MAD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compliance Section -->
+  <section class="compliance-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">CONFORMITÉ</span>
+        <h2 class="section-title">Chaque obligation marocaine,<br>couverte.</h2>
+        <p class="section-subtitle">Vous êtes conforme par défaut. Les taux changent ? Payzen les applique avant que
+          vous ne le remarquiez.</p>
+      </div>
+
+      <div class="compliance-grid">
+        <div class="compliance-card">
+          <div class="compliance-icon">🏛️</div>
+          <h4>CNSS</h4>
+          <p class="compliance-subtitle">Sécurité sociale</p>
+          <p class="compliance-description">Calcul salarié et patronal. Plafonds à jour. Fichier BDS mensuel généré.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">🏥</div>
+          <h4>AMO</h4>
+          <p class="compliance-subtitle">Assurance maladie</p>
+          <p class="compliance-description">Cotisations salarié et employeur. Taux 2.26% / 4.11%. Automatique.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">💰</div>
+          <h4>IR</h4>
+          <p class="compliance-subtitle">Impôt sur le revenu</p>
+          <p class="compliance-description">Barèmes progressifs 2026, déductions familiales, charges de famille.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">🎯</div>
+          <h4>CIMR</h4>
+          <p class="compliance-subtitle">Retraite complémentaire</p>
+          <p class="compliance-description">Plans CIMR gérés par classe de salarié. Historique et cumuls auto.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">📡</div>
+          <h4>DAMANCOM</h4>
+          <p class="compliance-subtitle">Télédéclarations</p>
+          <p class="compliance-description">Fichier pré-validé, formaté, compatible dépôt Damancom en un clic.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">📋</div>
+          <h4>CODE TRAVAIL</h4>
+          <p class="compliance-subtitle">Prime d'ancienneté</p>
+          <p class="compliance-description">Calcul automatique selon grille légale (5% à 25% du salaire de base).</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">💼</div>
+          <h4>INDEMNITÉS</h4>
+          <p class="compliance-subtitle">Congés & licenciements</p>
+          <p class="compliance-description">Indemnités de congé, préavis, licenciement calcul aux normes marocaines.</p>
+        </div>
+
+        <div class="compliance-card">
+          <div class="compliance-icon">⚖️</div>
+          <h4>SMIG</h4>
+          <p class="compliance-subtitle">Salaire minimum</p>
+          <p class="compliance-description">Alerte automatique si un salarié passe sous le SMIG. Aucun oubli possible.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">ILS NOUS FONT CONFIANCE</span>
+        <h2 class="section-title">Nos clients parlent mieux que nous.</h2>
+        <p class="section-subtitle">DRH, directeurs financiers, fondateurs — voici ce qu'ils nous disent après 3 mois.
+        </p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p class="testimonial-quote">« On avait trois demi-journées par mois bloquées sur la paie. Depuis Payzen, on
+            clôture en vingt minutes. Les contrôles CNSS ne nous stressent plus. »</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">MK</div>
+            <div class="author-info">
+              <div class="author-name">Meryem Kadiri</div>
+              <div class="author-role">DRH · Tech Casa (47 salariés)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <p class="testimonial-quote">« Le Copilote IA a détecté trois écarts dès le premier cycle. Trois écarts qui
+            seraient passés en douce. Je dors mieux. »</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">SB</div>
+            <div class="author-info">
+              <div class="author-name">Saïd Benyahia</div>
+              <div class="author-role">Expert comptable · Rabat</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <p class="testimonial-quote">« Je suis fondateur, pas DRH. Payzen me permet de rester fondateur. Et ça, ça
+            vaut chaque dirham. »</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">YO</div>
+            <div class="author-info">
+              <div class="author-name">Youssef Ouali</div>
+              <div class="author-role">CEO · Atlas Retail</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing-section" id="tarifs">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">TARIFS</span>
+        <h2 class="section-title">Un prix juste. Pour le marché<br>marocain.</h2>
+        <p class="section-subtitle">Pas de frais cachés. Pas d'engagement. Vous payez en dirhams.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3 class="pricing-name">STARTER</h3>
+          <div class="pricing-price">
+            <span class="price-amount">290 MAD</span>
+            <span class="price-period">/ mois HT</span>
+          </div>
+          <p class="pricing-subtitle">Jusqu'à 10 salariés<br>Une seule entité</p>
+          <ul class="pricing-features">
+            <li>Bulletins PDF illimités</li>
+            <li>CNSS AMO IR automatique</li>
+            <li>Export Damancom</li>
+            <li>Simulateur de paie illimité</li>
+            <li>Copilote IA Paie</li>
+            <li>Support email</li>
           </ul>
-          <button class="pbtn" onclick="redirectToSignUp()">Commencer →</button>
+          <a href="#" class="btn-pricing">Commencer →</a>
         </div>
-        <div class="pcard rec">
-          <div class="rec-b">⭐ Recommandé</div>
-          <div class="pp">Business</div>
-          <div class="pa">850</div>
-          <div class="pu">MAD / mois HT</div>
-          <div class="pscope">Salariés illimités + IA avancée</div>
-          <ul class="pfl">
-            <li class="pf">Tout Starter, plus :</li>
-            <li class="pf">Salariés illimités</li>
-            <li class="pf">Copilote IA Paie · RH · DG</li>
-            <li class="pf">Multi-entreprises inclus</li>
-            <li class="pf">Onboarding dédié</li>
+
+        <div class="pricing-card featured">
+          <div class="recommended-badge">Recommandé</div>
+          <h3 class="pricing-name">BUSINESS</h3>
+          <div class="pricing-price">
+            <span class="price-amount">850 MAD</span>
+            <span class="price-period">/ mois HT</span>
+          </div>
+          <p class="pricing-subtitle">Salariés illimités<br>Multi sociétés<br>IA avancée</p>
+          <div class="pricing-divider">Tout Starter, plus :</div>
+          <ul class="pricing-features">
+            <li>Salariés illimités</li>
+            <li>Multi sociétés illimité</li>
+            <li>Copilote IA Paie RH DG</li>
+            <li>Onboarding dédié</li>
+            <li>Support prioritaire<br>Slack partagé</li>
           </ul>
-          <button class="pbtn" onclick="redirectToSignUp()">Commencer →</button>
+          <a href="#" class="btn-pricing primary">Commencer →</a>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- FOOTER CTA -->
-  <div class="fcta reveal" id="cta">
-    <div class="fcta-bg"></div>
-    <div class="fcta-in">
-      <div class="eyebrow" style="justify-content:center">Accès prioritaire</div>
-      <h2>Rejoignez les entreprises qui ont arrêté de deviner.</h2>
-      <p>Accès anticipé · Setup inclus · Aucun engagement.</p>
-      <div class="fcta-buttons" style="display:flex;gap:12px;justify-content:center;margin:0 auto 14px">
-        <button class="btn btn-lg" onclick="redirectToSignUp()">Créer un compte →</button>
-        <button class="btn btn-outline btn-lg" onclick="redirectToSignIn()">Se connecter</button>
+  <!-- FAQ Section -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">QUESTIONS FRÉQUENTES</span>
+        <h2 class="section-title">Les réponses avant la question.</h2>
       </div>
-      <p style="font-size:.72rem;color:var(--text-3)">Aucun engagement · Prêt en 2 minutes</p>
-    </div>
-  </div>
 
-  <!-- FOOTER -->
-  <footer>
-    <a class="logo" href="#">
-      <div class="logo-icon">
-        <div class="logo-bar"></div>
-        <div class="logo-dot"></div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Payzen HR remplace-t-il mon cabinet comptable ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Non. Payzen HR automatise la paie mais ne remplace pas votre cabinet. Nous travaillons en complémentarité
+              avec votre expert-comptable.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Les taux 2026 sont-ils vraiment à jour ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui. Notre équipe surveille les publications officielles et met à jour les taux dès leur parution.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Où sont hébergées mes données ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Vos données sont hébergées au Maroc dans des data centers certifiés.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Combien de temps prend la mise en place ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Moins de 2 minutes pour créer votre compte. L'import de vos salariés prend environ 10 minutes.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Puis-je essayer gratuitement ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui. Vous pouvez tester toutes les fonctionnalités pendant 14 jours sans carte bancaire.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Payzen gère-t-il la CIMR et les régimes complémentaires ?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Oui. CIMR et autres régimes complémentaires sont gérés nativement dans la plateforme.</p>
+          </div>
+        </div>
       </div>
-      <div class="logo-words">
-        <div class="logo-name">Payzen</div>
-        <div class="logo-hr">HR</div>
-      </div>
-    </a>
-    <div class="fl">
-      <a href="mailto:boubker@payzenhr.com">Contact</a>
-      <a href="#">LinkedIn</a>
-      <a href="#">Confidentialité</a>
     </div>
-    <div>© 2026 Payzen HR Morocco — Conforme. Maîtrisé. Instantané.</div>
+  </section>
+
+  <!-- Final CTA Section -->
+  <section class="final-cta">
+    <div class="container">
+      <div class="cta-content">
+        <span class="cta-label">ACCÈS PRIORITAIRE · BÊTA 2026</span>
+        <h2 class="cta-title">Reprenez la main sur votre paie.</h2>
+        <p class="cta-subtitle">Aucun engagement. Setup inclus. Compatible avec votre cabinet. Prêt en 2 minutes.</p>
+        <div class="cta-buttons">
+          <a href="#" class="btn-primary large">Créer un compte →</a>
+          <a href="#" class="btn-secondary large">Réserver une démo</a>
+        </div>
+        <p class="cta-trust">127 entreprises inscrites · Accompagnement humain · Hébergement marocain</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo">
+            <span class="logo-text">Payzen<span class="logo-accent">HR</span></span>
+          </div>
+          <p class="footer-tagline">© 2026 Payzen HR<br>Construit à Casablanca</p>
+        </div>
+        <div class="footer-links">
+          <a href="#">Contact</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">Confidentialité</a>
+        </div>
+        <div class="footer-status">
+          <span class="status-indicator"></span>
+          Tous systèmes opérationnels
+        </div>
+      </div>
+    </div>
   </footer>
-  <script src="auth.js?v=20260325-01"></script>
-  <script src="main.js"></script>
+
+  <script src="script.js"></script>
 </body>
 
 </html>

@@ -64,6 +64,7 @@ public class PayrollCalculationResult
     public decimal PrimeImposable1 { get; set; }
     public decimal PrimeImposable2 { get; set; }
     public decimal PrimeImposable3 { get; set; }
+    public List<PayrollCalculatedPrime> PrimesImposablesDetail { get; set; } = new();
     public decimal TotalNiExonere { get; set; }
     public decimal TotalNiExcedentImposable { get; set; }
     public decimal SalaireBrutImposable { get; set; }
@@ -148,4 +149,11 @@ public class PayrollCalculationResult
     /// Initialisée à new List avant l'appel au pipeline ; non null après <c>CalculatePayroll</c>.
     /// </summary>
     public List<PayrollAuditStep>? AuditSteps { get; set; }
+}
+
+public class PayrollCalculatedPrime
+{
+    public string Label { get; set; } = string.Empty;
+    public decimal Montant { get; set; }
+    public int Ordre { get; set; }
 }

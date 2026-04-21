@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
@@ -68,63 +69,132 @@ public sealed class IdentityProvisioningService : IIdentityProvisioningService
             );
         }
 
-        var tenantId = _configuration["EntraExternalId:TenantId"]?.Trim();
-        var clientId = _configuration["EntraExternalId:ClientId"]?.Trim();
-        var clientSecret = _configuration["EntraExternalId:ClientSecret"]?.Trim();
+        var tenantId =
+            _configuration["EntraExternalId:TenantId"]?.Trim()
+            ?? _configuration["Entra:TenantId"]?.Trim();
+        var clientId =
+            _configuration["EntraExternalId:ClientId"]?.Trim()
+            ?? _configuration["Entra:ClientId"]?.Trim();
+        var clientSecret =
+            _configuration["EntraExternalId:ClientSecret"]?.Trim()
+            ?? _configuration["Entra:ClientSecret"]?.Trim();
         var issuer =
             _configuration["IdentityProvisioning:Issuer"]?.Trim()
-            ?? _configuration["IdentityProvisioning:TenantDomain"]?.Trim();
+            ?? _configuration["IdentityProvisioning:TenantDomain"]?.Trim()
+            ?? ExtractDomainFromCiamInstance(_configuration["EntraExternalId:Instance"])
+            ?? ExtractIssuerFromAuthority(_configuration["Entra:Authority"])
+            ?? string.Empty;
 
         if (
             string.IsNullOrWhiteSpace(tenantId)
             || string.IsNullOrWhiteSpace(clientId)
             || string.IsNullOrWhiteSpace(clientSecret)
-            || string.IsNullOrWhiteSpace(issuer)
         )
         {
             return ServiceResult<ProvisionedIdentityResult>.Fail(
-                "Configuration Entra incomplète (TenantId, ClientId, ClientSecret, Issuer)."
+                "Configuration Entra incomplète (TenantId, ClientId, ClientSecret)."
             );
         }
 
-        var graphToken = await GetGraphAccessTokenAsync(tenantId, clientId, clientSecret, ct);
+        var (graphToken, tokenError) = await GetGraphAccessTokenAsync(tenantId, clientId, clientSecret, ct);
         if (graphToken == null)
             return ServiceResult<ProvisionedIdentityResult>.Fail(
-                "Impossible d'obtenir un token Graph pour provisionner le compte."
+                tokenError ?? "Impossible d'obtenir un token Graph pour provisionner le compte."
             );
 
         var displayName = $"{firstName} {lastName}".Trim();
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = email;
 
-        var payload = new
-        {
-            accountEnabled = true,
-            displayName,
-            mailNickname = BuildMailNickname(email),
-            identities = new[]
-            {
-                new
-                {
-                    signInType = "emailAddress",
-                    issuer,
-                    issuerAssignedId = email.Trim(),
-                },
-            },
-            passwordProfile = new { password = tempPassword, forceChangePasswordNextSignIn = true },
-            passwordPolicies = "DisablePasswordExpiration",
-        };
-
         var client = _httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
 
-        var requestContent = new StringContent(
-            JsonSerializer.Serialize(payload, JsonOptions),
-            Encoding.UTF8,
-            "application/json"
+        var detectedIssuer = await GetTenantDomainNameAsync(client, ct);
+        if (!string.IsNullOrWhiteSpace(detectedIssuer))
+        {
+            _logger.LogInformation(
+                "Using detected tenant domainName as issuer. ConfiguredIssuer={ConfiguredIssuer} DetectedIssuer={DetectedIssuer}",
+                issuer,
+                detectedIssuer
+            );
+            issuer = detectedIssuer;
+        }
+        else if (string.IsNullOrWhiteSpace(issuer))
+        {
+            return ServiceResult<ProvisionedIdentityResult>.Fail(
+                "Impossible de déterminer l'issuer du tenant. Veuillez le configurer dans IdentityProvisioning:Issuer."
+            );
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Using configured issuer (auto-detection failed). Issuer={Issuer}",
+                issuer
+            );
+        }
+
+        var issuersToTry = new List<string> { issuer };
+        
+        if (issuer.EndsWith(".onmicrosoft.com"))
+        {
+            var ciamInstance = _configuration["EntraExternalId:Instance"]?.Trim();
+            if (!string.IsNullOrWhiteSpace(ciamInstance) && Uri.TryCreate(ciamInstance, UriKind.Absolute, out var ciamUri))
+            {
+                issuersToTry.Add(ciamUri.Host);
+                
+                var subdomain = issuer.Replace(".onmicrosoft.com", "");
+                issuersToTry.Add($"{subdomain}.ciamlogin.com");
+            }
+        }
+
+        _logger.LogInformation(
+            "Will try issuers in order: {Issuers}",
+            string.Join(", ", issuersToTry)
         );
-        var response = await client.PostAsync("https://graph.microsoft.com/v1.0/users", requestContent, ct);
-        var responseBody = await response.Content.ReadAsStringAsync(ct);
+
+        HttpResponseMessage? response = null;
+        string? responseBody = null;
+
+        foreach (var issuerToTry in issuersToTry)
+        {
+            _logger.LogInformation(
+                "Creating user with issuer={Issuer} email={EmailMasked}",
+                issuerToTry,
+                MaskEmail(email)
+            );
+
+            var payload = BuildUserPayload(email, firstName, lastName, tempPassword, issuerToTry);
+            var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
+            _logger.LogDebug("User creation payload: {Payload}", payloadJson);
+            
+            var requestContent = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+            response = await client.PostAsync("https://graph.microsoft.com/v1.0/users", requestContent, ct);
+            responseBody = await response.Content.ReadAsStringAsync(ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("User created successfully with issuer={Issuer}", issuerToTry);
+                break;
+            }
+
+            if (!responseBody.Contains("Issuer should match tenants domainName", StringComparison.OrdinalIgnoreCase))
+            {
+                break;
+            }
+
+            _logger.LogWarning(
+                "Issuer mismatch with {Issuer}, trying next option if available. Status={StatusCode}",
+                issuerToTry,
+                (int)response.StatusCode
+            );
+        }
+
+        if (response == null || responseBody == null)
+        {
+            return ServiceResult<ProvisionedIdentityResult>.Fail(
+                "Aucune réponse de l'API Graph lors de la création de l'utilisateur."
+            );
+        }
 
         if (!response.IsSuccessStatusCode)
         {
@@ -134,7 +204,9 @@ public sealed class IdentityProvisioningService : IIdentityProvisioningService
                 responseBody
             );
 
-            return ServiceResult<ProvisionedIdentityResult>.Fail("La création du compte Entra a échoué.");
+            return ServiceResult<ProvisionedIdentityResult>.Fail(
+                $"La création du compte Entra a échoué ({(int)response.StatusCode}): {ExtractGraphError(responseBody)}"
+            );
         }
 
         using var json = JsonDocument.Parse(responseBody);
@@ -154,7 +226,7 @@ public sealed class IdentityProvisioningService : IIdentityProvisioningService
         );
     }
 
-    private async Task<string?> GetGraphAccessTokenAsync(
+    private async Task<(string? Token, string? Error)> GetGraphAccessTokenAsync(
         string tenantId,
         string clientId,
         string clientSecret,
@@ -182,11 +254,16 @@ public sealed class IdentityProvisioningService : IIdentityProvisioningService
                 (int)response.StatusCode,
                 body
             );
-            return null;
+            return (
+                null,
+                $"Impossible d'obtenir un token Graph ({(int)response.StatusCode}): {ExtractGraphError(body)}"
+            );
         }
 
         using var json = JsonDocument.Parse(body);
-        return json.RootElement.TryGetProperty("access_token", out var token) ? token.GetString() : null;
+        if (!json.RootElement.TryGetProperty("access_token", out var token))
+            return (null, "Réponse OAuth invalide: access_token absent.");
+        return (token.GetString(), null);
     }
 
     private static string BuildMailNickname(string email)
@@ -234,5 +311,135 @@ public sealed class IdentityProvisioningService : IIdentityProvisioningService
         if (at <= 1)
             return "***" + email[Math.Max(at, 0)..];
         return email[0] + "***" + email[(at - 1)..];
+    }
+
+    private static string? ExtractIssuerFromAuthority(string? authority)
+    {
+        if (string.IsNullOrWhiteSpace(authority))
+            return null;
+
+        if (!Uri.TryCreate(authority, UriKind.Absolute, out var uri))
+            return null;
+
+        var segments = uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : null;
+    }
+
+    private static string? ExtractDomainFromCiamInstance(string? instance)
+    {
+        if (string.IsNullOrWhiteSpace(instance))
+            return null;
+
+        if (!Uri.TryCreate(instance, UriKind.Absolute, out var uri))
+            return null;
+
+        var host = uri.Host;
+        if (host.EndsWith(".ciamlogin.com", StringComparison.OrdinalIgnoreCase))
+        {
+            var subdomain = host.Substring(0, host.Length - ".ciamlogin.com".Length);
+            return $"{subdomain}.onmicrosoft.com";
+        }
+
+        return null;
+    }
+
+    private static object BuildUserPayload(
+        string email,
+        string firstName,
+        string lastName,
+        string temporaryPassword,
+        string issuer
+    )
+    {
+        var displayName = $"{firstName} {lastName}".Trim();
+        if (string.IsNullOrWhiteSpace(displayName))
+            displayName = email;
+
+        return new
+        {
+            accountEnabled = true,
+            displayName,
+            mailNickname = BuildMailNickname(email),
+            identities = new[]
+            {
+                new
+                {
+                    signInType = "emailAddress",
+                    issuer,
+                    issuerAssignedId = email.Trim(),
+                },
+            },
+            passwordProfile = new { password = temporaryPassword, forceChangePasswordNextSignIn = true },
+            passwordPolicies = "DisablePasswordExpiration",
+        };
+    }
+
+    private async Task<string?> GetTenantDomainNameAsync(HttpClient client, CancellationToken ct)
+    {
+        try
+        {
+            var response = await client.GetAsync("https://graph.microsoft.com/v1.0/organization?$select=verifiedDomains", ct);
+            var body = await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(body))
+                return null;
+
+            using var json = JsonDocument.Parse(body);
+            if (!json.RootElement.TryGetProperty("value", out var value) || value.ValueKind != JsonValueKind.Array || value.GetArrayLength() == 0)
+                return null;
+
+            var org = value[0];
+            if (!org.TryGetProperty("verifiedDomains", out var domains) || domains.ValueKind != JsonValueKind.Array)
+                return null;
+
+            string? fallback = null;
+            foreach (var d in domains.EnumerateArray())
+            {
+                var name = d.TryGetProperty("name", out var n) ? n.GetString() : null;
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                var isDefault = d.TryGetProperty("isDefault", out var def) && def.ValueKind == JsonValueKind.True;
+                var isInitial = d.TryGetProperty("isInitial", out var ini) && ini.ValueKind == JsonValueKind.True;
+                if (isDefault || isInitial)
+                    return name;
+                fallback ??= name;
+            }
+
+            return fallback;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to detect tenant domainName from Graph organization endpoint.");
+            return null;
+        }
+    }
+
+    private static string ExtractGraphError(string responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return "Réponse vide.";
+        try
+        {
+            using var json = JsonDocument.Parse(responseBody);
+            if (json.RootElement.TryGetProperty("error_description", out var desc))
+                return desc.GetString() ?? responseBody;
+            if (json.RootElement.TryGetProperty("error", out var err))
+            {
+                if (err.ValueKind == JsonValueKind.String)
+                    return err.GetString() ?? responseBody;
+                if (err.ValueKind == JsonValueKind.Object)
+                {
+                    if (err.TryGetProperty("message", out var msg))
+                        return msg.GetString() ?? responseBody;
+                    if (err.TryGetProperty("code", out var code))
+                        return code.GetString() ?? responseBody;
+                }
+            }
+        }
+        catch
+        {
+            // keep raw body fallback
+        }
+        return responseBody;
     }
 }

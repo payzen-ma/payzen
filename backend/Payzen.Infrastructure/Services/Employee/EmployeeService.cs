@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Data;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -206,6 +208,10 @@ public class EmployeeService : IEmployeeService
             .Where(c => c.EndDate == null)
             .OrderByDescending(c => c.StartDate)
             .FirstOrDefault();
+        var companyEntryDate = contracts
+            .OrderBy(c => c.StartDate)
+            .Select(c => (DateTime?)c.StartDate)
+            .FirstOrDefault();
 
         var salaries = e.Salaries.Where(s => s.DeletedAt == null).ToList();
         var activeSalary = salaries
@@ -244,6 +250,8 @@ public class EmployeeService : IEmployeeService
                 Id = e.Id,
                 FirstName = e.FirstName,
                 LastName = e.LastName,
+                Matricule = e.Matricule,
+                MatriculeDisplay = BuildMatriculeDisplay(e.Matricule, e.Company?.MatriculeTemplate),
                 CinNumber = e.CinNumber,
                 DateOfBirth = e.DateOfBirth,
                 Email = e.Email,
@@ -255,14 +263,26 @@ public class EmployeeService : IEmployeeService
                 GenderId = e.GenderId,
                 GenderName = e.Gender?.Code,
                 MaritalStatusName = e.MaritalStatus?.Code,
+                MaritalStatusChangeDate = e.MaritalStatusChangeDate.HasValue
+                    ? e.MaritalStatusChangeDate.Value.ToDateTime(TimeOnly.MinValue)
+                    : (e.MaritalStatusId.HasValue ? e.CreatedAt.UtcDateTime.Date : null),
                 CategoryId = e.CategoryId,
                 CategoryName = e.Category?.Name,
+                CategoryChangeDate = e.CategoryChangeDate.HasValue
+                    ? e.CategoryChangeDate.Value.ToDateTime(TimeOnly.MinValue)
+                    : (e.CategoryId.HasValue ? e.CreatedAt.UtcDateTime.Date : null),
+                ManagerId = e.ManagerId,
                 ManagerName = e.Manager != null ? $"{e.Manager.FirstName} {e.Manager.LastName}".Trim() : null,
+                ManagerChangeDate = e.ManagerChangeDate.HasValue
+                    ? e.ManagerChangeDate.Value.ToDateTime(TimeOnly.MinValue)
+                    : (e.ManagerId.HasValue ? e.CreatedAt.UtcDateTime.Date : null),
                 JobPositionId = activeContract?.JobPositionId,
                 JobPositionName = activeContract?.JobPosition?.Name,
                 ContractTypeId = activeContract?.ContractTypeId,
                 ContractTypeName = activeContract?.ContractType?.ContractTypeName,
-                ContractStartDate = activeContract?.StartDate,
+                // Date d'entree entreprise: ne doit pas bouger avec les changements de contrat.
+                ContractStartDate = companyEntryDate,
+                ContractChangeDate = activeContract?.StartDate ?? e.CreatedAt.UtcDateTime.Date,
                 DepartementId = e.DepartementId,
                 BaseSalary = activeSalary?.BaseSalary,
                 BaseSalaryHourly = activeSalary?.BaseSalaryHourly,
@@ -287,7 +307,13 @@ public class EmployeeService : IEmployeeService
                 cimr = e.CimrNumber,
                 cimrEmployeeRate = e.CimrEmployeeRate,
                 cimrCompanyRate = e.CimrCompanyRate,
+                CimrRatesChangeDate = e.CimrRatesChangeDate.HasValue
+                    ? e.CimrRatesChangeDate.Value.ToDateTime(TimeOnly.MinValue)
+                    : ((e.CimrEmployeeRate.HasValue || e.CimrCompanyRate.HasValue) ? e.CreatedAt.UtcDateTime.Date : null),
                 hasPrivateInsurance = e.HasPrivateInsurance,
+                PrivateInsuranceChangeDate = e.PrivateInsuranceChangeDate.HasValue
+                    ? e.PrivateInsuranceChangeDate.Value.ToDateTime(TimeOnly.MinValue)
+                    : (e.HasPrivateInsurance ? e.CreatedAt.UtcDateTime.Date : null),
                 privateInsuranceNumber = e.PrivateInsuranceNumber,
                 privateInsuranceRate = e.PrivateInsuranceRate,
                 disableAmo = e.DisableAmo,
@@ -661,6 +687,18 @@ public class EmployeeService : IEmployeeService
     )
     {
         var normalizedPhone = $"{dto.CountryPhoneCode.Trim()}{dto.Phone.Trim()}";
+        var activeStatusId = await _db
+            .Statuses.AsNoTracking()
+            .Where(
+                s =>
+                    s.DeletedAt == null
+                    && (s.Code == "ACTIVE" || s.Code == "Active" || s.Code == "active")
+            )
+            .Select(s => s.Id)
+            .FirstOrDefaultAsync(ct);
+        if (activeStatusId <= 0)
+            return ServiceResult<EmployeeReadDto>.Fail("Statut actif introuvable.");
+
         var syncContract = dto.JobPositionId is > 0 && dto.ContractTypeId is > 0 && dto.StartDate.HasValue;
         var partialContract =
             (dto.JobPositionId is > 0 || dto.ContractTypeId is > 0 || dto.StartDate.HasValue) && !syncContract;
@@ -755,22 +793,62 @@ public class EmployeeService : IEmployeeService
             CompanyId = companyId,
             DepartementId = dto.DepartementId,
             ManagerId = dto.ManagerId,
-            StatusId = dto.StatusId,
+            ManagerChangeDate = dto.ManagerId.HasValue ? DateOnly.FromDateTime(DateTime.UtcNow.Date) : null,
+            StatusId = activeStatusId,
             GenderId = dto.GenderId,
             NationalityId = dto.NationalityId,
             EducationLevelId = dto.EducationLevelId,
             MaritalStatusId = dto.MaritalStatusId,
+            MaritalStatusChangeDate = dto.MaritalStatusId.HasValue ? DateOnly.FromDateTime(DateTime.UtcNow.Date) : null,
             CnssNumber = dto.CnssNumber,
             CimrNumber = dto.CimrNumber,
+            CimrEmployeeRate = dto.CimrEmployeeRate,
+            CimrCompanyRate = dto.CimrCompanyRate,
+            HasPrivateInsurance = dto.HasPrivateInsurance ?? false,
             CategoryId = dto.CategoryId,
+            CategoryChangeDate = dto.CategoryId.HasValue ? DateOnly.FromDateTime(DateTime.UtcNow.Date) : null,
+            CimrRatesChangeDate =
+                (dto.CimrEmployeeRate.HasValue || dto.CimrCompanyRate.HasValue)
+                    ? DateOnly.FromDateTime(DateTime.UtcNow.Date)
+                    : null,
+            PrivateInsuranceChangeDate = dto.HasPrivateInsurance.HasValue
+                ? DateOnly.FromDateTime(DateTime.UtcNow.Date)
+                : null,
             AnnualLeaveOpeningDays = annualLeaveOpening,
             AnnualLeaveOpeningEffectiveFrom = annualLeaveOpeningEffectiveMonth,
             CreatedBy = createdBy,
         };
 
-        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         try
         {
+            if (companyId < 1)
+            {
+                await transaction.RollbackAsync(ct);
+                return ServiceResult<EmployeeReadDto>.Fail("L'ID de la société est requis.");
+            }
+
+            var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+            if (company == null)
+            {
+                await transaction.RollbackAsync(ct);
+                return ServiceResult<EmployeeReadDto>.Fail("Société introuvable.");
+            }
+
+            if (
+                !string.IsNullOrWhiteSpace(company.MatriculeTemplate)
+                && TryBuildMatriculeFromTemplate(
+                    company.MatriculeTemplate,
+                    company.MatriculeNextValue,
+                    out var generatedMatricule,
+                    out var nextValue
+                )
+            )
+            {
+                e.Matricule = generatedMatricule;
+                company.MatriculeNextValue = nextValue;
+            }
+
             _db.Employees.Add(e);
             await _db.SaveChangesAsync(ct);
             var id = e.Id;
@@ -895,12 +973,27 @@ public class EmployeeService : IEmployeeService
             }
 
             await transaction.CommitAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await transaction.RollbackAsync(ct);
+            }
+            catch
+            {
+                // Transaction déjà rollback ou committée, ignore
+            }
+            return ServiceResult<EmployeeReadDto>.Fail($"Erreur lors de la création : {ex.Message}");
+        }
 
-            if (
-                shouldCreateUserAccount
-                && provisionedIdentity != null
-                && !string.IsNullOrWhiteSpace(companyNameForWelcomeEmail)
-            )
+        if (
+            shouldCreateUserAccount
+            && provisionedIdentity != null
+            && !string.IsNullOrWhiteSpace(companyNameForWelcomeEmail)
+        )
+        {
+            try
             {
                 await _emailService.SendWelcomeCredentialsEmailAsync(
                     dto.Email,
@@ -911,11 +1004,10 @@ public class EmployeeService : IEmployeeService
                     ct
                 );
             }
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync(ct);
-            return ServiceResult<EmployeeReadDto>.Fail($"Erreur lors de la création : {ex.Message}");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}, but employee was created successfully", dto.Email);
+            }
         }
 
         var created = await _db
@@ -927,6 +1019,28 @@ public class EmployeeService : IEmployeeService
             .Include(x => x.Category)
             .FirstAsync(x => x.Id == e.Id, ct);
         return ServiceResult<EmployeeReadDto>.Ok(MapToRead(created));
+    }
+
+    private static bool TryBuildMatriculeFromTemplate(
+        string template,
+        int nextValue,
+        out int matricule,
+        out int incrementedNextValue
+    )
+    {
+        matricule = 0;
+        incrementedNextValue = nextValue;
+
+        var match = Regex.Match(template, @"\d+");
+        if (!match.Success)
+            return false;
+
+        if (nextValue <= 0)
+            nextValue = int.TryParse(match.Value, out var seedValue) && seedValue > 0 ? seedValue : 1;
+
+        matricule = nextValue;
+        incrementedNextValue = nextValue + 1;
+        return true;
     }
 
     public async Task<ServiceResult<EmployeeReadDto>> UpdateAsync(
@@ -1065,12 +1179,33 @@ public class EmployeeService : IEmployeeService
                 e.CimrNumber = nextCimr;
             }
         }
+        var cimrChanged = false;
         if (dto.CimrEmployeeRate.HasValue && dto.CimrEmployeeRate.Value != e.CimrEmployeeRate)
+        {
             e.CimrEmployeeRate = dto.CimrEmployeeRate.Value;
+            cimrChanged = true;
+        }
         if (dto.CimrCompanyRate.HasValue && dto.CimrCompanyRate.Value != e.CimrCompanyRate)
+        {
             e.CimrCompanyRate = dto.CimrCompanyRate.Value;
+            cimrChanged = true;
+        }
+        if (cimrChanged)
+            e.CimrRatesChangeDate = DateOnly.FromDateTime((dto.CimrRatesChangeDate ?? DateTime.UtcNow.Date).Date);
+        else if (dto.CimrRatesChangeDate.HasValue)
+            e.CimrRatesChangeDate = DateOnly.FromDateTime(dto.CimrRatesChangeDate.Value.Date);
+
         if (dto.HasPrivateInsurance.HasValue && dto.HasPrivateInsurance.Value != e.HasPrivateInsurance)
+        {
             e.HasPrivateInsurance = dto.HasPrivateInsurance.Value;
+            e.PrivateInsuranceChangeDate = DateOnly.FromDateTime(
+                (dto.PrivateInsuranceChangeDate ?? DateTime.UtcNow.Date).Date
+            );
+        }
+        else if (dto.PrivateInsuranceChangeDate.HasValue)
+        {
+            e.PrivateInsuranceChangeDate = DateOnly.FromDateTime(dto.PrivateInsuranceChangeDate.Value.Date);
+        }
         if (dto.PrivateInsuranceNumber != null && dto.PrivateInsuranceNumber != e.PrivateInsuranceNumber)
             e.PrivateInsuranceNumber = string.IsNullOrWhiteSpace(dto.PrivateInsuranceNumber)
                 ? null
@@ -1118,6 +1253,11 @@ public class EmployeeService : IEmployeeService
                 _eventLog.LogSimpleEventAsync(id, EmployeeEventLogNames.ManagerChanged, oldMgr, newMgr, updatedBy, ct)
             );
             e.ManagerId = dto.ManagerId;
+            e.ManagerChangeDate = DateOnly.FromDateTime((dto.ManagerChangeDate ?? DateTime.UtcNow.Date).Date);
+        }
+        else if (dto.ManagerChangeDate.HasValue)
+        {
+            e.ManagerChangeDate = DateOnly.FromDateTime(dto.ManagerChangeDate.Value.Date);
         }
         if (dto.StatusId != null && dto.StatusId != e.StatusId)
         {
@@ -1217,20 +1357,49 @@ public class EmployeeService : IEmployeeService
                     .Select(ms => ms.Code)
                     .FirstOrDefaultAsync(ct)
                 : null;
+            var newMaritalChangeDate = (dto.MaritalStatusChangeDate ?? DateTime.UtcNow.Date).Date;
             pendingEmployeeLogs.Add(() =>
                 _eventLog.LogSimpleEventAsync(
                     id,
                     EmployeeEventLogNames.MaritalStatusChanged,
                     oldMs,
-                    newMs,
+                    $"{newMs} (date de changement: {newMaritalChangeDate:yyyy-MM-dd})",
                     updatedBy,
                     ct
                 )
             );
             e.MaritalStatusId = dto.MaritalStatusId;
+            e.MaritalStatusChangeDate = DateOnly.FromDateTime(
+                newMaritalChangeDate
+            );
+        }
+        else if (dto.MaritalStatusChangeDate.HasValue)
+        {
+            var previousChangeDate = e.MaritalStatusChangeDate?.ToString("yyyy-MM-dd") ?? "N/A";
+            var nextChangeDate = dto.MaritalStatusChangeDate.Value.Date.ToString("yyyy-MM-dd");
+            var currentMaritalStatus = e.MaritalStatus?.Code ?? "N/A";
+            pendingEmployeeLogs.Add(() =>
+                _eventLog.LogSimpleEventAsync(
+                    id,
+                    EmployeeEventLogNames.MaritalStatusChanged,
+                    $"{currentMaritalStatus} (date de changement: {previousChangeDate})",
+                    $"{currentMaritalStatus} (date de changement: {nextChangeDate})",
+                    updatedBy,
+                    ct
+                )
+            );
+            e.MaritalStatusChangeDate = DateOnly.FromDateTime(dto.MaritalStatusChangeDate.Value.Date);
         }
         if (dto.CategoryId != null)
+        {
+            if (dto.CategoryId != e.CategoryId)
+                e.CategoryChangeDate = DateOnly.FromDateTime((dto.CategoryChangeDate ?? DateTime.UtcNow.Date).Date);
             e.CategoryId = dto.CategoryId;
+        }
+        else if (dto.CategoryChangeDate.HasValue)
+        {
+            e.CategoryChangeDate = DateOnly.FromDateTime(dto.CategoryChangeDate.Value.Date);
+        }
         if (dto.AnnualLeave.HasValue)
         {
             e.AnnualLeaveOpeningDays = dto.AnnualLeave.Value < 0m ? 0m : dto.AnnualLeave.Value;
@@ -1303,7 +1472,11 @@ public class EmployeeService : IEmployeeService
             }
         }
 
-        var syncContract = dto.JobPositionId is > 0 || dto.ContractTypeId is > 0 || dto.ContractStartDate.HasValue;
+        var syncContract =
+            dto.JobPositionId is > 0
+            || dto.ContractTypeId is > 0
+            || dto.ContractStartDate.HasValue
+            || dto.ContractChangeDate.HasValue;
         if (syncContract)
         {
             var contractList = await _db
@@ -1312,26 +1485,73 @@ public class EmployeeService : IEmployeeService
                 .ToListAsync(ct);
 
             var activeContract = contractList.FirstOrDefault(c => c.EndDate == null) ?? contractList.FirstOrDefault();
+            var contractEffectiveDate = (dto.ContractChangeDate ?? dto.ContractStartDate ?? DateTime.UtcNow.Date).Date;
 
             if (activeContract != null)
             {
-                var contractPatch = new EmployeeContractUpdateDto();
-                if (dto.JobPositionId is > 0)
-                    contractPatch.JobPositionId = dto.JobPositionId;
-                if (dto.ContractTypeId is > 0)
-                    contractPatch.ContractTypeId = dto.ContractTypeId;
-                if (dto.ContractStartDate.HasValue)
-                    contractPatch.StartDate = dto.ContractStartDate;
+                var nextJobPositionId = dto.JobPositionId is > 0 ? dto.JobPositionId.Value : activeContract.JobPositionId;
+                var nextContractTypeId = dto.ContractTypeId is > 0 ? dto.ContractTypeId.Value : activeContract.ContractTypeId;
+                var hasContractTypeOrPositionChange = nextJobPositionId != activeContract.JobPositionId
+                    || nextContractTypeId != activeContract.ContractTypeId;
+                var shouldVersionContract =
+                    hasContractTypeOrPositionChange && contractEffectiveDate > activeContract.StartDate.Date;
 
-                if (
-                    contractPatch.JobPositionId != null
-                    || contractPatch.ContractTypeId != null
-                    || contractPatch.StartDate != null
-                )
+                if (shouldVersionContract)
                 {
-                    var cRes = await _contracts.UpdateAsync(activeContract.Id, contractPatch, updatedBy, ct);
-                    if (!cRes.Success)
-                        return ServiceResult<EmployeeReadDto>.Fail(cRes.Error ?? "Mise à jour du contrat impossible.");
+                    var closeCurrentContractRes = await _contracts.UpdateAsync(
+                        activeContract.Id,
+                        new EmployeeContractUpdateDto
+                        {
+                            EndDate = contractEffectiveDate.AddDays(-1),
+                        },
+                        updatedBy,
+                        ct
+                    );
+                    if (!closeCurrentContractRes.Success)
+                        return ServiceResult<EmployeeReadDto>.Fail(
+                            closeCurrentContractRes.Error ?? "Clôture du contrat actif impossible."
+                        );
+
+                    var createNewContractRes = await _contracts.CreateAsync(
+                        new EmployeeContractCreateDto
+                        {
+                            EmployeeId = id,
+                            CompanyId = e.CompanyId,
+                            JobPositionId = nextJobPositionId,
+                            ContractTypeId = nextContractTypeId,
+                            StartDate = contractEffectiveDate,
+                            EndDate = null,
+                        },
+                        updatedBy,
+                        ct
+                    );
+                    if (!createNewContractRes.Success)
+                        return ServiceResult<EmployeeReadDto>.Fail(
+                            createNewContractRes.Error ?? "Création du nouveau contrat impossible."
+                        );
+                }
+                else
+                {
+                    var contractPatch = new EmployeeContractUpdateDto();
+                    if (dto.JobPositionId is > 0)
+                        contractPatch.JobPositionId = dto.JobPositionId;
+                    if (dto.ContractTypeId is > 0)
+                        contractPatch.ContractTypeId = dto.ContractTypeId;
+                    if (dto.ContractStartDate.HasValue)
+                        contractPatch.StartDate = dto.ContractStartDate;
+                    else if (dto.ContractChangeDate.HasValue)
+                        contractPatch.StartDate = dto.ContractChangeDate;
+
+                    if (
+                        contractPatch.JobPositionId != null
+                        || contractPatch.ContractTypeId != null
+                        || contractPatch.StartDate != null
+                    )
+                    {
+                        var cRes = await _contracts.UpdateAsync(activeContract.Id, contractPatch, updatedBy, ct);
+                        if (!cRes.Success)
+                            return ServiceResult<EmployeeReadDto>.Fail(cRes.Error ?? "Mise à jour du contrat impossible.");
+                    }
                 }
             }
             else if (dto.JobPositionId is > 0 && dto.ContractTypeId is > 0 && e.CompanyId > 0)
@@ -1984,11 +2204,28 @@ public class EmployeeService : IEmployeeService
         return digits[^9..];
     }
 
+    private static string? BuildMatriculeDisplay(int? matricule, string? template)
+    {
+        if (!matricule.HasValue)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(template))
+            return matricule.Value.ToString(CultureInfo.InvariantCulture);
+
+        var match = Regex.Match(template, @"\d+");
+        if (!match.Success)
+            return matricule.Value.ToString(CultureInfo.InvariantCulture);
+
+        var formattedNumber = matricule.Value.ToString(CultureInfo.InvariantCulture).PadLeft(match.Value.Length, '0');
+        return template.Remove(match.Index, match.Length).Insert(match.Index, formattedNumber);
+    }
+
     private static EmployeeReadDto MapToRead(Domain.Entities.Employee.Employee e) =>
         new()
         {
             Id = e.Id,
             Matricule = e.Matricule,
+            MatriculeDisplay = BuildMatriculeDisplay(e.Matricule, e.Company?.MatriculeTemplate),
             FirstName = e.FirstName,
             LastName = e.LastName,
             CinNumber = e.CinNumber,

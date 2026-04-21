@@ -15,17 +15,22 @@ public class Employee : BaseEntity
     public string? PersonalEmail { get; set; }
     public int CompanyId { get; set; }
     public int? ManagerId { get; set; }
+    public DateOnly? ManagerChangeDate { get; set; }
     public int? DepartementId { get; set; }
     public int? StatusId { get; set; }
     public int? GenderId { get; set; }
     public int? NationalityId { get; set; }
     public int? EducationLevelId { get; set; }
     public int? MaritalStatusId { get; set; }
+    public DateOnly? MaritalStatusChangeDate { get; set; }
+    public DateOnly? CategoryChangeDate { get; set; }
     public string? CnssNumber { get; set; }
     public string? CimrNumber { get; set; }
     public decimal? CimrEmployeeRate { get; set; }
     public decimal? CimrCompanyRate { get; set; }
+    public DateOnly? CimrRatesChangeDate { get; set; }
     public bool HasPrivateInsurance { get; set; } = false;
+    public DateOnly? PrivateInsuranceChangeDate { get; set; }
     public string? PrivateInsuranceNumber { get; set; }
     public decimal? PrivateInsuranceRate { get; set; }
     public bool DisableAmo { get; set; } = false;

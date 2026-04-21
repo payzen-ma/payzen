@@ -583,6 +583,26 @@ public class IronPdfDocumentService : IDocumentService
 "
         );
         string matricule = payroll.Employee.Matricule?.ToString() ?? payroll.EmployeeId.ToString();
+        string matriculeTemplate = payroll.Employee.Company?.MatriculeTemplate.ToUpper();
+        string resultMatricule;
+
+        if (!string.IsNullOrEmpty(matriculeTemplate))
+        {
+            // Extract prefix (letters at the start)
+            string prefix = new string(matriculeTemplate.TakeWhile(char.IsLetter).ToArray());
+
+            // Extract numeric part to determine padding length
+            int paddingLength = matriculeTemplate.SkipWhile(char.IsLetter).Count();
+
+            // Format with leading zeros
+            string formattedNumber = matricule.ToString().PadLeft(paddingLength, '0');
+
+            resultMatricule = $"{prefix}{formattedNumber}";
+        }
+        else
+        {
+            resultMatricule = payroll.EmployeeId.ToString();
+        }
         string dateEmbauche = contract?.StartDate != null ? contract.StartDate.ToString("dd/MM/yyyy") : "N/A";
         string cimrDiv = !string.IsNullOrWhiteSpace(payroll.Employee.CimrNumber)
             ? $"<div>CIMR : {payroll.Employee.CimrNumber}</div>"
@@ -613,7 +633,7 @@ public class IronPdfDocumentService : IDocumentService
     {mutuelleDiv}
   </div>
   <div class='emp-row'>
-    <div>Matricule : {matricule}</div>
+    <div>Matricule : {resultMatricule}</div>
     <div>Département : {H(payroll.Employee.Departement?.DepartementName ?? "N/A")}</div>
     <div>Fonction : {H(contract?.JobPosition?.Name ?? "N/A")}</div>
     <div>Situation fam. : {H(payroll.Employee.MaritalStatus?.NameFr ?? "N/A")}</div>

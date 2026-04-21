@@ -930,6 +930,14 @@ public class PayrollCalculationEngine
         r.PrimeImposable1 = pi.Count > 0 ? pi[0].Montant : 0m;
         r.PrimeImposable2 = pi.Count > 1 ? pi[1].Montant : 0m;
         r.PrimeImposable3 = pi.Count > 2 ? pi[2].Montant : 0m;
+        r.PrimesImposablesDetail = pi
+            .Select((p, index) => new PayrollCalculatedPrime
+            {
+                Label = string.IsNullOrWhiteSpace(p.Label) ? $"Prime imposable {index + 1}" : p.Label,
+                Montant = p.Montant,
+                Ordre = index + 1,
+            })
+            .ToList();
         r.TotalNiExonere = ctx.TotalNiExonere;
         r.TotalNiExcedentImposable = ctx.TotalNiExcedentImposable;
         r.SalaireBrutImposable = ctx.SalaireBrutImposable;

@@ -987,7 +987,22 @@ public class PayrollService : IPayrollService
         _db.PayrollResults.Add(entity);
         await _db.SaveChangesAsync(ct);
 
-        // Primes — à alimenter depuis les composantes salariales si nécessaire
+        // Primes détaillées (libellé + montant + ordre) pour affichage fidèle sur bulletin.
+        if (calc.PrimesImposablesDetail.Count > 0)
+        {
+            var primes = calc.PrimesImposablesDetail
+                .Where(p => p.Montant > 0m)
+                .Select(p => new PayrollResultPrime
+                {
+                    PayrollResultId = entity.Id,
+                    Label = p.Label,
+                    Montant = p.Montant,
+                    Ordre = p.Ordre,
+                    IsTaxable = true,
+                    CreatedBy = userId,
+                });
+            _db.PayrollResultPrimes.AddRange(primes);
+        }
 
         // Audit steps
         if (calc.AuditSteps?.Any() == true)

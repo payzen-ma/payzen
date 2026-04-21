@@ -891,6 +891,25 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     }
 
     out.maritalStatus = maritalStatusCode as any;
+    out.maritalStatusChangeDate =
+      d.MaritalStatusChangeDate ??
+      d.maritalStatusChangeDate ??
+      d.MaritalStatusEffectiveDate ??
+      d.maritalStatusEffectiveDate ??
+      null;
+    console.log('[EmployeeProfile] maritalStatus date loaded from API', {
+      employeeId: out.id,
+      maritalStatus: out.maritalStatus,
+      maritalStatusChangeDate: out.maritalStatusChangeDate,
+      rawMaritalStatusChangeDate:
+        d.MaritalStatusChangeDate ??
+        d.maritalStatusChangeDate ??
+        d.MaritalStatusEffectiveDate ??
+        d.maritalStatusEffectiveDate ??
+        null,
+      maritalStatusId: d.MaritalStatusId ?? d.maritalStatusId ?? null,
+      maritalStatusName: d.MaritalStatusName ?? d.maritalStatusName ?? null
+    });
     out.dateOfBirth = d.DateOfBirth ?? d.dateOfBirth;
     //out.birthPlace = d.BirthPlace ?? d.birthPlace;
     out.professionalEmail = d.Email ?? d.ProfessionalEmail ?? d.professionalEmail;
@@ -961,9 +980,22 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.department = d.DepartmentName ?? d.department ?? (d.departments ?? '');
     out.departementId = d.DepartementId ?? d.departementId ?? undefined;
     out.manager = d.ManagerName ?? d.Manager ?? d.manager;
+    out.managerId = d.ManagerId ?? d.managerId ?? undefined;
+    out.managerChangeDate =
+      d.ManagerChangeDate ??
+      d.managerChangeDate ??
+      d.ManagerEffectiveDate ??
+      d.managerEffectiveDate ??
+      null;
     out.contractType = d.ContractTypeName ?? d.ContractType ?? d.contractType;
     out.contractTypeId = d.ContractTypeId ?? d.contractTypeId ?? undefined;
     out.contractId = d.ContractId ?? d.contractId ?? undefined;
+    out.contractChangeDate =
+      d.ContractChangeDate ??
+      d.contractChangeDate ??
+      d.ContractEffectiveDate ??
+      d.contractEffectiveDate ??
+      null;
     out.startDate = d.ContractStartDate ?? d.StartDate ?? d.startDate;
     out.endDate = d.ContractEndDate ?? d.EndDate ?? d.endDate;
     out.probationPeriod = d.ProbationPeriod ?? d.probationPeriod;
@@ -985,18 +1017,51 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     // Employee category
     out.employeeCategoryId = d.CategoryId ?? d.categoryId ?? d.employeeCategoryId ?? null;
     out.employeeCategoryName = d.CategoryName ?? d.categoryName ?? d.employeeCategoryName ?? null;
+    out.categoryChangeDate =
+      d.CategoryChangeDate ??
+      d.categoryChangeDate ??
+      d.CategoryEffectiveDate ??
+      d.categoryEffectiveDate ??
+      null;
     // Legal information fields (CNSS, AMO, CIMR, Insurance)
     out.cnss = d.Cnss ?? d.cnss ?? d.CNSS;
     out.amo = d.Amo ?? d.amo ?? d.AMO;
     out.cimr = d.Cimr ?? d.cimr ?? d.CIMR;
     out.cimrEmployeeRate = d.CimrEmployeeRate ?? d.cimrEmployeeRate;
     out.cimrCompanyRate = d.CimrCompanyRate ?? d.cimrCompanyRate;
+    out.cimrRatesChangeDate =
+      d.CimrRatesChangeDate ??
+      d.cimrRatesChangeDate ??
+      d.CimrRatesEffectiveDate ??
+      d.cimrRatesEffectiveDate ??
+      null;
     out.hasPrivateInsurance = d.HasPrivateInsurance ?? d.hasPrivateInsurance ?? false;
+    out.privateInsuranceChangeDate =
+      d.PrivateInsuranceChangeDate ??
+      d.privateInsuranceChangeDate ??
+      d.PrivateInsuranceEffectiveDate ??
+      d.privateInsuranceEffectiveDate ??
+      null;
     out.privateInsuranceNumber = d.PrivateInsuranceNumber ?? d.privateInsuranceNumber;
     out.privateInsuranceRate = d.PrivateInsuranceRate ?? d.privateInsuranceRate;
     out.disableAmo = d.DisableAmo ?? d.disableAmo ?? false;
     out.annualLeave = d.AnnualLeave ?? d.annualLeave ?? 0;
     out.paymentMethod = d.PaymentMethod ?? d.SalaryPaymentMethod ?? d.paymentMethod ?? d.salaryPaymentMethod;
+    console.log('[EmployeeProfile] change dates loaded from API', {
+      employeeId: out.id,
+      managerId: out.managerId ?? null,
+      managerChangeDate: out.managerChangeDate ?? null,
+      contractTypeId: out.contractTypeId ?? null,
+      jobPositionId: out.jobPositionId ?? null,
+      contractChangeDate: out.contractChangeDate ?? null,
+      categoryId: out.employeeCategoryId ?? null,
+      categoryChangeDate: out.categoryChangeDate ?? null,
+      cimrEmployeeRate: out.cimrEmployeeRate ?? null,
+      cimrCompanyRate: out.cimrCompanyRate ?? null,
+      cimrRatesChangeDate: out.cimrRatesChangeDate ?? null,
+      hasPrivateInsurance: out.hasPrivateInsurance ?? null,
+      privateInsuranceChangeDate: out.privateInsuranceChangeDate ?? null
+    });
     // keep any other camelCase properties present
     return out;
   }
@@ -1279,14 +1344,33 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.saveError.set(null);
   }
 
+  onManagerChange(value: string | null): void {
+    const emp = this.employee();
+    const label = (value ?? '').trim();
+    const options = this.formData().potentialManagers || [];
+    const match = options.find(o => String(o.label ?? '').trim() === label);
+    this.employee.set({
+      ...emp,
+      manager: label || undefined,
+      managerId: match?.id != null ? Number(match.id) : undefined
+    });
+    this.saveError.set(null);
+  }
+
   addNonImposableComponent() {
     const current = this.employee().salaryComponents || [];
-    this.updateField('salaryComponents', [...current, { type: '', amount: 0, isTaxable: false }]);
+    this.updateField('salaryComponents', [
+      ...current,
+      { type: '', amount: 0, isTaxable: false, effectiveDate: this.getTodayDate() }
+    ]);
   }
 
   addImposableComponent() {
     const current = this.employee().salaryComponents || [];
-    this.updateField('salaryComponents', [...current, { type: '', amount: 0, isTaxable: true }]);
+    this.updateField('salaryComponents', [
+      ...current,
+      { type: '', amount: 0, isTaxable: true, effectiveDate: this.getTodayDate() }
+    ]);
   }
 
   removeSalaryComponent(index: number) {
@@ -1296,7 +1380,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.updateField('salaryComponents', updated);
   }
 
-  updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable', value: any) {
+  updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable' | 'effectiveDate', value: any) {
     const current = this.employee().salaryComponents || [];
     const updated = [...current];
     const finalValue = field === 'isTaxable' ? Boolean(value) : value;
@@ -1400,6 +1484,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     const fd = this.formData();
     const norm = (v: unknown) =>
       v === undefined || v === null ? '' : String(v).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const today = new Date().toISOString().split('T')[0];
 
     const resolveJobPositionId = (label: string): number | undefined => {
       const n = label.trim().toLowerCase();
@@ -1418,6 +1503,17 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         const d = pool.find(x => String(x.label).trim().toLowerCase() === n);
         if (d?.id != null && Number(d.id) > 0) return Number(d.id);
       }
+      return undefined;
+    };
+
+    const resolveManagerId = (label: string): number | undefined => {
+      const n = label.trim().toLowerCase();
+      if (!n) return undefined;
+      const manager = (fd.potentialManagers || []).find(
+        m => String(m.label ?? '').trim().toLowerCase() === n
+      );
+      if (manager?.id != null && Number(manager.id) > 0)
+        return Number(manager.id);
       return undefined;
     };
 
@@ -1476,6 +1572,21 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       delete out['contractType'];
     }
 
+    if ('managerId' in out) {
+      const id = Number(out['managerId']);
+      if (id > 0) {
+        delete out['manager'];
+      } else {
+        delete out['managerId'];
+      }
+    }
+    if ('manager' in out && !('managerId' in out)) {
+      const managerLabel = String(out['manager'] ?? '').trim();
+      const resolved = managerLabel ? resolveManagerId(managerLabel) : undefined;
+      if (resolved != null) out['managerId'] = resolved;
+      delete out['manager'];
+    }
+
     if ('phone' in out) {
       const localPhone = String(out['phone'] ?? '').replace(/\D/g, '');
       if (localPhone.length === 9) {
@@ -1512,6 +1623,31 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         }
       }
       delete out['maritalStatus'];
+    }
+
+    if ('maritalStatusId' in out && !('maritalStatusChangeDate' in out)) {
+      out['maritalStatusChangeDate'] = today;
+    }
+    if ('maritalStatusId' in out || 'maritalStatusChangeDate' in out) {
+      console.log('[EmployeeProfile] maritalStatus patch prepared', {
+        maritalStatusId: out['maritalStatusId'] ?? null,
+        maritalStatusChangeDate: out['maritalStatusChangeDate'] ?? null
+      });
+    }
+    if ('managerId' in out && !('managerChangeDate' in out)) {
+      out['managerChangeDate'] = today;
+    }
+    if (('jobPositionId' in out || 'contractTypeId' in out) && !('contractChangeDate' in out)) {
+      out['contractChangeDate'] = today;
+    }
+    if ('categoryId' in out && !('categoryChangeDate' in out)) {
+      out['categoryChangeDate'] = today;
+    }
+    if (('cimrEmployeeRate' in out || 'cimrCompanyRate' in out) && !('cimrRatesChangeDate' in out)) {
+      out['cimrRatesChangeDate'] = today;
+    }
+    if ('hasPrivateInsurance' in out && !('privateInsuranceChangeDate' in out)) {
+      out['privateInsuranceChangeDate'] = today;
     }
 
     return out;
@@ -1597,6 +1733,31 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         }
 
         const apiPatch = this.augmentProfilePatchForApi(patch as Record<string, unknown>) as Partial<EmployeeProfileModel>;
+        console.log('[EmployeeProfile] position/contract/category patch sending to API', {
+          employeeId: this.employeeId(),
+          managerId: (apiPatch as any).managerId ?? null,
+          managerChangeDate: (apiPatch as any).managerChangeDate ?? null,
+          jobPositionId: (apiPatch as any).jobPositionId ?? null,
+          contractTypeId: (apiPatch as any).contractTypeId ?? null,
+          contractChangeDate: (apiPatch as any).contractChangeDate ?? null,
+          categoryId: (apiPatch as any).categoryId ?? null,
+          categoryChangeDate: (apiPatch as any).categoryChangeDate ?? null
+        });
+        console.log('[EmployeeProfile] legal dates patch sending to API', {
+          employeeId: this.employeeId(),
+          cimrEmployeeRate: (apiPatch as any).cimrEmployeeRate ?? null,
+          cimrCompanyRate: (apiPatch as any).cimrCompanyRate ?? null,
+          cimrRatesChangeDate: (apiPatch as any).cimrRatesChangeDate ?? null,
+          hasPrivateInsurance: (apiPatch as any).hasPrivateInsurance ?? null,
+          privateInsuranceChangeDate: (apiPatch as any).privateInsuranceChangeDate ?? null
+        });
+        if ('maritalStatusId' in apiPatch || 'maritalStatusChangeDate' in apiPatch) {
+          console.log('[EmployeeProfile] maritalStatus patch sending to API', {
+            employeeId: this.employeeId(),
+            maritalStatusId: (apiPatch as any).maritalStatusId ?? null,
+            maritalStatusChangeDate: (apiPatch as any).maritalStatusChangeDate ?? null
+          });
+        }
 
         await firstValueFrom(
           this.employeeService.patchEmployeeProfile(this.employeeId()!, apiPatch)
@@ -1621,7 +1782,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               componentType: c.type,
               amount: c.amount,
               isTaxable: c.isTaxable ?? true,
-              effectiveDate: new Date().toISOString(),
+              effectiveDate: c.effectiveDate || this.getTodayDate(),
             })));
           }
         } else {
@@ -1633,7 +1794,12 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
           const modifiedComponents = currentComponents.filter(c => {
             if (!c.id) return false;
             const original = originalComponents.find(o => o.id === c.id);
-            return original && (original.type !== c.type || original.amount !== c.amount || (original.isTaxable ?? true) !== (c.isTaxable ?? true));
+            return original && (
+              original.type !== c.type ||
+              original.amount !== c.amount ||
+              (original.isTaxable ?? true) !== (c.isTaxable ?? true) ||
+              (original.effectiveDate ?? null) !== (c.effectiveDate ?? null)
+            );
           });
 
           const deletedComponents = originalComponents.filter(o =>
@@ -1646,7 +1812,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               componentType: c.type,
               amount: c.amount,
               isTaxable: c.isTaxable ?? true,
-              effectiveDate: new Date().toISOString()
+              effectiveDate: c.effectiveDate || this.getTodayDate()
             })));
           }
 
@@ -1657,7 +1823,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               componentType: c.type,
               amount: c.amount,
               isTaxable: c.isTaxable ?? true,
-              effectiveDate: new Date().toISOString()
+              effectiveDate: c.effectiveDate || this.getTodayDate()
             })));
           }
 
@@ -2440,6 +2606,10 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     if (v == null || v === '') return undefined;
     const n = Number(v);
     return Number.isFinite(n) ? n : undefined;
+  }
+
+  private getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
   }
 
   /**

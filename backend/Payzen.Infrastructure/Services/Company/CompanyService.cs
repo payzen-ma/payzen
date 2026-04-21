@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Auth;
 using Payzen.Application.DTOs.Company;
@@ -281,6 +282,7 @@ public class CompanyService : ICompanyService
                 FoundingDate = dto.FoundingDate,
                 BusinessSector = dto.BusinessSector?.Trim(),
                 MatriculeTemplate = dto.MatriculeTemplate?.Trim(),
+                MatriculeNextValue = ResolveInitialMatriculeNextValue(dto.MatriculeTemplate),
                 PaymentMethod = dto.PaymentMethod?.Trim(),
                 AuthType = "C",
                 CreatedBy = createdBy,
@@ -782,76 +784,43 @@ public class CompanyService : ICompanyService
 
         if (!string.IsNullOrWhiteSpace(dto.RibNumber) && dto.RibNumber.Trim() != c.RibNumber)
         {
-            await _companyEventLog.LogEventAsync(
-                c.Id,
-                "Rib_Changed",
-                c.RibNumber,
-                null,
-                dto.RibNumber.Trim(),
-                null,
-                updatedBy,
-                ct
-            );
-            c.RibNumber = dto.RibNumber.Trim();
+            var rib = dto.RibNumber.Trim();
+            if (await _db.Companies.AnyAsync(x => x.RibNumber == rib && x.DeletedAt == null && x.Id != id, ct))
+                return ServiceResult<CompanyReadDto>.Fail("Une autre entreprise utilise déjà ce numéro RIB");
+            if (rib != c.RibNumber)
+            {
+                await _companyEventLog.LogEventAsync(c.Id, "Rib_Changed", c.RibNumber, null, rib, null, updatedBy, ct);
+                c.RibNumber = rib;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(dto.PatenteNumber) && dto.PatenteNumber.Trim() != c.PatenteNumber)
         {
-            await _companyEventLog.LogEventAsync(
-                c.Id,
-                "Patent_Changed",
-                c.PatenteNumber,
-                null,
-                dto.PatenteNumber.Trim(),
-                null,
-                updatedBy,
-                ct
-            );
-            c.PatenteNumber = dto.PatenteNumber.Trim();
+            var patente = dto.PatenteNumber.Trim();
+            if (await _db.Companies.AnyAsync(x => x.PatenteNumber == patente && x.DeletedAt == null && x.Id != id, ct))
+                return ServiceResult<CompanyReadDto>.Fail("Une autre entreprise utilise déjà ce numérateur de patente");
+            if (patente != c.PatenteNumber)
+            {
+            await _companyEventLog.LogEventAsync(c.Id, "Patent_Changed", c.PatenteNumber, null, patente, null, updatedBy, ct);
+                c.PatenteNumber = patente;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(dto.WebsiteUrl) && dto.WebsiteUrl.Trim() != c.WebsiteUrl)
         {
-            await _companyEventLog.LogEventAsync(
-                c.Id,
-                "WebsiteUrl_Changed",
-                c.WebsiteUrl,
-                null,
-                dto.WebsiteUrl.Trim(),
-                null,
-                updatedBy,
-                ct
-            );
+            await _companyEventLog.LogEventAsync(c.Id, "WebsiteUrl_Changed", c.WebsiteUrl, null, dto.WebsiteUrl.Trim(), null, updatedBy, ct);
             c.WebsiteUrl = dto.WebsiteUrl.Trim();
         }
 
         if (!string.IsNullOrEmpty(dto.LegalForm) && dto.LegalForm!.Trim() != c.LegalForm)
         {
-            await _companyEventLog.LogEventAsync(
-                c.Id,
-                "LegalForm_Changed",
-                c.LegalForm,
-                null,
-                dto.LegalForm.Trim(),
-                null,
-                updatedBy,
-                ct
-            );
+            await _companyEventLog.LogEventAsync(c.Id, "LegalForm_Changed", c.LegalForm, null, dto.LegalForm.Trim(), null, updatedBy, ct);
             c.LegalForm = dto.LegalForm.Trim();
         }
 
         if (dto.FoundingDate.HasValue && dto.FoundingDate.Value != c.FoundingDate)
         {
-            await _companyEventLog.LogEventAsync(
-                c.Id,
-                "FoundingDate_Changed",
-                c.FoundingDate?.ToString("o"),
-                null,
-                dto.FoundingDate.Value.ToString("o"),
-                null,
-                updatedBy,
-                ct
-            );
+            await _companyEventLog.LogEventAsync(c.Id, "FoundingDate_Changed", c.FoundingDate?.ToString("o"), null, dto.FoundingDate?.ToString("o"), null, updatedBy, ct);
             c.FoundingDate = dto.FoundingDate.Value;
         }
 
@@ -874,17 +843,19 @@ public class CompanyService : ICompanyService
             c.SignatoryTitle = dto.SignatoryTitle.Trim();
         if (!string.IsNullOrWhiteSpace(dto.MatriculeTemplate) && dto.MatriculeTemplate.Trim() != c.MatriculeTemplate)
         {
+            var newTemplate = dto.MatriculeTemplate.Trim();
             await _companyEventLog.LogEventAsync(
                 c.Id,
                 "MatriculeTemplate_Changed",
                 c.MatriculeTemplate,
                 null,
-                dto.MatriculeTemplate.Trim(),
+                newTemplate,
                 null,
                 updatedBy,
                 ct
             );
-            c.MatriculeTemplate = dto.MatriculeTemplate.Trim();
+            c.MatriculeTemplate = newTemplate;
+            c.MatriculeNextValue = ResolveInitialMatriculeNextValue(newTemplate);
         }
         if (!string.IsNullOrWhiteSpace(dto.PayrollPeriodicity))
             c.PayrollPeriodicity = dto.PayrollPeriodicity.Trim();
@@ -913,6 +884,18 @@ public class CompanyService : ICompanyService
         await _db.Entry(c).Reference(x => x.City).LoadAsync(ct);
         await _db.Entry(c).Reference(x => x.Country).LoadAsync(ct);
         return ServiceResult<CompanyReadDto>.Ok(MapToRead(c));
+    }
+
+    private static int ResolveInitialMatriculeNextValue(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+            return 1;
+
+        var match = Regex.Match(template, @"\d+");
+        if (!match.Success)
+            return 1;
+
+        return int.TryParse(match.Value, out var value) && value > 0 ? value : 1;
     }
 
     public async Task<ServiceResult> DeleteAsync(int id, int deletedBy, CancellationToken ct = default)

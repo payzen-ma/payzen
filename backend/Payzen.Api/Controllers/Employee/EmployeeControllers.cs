@@ -13,7 +13,8 @@ namespace Payzen.Api.Controllers.Employee;
 
 [ApiController]
 [Route("api/employee")]
-//[Authorize]
+[Route("api/employees")]
+[Authorize]
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _svc;

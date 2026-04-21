@@ -79,6 +79,7 @@ public class Company : BaseEntity
 
     [StringLength(200)]
     public string? MatriculeTemplate { get; set; }
+    public int MatriculeNextValue { get; set; } = 1;
 
     public int? ManagedByCompanyId { get; set; }
 

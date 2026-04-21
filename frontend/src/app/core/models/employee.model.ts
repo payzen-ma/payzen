@@ -6,6 +6,7 @@ export interface SalaryComponent {
   type: string;
   amount: number;
   isTaxable?: boolean;
+  effectiveDate?: string | null;
   /** Flag transient (non sauvegardé en base) : true = saisie libre hors catalogue */
   _custom?: boolean;
 }
@@ -68,6 +69,7 @@ export interface Employee {
   photo?: string;
   cin: string;
   maritalStatus: 'single' | 'married' | 'divorced' | 'widowed';
+  maritalStatusChangeDate?: string | null;
   dateOfBirth: string;
   //birthPlace: string;
   professionalEmail: string;
@@ -90,10 +92,13 @@ export interface Employee {
   department: string;
   departementId?: number;
   manager?: string;
+  managerId?: number;
+  managerChangeDate?: string | null;
   contractType: string;
   contractTypeId?: number;
   contractId?: number;
   startDate: string;
+  contractChangeDate?: string | null;
   endDate?: string;
   probationPeriod: string;
   exitReason?: string;
@@ -109,13 +114,16 @@ export interface Employee {
   cimr?: string;
   cimrEmployeeRate?: number | null;
   cimrCompanyRate?: number | null;
+  cimrRatesChangeDate?: string | null;
   hasPrivateInsurance?: boolean;
+  privateInsuranceChangeDate?: string | null;
   privateInsuranceNumber?: string | null;
   privateInsuranceRate?: number | null;
   disableAmo?: boolean;
   annualLeave: number;
   employeeCategoryId?: number;
   employeeCategoryName?: string;
+  categoryChangeDate?: string | null;
   /**
    * Normalized status used by parts of the UI (may be derived),
    * but primary status code comes from backend in `statusRaw`.

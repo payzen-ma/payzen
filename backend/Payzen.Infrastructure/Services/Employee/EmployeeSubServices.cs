@@ -503,6 +503,29 @@ public class EmployeeSalaryService : IEmployeeSalaryService
         var c = await _db.EmployeeSalaryComponents.FindAsync(new object[] { id }, ct);
         if (c == null || c.DeletedAt != null)
             return ServiceResult<EmployeeSalaryComponentReadDto>.Fail("Composante introuvable.");
+        if (dto.EffectiveDate.HasValue && dto.EffectiveDate.Value > c.EffectiveDate)
+        {
+            c.EndDate = dto.EffectiveDate.Value.AddDays(-1);
+            c.UpdatedBy = updatedBy;
+
+            var nextVersion = new EmployeeSalaryComponent
+            {
+                EmployeeSalaryId = c.EmployeeSalaryId,
+                ComponentType = dto.ComponentType ?? c.ComponentType,
+                IsTaxable = dto.IsTaxable ?? c.IsTaxable,
+                IsSocial = c.IsSocial,
+                IsCIMR = c.IsCIMR,
+                Amount = dto.Amount ?? c.Amount,
+                EffectiveDate = dto.EffectiveDate.Value,
+                EndDate = dto.EndDate,
+                CreatedBy = updatedBy,
+            };
+
+            _db.EmployeeSalaryComponents.Add(nextVersion);
+            await _db.SaveChangesAsync(ct);
+            return ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(nextVersion));
+        }
+
         if (dto.ComponentType != null)
             c.ComponentType = dto.ComponentType;
         if (dto.Amount != null)

@@ -247,6 +247,19 @@
                 </div>
 
                 <div class="form-field">
+                  <label class="form-label">Date d'effet situation familiale</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().maritalStatusChangeDate"
+                    (ngModelChange)="updateField('maritalStatusChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().maritalStatusChangeDate ? (employee().maritalStatusChangeDate | date: 'dd/MM/yyyy') :
+                    '-' }}
+                  </p>
+                  }
+                </div>
+
+                <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.identity.gender' | translate }}</label>
                   @if (isEditMode()) {
                   <p-select [options]="formData().genders || []" [ngModel]="employee().genderId"
@@ -428,10 +441,22 @@
                   <label class="form-label">{{ 'employees.profile.position.manager' | translate }}</label>
                   @if (isEditMode()) {
                   <p-select [options]="formData().potentialManagers" [ngModel]="employee().manager"
-                    (ngModelChange)="updateField('manager', $event)" optionLabel="label" optionValue="label"
+                    (ngModelChange)="onManagerChange($event)" optionLabel="label" optionValue="label"
                     [placeholder]="'employees.profile.position.manager' | translate" class="w-full input"></p-select>
                   } @else {
                   <p class="read-only-value">{{ employee().manager }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">Date d'effet manager</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().managerChangeDate"
+                    (ngModelChange)="updateField('managerChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().managerChangeDate ? (employee().managerChangeDate | date: 'dd/MM/yyyy') : '-' }}
+                  </p>
                   }
                 </div>
 
@@ -447,6 +472,18 @@
                 </div>
 
                 <div class="form-field">
+                  <label class="form-label">Date d'effet contrat/poste</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().contractChangeDate"
+                    (ngModelChange)="updateField('contractChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().contractChangeDate ? (employee().contractChangeDate | date: 'dd/MM/yyyy') : '-' }}
+                  </p>
+                  }
+                </div>
+
+                <div class="form-field">
                   <label class="form-label">{{ 'employees.create.form.employeeCategory' | translate }}</label>
                   @if (isEditMode()) {
                   <p-select [options]="formData().employeeCategories || []" [ngModel]="employee().employeeCategoryId"
@@ -455,6 +492,18 @@
                     class="w-full input"></p-select>
                   } @else {
                   <p class="read-only-value">{{ getEmployeeCategoryLabel() }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label">Date d'effet catégorie</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().categoryChangeDate"
+                    (ngModelChange)="updateField('categoryChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().categoryChangeDate ? (employee().categoryChangeDate | date: 'dd/MM/yyyy') : '-' }}
+                  </p>
                   }
                 </div>
 
@@ -657,6 +706,11 @@
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
                       </div>
+                      <div class="w-56">
+                        <label class="form-label text-xs">Date d'effet</label>
+                        <input pInputText type="date" class="w-full input" [ngModel]="comp.effectiveDate"
+                          (ngModelChange)="updateSalaryComponent($index, 'effectiveDate', $event)" />
+                      </div>
                       <div class="flex items-center gap-2 pl-1">
                         <span
                           class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
@@ -684,6 +738,11 @@
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
                       </div>
+                      <div class="w-56">
+                        <label class="form-label text-xs">Date d'effet</label>
+                        <input pInputText type="date" class="w-full input" [ngModel]="comp.effectiveDate"
+                          (ngModelChange)="updateSalaryComponent($index, 'effectiveDate', $event)" />
+                      </div>
                       <div class="flex items-center gap-2 pl-1">
                         <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
                           {{ 'employees.profile.salary.taxableStatus' | translate }}
@@ -709,6 +768,11 @@
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
                       </div>
+                      <div class="w-56">
+                        <label class="form-label text-xs">Date d'effet</label>
+                        <input pInputText type="date" class="w-full input" [ngModel]="comp.effectiveDate"
+                          (ngModelChange)="updateSalaryComponent($index, 'effectiveDate', $event)" />
+                      </div>
                       <div class="flex items-center gap-2 pl-1">
                         @if (comp.isTaxable) {
                         <span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
@@ -729,6 +793,10 @@
                       <div class="flex items-center justify-between">
                         <span class="text-(--text-secondary) font-medium">{{ comp.type }}</span>
                         <span class="text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                      </div>
+                      <div class="text-xs text-(--text-muted)">
+                        Date d'effet:
+                        {{ comp.effectiveDate ? (comp.effectiveDate | date:'dd/MM/yyyy') : '-' }}
                       </div>
                       <div class="flex items-center gap-2">
                         @if (comp.isTaxable) {
@@ -819,6 +887,18 @@
                 </div>
 
                 <div class="form-field">
+                  <label class="form-label">Date d'effet taux CIMR</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().cimrRatesChangeDate"
+                    (ngModelChange)="updateField('cimrRatesChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().cimrRatesChangeDate ? (employee().cimrRatesChangeDate | date: 'dd/MM/yyyy') : '-' }}
+                  </p>
+                  }
+                </div>
+
+                <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.legal.hasPrivateInsurance' | translate }}</label>
                   @if (isEditMode()) {
                   <div class="flex items-center gap-2">
@@ -835,6 +915,19 @@
                 </div>
 
                 @if (employee().hasPrivateInsurance) {
+                <div class="form-field">
+                  <label class="form-label">Date d'effet assurance privée</label>
+                  @if (isEditMode()) {
+                  <input pInputText type="date" [ngModel]="employee().privateInsuranceChangeDate"
+                    (ngModelChange)="updateField('privateInsuranceChangeDate', $event || null)" class="w-full input" />
+                  } @else {
+                  <p class="read-only-value">
+                    {{ employee().privateInsuranceChangeDate ? (employee().privateInsuranceChangeDate | date:
+                    'dd/MM/yyyy') : '-' }}
+                  </p>
+                  }
+                </div>
+
                 <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.legal.privateInsuranceNumber' | translate }}</label>
                   @if (isEditMode()) {
@@ -855,20 +948,6 @@
                   } @else {
                   <p class="read-only-value">{{ employee().privateInsuranceRate ? (employee().privateInsuranceRate + '
                     %') : '-' }}</p>
-                  }
-                </div>
-
-                <div class="form-field">
-                  <label class="form-label">{{ 'employees.profile.legal.disableAmo' | translate }}</label>
-                  @if (isEditMode()) {
-                  <div class="flex items-center gap-2">
-                    <p-checkbox [ngModel]="employee().disableAmo" (ngModelChange)="updateField('disableAmo', $event)"
-                      [binary]="true" inputId="disableAmo"></p-checkbox>
-                    <label for="disableAmo" class="cursor-pointer">{{ 'employees.profile.legal.disableAmoLabel' |
-                      translate }}</label>
-                  </div>
-                  } @else {
-                  <p class="read-only-value">{{ (employee().disableAmo ? 'common.yes' : 'common.no') | translate }}</p>
                   }
                 </div>
                 }

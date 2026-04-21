@@ -1,0 +1,75 @@
+/* Figma Styles of your File */
+:root {
+  /* Colors */
+  --fuschia-100: #ef5da8;
+  --fuschia-80: #f178b6;
+  --fuschia-60: #fcddec;
+  --iris-100: #5d5fef;
+  --iris-80: #7879f1;
+  --iris-60: #a5a6f6;
+
+  /* Fonts */
+  --header-1-font-family: WorkSans-Bold, sans-serif;
+  --header-1-font-size: 34px;
+  --header-1-line-height: normal;
+  --header-1-font-weight: 700;
+  --header-1-font-style: normal;
+  --header-2-font-family: WorkSans-Bold, sans-serif;
+  --header-2-font-size: 20px;
+  --header-2-line-height: normal;
+  --header-2-font-weight: 700;
+  --header-2-font-style: normal;
+  --body-font-family: WorkSans-Regular, sans-serif;
+  --body-font-size: 13px;
+  --body-line-height: normal;
+  --body-font-weight: 400;
+  --body-font-style: normal;
+
+  /* Effects */
+}
+/* Figma Color Variables of your File */
+[data-colors-mode="light"] {
+  /* light */
+  --primary-50: #ebf5ff;
+  --primary-100: #d6ebff;
+  --primary-200: #aed6ff;
+  --primary-300: #85c2ff;
+  --primary-400: #5cadff;
+  --primary-500: #1a73e8;
+  --primary-600: #1557b0;
+  --primary-700: #0f4187;
+  --primary-800: #0a2c5e;
+  --primary-900: #051835;
+  --surface-0: #ffffff;
+  --surface-50: #f8fafc;
+  --surface-100: #f1f5f9;
+  --surface-200: #e2e8f0;
+  --surface-300: #cbd5e1;
+  --surface-400: #94a3b8;
+  --surface-500: #64748b;
+  --surface-600: #475669;
+  --surface-700: #344155;
+  --surface-800: #1e293b;
+  --surface-900: #0f172a;
+  --background-page: #f8fafc;
+  --background-element: #ffffff;
+  --background-hover: #f9fafb;
+  --background-active: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
+  --border-subtle: #e5e7eb;
+  --border-medium: #d1d5db;
+  --border-strong: #9ca3af;
+  --status-success: #16a34a;
+  --status-success-light: #d1f9de;
+  --status-warning: #b35109;
+  --status-warning-light: #fcd44d;
+  --status-danger: #dc2626;
+  --status-danger-light: #fee4e4;
+  --status-info: #3b82f6;
+  --status-info-light: #dbeafe;
+  --brand-blue: #1800ac;
+  --brand-orange: #fd751f;
+}
