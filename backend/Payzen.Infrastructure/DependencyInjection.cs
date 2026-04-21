@@ -88,6 +88,7 @@ public static class DependencyInjection
         services.AddScoped<IPayrollService, PayrollService>();
         services.AddScoped<ISalaryPackageService, SalaryPackageService>();
         services.AddScoped<IPayrollExportService, PayrollExportService>();
+        services.AddScoped<ICnssPreetabliService, CnssPreetabliService>();
         services.AddScoped<IPayComponentService, PayComponentService>();
         services.AddScoped<IReferentielPayrollService, ReferentielPayrollService>();
         services.AddScoped<IConvergenceService, ConvergenceAnalysisService>();

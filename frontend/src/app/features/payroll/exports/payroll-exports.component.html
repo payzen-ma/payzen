@@ -110,6 +110,88 @@
         </article>
       </div>
 
+      <section class="preetabli-section">
+        <h2>Préétabli CNSS (lecture)</h2>
+        <p>Importer le fichier préétabli CNSS (.txt) pour l'analyser et afficher son contenu.</p>
+
+        <div class="preetabli-actions">
+          <input type="file" accept=".txt" (change)="onPreetabliFileSelected($event)" />
+          <app-button
+            variant="primary"
+            size="sm"
+            [loading]="preetabliLoading()"
+            [disabled]="preetabliLoading()"
+            (onClick)="onParsePreetabli()">
+            <i class="pi pi-upload me-2"></i>
+            Analyser le préétabli
+          </app-button>
+        </div>
+
+        @if (preetabliResult(); as preetabli) {
+        <div class="preetabli-result">
+          @if (preetabli.header) {
+          <div class="preetabli-card">
+            <h3>Entête (A00 / A01)</h3>
+            <p><strong>Affilié:</strong> {{ preetabli.header.affiliateNumber }}</p>
+            <p><strong>Période:</strong> {{ preetabli.header.period }}</p>
+            <p><strong>Société:</strong> {{ preetabli.header.companyName }}</p>
+            <p><strong>Ville:</strong> {{ preetabli.header.city }}</p>
+          </div>
+          }
+
+          <div class="preetabli-card">
+            <h3>Détails assurés (A02)</h3>
+            <div class="preetabli-table-wrapper">
+              <table class="preetabli-table">
+                <thead>
+                  <tr>
+                    <th>N° assuré</th>
+                    <th>Nom / Prénom</th>
+                    <th>Enfants</th>
+                    <th>AF à payer</th>
+                    <th>AF à déduire</th>
+                    <th>AF net à payer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of preetabli.employees; track row.lineNumber) {
+                  <tr>
+                    <td>{{ row.insuredNumber }}</td>
+                    <td>{{ row.fullName }}</td>
+                    <td>{{ row.childrenCount }}</td>
+                    <td>{{ row.familyAllowanceToPay | number:'1.2-2' }}</td>
+                    <td>{{ row.familyAllowanceToDeduct | number:'1.2-2' }}</td>
+                    <td>{{ row.familyAllowanceNetToPay | number:'1.2-2' }}</td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          @if (preetabli.summary) {
+          <div class="preetabli-card">
+            <h3>Récapitulatif (A03)</h3>
+            <p><strong>Nombre salariés:</strong> {{ preetabli.summary.employeeCount }}</p>
+            <p><strong>Total enfants:</strong> {{ preetabli.summary.totalChildren }}</p>
+            <p><strong>Total AF net:</strong> {{ preetabli.summary.totalFamilyAllowanceNetToPay | number:'1.2-2' }}</p>
+          </div>
+          }
+
+          @if (preetabli.issues.length > 0) {
+          <div class="preetabli-card preetabli-card--issues">
+            <h3>Anomalies détectées</h3>
+            <ul>
+              @for (issue of preetabli.issues; track $index) {
+              <li>Ligne {{ issue.lineNumber || '-' }} - {{ issue.severity }} : {{ issue.message }}</li>
+              }
+            </ul>
+          </div>
+          }
+        </div>
+        }
+      </section>
+
       <p class="payroll-exports-footnote" [innerHTML]="'payrollExportsPage.notice' | translate"></p>
     </div>
   </div>

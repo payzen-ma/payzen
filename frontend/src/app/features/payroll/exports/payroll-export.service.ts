@@ -3,6 +3,57 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 
+export interface CnssPreetabliIssue {
+  lineNumber: number;
+  severity: string;
+  message: string;
+}
+
+export interface CnssPreetabliHeader {
+  transferIdentifier: string;
+  category: string;
+  affiliateNumber: string;
+  period: string;
+  companyName: string;
+  activity: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  agencyCode: string;
+  emissionDateRaw: string;
+  exigibilityDateRaw: string;
+}
+
+export interface CnssPreetabliEmployeeRow {
+  lineNumber: number;
+  affiliateNumber: string;
+  period: string;
+  insuredNumber: string;
+  fullName: string;
+  childrenCount: number;
+  familyAllowanceToPay: number;
+  familyAllowanceToDeduct: number;
+  familyAllowanceNetToPay: number;
+}
+
+export interface CnssPreetabliSummary {
+  affiliateNumber: string;
+  period: string;
+  employeeCount: number;
+  totalChildren: number;
+  totalFamilyAllowanceToPay: number;
+  totalFamilyAllowanceToDeduct: number;
+  totalFamilyAllowanceNetToPay: number;
+  totalInsuredNumbers: number;
+}
+
+export interface CnssPreetabliParseResult {
+  header: CnssPreetabliHeader | null;
+  employees: CnssPreetabliEmployeeRow[];
+  summary: CnssPreetabliSummary | null;
+  issues: CnssPreetabliIssue[];
+}
+
 /**
  * Service Angular pour les exports de paie marocaine.
  * Retourne des Blobs binaires (Excel / CSV) prêts à télécharger.
@@ -13,6 +64,7 @@ import { environment } from '@environments/environment';
 export class PayrollExportService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/payroll/exports`;
+  private readonly cnssBaseUrl = `${environment.apiUrl}/cnss/preetabli`;
 
   /**
    * Télécharge le Journal de Paie (Excel XLSX)
@@ -62,6 +114,12 @@ export class PayrollExportService {
       `${this.baseUrl}/ir-pdf/${companyId}/${year}/${month}`,
       { responseType: 'blob' }
     );
+  }
+
+  parseCnssPreetabli(file: File): Observable<CnssPreetabliParseResult> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<CnssPreetabliParseResult>(`${this.cnssBaseUrl}/parse`, formData);
   }
 
   /** Helper utilitaire : déclenche le téléchargement d'un Blob dans le navigateur */

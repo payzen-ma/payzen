@@ -6,3 +6,52 @@
     width: 100%;
     box-sizing: border-box;
 }
+
+.preetabli-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.preetabli-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0.75rem 0;
+}
+
+.preetabli-result {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.preetabli-card {
+    border: 1px solid #eef2f7;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fafafa;
+}
+
+.preetabli-card--issues {
+    border-color: #fecaca;
+    background: #fff1f2;
+}
+
+.preetabli-table-wrapper {
+    overflow: auto;
+}
+
+.preetabli-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.preetabli-table th,
+.preetabli-table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+}

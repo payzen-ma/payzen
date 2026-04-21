@@ -3,7 +3,10 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
 import { CompanyContextService } from '@app/core/services/companyContext.service';
-import { PayrollExportService } from './payroll-export.service';
+import {
+  CnssPreetabliParseResult,
+  PayrollExportService
+} from './payroll-export.service';
 
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
 import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
@@ -38,10 +41,13 @@ export class PayrollExportsComponent implements OnInit {
 
   // ── Loading states ──────────────────────────────────────────────────────
   loading = signal<Record<ExportKey, boolean>>({ journal: false, cnss: false, cnssPdf: false, ir: false, irPdf: false });
+  preetabliLoading = signal<boolean>(false);
 
   // ── Messages d'erreur ───────────────────────────────────────────────────
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  preetabliResult = signal<CnssPreetabliParseResult | null>(null);
+  selectedPreetabliFile = signal<File | null>(null);
 
   ngOnInit(): void { }
 
@@ -65,6 +71,36 @@ export class PayrollExportsComponent implements OnInit {
 
   onExportIrPdf(): void {
     this.download('irPdf', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.pdf`);
+  }
+
+  onPreetabliFileSelected(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const file = target?.files?.item(0) ?? null;
+    this.selectedPreetabliFile.set(file);
+  }
+
+  onParsePreetabli(): void {
+    const file = this.selectedPreetabliFile();
+    if (!file) {
+      this.errorMessage.set('Veuillez sélectionner un fichier préétabli CNSS (.txt).');
+      return;
+    }
+
+    this.clearMessages();
+    this.preetabliLoading.set(true);
+    this.exportService
+      .parseCnssPreetabli(file)
+      .pipe(finalize(() => this.preetabliLoading.set(false)))
+      .subscribe({
+        next: (data) => {
+          this.preetabliResult.set(data);
+          this.successMessage.set('Le fichier préétabli CNSS a été analysé avec succès.');
+        },
+        error: (err) => {
+          this.preetabliResult.set(null);
+          this.errorMessage.set(err?.error?.message ?? 'Erreur lors de l\'analyse du préétabli CNSS.');
+        }
+      });
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────
