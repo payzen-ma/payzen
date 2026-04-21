@@ -31,6 +31,7 @@ interface ImportResult {
   errors: ImportErrorRow[];
   sheets: ImportSheetRow[];
   employeeChecks: EmployeeCheckRow[];
+  autoCreatedEmployees: AutoCreatedEmployeeRow[];
 }
 
 interface ImportSheetRow {
@@ -47,6 +48,12 @@ interface EmployeeCheckRow {
   isLastNameMatch: boolean;
   isFirstNameMatch: boolean;
   message: string;
+}
+
+interface AutoCreatedEmployeeRow {
+  matricule: string;
+  fullName: string;
+  email: string;
 }
 
 @Component({
@@ -178,6 +185,28 @@ interface EmployeeCheckRow {
                       <td class="py-2">{{ check.isLastNameMatch ? 'Oui' : 'Non' }}</td>
                       <td class="py-2">{{ check.isFirstNameMatch ? 'Oui' : 'Non' }}</td>
                       <td class="py-2">{{ check.message }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div *ngIf="importResult.autoCreatedEmployees?.length" class="mb-4">
+              <div class="font-semibold mb-2">Employés créés automatiquement</div>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm" style="min-width:500px;">
+                  <thead>
+                    <tr class="text-left" style="border-bottom:1px solid #cbd5e1;">
+                      <th class="py-2">Matricule</th>
+                      <th class="py-2">Nom complet</th>
+                      <th class="py-2">Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let emp of importResult.autoCreatedEmployees" style="border-bottom:1px solid #e2e8f0;">
+                      <td class="py-2">{{ emp.matricule }}</td>
+                      <td class="py-2">{{ emp.fullName }}</td>
+                      <td class="py-2">{{ emp.email }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -367,7 +396,8 @@ export class ImportComponent implements OnInit {
             importedAbsences: result.importedAbsences ?? [],
             errors: result.errors ?? [],
             sheets: result.sheets ?? [],
-            employeeChecks: result.employeeChecks ?? []
+            employeeChecks: result.employeeChecks ?? [],
+            autoCreatedEmployees: result.autoCreatedEmployees ?? []
           };
         }
 
@@ -377,6 +407,16 @@ export class ImportComponent implements OnInit {
           detail: 'Le fichier a été importé avec succès',
           life: 3000
         });
+
+        const createdEmployeesCount = this.importResult?.autoCreatedEmployees?.length ?? 0;
+        if (createdEmployeesCount > 0) {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Nouveaux employés ajoutés',
+            detail: `${createdEmployeesCount} employé(s) ont été créés automatiquement.`,
+            life: 5000
+          });
+        }
         this.onCancel();
       },
       (error: any) => {
