@@ -9,6 +9,7 @@ namespace payzen_backend.Models.Employee.Dtos
         public int TotalLines { get; set; }
         public int SuccessCount { get; set; }
         public int ErrorCount { get; set; }
+        public int TotalSheets { get; set; } // Nombre total de feuilles lues dans le fichier
 
         public List<TimesheetImportErrorDto> Errors { get; set; } = new();
     }

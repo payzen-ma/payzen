@@ -19,6 +19,7 @@ using Payzen.Infrastructure.Services.Payroll;
 using Payzen.Infrastructure.Services.Public;
 using Payzen.Infrastructure.Services.Referentiel;
 using Payzen.Infrastructure.Services.Timesheet;
+using Payzen.Infrastructure.Services.Absence;
 
 namespace Payzen.Infrastructure;
 
@@ -105,6 +106,9 @@ public static class DependencyInjection
 
         // ── Timesheet Import ───────────────────────────────────────────────────
         services.AddScoped<ITimesheetImportService, TimesheetImportService>();
+
+        // ── Absence Import ────────────────────────────────────────────────────
+        services.AddScoped<IAbsenceImportService, AbsenceImportService>();
 
         // ── Documents ─────────────────────────────────────────────────────────
         services.AddScoped<IDocumentService, IronPdfDocumentService>();

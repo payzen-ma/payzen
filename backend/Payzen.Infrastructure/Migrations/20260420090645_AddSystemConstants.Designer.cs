@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Payzen.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Payzen.Infrastructure.Persistence;
 namespace Payzen.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260420090645_AddSystemConstants")]
+    partial class AddSystemConstants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -436,11 +439,6 @@ namespace Payzen.Infrastructure.Migrations
                     b.Property<int?>("ManagedByCompanyId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MatriculeNextValue")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
                     b.Property<string>("MatriculeTemplate")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -843,9 +841,6 @@ namespace Payzen.Infrastructure.Migrations
                     b.Property<DateOnly?>("AnnualLeaveOpeningEffectiveFrom")
                         .HasColumnType("date");
 
-                    b.Property<DateOnly?>("CategoryChangeDate")
-                        .HasColumnType("date");
-
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
@@ -858,9 +853,6 @@ namespace Payzen.Infrastructure.Migrations
                     b.Property<string>("CimrNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateOnly?>("CimrRatesChangeDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("CinNumber")
                         .IsRequired()
@@ -922,14 +914,8 @@ namespace Payzen.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateOnly?>("ManagerChangeDate")
-                        .HasColumnType("date");
-
                     b.Property<int?>("ManagerId")
                         .HasColumnType("int");
-
-                    b.Property<DateOnly?>("MaritalStatusChangeDate")
-                        .HasColumnType("date");
 
                     b.Property<int?>("MaritalStatusId")
                         .HasColumnType("int");
@@ -952,9 +938,6 @@ namespace Payzen.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateOnly?>("PrivateInsuranceChangeDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("PrivateInsuranceNumber")
                         .HasMaxLength(50)

@@ -1,3 +1,7 @@
 appsettings.json
 documentation
 .vscode
+
+/documentation
+/appsettings.json
+/node_modules

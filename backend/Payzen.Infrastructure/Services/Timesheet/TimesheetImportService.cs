@@ -78,7 +78,7 @@ public class TimesheetImportService : ITimesheetImportService
             .Where(e => e.CompanyId == targetCompanyId && e.Matricule != null && e.DeletedAt == null)
             .ToDictionaryAsync(e => e.Matricule!.Value, ct);
 
-        var parsedRows = new List<(int RowIndex, string? MatriculeRaw, decimal WorkedHours)>();
+        var parsedRows = new List<(int RowIndex, string? MatriculeRaw, decimal WorkedHours, string? Sheet)>();
 
         try
         {
@@ -126,6 +126,7 @@ public class TimesheetImportService : ITimesheetImportService
                         Row = row.RowIndex,
                         Matricule = null,
                         Message = "Matricule manquant.",
+                        Sheet = row.Sheet
                     }
                 );
                 continue;
@@ -146,6 +147,7 @@ public class TimesheetImportService : ITimesheetImportService
                         Row = row.RowIndex,
                         Matricule = row.MatriculeRaw,
                         Message = "Matricule invalide.",
+                        Sheet = row.Sheet
                     }
                 );
                 continue;
@@ -159,6 +161,7 @@ public class TimesheetImportService : ITimesheetImportService
                         Row = row.RowIndex,
                         Matricule = row.MatriculeRaw,
                         Message = $"Aucun employé avec le matricule {matricule}.",
+                        Sheet = row.Sheet
                     }
                 );
                 continue;
@@ -280,47 +283,52 @@ public class TimesheetImportService : ITimesheetImportService
 
     private static async Task ParseXlsx(
         Stream stream,
-        List<(int, string?, decimal)> rows,
+        List<(int RowIndex, string? MatriculeRaw, decimal WorkedHours, string? Sheet)> rows,
         TimesheetImportResultDto result
     )
     {
         using var wb = new XLWorkbook(stream);
-        var ws = wb.Worksheet(1);
-        var firstRow = ws.FirstRowUsed();
-        if (firstRow == null)
-            return;
-        var headerRowNum = firstRow.RowNumber();
-        var lastRowNum = ws.LastRowUsed().RowNumber();
-        var headerMap = BuildHeaderMap(ws.Row(headerRowNum));
-
-        for (var r = headerRowNum + 1; r <= lastRowNum; r++)
+        result.TotalSheets = 0;
+        foreach (var ws in wb.Worksheets)
         {
-            var row = ws.Row(r);
-            var mat = GetCell(row, headerMap, "MAT", "Matricule", "Mat");
-            var nrh = GetCell(row, headerMap, "NR H", "NRH", "NB H", "HEURES");
-            if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh))
+            var firstRow = ws.FirstRowUsed();
+            if (firstRow == null)
                 continue;
-            if (!TryParseDecimal(nrh, out var h) || h < 0)
+            result.TotalSheets++;
+            var headerRowNum = firstRow.RowNumber();
+            var lastRowNum = ws.LastRowUsed().RowNumber();
+            var headerMap = BuildHeaderMap(ws.Row(headerRowNum));
+
+            for (var r = headerRowNum + 1; r <= lastRowNum; r++)
             {
-                result.ErrorCount++;
-                result.Errors.Add(
-                    new()
-                    {
-                        Row = r,
-                        Matricule = mat,
-                        Message = $"Heures invalides : '{nrh}'.",
-                    }
-                );
-                continue;
+                var row = ws.Row(r);
+                var mat = GetCell(row, headerMap, "MAT", "Matricule", "Mat");
+                var nrh = GetCell(row, headerMap, "NR H", "NRH", "NB H", "HEURES");
+                if (string.IsNullOrWhiteSpace(mat) && string.IsNullOrWhiteSpace(nrh))
+                    continue;
+                if (!TryParseDecimal(nrh, out var h) || h < 0)
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(
+                        new()
+                        {
+                            Row = r,
+                            Matricule = mat,
+                            Message = $"Heures invalides : '{nrh}'.",
+                            Sheet = ws.Name
+                        }
+                    );
+                    continue;
+                }
+                rows.Add((r, mat, h, ws.Name));
             }
-            rows.Add((r, mat, h));
         }
         await Task.CompletedTask;
     }
 
     private static async Task ParseCsv(
         Stream stream,
-        List<(int, string?, decimal)> rows,
+        List<(int RowIndex, string? MatriculeRaw, decimal WorkedHours, string? Sheet)> rows,
         TimesheetImportResultDto result
     )
     {
@@ -352,11 +360,12 @@ public class TimesheetImportService : ITimesheetImportService
                         Row = rowIdx,
                         Matricule = mat,
                         Message = $"Heures invalides : '{nrh}'.",
+                        Sheet = null
                     }
                 );
                 continue;
             }
-            rows.Add((rowIdx, mat, h));
+            rows.Add((rowIdx, mat, h, null));
         }
     }
 
