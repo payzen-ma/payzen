@@ -6,9 +6,11 @@ using Microsoft.Extensions.Logging;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.Interfaces;
+using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Employee;
 using Payzen.Domain.Enums;
 using Payzen.Infrastructure.Persistence;
+using DomainEmployee = Payzen.Domain.Entities.Employee.Employee;
 
 namespace Payzen.Infrastructure.Services.Absence;
 
@@ -62,7 +64,8 @@ public class AbsenceImportService : IAbsenceImportService
             ImportedAbsences = new List<AbsenceImportRowDto>(),
             Errors = new List<AbsenceImportErrorDto>(),
             Sheets = new List<AbsenceImportSheetDto>(),
-            EmployeeChecks = new List<AbsenceEmployeeCheckDto>()
+            EmployeeChecks = new List<AbsenceEmployeeCheckDto>(),
+            AutoCreatedEmployees = new List<AbsenceCreatedEmployeeDto>()
         };
 
         // Charger les employés de la société
@@ -70,6 +73,15 @@ public class AbsenceImportService : IAbsenceImportService
             .Employees.AsNoTracking()
             .Where(e => e.CompanyId == targetCompanyId && e.Matricule != null && e.DeletedAt == null)
             .ToDictionaryAsync(e => e.Matricule!.Value, ct);
+
+        if (ext == ".xlsx")
+        {
+            await EnsureEmployeesFromWorkbookAsync(fileStream, targetCompanyId, userId ?? 0, result, ct);
+            employeesByMatricule = await _db
+                .Employees.AsNoTracking()
+                .Where(e => e.CompanyId == targetCompanyId && e.Matricule != null && e.DeletedAt == null)
+                .ToDictionaryAsync(e => e.Matricule!.Value, ct);
+        }
 
         // Parser le fichier
         var parsedAbsences = new List<ParsedAbsence>();
@@ -95,71 +107,108 @@ public class AbsenceImportService : IAbsenceImportService
         var createdAbsences = new List<(EmployeeAbsence Absence, AbsenceImportRowDto Preview, string SheetName)>();
         var now = DateTimeOffset.UtcNow;
 
+        var employeesByName = employeesByMatricule.Values
+            .GroupBy(e => NormalizePersonName($"{e.FirstName} {e.LastName}"))
+            .ToDictionary(g => g.Key, g => g.First());
+
         foreach (var parsed in parsedAbsences)
         {
-            // Valider le matricule
-            if (string.IsNullOrWhiteSpace(parsed.MatriculeRaw))
-            {
-                result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
-                {
-                    Row = parsed.RowIndex,
-                    Matricule = null,
-                    Exists = false,
-                    IsLastNameMatch = false,
-                    IsFirstNameMatch = false,
-                    Message = "Matricule manquant."
-                });
-                result.ErrorCount++;
-                result.Errors.Add(new AbsenceImportErrorDto
-                {
-                    Row = parsed.RowIndex,
-                    Matricule = null,
-                    Message = "Matricule manquant."
-                });
-                continue;
-            }
+            DomainEmployee? employee = null;
+            int? resolvedMatricule = null;
+            var hasMatricule = !string.IsNullOrWhiteSpace(parsed.MatriculeRaw);
 
-            if (!int.TryParse(parsed.MatriculeRaw.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var matricule))
+            if (hasMatricule)
             {
-                result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                if (!int.TryParse(parsed.MatriculeRaw!.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var matricule))
                 {
-                    Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Exists = false,
-                    IsLastNameMatch = false,
-                    IsFirstNameMatch = false,
-                    Message = "Matricule invalide."
-                });
-                result.ErrorCount++;
-                result.Errors.Add(new AbsenceImportErrorDto
-                {
-                    Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Message = "Matricule invalide."
-                });
-                continue;
-            }
+                    result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = parsed.MatriculeRaw,
+                        Exists = false,
+                        IsLastNameMatch = false,
+                        IsFirstNameMatch = false,
+                        Message = "Matricule invalide."
+                    });
+                    result.ErrorCount++;
+                    result.Errors.Add(new AbsenceImportErrorDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = parsed.MatriculeRaw,
+                        Message = "Matricule invalide."
+                    });
+                    continue;
+                }
 
-            // Trouver l'employé
-            if (!employeesByMatricule.TryGetValue(matricule, out var employee))
+                if (!employeesByMatricule.TryGetValue(matricule, out employee))
+                {
+                    result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = parsed.MatriculeRaw,
+                        Exists = false,
+                        IsLastNameMatch = false,
+                        IsFirstNameMatch = false,
+                        Message = $"Aucun employé avec le matricule {matricule}."
+                    });
+                    result.ErrorCount++;
+                    result.Errors.Add(new AbsenceImportErrorDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = parsed.MatriculeRaw,
+                        Message = $"Aucun employé avec le matricule {matricule}."
+                    });
+                    continue;
+                }
+                resolvedMatricule = matricule;
+            }
+            else
             {
-                result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                var firstName = parsed.Prenom?.Trim();
+                var lastName = parsed.Nom?.Trim();
+                if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
                 {
-                    Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Exists = false,
-                    IsLastNameMatch = false,
-                    IsFirstNameMatch = false,
-                    Message = $"Aucun employé avec le matricule {matricule}."
-                });
-                result.ErrorCount++;
-                result.Errors.Add(new AbsenceImportErrorDto
+                    result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = null,
+                        Exists = false,
+                        IsLastNameMatch = false,
+                        IsFirstNameMatch = false,
+                        Message = "Matricule absent, et nom/prénom insuffisants pour identifier l'employé."
+                    });
+                    result.ErrorCount++;
+                    result.Errors.Add(new AbsenceImportErrorDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = null,
+                        Message = "Employé introuvable (matricule absent, nom/prénom manquants)."
+                    });
+                    continue;
+                }
+
+                var fullNameKey = NormalizePersonName($"{firstName} {lastName}");
+                if (!employeesByName.TryGetValue(fullNameKey, out employee))
                 {
-                    Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Message = $"Aucun employé avec le matricule {matricule}."
-                });
-                continue;
+                    result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = null,
+                        Exists = false,
+                        IsLastNameMatch = false,
+                        IsFirstNameMatch = false,
+                        Message = $"Aucun employé trouvé pour {firstName} {lastName}."
+                    });
+                    result.ErrorCount++;
+                    result.Errors.Add(new AbsenceImportErrorDto
+                    {
+                        Row = parsed.RowIndex,
+                        Matricule = null,
+                        Message = $"Aucun employé trouvé pour {firstName} {lastName}."
+                    });
+                    continue;
+                }
+                resolvedMatricule = employee.Matricule;
             }
 
             // Valider la cohérence matricule + nom + prénom (si fournis dans le fichier)
@@ -168,7 +217,7 @@ public class AbsenceImportService : IAbsenceImportService
             result.EmployeeChecks.Add(new AbsenceEmployeeCheckDto
             {
                 Row = parsed.RowIndex,
-                Matricule = parsed.MatriculeRaw,
+                    Matricule = hasMatricule ? parsed.MatriculeRaw : resolvedMatricule?.ToString(CultureInfo.InvariantCulture),
                 EmployeeName = $"{employee.FirstName} {employee.LastName}",
                 Exists = true,
                 IsLastNameMatch = isLastNameMatch,
@@ -184,8 +233,8 @@ public class AbsenceImportService : IAbsenceImportService
                 result.Errors.Add(new AbsenceImportErrorDto
                 {
                     Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Message = $"Nom incohérent pour le matricule {matricule}."
+                    Matricule = hasMatricule ? parsed.MatriculeRaw : resolvedMatricule?.ToString(CultureInfo.InvariantCulture),
+                    Message = $"Nom incohérent pour le matricule {resolvedMatricule}."
                 });
                 continue;
             }
@@ -196,8 +245,8 @@ public class AbsenceImportService : IAbsenceImportService
                 result.Errors.Add(new AbsenceImportErrorDto
                 {
                     Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
-                    Message = $"Prénom incohérent pour le matricule {matricule}."
+                    Matricule = hasMatricule ? parsed.MatriculeRaw : resolvedMatricule?.ToString(CultureInfo.InvariantCulture),
+                    Message = $"Prénom incohérent pour le matricule {resolvedMatricule}."
                 });
                 continue;
             }
@@ -209,7 +258,7 @@ public class AbsenceImportService : IAbsenceImportService
                 result.Errors.Add(new AbsenceImportErrorDto
                 {
                     Row = parsed.RowIndex,
-                    Matricule = parsed.MatriculeRaw,
+                    Matricule = hasMatricule ? parsed.MatriculeRaw : resolvedMatricule?.ToString(CultureInfo.InvariantCulture),
                     Message = "Date d'absence invalide."
                 });
                 continue;
@@ -230,7 +279,9 @@ public class AbsenceImportService : IAbsenceImportService
             var preview = new AbsenceImportRowDto
             {
                 Row = parsed.RowIndex,
-                Matricule = parsed.MatriculeRaw.Trim(),
+                Matricule = hasMatricule
+                    ? parsed.MatriculeRaw!.Trim()
+                    : resolvedMatricule?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
                 EmployeeName = $"{employee.FirstName} {employee.LastName}",
                 AbsenceDate = parsed.AbsenceDate.Value.ToString("dd/MM/yyyy"),
                 DurationType = parsed.DurationType.ToString(),
@@ -355,6 +406,198 @@ public class AbsenceImportService : IAbsenceImportService
                 sheetSummary.ReadLines++;
             }
         }
+    }
+
+    private async Task EnsureEmployeesFromWorkbookAsync(
+        Stream stream,
+        int companyId,
+        int userId,
+        AbsenceImportResultDto result,
+        CancellationToken ct
+    )
+    {
+        if (!stream.CanSeek)
+            return;
+
+        stream.Position = 0;
+        using var wb = new XLWorkbook(stream);
+        var activeStatus = await _db.Statuses.AsNoTracking()
+            .FirstOrDefaultAsync(s =>
+                s.IsActive
+                && s.DeletedAt == null
+                && (s.Code == "Active" || s.Code == "ACTIVE" || s.Code == "active"), ct);
+        if (activeStatus == null)
+            return;
+
+        var existingMatricules = await _db.Employees.AsNoTracking()
+            .Where(e => e.CompanyId == companyId && e.Matricule.HasValue && e.DeletedAt == null)
+            .Select(e => e.Matricule!.Value)
+            .ToHashSetAsync(ct);
+        var existingCins = await _db.Employees.AsNoTracking()
+            .Where(e => e.CompanyId == companyId && e.DeletedAt == null && !string.IsNullOrWhiteSpace(e.CinNumber))
+            .Select(e => e.CinNumber!)
+            .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+        var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+        if (company == null)
+            return;
+        var nextMatricule = company.MatriculeNextValue <= 0 ? 1 : company.MatriculeNextValue;
+
+        var newEmployees = new List<DomainEmployee>();
+        foreach (var ws in wb.Worksheets)
+        {
+            var sheetKey = Normalize(ws.Name);
+            if (!sheetKey.Contains("nouveau") || !sheetKey.Contains("employ"))
+                continue;
+
+            var firstRow = ws.FirstRowUsed();
+            var lastRow = ws.LastRowUsed();
+            if (firstRow == null || lastRow == null)
+                continue;
+
+            var headerRowNum = firstRow.RowNumber();
+            var headerMap = BuildHeaderMap(ws.Row(headerRowNum));
+            var lastRowNum = lastRow.RowNumber();
+
+            for (var r = headerRowNum + 1; r <= lastRowNum; r++)
+            {
+                var row = ws.Row(r);
+                var matriculeRaw = GetCell(row, headerMap, "Matricule");
+                var nom = GetCell(row, headerMap, "Nom") ?? "N/A";
+                var prenom = GetCell(row, headerMap, "Prénom", "Prenom") ?? "N/A";
+                var cin = GetCell(row, headerMap, "CIN");
+                var phone = GetCell(row, headerMap, "Téléphone", "Telephone", "Phone");
+                var email = GetCell(
+                    row,
+                    headerMap,
+                    "Email",
+                    "Mail",
+                    "E-mail",
+                    "Adresse email",
+                    "Email personnel",
+                    "E-mail personnel",
+                    "Email personal",
+                    "Email professionnel",
+                    "Email pro",
+                    "Courriel"
+                );
+                var dateNaissanceRaw = GetCell(row, headerMap, "Date de naissance", "DateNaissance", "Date naissance");
+
+                if (string.IsNullOrWhiteSpace(matriculeRaw) && string.IsNullOrWhiteSpace(nom) && string.IsNullOrWhiteSpace(prenom))
+                    continue;
+                int matricule;
+                if (int.TryParse((matriculeRaw ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedMatricule))
+                {
+                    matricule = parsedMatricule;
+                    if (existingMatricules.Contains(matricule))
+                        continue;
+                }
+                else
+                {
+                    matricule = nextMatricule;
+                    nextMatricule++;
+                }
+
+                if (existingMatricules.Contains(matricule))
+                    continue;
+
+                var dateOfBirth = ParseDate(dateNaissanceRaw) ?? new DateOnly(1990, 1, 1);
+                var cinValue = string.IsNullOrWhiteSpace(cin) ? $"AUTO-{companyId}-{matricule}" : cin.Trim();
+                if (existingCins.Contains(cinValue))
+                    continue;
+                var phoneValue = string.IsNullOrWhiteSpace(phone) ? "0000000000" : phone.Trim();
+                var emailValue = string.IsNullOrWhiteSpace(email) ? $"import.{companyId}.{matricule}@import.local" : email.Trim();
+
+                var employee = new DomainEmployee
+                {
+                    Matricule = matricule,
+                    FirstName = prenom.Trim(),
+                    LastName = nom.Trim(),
+                    CinNumber = cinValue,
+                    DateOfBirth = dateOfBirth,
+                    Phone = phoneValue,
+                    Email = emailValue,
+                    CompanyId = companyId,
+                    StatusId = activeStatus.Id,
+                    CreatedBy = userId
+                };
+
+                newEmployees.Add(employee);
+                existingMatricules.Add(matricule);
+                existingCins.Add(cinValue);
+            }
+        }
+
+        if (newEmployees.Count > 0)
+        {
+            await _db.Employees.AddRangeAsync(newEmployees, ct);
+            company.MatriculeNextValue = nextMatricule;
+            await _db.SaveChangesAsync(ct);
+
+            // Créer aussi les users liés aux nouveaux employés.
+            var employeeRole = await _db.Roles.AsNoTracking()
+                .FirstOrDefaultAsync(r =>
+                    (r.Name == "employee" || r.Name == "Employee")
+                    && r.DeletedAt == null, ct);
+
+            var existingUsernames = await _db.Users.AsNoTracking()
+                .Where(u => u.DeletedAt == null)
+                .Select(u => u.Username)
+                .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+
+            var existingUserEmails = await _db.Users.AsNoTracking()
+                .Where(u => u.DeletedAt == null)
+                .Select(u => u.Email)
+                .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+
+            var createdUsers = new List<Users>();
+            foreach (var e in newEmployees)
+            {
+                var usernameBase = BuildUsernameBase(e.FirstName, e.LastName);
+                var username = EnsureUnique(usernameBase, existingUsernames, "user");
+                var email = EnsureUniqueEmail(e.Email, existingUserEmails, companyId, e.Matricule ?? 0);
+
+                var user = new Users
+                {
+                    EmployeeId = e.Id,
+                    Username = username,
+                    Email = email,
+                    EmailPersonal = e.PersonalEmail,
+                    IsActive = true,
+                    CreatedBy = userId
+                };
+
+                createdUsers.Add(user);
+                existingUsernames.Add(username);
+                existingUserEmails.Add(email);
+            }
+
+            if (createdUsers.Count > 0)
+            {
+                await _db.Users.AddRangeAsync(createdUsers, ct);
+                await _db.SaveChangesAsync(ct);
+
+                if (employeeRole != null)
+                {
+                    var usersRoles = createdUsers.Select(u => new UsersRoles
+                    {
+                        UserId = u.Id,
+                        RoleId = employeeRole.Id,
+                        CreatedBy = userId
+                    });
+                    await _db.UsersRoles.AddRangeAsync(usersRoles, ct);
+                    await _db.SaveChangesAsync(ct);
+                }
+            }
+
+            result.AutoCreatedEmployees.AddRange(newEmployees.Select(e => new AbsenceCreatedEmployeeDto
+            {
+                Matricule = e.Matricule?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+                FullName = $"{e.FirstName} {e.LastName}",
+                Email = e.Email
+            }));
+        }
+
+        stream.Position = 0;
     }
 
     private static async Task ParseCsvAbsences(
@@ -518,6 +761,48 @@ public class AbsenceImportService : IAbsenceImportService
             return true;
 
         return NormalizePersonName(imported) == NormalizePersonName(expected);
+    }
+
+    private static string BuildUsernameBase(string firstName, string lastName)
+    {
+        var raw = $"{firstName}.{lastName}";
+        var normalized = NormalizePersonName(raw);
+        return string.IsNullOrWhiteSpace(normalized) ? "user" : normalized;
+    }
+
+    private static string EnsureUnique(string baseValue, HashSet<string> existing, string fallback)
+    {
+        var seed = string.IsNullOrWhiteSpace(baseValue) ? fallback : baseValue;
+        var candidate = seed;
+        var suffix = 1;
+        while (existing.Contains(candidate))
+        {
+            candidate = $"{seed}{suffix}";
+            suffix++;
+        }
+        return candidate;
+    }
+
+    private static string EnsureUniqueEmail(string? preferredEmail, HashSet<string> existing, int companyId, int matricule)
+    {
+        var baseEmail = string.IsNullOrWhiteSpace(preferredEmail)
+            ? $"import.{companyId}.{matricule}@import.local"
+            : preferredEmail.Trim();
+
+        if (!existing.Contains(baseEmail))
+            return baseEmail;
+
+        var atIdx = baseEmail.IndexOf('@');
+        var local = atIdx > 0 ? baseEmail[..atIdx] : baseEmail;
+        var domain = atIdx > 0 ? baseEmail[atIdx..] : "@import.local";
+        var suffix = 1;
+        var candidate = $"{local}.{suffix}{domain}";
+        while (existing.Contains(candidate))
+        {
+            suffix++;
+            candidate = $"{local}.{suffix}{domain}";
+        }
+        return candidate;
     }
 
     private static string NormalizePersonName(string? input)

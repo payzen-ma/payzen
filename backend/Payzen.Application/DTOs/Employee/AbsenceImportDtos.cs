@@ -39,6 +39,11 @@ public class AbsenceImportResultDto
     /// Résultat de vérification des employés par ligne (existence + cohérence nom/prénom).
     /// </summary>
     public List<AbsenceEmployeeCheckDto> EmployeeChecks { get; set; } = new();
+
+    /// <summary>
+    /// Employés créés automatiquement depuis la feuille Nouveau_employés.
+    /// </summary>
+    public List<AbsenceCreatedEmployeeDto> AutoCreatedEmployees { get; set; } = new();
 }
 
 /// <summary>
@@ -109,4 +114,11 @@ public class AbsenceEmployeeCheckDto
     public bool IsLastNameMatch { get; set; }
     public bool IsFirstNameMatch { get; set; }
     public string Message { get; set; } = string.Empty;
+}
+
+public class AbsenceCreatedEmployeeDto
+{
+    public string Matricule { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
