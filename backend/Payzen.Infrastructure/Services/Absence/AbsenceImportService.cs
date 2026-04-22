@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.Interfaces;
+using Payzen.Domain.Entities.Auth;
 using Payzen.Domain.Entities.Employee;
 using Payzen.Domain.Enums;
 using Payzen.Infrastructure.Persistence;
@@ -432,8 +433,14 @@ public class AbsenceImportService : IAbsenceImportService
             .Where(e => e.CompanyId == companyId && e.Matricule.HasValue && e.DeletedAt == null)
             .Select(e => e.Matricule!.Value)
             .ToHashSetAsync(ct);
-
-        var nextMatricule = existingMatricules.Count == 0 ? 1 : existingMatricules.Max() + 1;
+        var existingCins = await _db.Employees.AsNoTracking()
+            .Where(e => e.CompanyId == companyId && e.DeletedAt == null && !string.IsNullOrWhiteSpace(e.CinNumber))
+            .Select(e => e.CinNumber!)
+            .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+        var company = await _db.Companies.FirstOrDefaultAsync(c => c.Id == companyId && c.DeletedAt == null, ct);
+        if (company == null)
+            return;
+        var nextMatricule = company.MatriculeNextValue <= 0 ? 1 : company.MatriculeNextValue;
 
         var newEmployees = new List<DomainEmployee>();
         foreach (var ws in wb.Worksheets)
@@ -459,7 +466,20 @@ public class AbsenceImportService : IAbsenceImportService
                 var prenom = GetCell(row, headerMap, "Prénom", "Prenom") ?? "N/A";
                 var cin = GetCell(row, headerMap, "CIN");
                 var phone = GetCell(row, headerMap, "Téléphone", "Telephone", "Phone");
-                var email = GetCell(row, headerMap, "Email", "Mail");
+                var email = GetCell(
+                    row,
+                    headerMap,
+                    "Email",
+                    "Mail",
+                    "E-mail",
+                    "Adresse email",
+                    "Email personnel",
+                    "E-mail personnel",
+                    "Email personal",
+                    "Email professionnel",
+                    "Email pro",
+                    "Courriel"
+                );
                 var dateNaissanceRaw = GetCell(row, headerMap, "Date de naissance", "DateNaissance", "Date naissance");
 
                 if (string.IsNullOrWhiteSpace(matriculeRaw) && string.IsNullOrWhiteSpace(nom) && string.IsNullOrWhiteSpace(prenom))
@@ -473,8 +493,6 @@ public class AbsenceImportService : IAbsenceImportService
                 }
                 else
                 {
-                    while (existingMatricules.Contains(nextMatricule))
-                        nextMatricule++;
                     matricule = nextMatricule;
                     nextMatricule++;
                 }
@@ -484,6 +502,8 @@ public class AbsenceImportService : IAbsenceImportService
 
                 var dateOfBirth = ParseDate(dateNaissanceRaw) ?? new DateOnly(1990, 1, 1);
                 var cinValue = string.IsNullOrWhiteSpace(cin) ? $"AUTO-{companyId}-{matricule}" : cin.Trim();
+                if (existingCins.Contains(cinValue))
+                    continue;
                 var phoneValue = string.IsNullOrWhiteSpace(phone) ? "0000000000" : phone.Trim();
                 var emailValue = string.IsNullOrWhiteSpace(email) ? $"import.{companyId}.{matricule}@import.local" : email.Trim();
 
@@ -503,13 +523,72 @@ public class AbsenceImportService : IAbsenceImportService
 
                 newEmployees.Add(employee);
                 existingMatricules.Add(matricule);
+                existingCins.Add(cinValue);
             }
         }
 
         if (newEmployees.Count > 0)
         {
             await _db.Employees.AddRangeAsync(newEmployees, ct);
+            company.MatriculeNextValue = nextMatricule;
             await _db.SaveChangesAsync(ct);
+
+            // Créer aussi les users liés aux nouveaux employés.
+            var employeeRole = await _db.Roles.AsNoTracking()
+                .FirstOrDefaultAsync(r =>
+                    (r.Name == "employee" || r.Name == "Employee")
+                    && r.DeletedAt == null, ct);
+
+            var existingUsernames = await _db.Users.AsNoTracking()
+                .Where(u => u.DeletedAt == null)
+                .Select(u => u.Username)
+                .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+
+            var existingUserEmails = await _db.Users.AsNoTracking()
+                .Where(u => u.DeletedAt == null)
+                .Select(u => u.Email)
+                .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, ct);
+
+            var createdUsers = new List<Users>();
+            foreach (var e in newEmployees)
+            {
+                var usernameBase = BuildUsernameBase(e.FirstName, e.LastName);
+                var username = EnsureUnique(usernameBase, existingUsernames, "user");
+                var email = EnsureUniqueEmail(e.Email, existingUserEmails, companyId, e.Matricule ?? 0);
+
+                var user = new Users
+                {
+                    EmployeeId = e.Id,
+                    Username = username,
+                    Email = email,
+                    EmailPersonal = e.PersonalEmail,
+                    IsActive = true,
+                    CreatedBy = userId
+                };
+
+                createdUsers.Add(user);
+                existingUsernames.Add(username);
+                existingUserEmails.Add(email);
+            }
+
+            if (createdUsers.Count > 0)
+            {
+                await _db.Users.AddRangeAsync(createdUsers, ct);
+                await _db.SaveChangesAsync(ct);
+
+                if (employeeRole != null)
+                {
+                    var usersRoles = createdUsers.Select(u => new UsersRoles
+                    {
+                        UserId = u.Id,
+                        RoleId = employeeRole.Id,
+                        CreatedBy = userId
+                    });
+                    await _db.UsersRoles.AddRangeAsync(usersRoles, ct);
+                    await _db.SaveChangesAsync(ct);
+                }
+            }
+
             result.AutoCreatedEmployees.AddRange(newEmployees.Select(e => new AbsenceCreatedEmployeeDto
             {
                 Matricule = e.Matricule?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
@@ -682,6 +761,48 @@ public class AbsenceImportService : IAbsenceImportService
             return true;
 
         return NormalizePersonName(imported) == NormalizePersonName(expected);
+    }
+
+    private static string BuildUsernameBase(string firstName, string lastName)
+    {
+        var raw = $"{firstName}.{lastName}";
+        var normalized = NormalizePersonName(raw);
+        return string.IsNullOrWhiteSpace(normalized) ? "user" : normalized;
+    }
+
+    private static string EnsureUnique(string baseValue, HashSet<string> existing, string fallback)
+    {
+        var seed = string.IsNullOrWhiteSpace(baseValue) ? fallback : baseValue;
+        var candidate = seed;
+        var suffix = 1;
+        while (existing.Contains(candidate))
+        {
+            candidate = $"{seed}{suffix}";
+            suffix++;
+        }
+        return candidate;
+    }
+
+    private static string EnsureUniqueEmail(string? preferredEmail, HashSet<string> existing, int companyId, int matricule)
+    {
+        var baseEmail = string.IsNullOrWhiteSpace(preferredEmail)
+            ? $"import.{companyId}.{matricule}@import.local"
+            : preferredEmail.Trim();
+
+        if (!existing.Contains(baseEmail))
+            return baseEmail;
+
+        var atIdx = baseEmail.IndexOf('@');
+        var local = atIdx > 0 ? baseEmail[..atIdx] : baseEmail;
+        var domain = atIdx > 0 ? baseEmail[atIdx..] : "@import.local";
+        var suffix = 1;
+        var candidate = $"{local}.{suffix}{domain}";
+        while (existing.Contains(candidate))
+        {
+            suffix++;
+            candidate = $"{local}.{suffix}{domain}";
+        }
+        return candidate;
     }
 
     private static string NormalizePersonName(string? input)

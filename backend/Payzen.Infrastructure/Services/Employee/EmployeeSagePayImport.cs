@@ -419,6 +419,11 @@ internal static class EmployeeSagePayImport
                         changes.Add("LastName");
                     if (existingEmployee.DateOfBirth != dateOfBirth)
                         changes.Add("DateOfBirth");
+                    if (
+                        !string.IsNullOrWhiteSpace(emailRaw)
+                        && !string.Equals(existingEmployee.Email?.Trim(), emailRaw, StringComparison.OrdinalIgnoreCase)
+                    )
+                        changes.Add("Email");
                     if (existingEmployee.MaritalStatusId != maritalStatusId)
                         changes.Add("MaritalStatus");
 
@@ -494,6 +499,32 @@ internal static class EmployeeSagePayImport
                                 ct
                             );
                             existingEmployee.DateOfBirth = dateOfBirth;
+                        }
+
+                        if (changes.Contains("Email"))
+                        {
+                            var previousEmail = existingEmployee.Email;
+                            await eventLog.LogSimpleEventAsync(
+                                existingEmployee.Id,
+                                EmployeeEventLogNames.EmailChanged,
+                                previousEmail,
+                                emailRaw,
+                                userId,
+                                ct
+                            );
+                            existingEmployee.Email = emailRaw;
+
+                            var linkedUser = await db.Users
+                                .FirstOrDefaultAsync(u => u.EmployeeId == existingEmployee.Id && u.DeletedAt == null, ct);
+                            if (linkedUser != null)
+                            {
+                                var emailAlreadyUsed = await db.Users.AnyAsync(
+                                    u => u.Id != linkedUser.Id && u.DeletedAt == null && u.Email == emailRaw,
+                                    ct
+                                );
+                                if (!emailAlreadyUsed)
+                                    linkedUser.Email = emailRaw;
+                            }
                         }
 
                         if (changes.Contains("MaritalStatus"))
