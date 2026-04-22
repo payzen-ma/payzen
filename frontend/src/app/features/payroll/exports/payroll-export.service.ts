@@ -10,8 +10,11 @@ export interface CnssPreetabliIssue {
 }
 
 export interface CnssPreetabliHeader {
+  natureRecordType: string;
   transferIdentifier: string;
   category: string;
+  reservedZoneA00: string;
+  globalHeaderRecordType: string;
   affiliateNumber: string;
   period: string;
   companyName: string;
@@ -26,17 +29,23 @@ export interface CnssPreetabliHeader {
 
 export interface CnssPreetabliEmployeeRow {
   lineNumber: number;
+  recordType: string;
   affiliateNumber: string;
   period: string;
   insuredNumber: string;
   fullName: string;
   childrenCount: number;
+  familyAllowanceToPayCentimes: number;
+  familyAllowanceToDeductCentimes: number;
+  familyAllowanceNetToPayCentimes: number;
   familyAllowanceToPay: number;
   familyAllowanceToDeduct: number;
   familyAllowanceNetToPay: number;
+  reservedZone: string;
 }
 
 export interface CnssPreetabliSummary {
+  recordType: string;
   affiliateNumber: string;
   period: string;
   employeeCount: number;
@@ -45,6 +54,7 @@ export interface CnssPreetabliSummary {
   totalFamilyAllowanceToDeduct: number;
   totalFamilyAllowanceNetToPay: number;
   totalInsuredNumbers: number;
+  reservedZone: string;
 }
 
 export interface CnssPreetabliParseResult {
@@ -116,10 +126,30 @@ export class PayrollExportService {
     );
   }
 
-  parseCnssPreetabli(file: File): Observable<CnssPreetabliParseResult> {
+  parseCnssPreetabli(companyId: number, file: File): Observable<CnssPreetabliParseResult> {
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post<CnssPreetabliParseResult>(`${this.cnssBaseUrl}/parse`, formData);
+    return this.http.post<CnssPreetabliParseResult>(
+      `${this.cnssBaseUrl}/parse?companyId=${encodeURIComponent(String(companyId))}`,
+      formData
+    );
+  }
+
+  getLatestCnssPreetabli(companyId: number, period?: string): Observable<CnssPreetabliParseResult> {
+    const periodQuery = period ? `&period=${encodeURIComponent(period)}` : '';
+    return this.http.get<CnssPreetabliParseResult>(
+      `${this.cnssBaseUrl}/latest?companyId=${encodeURIComponent(String(companyId))}${periodQuery}`
+    );
+  }
+
+  generateCnssBds(companyId: number, file: File): Observable<Blob> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post(
+      `${this.cnssBaseUrl}/generate-bds?companyId=${encodeURIComponent(String(companyId))}`,
+      formData,
+      { responseType: 'blob' }
+    );
   }
 
   /** Helper utilitaire : déclenche le téléchargement d'un Blob dans le navigateur */

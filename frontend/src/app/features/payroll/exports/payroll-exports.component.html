@@ -125,6 +125,24 @@
             <i class="pi pi-upload me-2"></i>
             Analyser le préétabli
           </app-button>
+          <app-button
+            variant="secondary"
+            size="sm"
+            [loading]="preetabliLoading()"
+            [disabled]="preetabliLoading()"
+            (onClick)="onLoadLatestPreetabli()">
+            <i class="pi pi-history me-2"></i>
+            Charger le dernier import
+          </app-button>
+          <app-button
+            variant="primary"
+            size="sm"
+            [loading]="preetabliLoading()"
+            [disabled]="preetabliLoading()"
+            (onClick)="onGenerateBds()">
+            <i class="pi pi-file-export me-2"></i>
+            Générer e-BDS CNSS
+          </app-button>
         </div>
 
         @if (preetabliResult(); as preetabli) {
@@ -132,10 +150,20 @@
           @if (preetabli.header) {
           <div class="preetabli-card">
             <h3>Entête (A00 / A01)</h3>
+            <p><strong>Type A00:</strong> {{ preetabli.header.natureRecordType }}</p>
+            <p><strong>Identifiant transfert:</strong> {{ preetabli.header.transferIdentifier }}</p>
+            <p><strong>Catégorie:</strong> {{ preetabli.header.category }}</p>
+            <p><strong>Type A01:</strong> {{ preetabli.header.globalHeaderRecordType }}</p>
             <p><strong>Affilié:</strong> {{ preetabli.header.affiliateNumber }}</p>
             <p><strong>Période:</strong> {{ preetabli.header.period }}</p>
             <p><strong>Société:</strong> {{ preetabli.header.companyName }}</p>
+            <p><strong>Activité:</strong> {{ preetabli.header.activity }}</p>
+            <p><strong>Adresse:</strong> {{ preetabli.header.address }}</p>
             <p><strong>Ville:</strong> {{ preetabli.header.city }}</p>
+            <p><strong>Code postal:</strong> {{ preetabli.header.postalCode }}</p>
+            <p><strong>Code agence:</strong> {{ preetabli.header.agencyCode }}</p>
+            <p><strong>Date émission:</strong> {{ preetabli.header.emissionDateRaw }}</p>
+            <p><strong>Date exigibilité:</strong> {{ preetabli.header.exigibilityDateRaw }}</p>
           </div>
           }
 
@@ -145,9 +173,16 @@
               <table class="preetabli-table">
                 <thead>
                   <tr>
+                    <th>Ligne</th>
+                    <th>Type</th>
+                    <th>Affilié</th>
+                    <th>Période</th>
                     <th>N° assuré</th>
                     <th>Nom / Prénom</th>
                     <th>Enfants</th>
+                    <th>AF payer (centimes)</th>
+                    <th>AF déduire (centimes)</th>
+                    <th>AF net (centimes)</th>
                     <th>AF à payer</th>
                     <th>AF à déduire</th>
                     <th>AF net à payer</th>
@@ -156,9 +191,16 @@
                 <tbody>
                   @for (row of preetabli.employees; track row.lineNumber) {
                   <tr>
+                    <td>{{ row.lineNumber }}</td>
+                    <td>{{ row.recordType }}</td>
+                    <td>{{ row.affiliateNumber }}</td>
+                    <td>{{ row.period }}</td>
                     <td>{{ row.insuredNumber }}</td>
                     <td>{{ row.fullName }}</td>
                     <td>{{ row.childrenCount }}</td>
+                    <td>{{ row.familyAllowanceToPayCentimes }}</td>
+                    <td>{{ row.familyAllowanceToDeductCentimes }}</td>
+                    <td>{{ row.familyAllowanceNetToPayCentimes }}</td>
                     <td>{{ row.familyAllowanceToPay | number:'1.2-2' }}</td>
                     <td>{{ row.familyAllowanceToDeduct | number:'1.2-2' }}</td>
                     <td>{{ row.familyAllowanceNetToPay | number:'1.2-2' }}</td>
@@ -172,9 +214,15 @@
           @if (preetabli.summary) {
           <div class="preetabli-card">
             <h3>Récapitulatif (A03)</h3>
+            <p><strong>Type:</strong> {{ preetabli.summary.recordType }}</p>
+            <p><strong>Affilié:</strong> {{ preetabli.summary.affiliateNumber }}</p>
+            <p><strong>Période:</strong> {{ preetabli.summary.period }}</p>
             <p><strong>Nombre salariés:</strong> {{ preetabli.summary.employeeCount }}</p>
             <p><strong>Total enfants:</strong> {{ preetabli.summary.totalChildren }}</p>
+            <p><strong>Total AF à payer:</strong> {{ preetabli.summary.totalFamilyAllowanceToPay | number:'1.2-2' }}</p>
+            <p><strong>Total AF à déduire:</strong> {{ preetabli.summary.totalFamilyAllowanceToDeduct | number:'1.2-2' }}</p>
             <p><strong>Total AF net:</strong> {{ preetabli.summary.totalFamilyAllowanceNetToPay | number:'1.2-2' }}</p>
+            <p><strong>Total numéros immatriculation:</strong> {{ preetabli.summary.totalInsuredNumbers }}</p>
           </div>
           }
 

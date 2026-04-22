@@ -221,3 +221,42 @@ public class PayComponentConfiguration : IEntityTypeConfiguration<PayComponent>
         entity.HasIndex(pc => pc.Code).IsUnique().HasFilter("[DeletedAt] IS NULL");
     }
 }
+
+public class CnssPreetabliImportConfiguration : IEntityTypeConfiguration<CnssPreetabliImport>
+{
+    public void Configure(EntityTypeBuilder<CnssPreetabliImport> entity)
+    {
+        entity.ToTable("CnssPreetabliImports");
+        entity.Property(x => x.FileName).IsRequired().HasMaxLength(300);
+        entity.Property(x => x.AffiliateNumber).IsRequired().HasMaxLength(20);
+        entity.Property(x => x.Period).IsRequired().HasMaxLength(6);
+        entity.Property(x => x.Status).IsRequired().HasMaxLength(30);
+        entity.HasIndex(x => new { x.CompanyId, x.Period, x.CreatedAt });
+        entity
+            .HasOne(x => x.Company)
+            .WithMany()
+            .HasForeignKey(x => x.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class CnssPreetabliLineConfiguration : IEntityTypeConfiguration<CnssPreetabliLine>
+{
+    public void Configure(EntityTypeBuilder<CnssPreetabliLine> entity)
+    {
+        entity.ToTable("CnssPreetabliLines");
+        entity.Property(x => x.AffiliateNumber).IsRequired().HasMaxLength(20);
+        entity.Property(x => x.Period).IsRequired().HasMaxLength(6);
+        entity.Property(x => x.InsuredNumber).HasMaxLength(20);
+        entity.Property(x => x.FullName).HasMaxLength(120);
+        entity.Property(x => x.FamilyAllowanceToPay).HasColumnType("decimal(18,2)");
+        entity.Property(x => x.FamilyAllowanceToDeduct).HasColumnType("decimal(18,2)");
+        entity.Property(x => x.FamilyAllowanceNetToPay).HasColumnType("decimal(18,2)");
+        entity.HasIndex(x => new { x.CnssPreetabliImportId, x.LineNumber });
+        entity
+            .HasOne(x => x.Import)
+            .WithMany(i => i.Lines)
+            .HasForeignKey(x => x.CnssPreetabliImportId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

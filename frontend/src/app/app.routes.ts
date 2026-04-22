@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import {
   authGuard,
+  adminRhGuard,
   cabinetGuard,
   ceoGuard,
   contextGuard,
@@ -101,7 +102,7 @@ export const routes: Routes = [
       {
         path: 'company',
         loadComponent: () => import('./features/company/company.component').then(m => m.CompanyComponent),
-        canActivate: [rhGuard]
+        canActivate: [adminRhGuard]
       },
       {
         path: 'employees',
@@ -178,7 +179,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/permissions/permission-management.component')
             .then(m => m.PermissionManagementComponent),
-        canActivate: [rhGuard],
+        canActivate: [adminRhGuard],
         title: 'Permission Management - PayZen'
       },
       // Salary Packages
@@ -345,7 +346,7 @@ export const routes: Routes = [
       {
         path: 'import',
         loadComponent: () => import('./features/import/import.component').then(m => m.ImportComponent),
-        canActivate: [rhGuard],
+        canActivate: [adminRhGuard],
         title: 'Importation - PayZen'
       }
     ]

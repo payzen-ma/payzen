@@ -311,6 +311,11 @@ export const adminGuard: CanActivateFn = createRoleGuard(['admin', 'admin_payzen
 export const rhGuard: CanActivateFn = createRoleGuard(['rh', 'admin_payzen']);
 
 /**
+ * Admin + RH Guard - For administration pages shared by account admins and RH.
+ */
+export const adminRhGuard: CanActivateFn = createRoleGuard(['admin', 'rh', 'admin_payzen']);
+
+/**
  * Manager Guard - RH, Manager, and Admin PayZen
  */
 export const managerGuard: CanActivateFn = createRoleGuard(['rh', 'manager', 'admin_payzen']);

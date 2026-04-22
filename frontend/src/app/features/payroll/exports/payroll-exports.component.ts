@@ -80,7 +80,12 @@ export class PayrollExportsComponent implements OnInit {
   }
 
   onParsePreetabli(): void {
+    const companyId = Number(this.contextService.companyId());
     const file = this.selectedPreetabliFile();
+    if (!companyId) {
+      this.errorMessage.set(this.translate.instant('payrollExportsPage.messages.noCompany'));
+      return;
+    }
     if (!file) {
       this.errorMessage.set('Veuillez sélectionner un fichier préétabli CNSS (.txt).');
       return;
@@ -89,7 +94,7 @@ export class PayrollExportsComponent implements OnInit {
     this.clearMessages();
     this.preetabliLoading.set(true);
     this.exportService
-      .parseCnssPreetabli(file)
+      .parseCnssPreetabli(companyId, file)
       .pipe(finalize(() => this.preetabliLoading.set(false)))
       .subscribe({
         next: (data) => {
@@ -99,6 +104,62 @@ export class PayrollExportsComponent implements OnInit {
         error: (err) => {
           this.preetabliResult.set(null);
           this.errorMessage.set(err?.error?.message ?? 'Erreur lors de l\'analyse du préétabli CNSS.');
+        }
+      });
+  }
+
+  onLoadLatestPreetabli(): void {
+    const companyId = Number(this.contextService.companyId());
+    if (!companyId) {
+      this.errorMessage.set(this.translate.instant('payrollExportsPage.messages.noCompany'));
+      return;
+    }
+
+    const period = `${this.selectedYear()}${String(this.selectedMonth()).padStart(2, '0')}`;
+    this.clearMessages();
+    this.preetabliLoading.set(true);
+    this.exportService
+      .getLatestCnssPreetabli(companyId, period)
+      .pipe(finalize(() => this.preetabliLoading.set(false)))
+      .subscribe({
+        next: (data) => {
+          this.preetabliResult.set(data);
+          this.successMessage.set('Dernier préétabli chargé depuis l\'historique.');
+        },
+        error: (err) => {
+          this.preetabliResult.set(null);
+          this.errorMessage.set(err?.error?.message ?? 'Aucun préétabli sauvegardé pour cette période.');
+        }
+      });
+  }
+
+  onGenerateBds(): void {
+    const companyId = Number(this.contextService.companyId());
+    const file = this.selectedPreetabliFile();
+    if (!companyId) {
+      this.errorMessage.set(this.translate.instant('payrollExportsPage.messages.noCompany'));
+      return;
+    }
+    if (!file) {
+      this.errorMessage.set('Veuillez sélectionner un fichier préétabli CNSS (.txt).');
+      return;
+    }
+
+    this.clearMessages();
+    this.preetabliLoading.set(true);
+    this.exportService
+      .generateCnssBds(companyId, file)
+      .pipe(finalize(() => this.preetabliLoading.set(false)))
+      .subscribe({
+        next: (blob) => {
+          PayrollExportService.triggerDownload(
+            blob,
+            `DS_CNSS_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.txt`
+          );
+          this.successMessage.set('Fichier e-BDS généré avec succès.');
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.message ?? 'Erreur lors de la génération e-BDS.');
         }
       });
   }
