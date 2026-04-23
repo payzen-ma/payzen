@@ -686,7 +686,7 @@ public class EmployeeService : IEmployeeService
         CancellationToken ct = default
     )
     {
-        var normalizedPhone = $"{dto.CountryPhoneCode.Trim()}{dto.Phone.Trim()}";
+        var normalizedPhone = $"{dto.Phone.Trim()}";
         var activeStatusId = await _db
             .Statuses.AsNoTracking()
             .Where(
