@@ -1,7 +1,16 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+
+export interface ModuleImportRequestParams {
+    month: number;
+    year: number;
+    mode?: 'monthly' | 'bi_monthly';
+    half?: number;
+    companyId?: number;
+    sendWelcomeEmail?: boolean;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -12,16 +21,35 @@ export class ImportService {
 
     constructor(private http: HttpClient) { }
 
-    /**
-     * Upload CSV file for import
-     * @param file CSV file to upload
-     * @returns Observable with import result
-     */
-    uploadCSV(file: File): Observable<any> {
+    uploadModuleFile(file: File, params: ModuleImportRequestParams): Observable<any> {
         const formData = new FormData();
         formData.append('file', file, file.name);
 
-        return this.http.post(`${this.baseUrl}/import/absences`, formData);
+        const search = new URLSearchParams();
+        search.set('month', String(params.month));
+        search.set('year', String(params.year));
+        search.set('mode', params.mode ?? 'monthly');
+
+        if (params.mode === 'bi_monthly' && (params.half === 1 || params.half === 2))
+            search.set('half', String(params.half));
+        if (params.companyId)
+            search.set('companyId', String(params.companyId));
+        search.set('sendWelcomeEmail', String(!!params.sendWelcomeEmail));
+
+        return this.http.post(`${this.baseUrl}/import/module?${search.toString()}`, formData);
+    }
+
+    downloadModuleTemplate(companyId?: number): Observable<HttpResponse<Blob>> {
+        const search = new URLSearchParams();
+        if (companyId)
+            search.set('companyId', String(companyId));
+
+        const qs = search.toString();
+        const url = `${this.baseUrl}/import/module/template${qs ? `?${qs}` : ''}`;
+        return this.http.get(url, {
+            responseType: 'blob',
+            observe: 'response'
+        });
     }
 
     /**

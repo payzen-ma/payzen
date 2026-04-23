@@ -13,13 +13,12 @@ using Payzen.Infrastructure.Services.Email;
 using Payzen.Infrastructure.Services.Employee;
 using Payzen.Infrastructure.Services.Employee.Breaks;
 using Payzen.Infrastructure.Services.EventLog;
+using Payzen.Infrastructure.Services.Import;
 using Payzen.Infrastructure.Services.Leave;
 using Payzen.Infrastructure.Services.LLM;
 using Payzen.Infrastructure.Services.Payroll;
 using Payzen.Infrastructure.Services.Public;
 using Payzen.Infrastructure.Services.Referentiel;
-using Payzen.Infrastructure.Services.Timesheet;
-using Payzen.Infrastructure.Services.Absence;
 
 namespace Payzen.Infrastructure;
 
@@ -106,11 +105,10 @@ public static class DependencyInjection
         // ── LLM (Gemini) ───────────────────────────────────────────────────────
         services.AddScoped<ILlmService, GeminiService>();
 
-        // ── Timesheet Import ───────────────────────────────────────────────────
-        services.AddScoped<ITimesheetImportService, TimesheetImportService>();
-
-        // ── Absence Import ────────────────────────────────────────────────────
-        services.AddScoped<IAbsenceImportService, AbsenceImportService>();
+        // ── Module Import ────────────────────────────────────────────────────
+        services.AddScoped<INewEmployeeImportService, NewEmployeeImportService>();
+        services.AddScoped<IModuleImportService, ModuleImportService>();
+        services.AddScoped<IImportTemplateService, ImportTemplateService>();
 
         // ── Documents ─────────────────────────────────────────────────────────
         services.AddScoped<IDocumentService, IronPdfDocumentService>();
