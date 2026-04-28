@@ -126,4 +126,58 @@
   height: 280px;
 }
 
+.position-dialog__header {
+  align-items: center;
+  display: flex;
+  width: 100%;
+}
+
+.position-dialog__header-main {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.position-dialog__header-icon {
+  align-items: center;
+  background: var(--status-info-light, #dbeafe);
+  border-radius: var(--radius-lg, 8px);
+  color: var(--primary-500);
+  display: flex;
+  flex-shrink: 0;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.position-dialog__header-text {
+  min-width: 0;
+}
+
+.position-dialog__title {
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.position-dialog__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 16px;
+  margin: 4px 0 0;
+}
+
+:host ::ng-deep .app-position-dialog .p-dialog-header {
+  background: var(--background-page, #f8fafc);
+  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+  padding: 16px 20px;
+}
+
+:host ::ng-deep .app-position-dialog .p-dialog-content {
+  padding: 0;
+}
+
 

@@ -118,6 +118,7 @@ public class NewEmployeeImportService : INewEmployeeImportService
             var phone = GetCell(row, map, "Téléphone", "Telephone", "Phone");
             var email = GetCell(row, map, "Email Personnel");
             var dateOfBirthRaw = GetCell(row, map, "Date de naissance", "DateNaissance", "Date naissance");
+            var genderRaw = GetCell(row, map, "Genre");
             var departmentRaw = GetCell(row, map, "Département", "Departement", "Department");
             var jobPositionRaw = GetCell(row, map, "Poste", "Emploi", "JobPosition", "Fonction");
             var contractTypeRaw = GetCell(row, map, "Type de contrat", "ContractType", "Contrat");
@@ -125,6 +126,14 @@ public class NewEmployeeImportService : INewEmployeeImportService
             var salaryRaw = GetCell(row, map, "Salaire", "Salaire de Base", "BaseSalary");
             var cnssRaw = GetCell(row, map, "CNSS", "Cnss");
             var cimrRaw = GetCell(row, map, "CIMR", "Cimr");
+            var ribRaw = GetCell(row, map, "RIB", "Rib", "RibNumber");
+            var categoryRaw = GetCell(row, map, "Catégorie", "Category");
+            var manager = GetCell(row, map, "Manager");
+            DateTime MaritalStatusChangeDate = DateTime.Now;
+            DateTime? ManagerChangeDate = DateTime.Now;
+            DateTime? CategoryChangeDate = DateTime.Now;
+
+
 
             if (
                 string.IsNullOrWhiteSpace(firstName)
@@ -196,6 +205,7 @@ public class NewEmployeeImportService : INewEmployeeImportService
 
             var startDate = ParseDateTime(startDateRaw);
             var salary = ParseDecimal(salaryRaw);
+            var ribNumber = ParseDecimal(ribRaw);
 
             var hasAnyContractField = jobPositionId.HasValue || contractTypeId.HasValue || startDate.HasValue;
             var hasCompleteContract = jobPositionId.HasValue && contractTypeId.HasValue && startDate.HasValue;
@@ -232,6 +242,27 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 continue;
             }
 
+            int? genderId = null;
+            if (!string.IsNullOrWhiteSpace(genderRaw))
+            {
+                var genderKey = Normalize(genderRaw);
+                var gender = await _db.Genders.AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.DeletedAt == null && g.NameFr == genderKey, ct);
+                if (gender == null)
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = $"Genre introuvable: '{genderRaw}'." });
+                    continue;
+                }
+                genderId = gender.Id;
+                if (!gender.IsActive)
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = $"Genre inactif: '{genderRaw}'." });
+                    continue;
+                }
+            }
+
             var dto = new EmployeeCreateDto
             {
                 FirstName = firstName.Trim(),
@@ -241,6 +272,7 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 Phone = NormalizePhone(phone),
                 CountryPhoneCode = "+212",
                 Email = string.IsNullOrWhiteSpace(email) ? $"import.{targetCompanyId}.{r}@import.local" : email.Trim(),
+                GenderId = genderId,
                 CompanyId = targetCompanyId,
                 StatusId = activeStatus.Id,
                 DepartementId = departementId,
@@ -250,6 +282,7 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 Salary = salary,
                 CnssNumber = string.IsNullOrWhiteSpace(cnssRaw) ? null : cnssRaw.Trim(),
                 CimrNumber = string.IsNullOrWhiteSpace(cimrRaw) ? null : cimrRaw.Trim(),
+                RibNumber = ribNumber,
                 // Contrôle explicite de création de compte + email de bienvenue pendant l'import.
                 CreateUserAccount = sendWelcomeEmail,
                 InviteRoleId = sendWelcomeEmail ? employeeRoleId : null,

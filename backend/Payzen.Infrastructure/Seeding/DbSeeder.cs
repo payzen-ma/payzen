@@ -971,7 +971,8 @@ public static class DbSeeder
 
         var permissionIds = await db
             .Permissions.Where(p =>
-                p.DeletedAt == null && (p.Resource == "users" || p.Resource == "roles" || p.Resource == "users-roles")
+                p.DeletedAt == null && (p.Resource == "users" ||
+                p.Resource == "roles" || p.Resource == "users-roles" || p.Resource == "permissions" || p.Resource == "roles-permissions")
             )
             .Select(p => p.Id)
             .ToListAsync(ct);

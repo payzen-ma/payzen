@@ -156,7 +156,14 @@ public class ModuleImportService : IModuleImportService
             return null;
 
         var joined = string.Join(" ", headers);
-        if (joined.Contains("datenaissance") || joined.Contains("cin") || joined.Contains("telephone"))
+        if (
+            joined.Contains("datenaissance")
+            || joined.Contains("cin")
+            || joined.Contains("telephone")
+            || joined.Contains("cnss")
+            || joined.Contains("cimr")
+            || joined.Contains("rib")
+        )
             return "nouveaux_employes";
 
         return null;

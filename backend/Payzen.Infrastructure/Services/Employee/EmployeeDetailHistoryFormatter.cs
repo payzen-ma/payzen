@@ -205,6 +205,10 @@ internal static class EmployeeDetailHistoryFormatter
             EmployeeEventLogNames.EducationLevelChanged => "Modification du niveau d'éducation",
             EmployeeEventLogNames.CnssNumberChanged => "Modification du numéro CNSS",
             EmployeeEventLogNames.CimrNumberChanged => "Modification du numéro CIMR",
+            EmployeeEventLogNames.RibNumberChanged => "Modification du RIB",
+            EmployeeEventLogNames.DocumentAdded => "Ajout d'un document",
+            EmployeeEventLogNames.DocumentUpdated => "Modification d'un document",
+            EmployeeEventLogNames.DocumentDeleted => "Suppression d'un document",
             EmployeeEventLogNames.ContractTypeChanged => "Modification du type de contrat",
             _ => "Modification",
         };

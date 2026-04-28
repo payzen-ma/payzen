@@ -12,13 +12,19 @@ namespace Payzen.Infrastructure.Services.Payroll;
 
 public class CnssBdsService : ICnssBdsService
 {
-    private const long SmigMonthlyCentimes = 184_184;
+    private const long SmigMonthlyCentimes = 342_272L ;
     private readonly ICnssPreetabliService _preetabliService;
+    private readonly ICnssFamilyAllowancePolicy _familyAllowancePolicy;
     private readonly AppDbContext _db;
 
-    public CnssBdsService(ICnssPreetabliService preetabliService, AppDbContext db)
+    public CnssBdsService(
+        ICnssPreetabliService preetabliService,
+        ICnssFamilyAllowancePolicy familyAllowancePolicy,
+        AppDbContext db
+    )
     {
         _preetabliService = preetabliService;
+        _familyAllowancePolicy = familyAllowancePolicy;
         _db = db;
     }
 
@@ -40,6 +46,9 @@ public class CnssBdsService : ICnssBdsService
         var payrollResults = await _db
             .PayrollResults.AsNoTracking()
             .Include(p => p.Employee)
+            .ThenInclude(e => e.Children)
+            .Include(p => p.Employee)
+            .ThenInclude(e => e.Status)
             .Where(p =>
                 p.CompanyId == companyId
                 && p.Year == year
@@ -54,10 +63,31 @@ public class CnssBdsService : ICnssBdsService
             .GroupBy(p => NormalizeImmatriculation(p.Employee.CnssNumber!))
             .ToDictionary(g => g.Key, g => g.First());
 
-        var b02Details = BuildB02Details(data.Employees, payrollByCnss, data.Header.AffiliateNumber, data.Header.Period);
+        var periodStart = new DateOnly(year, month, 1);
+        var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+        var deductedDaysByEmployee = await BuildDeductedDaysByEmployeeAsync(
+            payrollResults.Select(p => p.EmployeeId).Distinct().ToList(),
+            periodStart,
+            periodEnd,
+            ct
+        );
+
+        var b02Details = BuildB02Details(
+            data.Employees,
+            payrollByCnss,
+            deductedDaysByEmployee,
+            data.Header.AffiliateNumber,
+            data.Header.Period
+        );
         var b03 = BuildB03(b02Details, data.Header.AffiliateNumber, data.Header.Period);
 
-        var entrants = BuildEntrants(payrollResults, data.Employees, data.Header.AffiliateNumber, data.Header.Period);
+        var entrants = BuildEntrants(
+            payrollResults,
+            data.Employees,
+            deductedDaysByEmployee,
+            data.Header.AffiliateNumber,
+            data.Header.Period
+        );
         var b05 = BuildB05(entrants, data.Header.AffiliateNumber, data.Header.Period);
         var b06 = BuildB06(b03, b05, data.Header.AffiliateNumber, data.Header.Period);
 
@@ -79,6 +109,8 @@ public class CnssBdsService : ICnssBdsService
         lines.AddRange(entrants.Select(BuildB04));
         lines.Add(BuildB05Line(b05));
         lines.Add(BuildB06Line(b06));
+        // AJout un nouveau ligne a la fin
+        lines.Add("");
 
         var content = string.Join("\n", lines);
         var fileName = $"DS_{data.Header.AffiliateNumber}_{month:D2}{year}.txt";
@@ -122,9 +154,10 @@ public class CnssBdsService : ICnssBdsService
         );
     }
 
-    private static List<B02LineModel> BuildB02Details(
+    private List<B02LineModel> BuildB02Details(
         List<CnssPreetabliEmployeeRowDto> preetabliRows,
         Dictionary<string, PayrollResult> payrollByCnss,
+        Dictionary<int, decimal> deductedDaysByEmployee,
         string affiliateNumber,
         string period
     )
@@ -135,11 +168,22 @@ public class CnssBdsService : ICnssBdsService
             var key = NormalizeImmatriculation(row.InsuredNumber);
             payrollByCnss.TryGetValue(key, out var payroll);
 
-            var jours = payroll != null ? 26 : 0;
+            var jours = payroll != null
+                ? ComputeDeclaredDays(deductedDaysByEmployee.GetValueOrDefault(payroll.EmployeeId))
+                : 0;
             var salaireReel = payroll != null ? ToCentimes(payroll.TotalBrut ?? 0m) : 0L;
             var salairePlaf = payroll != null ? Math.Min(ToCentimes(payroll.CnssBase ?? payroll.TotalBrut ?? 0m), 999_999_999L) : 0L;
-            var situation = payroll != null ? "" : "MS";
-            var afReverser = 0L;
+            var enfantsFromDb = payroll != null ? _familyAllowancePolicy.ResolveDependentChildren(payroll) : 0;
+            var enfants = payroll != null ? enfantsFromDb : row.ChildrenCount;
+            var afPayer = payroll != null
+                ? _familyAllowancePolicy.ComputeFamilyAllowanceToPayCentimes(payroll, enfants)
+                : row.FamilyAllowanceToPayCentimes;
+            var afDeduire = payroll != null
+                ? _familyAllowancePolicy.ComputeFamilyAllowanceToDeductCentimes(payroll)
+                : row.FamilyAllowanceToDeductCentimes;
+            var afNet = Math.Max(0, afPayer - afDeduire);
+            var situation = payroll != null ? _familyAllowancePolicy.ResolveSituation(payroll) : "MS";
+            var afReverser = _familyAllowancePolicy.ComputeFamilyAllowanceToReverseCentimes(situation, afNet);
             var ctr = ToLong(row.InsuredNumber) + afReverser + jours + salaireReel + salairePlaf + SituationRank(situation);
 
             list.Add(new B02LineModel
@@ -148,10 +192,10 @@ public class CnssBdsService : ICnssBdsService
                 Period = period,
                 NumAssure = key,
                 NomPrenom = row.FullName,
-                Enfants = row.ChildrenCount,
-                AfPayer = row.FamilyAllowanceToPayCentimes,
-                AfDeduire = row.FamilyAllowanceToDeductCentimes,
-                AfNet = row.FamilyAllowanceNetToPayCentimes,
+                Enfants = enfants,
+                AfPayer = afPayer,
+                AfDeduire = afDeduire,
+                AfNet = afNet,
                 AfReverser = afReverser,
                 Jours = jours,
                 SalaireReel = salaireReel,
@@ -229,6 +273,7 @@ public class CnssBdsService : ICnssBdsService
     private static List<B04LineModel> BuildEntrants(
         List<PayrollResult> payrollResults,
         List<CnssPreetabliEmployeeRowDto> preetabliRows,
+        Dictionary<int, decimal> deductedDaysByEmployee,
         string affiliateNumber,
         string period
     )
@@ -246,7 +291,7 @@ public class CnssBdsService : ICnssBdsService
                 var numAssure = NormalizeImmatriculation(p.Employee.CnssNumber);
                 var salReel = ToCentimes(p.TotalBrut ?? 0m);
                 var salPlaf = Math.Min(ToCentimes(p.CnssBase ?? p.TotalBrut ?? 0m), 999_999_999L);
-                var jours = 26;
+                var jours = ComputeDeclaredDays(deductedDaysByEmployee.GetValueOrDefault(p.EmployeeId));
                 var ctr = ToLong(numAssure) + jours + salReel + salPlaf;
                 return new B04LineModel
                 {
@@ -410,6 +455,124 @@ public class CnssBdsService : ICnssBdsService
             return 0;
         var digits = new string(value.Where(char.IsDigit).ToArray());
         return long.TryParse(digits, out var parsed) ? parsed : 0;
+    }
+
+    private async Task<Dictionary<int, decimal>> BuildDeductedDaysByEmployeeAsync(
+        IReadOnlyCollection<int> employeeIds,
+        DateOnly periodStart,
+        DateOnly periodEnd,
+        CancellationToken ct
+    )
+    {
+        if (employeeIds.Count == 0)
+            return new Dictionary<int, decimal>();
+
+        var absences = await _db
+            .EmployeeAbsences.AsNoTracking()
+            .Where(a =>
+                employeeIds.Contains(a.EmployeeId)
+                && a.Status == AbsenceStatus.Approved
+                && a.AbsenceDate >= periodStart
+                && a.AbsenceDate <= periodEnd
+                && a.DeletedAt == null
+            )
+            .Select(a => new
+            {
+                a.EmployeeId,
+                a.DurationType,
+                a.StartTime,
+                a.EndTime,
+            })
+            .ToListAsync(ct);
+
+        var leaves = await _db
+            .LeaveRequests.AsNoTracking()
+            .Where(l =>
+                employeeIds.Contains(l.EmployeeId)
+                && l.Status == LeaveRequestStatus.Approved
+                && l.StartDate <= periodEnd
+                && l.EndDate >= periodStart
+                && l.DeletedAt == null
+            )
+            .Select(l => new
+            {
+                l.EmployeeId,
+                l.StartDate,
+                l.EndDate,
+                l.WorkingDaysDeducted,
+            })
+            .ToListAsync(ct);
+
+        var result = employeeIds.ToDictionary(id => id, _ => 0m);
+
+        foreach (var absence in absences)
+            result[absence.EmployeeId] += ToAbsenceDays(absence.DurationType, absence.StartTime, absence.EndTime);
+
+        foreach (var leave in leaves)
+            result[leave.EmployeeId] += ProrateLeaveDaysToPeriod(
+                leave.WorkingDaysDeducted,
+                leave.StartDate,
+                leave.EndDate,
+                periodStart,
+                periodEnd
+            );
+
+        return result;
+    }
+
+    private static int ComputeDeclaredDays(decimal deductedDays)
+    {
+        var remaining = 26m - Math.Max(0m, deductedDays);
+        var rounded = (int)Math.Round(remaining, MidpointRounding.AwayFromZero);
+        return Math.Clamp(rounded, 0, 26);
+    }
+
+    private static decimal ToAbsenceDays(AbsenceDurationType durationType, TimeOnly? startTime, TimeOnly? endTime)
+    {
+        return durationType switch
+        {
+            AbsenceDurationType.FullDay => 1m,
+            AbsenceDurationType.HalfDay => 0.5m,
+            AbsenceDurationType.Hourly => ToHourlyAbsenceDays(startTime, endTime),
+            _ => 0m,
+        };
+    }
+
+    private static decimal ToHourlyAbsenceDays(TimeOnly? startTime, TimeOnly? endTime)
+    {
+        if (!startTime.HasValue || !endTime.HasValue)
+            return 0m;
+
+        var hours = (decimal)(endTime.Value.ToTimeSpan() - startTime.Value.ToTimeSpan()).TotalHours;
+        if (hours <= 0m)
+            return 0m;
+
+        // Convention: 1 jour ouvré = 8 heures.
+        return Math.Min(1m, hours / 8m);
+    }
+
+    private static decimal ProrateLeaveDaysToPeriod(
+        decimal workingDaysDeducted,
+        DateOnly leaveStart,
+        DateOnly leaveEnd,
+        DateOnly periodStart,
+        DateOnly periodEnd
+    )
+    {
+        if (workingDaysDeducted <= 0m || leaveEnd < leaveStart)
+            return 0m;
+
+        var overlapStart = leaveStart > periodStart ? leaveStart : periodStart;
+        var overlapEnd = leaveEnd < periodEnd ? leaveEnd : periodEnd;
+        if (overlapEnd < overlapStart)
+            return 0m;
+
+        var totalSpanDays = leaveEnd.DayNumber - leaveStart.DayNumber + 1;
+        if (totalSpanDays <= 0)
+            return 0m;
+
+        var overlapDays = overlapEnd.DayNumber - overlapStart.DayNumber + 1;
+        return workingDaysDeducted * overlapDays / totalSpanDays;
     }
 
     private static int SituationRank(string situation) =>

@@ -1433,6 +1433,7 @@
         "cnss": "CNSS",
         "amo": "AMO",
         "cimr": "CIMR",
+        "rib": "RIB",
         "cimrEmployeeRate": "Taux CIMR Employé",
         "cimrCompanyRate": "Taux CIMR Employeur",
         "hasPrivateInsurance": "Assurance Privée",

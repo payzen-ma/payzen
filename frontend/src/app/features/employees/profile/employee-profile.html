@@ -862,6 +862,17 @@
                 </div>
 
                 <div class="form-field">
+                  <label class="form-label">{{ 'employees.profile.legal.rib' | translate }}</label>
+                  @if (isEditMode()) {
+                  <p-inputnumber [ngModel]="employee().ribNumber"
+                    (ngModelChange)="updateField('ribNumber', $event ?? null)" [useGrouping]="false" [min]="0"
+                    styleClass="w-full" inputStyleClass="w-full input"></p-inputnumber>
+                  } @else {
+                  <p class="read-only-value">{{ employee().ribNumber ?? '-' }}</p>
+                  }
+                </div>
+
+                <div class="form-field">
                   <label class="form-label">{{ 'employees.profile.legal.cimrEmployeeRate' | translate }}</label>
                   @if (isEditMode()) {
                   <p-inputnumber [ngModel]="employee().cimrEmployeeRate"

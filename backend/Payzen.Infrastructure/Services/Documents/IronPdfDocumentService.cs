@@ -583,7 +583,7 @@ public class IronPdfDocumentService : IDocumentService
 "
         );
         string matricule = payroll.Employee.Matricule?.ToString() ?? payroll.EmployeeId.ToString();
-        string matriculeTemplate = payroll.Employee.Company?.MatriculeTemplate.ToUpper();
+        string? matriculeTemplate = payroll.Employee.Company?.MatriculeTemplate?.ToUpperInvariant();
         string resultMatricule;
 
         if (!string.IsNullOrEmpty(matriculeTemplate))

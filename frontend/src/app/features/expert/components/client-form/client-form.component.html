@@ -70,13 +70,29 @@
           <input pInputText formControlName="address" class="input" />
         </div>
 
+        <!-- Country -->
+        <div class="form-field">
+          <app-select-field
+            formControlName="countryId"
+            label="Pays"
+            [requiredMark]="true"
+            [options]="countries()"
+            optionLabel="label"
+            optionValue="id"
+            variant="autocomplete"
+            [placeholder]="'Choisir un pays'"
+            [showClear]="true"
+            (searchQuery)="onCountrySearch($event)"
+          ></app-select-field>
+        </div>
+
         <!-- City -->
         <div class="form-field">
           <app-select-field
             formControlName="city"
             [label]="'company.info.city' | translate"
             [requiredMark]="true"
-            [options]="cities()"
+            [options]="getFilteredCities()"
             optionLabel="label"
             optionValue="label"
             variant="autocomplete"

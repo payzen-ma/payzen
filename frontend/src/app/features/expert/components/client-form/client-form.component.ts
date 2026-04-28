@@ -7,7 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Company, CompanyCreateByExpertDto } from '@app/core/models/company.model';
 import { CompanyService } from '@app/core/services/company.service';
 import { AuthService } from '@app/core/services/auth.service';
-import { EmployeeService, CityLookupOption } from '@app/core/services/employee.service';
+import { EmployeeService, CityLookupOption, CountryLookupOption } from '@app/core/services/employee.service';
 import { SelectFieldComponent } from '@app/shared/components/form-controls/select-field';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -47,14 +47,47 @@ export class ClientFormComponent implements OnInit {
 
   // City search
   cities = signal<CityLookupOption[]>([]);
+  countries = signal<CountryLookupOption[]>([]);
   citiesLoading = signal<boolean>(false);
+  countriesLoading = signal<boolean>(false);
 
   ngOnInit(): void {
     this.initForm();
+    this.loadInitialCountries();
     this.loadInitialCities();
     if (this.mode === 'edit' && this.company) {
       this.patchForm();
     }
+  }
+
+  private loadInitialCountries(): void {
+    this.countriesLoading.set(true);
+    this.employeeService.searchCountries('').subscribe({
+      next: (countries) => {
+        this.countries.set(countries);
+        this.countriesLoading.set(false);
+
+        // Default to Morocco when creating.
+        if (this.mode === 'create') {
+          const morocco = countries.find(c => c.label.toLowerCase() === 'maroc');
+          if (morocco) {
+            this.form.patchValue({ countryId: morocco.id });
+          } else if (countries.length > 0) {
+            this.form.patchValue({ countryId: countries[0].id });
+          }
+        }
+
+        if (this.mode === 'edit' && this.company?.country) {
+          const selected = countries.find(c => c.label.toLowerCase() === this.company!.country.toLowerCase());
+          if (selected) {
+            this.form.patchValue({ countryId: selected.id });
+          }
+        }
+      },
+      error: () => {
+        this.countriesLoading.set(false);
+      }
+    });
   }
 
   private loadInitialCities(): void {
@@ -83,9 +116,23 @@ export class ClientFormComponent implements OnInit {
     });
   }
 
+  onCountrySearch(query: string): void {
+    this.countriesLoading.set(true);
+    this.employeeService.searchCountries(query).subscribe({
+      next: (countries) => {
+        this.countries.set(countries);
+        this.countriesLoading.set(false);
+      },
+      error: () => {
+        this.countriesLoading.set(false);
+      }
+    });
+  }
+
   onCreateCity(cityName: string): void {
     this.citiesLoading.set(true);
-    this.employeeService.createCity(cityName).subscribe({
+    const selectedCountryId = this.form.get('countryId')?.value as number | null;
+    this.employeeService.createCity(cityName, selectedCountryId ?? undefined).subscribe({
       next: (newCity) => {
         // Add the new city to the list
         this.cities.update(cities => [...cities, newCity]);
@@ -107,12 +154,17 @@ export class ClientFormComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       address: ['', [Validators.required]],
+      countryId: [null, [Validators.required]],
       city: ['', [Validators.required]],
       ice: [''],
       cnss: ['', [Validators.required]],
       rc: [''],
       if: [''],
       rib: ['']
+    });
+
+    this.form.get('countryId')?.valueChanges.subscribe(() => {
+      this.form.patchValue({ city: '' }, { emitEvent: false });
     });
   }
 
@@ -131,6 +183,14 @@ export class ClientFormComponent implements OnInit {
       if: this.company.if,
       rib: this.company.rib
     });
+  }
+
+  getFilteredCities(): CityLookupOption[] {
+    const selectedCountryId = this.form.get('countryId')?.value as number | null;
+    if (!selectedCountryId) {
+      return this.cities();
+    }
+    return this.cities().filter(city => city.countryId === selectedCountryId);
   }
 
   onSubmit(): void {
@@ -169,7 +229,7 @@ export class ClientFormComponent implements OnInit {
       CompanyPhoneNumber: formValue.phone,
       CompanyAddress: formValue.address,
       CityName: formValue.city,
-      CountryId: 1, // Default to Morocco
+      CountryId: Number(formValue.countryId),
       CnssNumber: formValue.cnss,
       ManagedByCompanyId: Number(expertCompanyId),
       AdminFirstName: 'N/A',

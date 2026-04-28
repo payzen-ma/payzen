@@ -112,6 +112,7 @@ export interface Employee {
   cnss: string;
   amo: string;
   cimr?: string;
+  ribNumber?: number | null;
   cimrEmployeeRate?: number | null;
   cimrCompanyRate?: number | null;
   cimrRatesChangeDate?: string | null;

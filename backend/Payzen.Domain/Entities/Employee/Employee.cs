@@ -26,6 +26,7 @@ public class Employee : BaseEntity
     public DateOnly? CategoryChangeDate { get; set; }
     public string? CnssNumber { get; set; }
     public string? CimrNumber { get; set; }
+    public decimal? RibNumber { get; set; }
     public decimal? CimrEmployeeRate { get; set; }
     public decimal? CimrCompanyRate { get; set; }
     public DateOnly? CimrRatesChangeDate { get; set; }

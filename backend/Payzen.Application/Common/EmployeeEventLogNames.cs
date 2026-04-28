@@ -29,5 +29,9 @@ public static class EmployeeEventLogNames
     public const string EducationLevelChanged = "EducationLevelChanged";
     public const string CnssNumberChanged = "CnssNumberChanged";
     public const string CimrNumberChanged = "CimrNumberChanged";
+    public const string RibNumberChanged = "RibNumberChanged";
+    public const string DocumentAdded = "DocumentAdded";
+    public const string DocumentUpdated = "DocumentUpdated";
+    public const string DocumentDeleted = "DocumentDeleted";
     public const string ContractTypeChanged = "ContractTypeChanged";
 }

@@ -1364,6 +1364,7 @@
         "cnss": "CNSS",
         "amo": "AMO",
         "cimr": "CIMR",
+        "rib": "RIB",
         "cimrEmployeeRate": "نسبة CIMR للموظف",
         "cimrCompanyRate": "نسبة CIMR للمشغل",
         "hasPrivateInsurance": "تأمين خاص",

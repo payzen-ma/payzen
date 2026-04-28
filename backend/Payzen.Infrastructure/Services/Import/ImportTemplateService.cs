@@ -92,10 +92,10 @@ public class ImportTemplateService : IImportTemplateService
             .Select(m => m.NameFr)
             .ToListAsync(ct);
 
-        var situation_familiale = await _db.MaritalStatuses.AsNoTracking()
-            .Where(m => m.DeletedAt == null)
-            .OrderBy(m => m.NameFr)
-            .Select(m => m.NameFr)
+        var categories = await _db.EmployeeCategories.AsNoTracking()
+            .Where(c => c.CompanyId == targetCompanyId && c.DeletedAt == null)
+            .OrderBy(c => c.Name)
+            .Select(c => c.Name)
             .ToListAsync(ct);
 
         using var wb = new XLWorkbook();
@@ -120,9 +120,11 @@ public class ImportTemplateService : IImportTemplateService
             "Manager",
             "Type de contrat",
             "Date d'entrée",
+            "Catégorie",
             "Salaire",
             "CNSS",
             "CIMR",
+            "RIB",
             "Pays",
             "Ville",
         };
@@ -149,6 +151,8 @@ public class ImportTemplateService : IImportTemplateService
         FillListColumn(listSheet, 6, "SituationsFamiliales", maritalStatuses);
         FillListColumn(listSheet, 7, "NiveauxEducation", educationLevels);
         FillListColumn(listSheet, 8, "Pays", countries.Select(c => c.CountryName).ToList());
+        FillListColumn(listSheet, 9, "Categories", categories);
+        FillListColumn(listSheet, 10, "PaysRangeKeys", countries.Select(c => ToExcelRangeName(c.CountryName)).ToList());
 
         var citySheet = wb.Worksheets.Add("_cities");
         citySheet.Visibility = XLWorksheetVisibility.VeryHidden;
@@ -181,10 +185,26 @@ public class ImportTemplateService : IImportTemplateService
         AddValidation(ws, "K2:K500", listSheet, 2, jobPositions.Count);
         AddValidation(ws, "L2:L500", listSheet, 4, managers.Count);
         AddValidation(ws, "M2:M500", listSheet, 3, contractTypes.Count);
-        AddValidation(ws, "R2:R500", listSheet, 8, countries.Count);
-        AddDependentCityValidation(ws, "S2:S500", "R");
+        AddValidation(ws, "O2:O500", listSheet, 9, categories.Count);
+        AddValidation(ws, "T2:T500", listSheet, 8, countries.Count);
 
+        // Colonne d'aide masquée: mappe le pays choisi vers le nom de plage "cities_*".
+        if (countries.Count > 0)
+        {
+            var lastCountryRow = countries.Count + 1;
+            for (var row = 2; row <= 500; row++)
+            {
+                ws.Cell(row, 22).FormulaA1 =
+                    $"IFERROR(INDEX('_lists'!$J$2:$J${lastCountryRow},MATCH($T{row},'_lists'!$H$2:$H${lastCountryRow},0)),\"\")";
+            }
+            ws.Column(22).Hide();
+        }
+
+        AddDependentCityValidation(ws, "U2:U500", "V");
+
+        // Nouveaux employées logique fini ici
         // Pour chaque nouvelle feuille, c'est ici qu'on commence
+        // Cette feuille est pour les changements d'employés
 
         var changesSheet = wb.Worksheets.Add("Employees Changes");
 
@@ -201,6 +221,7 @@ public class ImportTemplateService : IImportTemplateService
             "Salaire",
             "CNSS",
             "CIMR",
+            "RIB",
             "Pays",
             "Ville",
             "Education",
@@ -246,7 +267,8 @@ public class ImportTemplateService : IImportTemplateService
         using var ms = new MemoryStream();
         wb.SaveAs(ms);
 
-        var fileName = $"template_import{Slugify(company.CompanyName)}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
+        var fileName = $"import_changes_{Slugify(company.CompanyName)}_{DateTime.UtcNow:yyyyMMdd}.xlsx";
+        Console.WriteLine($"Template Name is : {fileName}");
         return ServiceResult<(byte[] Content, string FileName)>.Ok((ms.ToArray(), fileName));
     }
 
@@ -271,9 +293,9 @@ public class ImportTemplateService : IImportTemplateService
         validation.InCellDropdown = true;
     }
 
-    private static void AddDependentCityValidation(IXLWorksheet targetSheet, string rangeAddress, string countryColumnLetter)
+    private static void AddDependentCityValidation(IXLWorksheet targetSheet, string rangeAddress, string helperColumnLetter)
     {
-        var formula = $"INDIRECT(\"cities_\"&SUBSTITUTE(${countryColumnLetter}2,\" \",\"_\"))";
+        var formula = $"INDIRECT(${helperColumnLetter}2)";
         var validation = targetSheet.Range(rangeAddress).CreateDataValidation();
         validation.List(formula, true);
         validation.IgnoreBlanks = true;

@@ -640,11 +640,13 @@ public class EmployeeDocumentService : IEmployeeDocumentService
 {
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
+    private readonly IEmployeeEventLogService _eventLog;
 
-    public EmployeeDocumentService(AppDbContext db, IWebHostEnvironment env)
+    public EmployeeDocumentService(AppDbContext db, IWebHostEnvironment env, IEmployeeEventLogService eventLog)
     {
         _db = db;
         _env = env;
+        _eventLog = eventLog;
     }
 
     public async Task<ServiceResult<IEnumerable<EmployeeDocumentReadDto>>> GetAllAsync(CancellationToken ct = default)
@@ -708,6 +710,14 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         _db.EmployeeDocuments.Add(d);
         await _db.SaveChangesAsync(ct);
         var created = await _db.EmployeeDocuments.Include(x => x.Employee).FirstAsync(x => x.Id == d.Id, ct);
+        await _eventLog.LogSimpleEventAsync(
+            created.EmployeeId,
+            EmployeeEventLogNames.DocumentAdded,
+            null,
+            $"{created.DocumentType}: {created.Name}",
+            createdBy,
+            ct
+        );
         return ServiceResult<EmployeeDocumentReadDto>.Ok(Map(created));
     }
 
@@ -721,6 +731,7 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         var d = await _db.EmployeeDocuments.FindAsync(new object[] { id }, ct);
         if (d == null || d.DeletedAt != null)
             return ServiceResult<EmployeeDocumentReadDto>.Fail("Document introuvable.");
+        var oldSummary = $"{d.DocumentType}: {d.Name}";
         if (dto.Name != null)
             d.Name = dto.Name;
         if (dto.FilePath != null)
@@ -732,6 +743,18 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         d.UpdatedBy = updatedBy;
         await _db.SaveChangesAsync(ct);
         var updated = await _db.EmployeeDocuments.Include(x => x.Employee).FirstAsync(x => x.Id == id, ct);
+        var newSummary = $"{updated.DocumentType}: {updated.Name}";
+        if (!string.Equals(oldSummary, newSummary, StringComparison.Ordinal))
+        {
+            await _eventLog.LogSimpleEventAsync(
+                updated.EmployeeId,
+                EmployeeEventLogNames.DocumentUpdated,
+                oldSummary,
+                newSummary,
+                updatedBy,
+                ct
+            );
+        }
         return ServiceResult<EmployeeDocumentReadDto>.Ok(Map(updated));
     }
 
@@ -740,9 +763,18 @@ public class EmployeeDocumentService : IEmployeeDocumentService
         var d = await _db.EmployeeDocuments.FindAsync(new object[] { id }, ct);
         if (d == null || d.DeletedAt != null)
             return ServiceResult.Fail("Document introuvable.");
+        var oldSummary = $"{d.DocumentType}: {d.Name}";
         d.DeletedAt = DateTimeOffset.UtcNow;
         d.DeletedBy = deletedBy;
         await _db.SaveChangesAsync(ct);
+        await _eventLog.LogSimpleEventAsync(
+            d.EmployeeId,
+            EmployeeEventLogNames.DocumentDeleted,
+            oldSummary,
+            null,
+            deletedBy,
+            ct
+        );
         return ServiceResult.Ok();
     }
 

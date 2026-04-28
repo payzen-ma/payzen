@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TextInputComponent } from '../../../shared/components/text-input/text-input.component';
+import { ModalComponent } from '../../../shared/modal/modal.component';
 // Removed unused component imports: SelectInputComponent, PrimaryButtonComponent
 import { CompanyService } from '../../../services/company.service';
 import { City, Country } from '../../../models/company.model';
@@ -12,7 +13,8 @@ import { City, Country } from '../../../models/company.model';
   imports: [
     CommonModule,
     FormsModule,
-    TextInputComponent
+    TextInputComponent,
+    ModalComponent
   ],
   templateUrl: './create-company.component.html'
 })
@@ -189,6 +191,7 @@ export class CreateCompanyComponent implements OnInit {
           email: admin?.email || admin?.Email,
           firstName: admin?.firstName || admin?.FirstName,
           lastName: admin?.lastName || admin?.LastName,
+          country: response.countryName || response.country || this.country,
           message: admin?.message || admin?.Message
         };
         this.showSuccessModal = true;

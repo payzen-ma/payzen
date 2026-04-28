@@ -161,9 +161,27 @@
 
   <!-- Client Form Dialog -->
   <p-dialog [(visible)]="isClientFormVisible"
-    [header]="clientFormMode() === 'create' ? ('expert.dashboard.newClient' | translate) : ('expert.dashboard.editClient' | translate)"
-    [modal]="true" styleClass="client-dialog" [style]="{ width: '90vw', maxWidth: '720px' }" [draggable]="false"
+    [modal]="true" [closable]="true" [dismissableMask]="true"
+    styleClass="app-dialog app-dialog--wide app-position-dialog" [draggable]="false"
     [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="position-dialog__header">
+        <div class="position-dialog__header-main">
+          <div class="position-dialog__header-icon">
+            <i class="pi pi-plus"></i>
+          </div>
+          <div class="position-dialog__header-text">
+            <h2 class="position-dialog__title">
+              {{ clientFormMode() === 'create' ? ('expert.dashboard.newClient' | translate) : ('expert.dashboard.editClient' | translate) }}
+            </h2>
+            <p class="position-dialog__subtitle">
+              {{ clientFormMode() === 'create' ? 'Créer un nouveau client pour votre cabinet' : 'Mettre à jour les informations du client' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
     @if (isClientFormVisible()) {
     <app-client-form [mode]="clientFormMode()" [company]="selectedCompanyForEdit()" (save)="onClientSaved()"
       (cancel)="isClientFormVisible.set(false)">

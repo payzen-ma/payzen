@@ -340,41 +340,45 @@
 </div>
 
 <!-- Success Modal -->
-<div *ngIf="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-    <div class="text-center mb-6">
-      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">Entreprise créée avec succès</h3>
-      <p class="text-sm text-gray-600">Une invitation a été envoyée à l’administrateur (e-mail réel ou logs si mode mock).</p>
+<app-modal [(visible)]="showSuccessModal" title="Entreprise créée avec succès">
+  <div class="text-center mb-6">
+    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+      <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
     </div>
+    <p class="text-sm text-gray-600">Une invitation a été envoyée à l’administrateur (e-mail réel ou logs si mode mock).</p>
+  </div>
 
-    <div class="bg-gray-50 rounded-lg p-4 space-y-3 mb-6">
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">E-mail invité</label>
-        <div class="flex items-center justify-between bg-white border border-gray-200 rounded px-3 py-2">
-          <span class="text-sm font-mono text-gray-900">{{ createdAdmin?.email }}</span>
-          <button (click)="copyToClipboard(createdAdmin?.email)" class="text-primary hover:text-primary/80 ml-2" title="Copier">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div *ngIf="createdAdmin?.message" class="bg-blue-50 border border-blue-100 rounded p-3">
-        <p class="text-xs text-blue-900">{{ createdAdmin?.message }}</p>
+  <div class="bg-gray-50 rounded-lg p-4 space-y-3 mb-6">
+    <div *ngIf="createdAdmin?.country">
+      <label class="block text-xs font-medium text-gray-500 mb-1">Pays</label>
+      <div class="bg-white border border-gray-200 rounded px-3 py-2">
+        <span class="text-sm text-gray-900">{{ createdAdmin?.country }}</span>
       </div>
     </div>
 
-    <div class="flex gap-3">
-      <button (click)="closeSuccessModal()" 
-              class="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition text-sm">
-        Terminer
-      </button>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">E-mail invité</label>
+      <div class="flex items-center justify-between bg-white border border-gray-200 rounded px-3 py-2">
+        <span class="text-sm font-mono text-gray-900">{{ createdAdmin?.email }}</span>
+        <button (click)="copyToClipboard(createdAdmin?.email)" class="text-primary hover:text-primary/80 ml-2" title="Copier">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="createdAdmin?.message" class="bg-blue-50 border border-blue-100 rounded p-3">
+      <p class="text-xs text-blue-900">{{ createdAdmin?.message }}</p>
     </div>
   </div>
-</div>
+
+  <div class="flex gap-3">
+    <button (click)="closeSuccessModal()"
+            class="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition text-sm">
+      Terminer
+    </button>
+  </div>
+</app-modal>

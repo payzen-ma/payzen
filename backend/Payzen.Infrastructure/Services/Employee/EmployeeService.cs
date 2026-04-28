@@ -52,7 +52,7 @@ public class EmployeeService : IEmployeeService
         _logger = logger;
         _contracts = new EmployeeContractService(db, eventLog);
         _salaries = new EmployeeSalaryService(db, eventLog);
-        _documents = new EmployeeDocumentService(db, env);
+        _documents = new EmployeeDocumentService(db, env, eventLog);
         _addresses = new EmployeeAddressService(db, eventLog);
         _family = new EmployeeFamilyService(db);
         _absences = new EmployeeAbsenceService(db);
@@ -305,6 +305,7 @@ public class EmployeeService : IEmployeeService
                         },
                 cnss = e.CnssNumber,
                 cimr = e.CimrNumber,
+                RibNumber = e.RibNumber,
                 cimrEmployeeRate = e.CimrEmployeeRate,
                 cimrCompanyRate = e.CimrCompanyRate,
                 CimrRatesChangeDate = e.CimrRatesChangeDate.HasValue
@@ -802,6 +803,7 @@ public class EmployeeService : IEmployeeService
             MaritalStatusChangeDate = dto.MaritalStatusId.HasValue ? DateOnly.FromDateTime(DateTime.UtcNow.Date) : null,
             CnssNumber = dto.CnssNumber,
             CimrNumber = dto.CimrNumber,
+            RibNumber = dto.RibNumber,
             CimrEmployeeRate = dto.CimrEmployeeRate,
             CimrCompanyRate = dto.CimrCompanyRate,
             HasPrivateInsurance = dto.HasPrivateInsurance ?? false,
@@ -835,18 +837,24 @@ public class EmployeeService : IEmployeeService
                 return ServiceResult<EmployeeReadDto>.Fail("Société introuvable.");
             }
 
-            if (
-                !string.IsNullOrWhiteSpace(company.MatriculeTemplate)
+            var generatedMatricule = 0;
+            var nextValue = company.MatriculeNextValue;
+            var matriculeAssignedFromTemplate = !string.IsNullOrWhiteSpace(company.MatriculeTemplate)
                 && TryBuildMatriculeFromTemplate(
                     company.MatriculeTemplate,
                     company.MatriculeNextValue,
-                    out var generatedMatricule,
-                    out var nextValue
-                )
-            )
+                    out generatedMatricule,
+                    out nextValue
+                );
+            if (matriculeAssignedFromTemplate)
             {
                 e.Matricule = generatedMatricule;
                 company.MatriculeNextValue = nextValue;
+            }
+            else
+            {
+                // Fallback: assure un matricule unique même sans template configuré.
+                e.Matricule = await GenerateNextMatriculeAsync(companyId, ct);
             }
 
             _db.Employees.Add(e);
@@ -1043,6 +1051,15 @@ public class EmployeeService : IEmployeeService
         return true;
     }
 
+    private async Task<int> GenerateNextMatriculeAsync(int companyId, CancellationToken ct)
+    {
+        var maxMatricule = await _db
+            .Employees.Where(emp => emp.CompanyId == companyId && emp.DeletedAt == null && emp.Matricule.HasValue)
+            .MaxAsync(emp => (int?)emp.Matricule, ct);
+
+        return maxMatricule.GetValueOrDefault() + 1;
+    }
+
     public async Task<ServiceResult<EmployeeReadDto>> UpdateAsync(
         int id,
         EmployeeUpdateDto dto,
@@ -1178,6 +1195,22 @@ public class EmployeeService : IEmployeeService
                 );
                 e.CimrNumber = nextCimr;
             }
+        }
+        if (dto.RibNumber.HasValue && dto.RibNumber.Value != e.RibNumber)
+        {
+            var prev = e.RibNumber?.ToString(CultureInfo.InvariantCulture);
+            var next = dto.RibNumber.Value.ToString(CultureInfo.InvariantCulture);
+            pendingEmployeeLogs.Add(() =>
+                _eventLog.LogSimpleEventAsync(
+                    id,
+                    EmployeeEventLogNames.RibNumberChanged,
+                    prev,
+                    next,
+                    updatedBy,
+                    ct
+                )
+            );
+            e.RibNumber = dto.RibNumber.Value;
         }
         var cimrChanged = false;
         if (dto.CimrEmployeeRate.HasValue && dto.CimrEmployeeRate.Value != e.CimrEmployeeRate)
@@ -2248,6 +2281,7 @@ public class EmployeeService : IEmployeeService
             CategoryName = e.Category?.Name,
             CnssNumber = e.CnssNumber,
             CimrNumber = e.CimrNumber,
+            RibNumber = e.RibNumber,
             CimrEmployeeRate = e.CimrEmployeeRate?.ToString("F2", CultureInfo.InvariantCulture),
             CimrCompanyRate = e.CimrCompanyRate?.ToString("F2", CultureInfo.InvariantCulture),
             HasPrivateInsurance = e.HasPrivateInsurance,

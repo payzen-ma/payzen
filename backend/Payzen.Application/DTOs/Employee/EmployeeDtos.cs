@@ -56,6 +56,7 @@ public class EmployeeCreateDto
     public int? MaritalStatusId { get; set; }
     public string? CnssNumber { get; set; }
     public string? CimrNumber { get; set; }
+    public decimal? RibNumber { get; set; }
     public decimal? CimrEmployeeRate { get; set; }
     public decimal? CimrCompanyRate { get; set; }
     public bool? HasPrivateInsurance { get; set; }
@@ -152,7 +153,7 @@ public class EmployeeUpdateDto
     /// <summary>Numéro CIMR (chaîne). Clé JSON <c>cimr</c> pour alignement Angular.</summary>
     [JsonPropertyName("cimr")]
     public string? CimrNumber { get; set; }
-
+    public decimal? RibNumber { get; set; }
     public decimal? CimrEmployeeRate { get; set; }
     public decimal? CimrCompanyRate { get; set; }
     public DateTime? CimrRatesChangeDate { get; set; }
@@ -217,6 +218,7 @@ public class EmployeeReadDto
     public string? CategoryName { get; set; }
     public string? CnssNumber { get; set; }
     public string? CimrNumber { get; set; }
+    public decimal? RibNumber { get; set; }
     public string? CimrEmployeeRate { get; set; }
     public string? CimrCompanyRate { get; set; }
     public bool HasPrivateInsurance { get; set; } = false;
@@ -288,6 +290,7 @@ public class EmployeeDetailDto
     // Cotisations (camelCase conservé du source)
     public string? cnss { get; set; }
     public string? cimr { get; set; }
+    public decimal? RibNumber { get; set; }
     public decimal? cimrEmployeeRate { get; set; }
     public decimal? cimrCompanyRate { get; set; }
     [JsonPropertyName("cimrRatesChangeDate")]

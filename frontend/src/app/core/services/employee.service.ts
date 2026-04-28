@@ -181,6 +181,7 @@ export interface CreateEmployeeRequest {
   salaryEffectiveDate?: string | null;
   cnssNumber?: string | null;
   cimrNumber?: string | null;
+  ribNumber?: number | null;
   attendanceTypeId?: number | null;
   employeeCategoryId?: number | null;
   companyId?: number | null;
@@ -284,6 +285,7 @@ interface EmployeeDetailsResponse {
   cnss?: string | number;
   amo?: string | number;
   cimr?: string | number;
+  ribNumber?: number | null;
   cimrEmployeeRate?: number | null;
   cimrCompanyRate?: number | null;
   cimrRatesChangeDate?: string | null;
@@ -1228,6 +1230,7 @@ export class EmployeeService {
       cnss: cnssValue || '',
       amo: amoValue || '',
       cimr: cimrValue || undefined,
+      ribNumber: payload.ribNumber ?? (payload as any).RibNumber ?? null,
       cimrEmployeeRate: payload.cimrEmployeeRate ?? (payload as any).CimrEmployeeRate ?? null,
       cimrCompanyRate: payload.cimrCompanyRate ?? (payload as any).CimrCompanyRate ?? null,
       cimrRatesChangeDate:

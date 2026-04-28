@@ -144,7 +144,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       'probationPeriod'
     ],
     '4': ['baseSalary', 'baseSalaryHourly', 'salaryEffectiveDate', 'salaryComponents', 'paymentMethod'],
-    '5': ['cnss', 'amo', 'cimr', 'cimrEmployeeRate', 'cimrCompanyRate', 'hasPrivateInsurance', 'privateInsuranceNumber', 'privateInsuranceRate', 'disableAmo', 'annualLeave'],
+    '5': ['cnss', 'amo', 'cimr', 'ribNumber', 'cimrEmployeeRate', 'cimrCompanyRate', 'hasPrivateInsurance', 'privateInsuranceNumber', 'privateInsuranceRate', 'disableAmo', 'annualLeave'],
     '6': ['missingDocuments'],
     '7': ['events']
   };
@@ -234,6 +234,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     cnss: 'CNSS',
     amo: 'AMO',
     cimr: 'CIMR',
+    ribNumber: 'RIB',
     annualLeave: 'Annual Leave'
   };
 
@@ -1027,6 +1028,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     out.cnss = d.Cnss ?? d.cnss ?? d.CNSS;
     out.amo = d.Amo ?? d.amo ?? d.AMO;
     out.cimr = d.Cimr ?? d.cimr ?? d.CIMR;
+    out.ribNumber = d.RibNumber ?? d.ribNumber ?? null;
     out.cimrEmployeeRate = d.CimrEmployeeRate ?? d.cimrEmployeeRate;
     out.cimrCompanyRate = d.CimrCompanyRate ?? d.cimrCompanyRate;
     out.cimrRatesChangeDate =
@@ -2691,6 +2693,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       cnss: '',
       amo: '',
       cimr: undefined,
+      ribNumber: null,
       annualLeave: 0,
       status: 'active',
       missingDocuments: 0,
