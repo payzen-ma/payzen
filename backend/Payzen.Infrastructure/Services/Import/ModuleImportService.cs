@@ -62,7 +62,27 @@ public class ModuleImportService : IModuleImportService
                     sendWelcomeEmail,
                     ct
                 );
-                AddSheetResult(result, sheet.Name, "nouveaux_employes", r.Success, r.Error ?? "Import nouveaux employés terminé.");
+                AddSheetResult(
+                    result,
+                    sheet.Name,
+                    "nouveaux_employes",
+                    r.Success,
+                    r.Error ?? "Import nouveaux employés terminé.",
+                    r.Data
+                );
+                continue;
+            }
+
+            if (IsEmployeeChangesSheet(normalized))
+            {
+                result.SkippedSheets++;
+                result.Sheets.Add(new ModuleImportSheetResultDto
+                {
+                    SheetName = sheet.Name,
+                    SheetType = "employees_changes",
+                    Success = true,
+                    Message = "Feuille détectée mais non encore traitée (service dédié à implémenter)."
+                });
                 continue;
             }
 
@@ -78,7 +98,27 @@ public class ModuleImportService : IModuleImportService
                     sendWelcomeEmail,
                     ct
                 );
-                AddSheetResult(result, sheet.Name, "nouveaux_employes", r.Success, r.Error ?? "Import nouveaux employés terminé.");
+                AddSheetResult(
+                    result,
+                    sheet.Name,
+                    "nouveaux_employes",
+                    r.Success,
+                    r.Error ?? "Import nouveaux employés terminé.",
+                    r.Data
+                );
+                continue;
+            }
+
+            if (headerHint == "employees_changes")
+            {
+                result.SkippedSheets++;
+                result.Sheets.Add(new ModuleImportSheetResultDto
+                {
+                    SheetName = sheet.Name,
+                    SheetType = "employees_changes",
+                    Success = true,
+                    Message = "Feuille détectée mais non encore traitée (service dédié à implémenter)."
+                });
                 continue;
             }
 
@@ -112,7 +152,8 @@ public class ModuleImportService : IModuleImportService
         string sheetName,
         string sheetType,
         bool success,
-        string message
+        string message,
+        NewEmployeeImportResultDto? details = null
     )
     {
         result.ProcessedSheets++;
@@ -124,7 +165,14 @@ public class ModuleImportService : IModuleImportService
             SheetName = sheetName,
             SheetType = sheetType,
             Success = success,
-            Message = message
+            Message = message,
+            TotalRows = details?.TotalRows ?? 0,
+            SuccessCount = details?.SuccessCount ?? 0,
+            ErrorCount = details?.ErrorCount ?? 0,
+            CreatedDepartmentsCount = details?.CreatedDepartmentsCount ?? 0,
+            CreatedJobPositionsCount = details?.CreatedJobPositionsCount ?? 0,
+            AddedEmployees = details?.AddedEmployees ?? new List<NewEmployeeImportSuccessDto>(),
+            Errors = details?.Errors ?? new List<NewEmployeeImportErrorDto>()
         });
     }
 
@@ -136,6 +184,9 @@ public class ModuleImportService : IModuleImportService
 
     private static bool IsChangementSheet(string normalizedName) =>
         normalizedName.Contains("changement");
+
+    private static bool IsEmployeeChangesSheet(string normalizedName) =>
+        normalizedName.Contains("employeechanges");
 
     private static bool IsNewEmployeeSheet(string normalizedName) =>
         normalizedName.Contains("nouveauemploy")
@@ -164,7 +215,11 @@ public class ModuleImportService : IModuleImportService
             || joined.Contains("cimr")
             || joined.Contains("rib")
         )
+        {
+            if (joined.Contains("matricule"))
+                return "employees_changes";
             return "nouveaux_employes";
+        }
 
         return null;
     }

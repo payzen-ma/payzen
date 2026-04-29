@@ -108,6 +108,7 @@ public static class DependencyInjection
         services.AddScoped<ILlmService, GeminiService>();
 
         // ── Module Import ────────────────────────────────────────────────────
+        services.AddScoped<IExcelImportValidationService, ExcelImportValidationService>();
         services.AddScoped<INewEmployeeImportService, NewEmployeeImportService>();
         services.AddScoped<IModuleImportService, ModuleImportService>();
         services.AddScoped<IImportTemplateService, ImportTemplateService>();

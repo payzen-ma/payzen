@@ -41,6 +41,19 @@ interface ImportSheetRow {
   sheetType: string;
   success: boolean;
   message: string;
+  totalRows?: number;
+  successCount?: number;
+  errorCount?: number;
+  createdDepartmentsCount?: number;
+  createdJobPositionsCount?: number;
+  addedEmployees?: AddedEmployeeRow[];
+  errors?: ImportErrorRow[];
+}
+
+interface AddedEmployeeRow {
+  row: number;
+  firstName: string;
+  lastName: string;
 }
 
 interface EmployeeCheckRow {
@@ -71,7 +84,7 @@ interface AutoCreatedEmployeeRow {
   ],
   providers: [MessageService],
   template: `
-    <div class="p-6 max-w-3xl mx-auto">
+    <div class="p-6 w-full max-w-7xl mx-auto">
       <h1 class="text-3xl font-bold mb-6">modifications accumulées</h1>
 
       <div class="upload-card surface-card border-round shadow-1">
@@ -106,136 +119,110 @@ interface AutoCreatedEmployeeRow {
         </div>
 
         <div class="button-row">
-          <button pButton type="button" label="Télécharger template" class="p-button-secondary" (click)="downloadTemplate()"></button>
-          <button pButton type="button" label="Annuler" class="p-button-outlined" (click)="onCancel()"></button>
-          <button pButton type="button" label="Importer" class="p-button-primary" [disabled]="!selectedFile" (click)="uploadSelectedFile()"></button>
+          <button pButton type="button" icon="pi pi-download" [label]="isDownloadingTemplate ? 'Téléchargement...' : 'Télécharger template'" class="btn-template" [disabled]="isDownloadingTemplate" (click)="downloadTemplate()"></button>
+          <button pButton type="button" icon="pi pi-times" label="Annuler" class="btn-cancel p-button-outlined" (click)="onCancel()"></button>
+          <button pButton type="button" icon="pi pi-upload" [label]="isImporting ? 'Import en cours...' : 'Importer'" class="btn-import" [disabled]="!selectedFile || isImporting" (click)="uploadSelectedFile()"></button>
         </div>
 
-        <div class="import-result" *ngIf="importResult" style="margin-top:1.5rem;">
-          <div class="p-3 border-round" style="background:#f1f5f9;">
-            <div class="text-lg font-semibold mb-2">Résultat de l'import</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-              <div class="p-3 border-round" style="background:#ffffff;">Total feuilles : {{ importResult.totalSheets }}</div>
-              <div class="p-3 border-round" style="background:#ffffff;">Traitées : {{ importResult.processedSheets }}</div>
-              <div class="p-3 border-round" style="background:#ffffff;">Échouées : {{ importResult.failedSheets }}</div>
-            </div>
+        <section class="import-result" *ngIf="importResult">
+          <h3 class="result-title">Résultat de l'import</h3>
 
-            <div *ngIf="importResult.sheets?.length" class="mb-4">
-              <div class="font-semibold mb-2">
-                Feuilles lues : {{ importResult.sheets.length }}
-              </div>
-              <div class="overflow-x-auto">
-                <table class="w-full border-collapse text-sm" style="min-width:400px;">
-                  <thead>
-                    <tr class="text-left" style="border-bottom:1px solid #cbd5e1;">
-                      <th class="py-2">Feuille</th>
-                      <th class="py-2">Type</th>
-                      <th class="py-2">Statut</th>
-                      <th class="py-2">Message</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let sheet of importResult.sheets" style="border-bottom:1px solid #e2e8f0;">
-                      <td class="py-2">{{ sheet.sheetName }}</td>
-                      <td class="py-2">{{ sheet.sheetType }}</td>
-                      <td class="py-2">{{ sheet.success ? 'Succès' : 'Échec' }}</td>
-                      <td class="py-2">{{ sheet.message }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div *ngIf="importResult.importedAbsences?.length" class="mb-4">
-              <div class="font-semibold mb-2">Employés concernés</div>
-              <div class="overflow-x-auto">
-                <table class="w-full border-collapse text-sm" style="min-width:600px;">
-                  <thead>
-                    <tr class="text-left" style="border-bottom:1px solid #cbd5e1;">
-                      <th class="py-2">Ligne</th>
-                      <th class="py-2">Matricule</th>
-                      <th class="py-2">Employé</th>
-                      <th class="py-2">Date</th>
-                      <th class="py-2">Durée</th>
-                      <th class="py-2">Motif</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let row of importResult.importedAbsences" style="border-bottom:1px solid #e2e8f0;">
-                      <td class="py-2">{{ row.row }}</td>
-                      <td class="py-2">{{ row.matricule }}</td>
-                      <td class="py-2">{{ row.employeeName }}</td>
-                      <td class="py-2">{{ row.absenceDate }}</td>
-                      <td class="py-2">{{ row.durationType }}</td>
-                      <td class="py-2">{{ row.reason || '-' }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div *ngIf="importResult.employeeChecks?.length" class="mb-4">
-              <div class="font-semibold mb-2">Employés reconnus</div>
-              <div class="overflow-x-auto">
-                <table class="w-full border-collapse text-sm" style="min-width:700px;">
-                  <thead>
-                    <tr class="text-left" style="border-bottom:1px solid #cbd5e1;">
-                      <th class="py-2">Ligne</th>
-                      <th class="py-2">Matricule</th>
-                      <th class="py-2">Employé (base)</th>
-                      <th class="py-2">Existe</th>
-                      <th class="py-2">Nom OK</th>
-                      <th class="py-2">Prénom OK</th>
-                      <th class="py-2">Message</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let check of importResult.employeeChecks" style="border-bottom:1px solid #e2e8f0;">
-                      <td class="py-2">{{ check.row }}</td>
-                      <td class="py-2">{{ check.matricule || '-' }}</td>
-                      <td class="py-2">{{ check.employeeName || '-' }}</td>
-                      <td class="py-2">{{ check.exists ? 'Oui' : 'Non' }}</td>
-                      <td class="py-2">{{ check.isLastNameMatch ? 'Oui' : 'Non' }}</td>
-                      <td class="py-2">{{ check.isFirstNameMatch ? 'Oui' : 'Non' }}</td>
-                      <td class="py-2">{{ check.message }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div *ngIf="importResult.autoCreatedEmployees?.length" class="mb-4">
-              <div class="font-semibold mb-2">Employés créés automatiquement</div>
-              <div class="overflow-x-auto">
-                <table class="w-full border-collapse text-sm" style="min-width:500px;">
-                  <thead>
-                    <tr class="text-left" style="border-bottom:1px solid #cbd5e1;">
-                      <th class="py-2">Matricule</th>
-                      <th class="py-2">Nom complet</th>
-                      <th class="py-2">Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let emp of importResult.autoCreatedEmployees" style="border-bottom:1px solid #e2e8f0;">
-                      <td class="py-2">{{ emp.matricule }}</td>
-                      <td class="py-2">{{ emp.fullName }}</td>
-                      <td class="py-2">{{ emp.email }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div *ngIf="importResult.errors?.length">
-              <div class="font-semibold mb-2">Erreurs détectées</div>
-              <ul class="pl-5 list-disc">
-                <li *ngFor="let error of importResult.errors">
-                  Ligne {{ error.row }} - Matricule : {{ error.matricule || 'N/A' }} — {{ error.message }}
-                </li>
-              </ul>
-            </div>
+          <div class="summary-grid">
+            <article class="summary-card">
+              <span class="summary-label">Employés ajoutés</span>
+              <strong class="summary-value">{{ newEmployeesSheet?.successCount ?? 0 }}</strong>
+            </article>
+            <article class="summary-card">
+              <span class="summary-label">Erreurs</span>
+              <strong class="summary-value">{{ newEmployeesSheet?.errorCount ?? 0 }}</strong>
+            </article>
+            <article class="summary-card">
+              <span class="summary-label">Départements créés</span>
+              <strong class="summary-value">{{ newEmployeesSheet?.createdDepartmentsCount ?? 0 }}</strong>
+            </article>
+            <article class="summary-card">
+              <span class="summary-label">Postes créés</span>
+              <strong class="summary-value">{{ newEmployeesSheet?.createdJobPositionsCount ?? 0 }}</strong>
+            </article>
           </div>
-        </div>
+
+          <div class="sheet-tabs" *ngIf="visibleSheets.length">
+            <button
+              type="button"
+              *ngFor="let sheet of visibleSheets"
+              class="sheet-tab-btn"
+              [class.active]="selectedSheetName === sheet.sheetName"
+              (click)="selectSheet(sheet.sheetName)"
+            >
+              {{ sheet.sheetName }}
+            </button>
+          </div>
+
+          <div class="sheets-stack" *ngIf="selectedSheet as sheet">
+            <article class="sheet-card">
+              <div class="sheet-header">
+                <div>
+                  <h4>{{ sheet.sheetName }}</h4>
+                  <p>{{ sheet.message }}</p>
+                </div>
+                <span class="badge" [class.badge-success]="sheet.success" [class.badge-error]="!sheet.success">
+                  {{ sheet.success ? 'Succès' : 'Échec' }}
+                </span>
+              </div>
+
+              <div class="sheet-metrics">
+                <div class="metric-item">
+                  <span>Type</span>
+                  <strong>{{ sheet.sheetType }}</strong>
+                </div>
+                <div class="metric-item">
+                  <span>Ajoutés</span>
+                  <strong>{{ sheet.successCount ?? 0 }}</strong>
+                </div>
+                <div class="metric-item">
+                  <span>Erreurs</span>
+                  <strong>{{ sheet.errorCount ?? 0 }}</strong>
+                </div>
+                <div class="metric-item" *ngIf="sheet.sheetType === 'nouveaux_employes'">
+                  <span>Départements créés</span>
+                  <strong>{{ sheet.createdDepartmentsCount ?? 0 }}</strong>
+                </div>
+                <div class="metric-item" *ngIf="sheet.sheetType === 'nouveaux_employes'">
+                  <span>Postes créés</span>
+                  <strong>{{ sheet.createdJobPositionsCount ?? 0 }}</strong>
+                </div>
+              </div>
+
+              <div class="employees-table-wrap" *ngIf="sheet.addedEmployees?.length">
+                <table class="employees-table">
+                  <thead>
+                    <tr>
+                      <th>SALARIE</th>
+                      <th>LIGNE</th>
+                      <th>STATUT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let emp of sheet.addedEmployees">
+                      <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+                      <td>{{ emp.row }}</td>
+                      <td><span class="status-chip status-ok">Ajouté</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="detail-block error-block" *ngIf="sheet.errors?.length">
+                <h5>Détails des erreurs</h5>
+                <ul>
+                  <li *ngFor="let e of sheet.errors">
+                    Ligne {{ e.row }} — {{ e.message }}
+                  </li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
 
       <p-toast></p-toast>
@@ -325,6 +312,236 @@ interface AutoCreatedEmployeeRow {
         gap: 0.75rem;
         margin-top: 1.5rem;
       }
+
+      .btn-template,
+      .btn-cancel,
+      .btn-import {
+        border-radius: 10px;
+        font-weight: 600;
+      }
+
+      .btn-template {
+        background: #eef2ff;
+        color: #1e3a8a;
+        border: 1px solid #c7d2fe;
+      }
+
+      .btn-import {
+        background: #1d4ed8;
+        border: 1px solid #1d4ed8;
+        color: #ffffff;
+      }
+
+      .import-result {
+        margin-top: 1.75rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1rem;
+      }
+
+      .result-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.9rem;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .summary-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.75rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .summary-label {
+        color: #64748b;
+        font-size: 0.82rem;
+      }
+
+      .summary-value {
+        color: #0f172a;
+        font-size: 1.25rem;
+      }
+
+      .sheets-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+
+      .sheet-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .sheet-tab-btn {
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .sheet-tab-btn.active {
+        background: #dbeafe;
+        color: #1e3a8a;
+        border-color: #93c5fd;
+      }
+
+      .sheet-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.9rem;
+      }
+
+      .sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.6rem;
+      }
+
+      .sheet-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: #0f172a;
+      }
+
+      .sheet-header p {
+        margin: 0.2rem 0 0;
+        font-size: 0.87rem;
+        color: #64748b;
+      }
+
+      .badge {
+        border-radius: 999px;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        font-weight: 700;
+      }
+
+      .badge-success {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .badge-error {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .sheet-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 0.6rem;
+        margin-top: 0.8rem;
+      }
+
+      .metric-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.5rem 0.65rem;
+      }
+
+      .metric-item span {
+        display: block;
+        color: #64748b;
+        font-size: 0.78rem;
+      }
+
+      .metric-item strong {
+        color: #0f172a;
+        font-size: 0.96rem;
+      }
+
+      .detail-block {
+        margin-top: 0.8rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 0.6rem 0.75rem;
+      }
+
+      .detail-block h5 {
+        margin: 0 0 0.35rem 0;
+        font-size: 0.88rem;
+        color: #1e3a8a;
+      }
+
+      .detail-block ul {
+        margin: 0;
+        padding-left: 1rem;
+      }
+
+      .detail-block li {
+        margin-bottom: 0.2rem;
+        color: #1f2937;
+      }
+
+      .error-block {
+        background: #fff7ed;
+        border-color: #fdba74;
+      }
+
+      .employees-table-wrap {
+        margin-top: 0.85rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .employees-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+      }
+
+      .employees-table th {
+        text-align: left;
+        font-size: 0.76rem;
+        letter-spacing: 0.02em;
+        color: #64748b;
+        padding: 0.7rem 0.85rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+      }
+
+      .employees-table td {
+        padding: 0.8rem 0.85rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #0f172a;
+      }
+
+      .status-chip {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .status-ok {
+        background: #dcfce7;
+        color: #166534;
+      }
     `
   ]
 })
@@ -338,6 +555,35 @@ export class ImportComponent implements OnInit {
   dragOver = false;
   importResult: ImportResult | null = null;
   sendWelcomeEmail = false;
+  isImporting = false;
+  isDownloadingTemplate = false;
+  selectedSheetName: string | null = null;
+
+  get visibleSheets(): ImportSheetRow[] {
+    const sheets = this.importResult?.sheets ?? [];
+    return sheets.filter(s => {
+      const name = (s.sheetName || '').trim().toLowerCase();
+      return name !== 'societe' && !name.startsWith('_');
+    });
+  }
+
+  get newEmployeesSheet(): ImportSheetRow | undefined {
+    return this.visibleSheets.find(s => s.sheetType === 'nouveaux_employes');
+  }
+
+  get selectedSheet(): ImportSheetRow | undefined {
+    if (!this.visibleSheets.length) {
+      return undefined;
+    }
+    if (!this.selectedSheetName) {
+      return this.visibleSheets[0];
+    }
+    return this.visibleSheets.find(s => s.sheetName === this.selectedSheetName) ?? this.visibleSheets[0];
+  }
+
+  selectSheet(sheetName: string) {
+    this.selectedSheetName = sheetName;
+  }
 
   ngOnInit() {
     // Component initialization
@@ -397,10 +643,11 @@ export class ImportComponent implements OnInit {
 
   uploadSelectedFile() {
     console.log('[Import] Click sur Importer');
-    if (!this.selectedFile) {
+    if (!this.selectedFile || this.isImporting) {
       console.warn('[Import] Aucun fichier sélectionné, arrêt.');
       return;
     }
+    this.isImporting = true;
 
     const now = new Date();
     const contextCompanyId = this.contextService.companyId();
@@ -431,24 +678,40 @@ export class ImportComponent implements OnInit {
         const result = response?.data ?? response;
         console.log('[Import] Résultat normalisé:', result);
         if (result) {
+          const sheets = (result.sheets ?? []).map((s: any) => ({
+            ...s,
+            addedEmployees: (s.addedEmployees ?? []).map((a: any) => ({
+              row: a.row,
+              firstName: a.firstName,
+              lastName: a.lastName
+            })),
+            errors: (s.errors ?? []).map((e: any) => ({
+              row: e.row,
+              message: e.message
+            }))
+          }));
           this.importResult = {
             totalSheets: result.totalSheets ?? 0,
             processedSheets: result.processedSheets ?? 0,
             failedSheets: result.failedSheets ?? 0,
             skippedSheets: result.skippedSheets ?? 0,
-            sheets: result.sheets ?? [],
+            sheets,
             importedAbsences: result.importedAbsences ?? [],
             errors: result.errors ?? [],
             employeeChecks: result.employeeChecks ?? [],
             autoCreatedEmployees: result.autoCreatedEmployees ?? []
           };
+          this.selectedSheetName = this.visibleSheets[0]?.sheetName ?? null;
         }
 
+        const totalAdded = this.visibleSheets.reduce((sum, s) => sum + (s.successCount ?? 0), 0);
+        const totalErrors = this.visibleSheets.reduce((sum, s) => sum + (s.errorCount ?? 0), 0);
+        const successDetail = `Import terminé. Employés ajoutés: ${totalAdded}. Erreurs: ${totalErrors}.`;
         this.messageService.add({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Le fichier a été importé avec succès',
-          life: 3000
+          severity: totalErrors > 0 ? 'warn' : 'success',
+          summary: totalErrors > 0 ? 'Import terminé avec erreurs' : 'Import réussi',
+          detail: successDetail,
+          life: 5000
         });
 
         const createdEmployeesCount = this.importResult?.autoCreatedEmployees?.length ?? 0;
@@ -461,6 +724,7 @@ export class ImportComponent implements OnInit {
           });
         }
         this.onCancel();
+        this.isImporting = false;
       },
       (error: any) => {
         console.error('[Import] Erreur upload:', error);
@@ -478,11 +742,16 @@ export class ImportComponent implements OnInit {
           detail,
           life: 5000
         });
+        this.isImporting = false;
       }
     );
   }
 
   downloadTemplate() {
+    if (this.isDownloadingTemplate) {
+      return;
+    }
+    this.isDownloadingTemplate = true;
     const contextCompanyId = this.contextService.companyId();
     const companyId = contextCompanyId ? parseInt(String(contextCompanyId), 10) : undefined;
 
@@ -528,6 +797,7 @@ export class ImportComponent implements OnInit {
           detail: 'Le fichier template a été généré et téléchargé.',
           life: 3000
         });
+        this.isDownloadingTemplate = false;
       },
       error: (error: any) => {
         const detail =
@@ -542,12 +812,14 @@ export class ImportComponent implements OnInit {
           detail,
           life: 5000
         });
+        this.isDownloadingTemplate = false;
       }
     });
   }
 
   onCancel() {
     this.selectedFile = undefined;
+    this.selectedSheetName = null;
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }

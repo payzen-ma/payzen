@@ -1,24 +1,34 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Employee;
 using Payzen.Application.DTOs.Import;
 using Payzen.Application.Interfaces;
+using Payzen.Domain.Entities.Company;
 using Payzen.Infrastructure.Persistence;
 
 namespace Payzen.Infrastructure.Services.Import;
 
 public class NewEmployeeImportService : INewEmployeeImportService
 {
+    private const int MaxImportRows = 1000;
+    private static readonly Regex NameRegex = new(@"^[a-zA-ZÀ-ÿ\s\-']+$", RegexOptions.Compiled);
     private readonly AppDbContext _db;
     private readonly IEmployeeService _employeeService;
+    private readonly IExcelImportValidationService _excelValidationService;
 
-    public NewEmployeeImportService(AppDbContext db, IEmployeeService employeeService)
+    public NewEmployeeImportService(
+        AppDbContext db,
+        IEmployeeService employeeService,
+        IExcelImportValidationService excelValidationService
+    )
     {
         _db = db;
         _employeeService = employeeService;
+        _excelValidationService = excelValidationService;
     }
 
     public async Task<ServiceResult<NewEmployeeImportResultDto>> ImportFromFileAsync(
@@ -77,6 +87,45 @@ public class NewEmployeeImportService : INewEmployeeImportService
             .ContractTypes.AsNoTracking()
             .Where(c => c.CompanyId == targetCompanyId && c.DeletedAt == null)
             .ToDictionaryAsync(c => Normalize(c.ContractTypeName), c => c.Id, ct);
+        var gendersByName = await _db
+            .Genders.AsNoTracking()
+            .Where(g => g.DeletedAt == null && g.IsActive)
+            .Select(g => new { g.Id, g.NameFr })
+            .ToListAsync(ct);
+        var gendersByNameMap = gendersByName
+            .GroupBy(g => Normalize(g.NameFr))
+            .Where(g => !string.IsNullOrWhiteSpace(g.Key))
+            .ToDictionary(g => g.Key, g => g.First().Id);
+        var maritalStatusesByName = await _db
+            .MaritalStatuses.AsNoTracking()
+            .Where(m => m.DeletedAt == null)
+            .Select(m => m.NameFr)
+            .ToListAsync(ct);
+        var maritalStatusesByNameMap = maritalStatusesByName
+            .Select(Normalize)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToHashSet();
+        var educationLevelsByName = await _db
+            .EducationLevels.AsNoTracking()
+            .Where(e => e.DeletedAt == null)
+            .Select(e => e.NameFr)
+            .ToListAsync(ct);
+        var educationLevelsByNameMap = educationLevelsByName
+            .Select(Normalize)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToHashSet();
+        var countriesByName = await _db
+            .Countries.AsNoTracking()
+            .Where(c => c.DeletedAt == null)
+            .Select(c => new { c.Id, c.CountryName })
+            .ToDictionaryAsync(c => Normalize(c.CountryName), c => c.Id, ct);
+        var validCities = await _db
+            .Cities.AsNoTracking()
+            .Where(c => c.DeletedAt == null)
+            .Select(c => new { c.CountryId, c.CityName })
+            .ToListAsync(ct);
+        var cityByCountryAndName = validCities
+            .ToDictionary(c => (c.CountryId, Normalize(c.CityName)), c => true);
         int? employeeRoleId = null;
         if (sendWelcomeEmail)
         {
@@ -103,6 +152,10 @@ public class NewEmployeeImportService : INewEmployeeImportService
 
         var headerRowNum = firstRow.RowNumber();
         var lastRowNum = lastRow.RowNumber();
+        var totalDataRows = Math.Max(0, lastRowNum - headerRowNum);
+        if (!_excelValidationService.ValidateMaxRows(totalDataRows, MaxImportRows, out var maxRowsError))
+            return ServiceResult<NewEmployeeImportResultDto>.Fail(maxRowsError!);
+
         var map = BuildHeaderMap(ws.Row(headerRowNum));
 
         var result = new NewEmployeeImportResultDto();
@@ -129,6 +182,10 @@ public class NewEmployeeImportService : INewEmployeeImportService
             var ribRaw = GetCell(row, map, "RIB", "Rib", "RibNumber");
             var categoryRaw = GetCell(row, map, "Catégorie", "Category");
             var manager = GetCell(row, map, "Manager");
+            var maritalStatusRaw = GetCell(row, map, "Situation Familiale");
+            var educationRaw = GetCell(row, map, "Education");
+            var countryRaw = GetCell(row, map, "Pays");
+            var cityRaw = GetCell(row, map, "Ville");
             DateTime MaritalStatusChangeDate = DateTime.Now;
             DateTime? ManagerChangeDate = DateTime.Now;
             DateTime? CategoryChangeDate = DateTime.Now;
@@ -150,21 +207,70 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 continue;
             }
 
+            if (_excelValidationService.ContainsPotentialFormula(firstName) || _excelValidationService.ContainsPotentialFormula(lastName) || _excelValidationService.ContainsPotentialFormula(cin)
+                || _excelValidationService.ContainsPotentialFormula(phone) || _excelValidationService.ContainsPotentialFormula(email) || _excelValidationService.ContainsPotentialFormula(dateOfBirthRaw)
+                || _excelValidationService.ContainsPotentialFormula(genderRaw) || _excelValidationService.ContainsPotentialFormula(departmentRaw) || _excelValidationService.ContainsPotentialFormula(jobPositionRaw)
+                || _excelValidationService.ContainsPotentialFormula(contractTypeRaw) || _excelValidationService.ContainsPotentialFormula(startDateRaw) || _excelValidationService.ContainsPotentialFormula(salaryRaw)
+                || _excelValidationService.ContainsPotentialFormula(cnssRaw) || _excelValidationService.ContainsPotentialFormula(cimrRaw) || _excelValidationService.ContainsPotentialFormula(ribRaw)
+                || _excelValidationService.ContainsPotentialFormula(categoryRaw) || _excelValidationService.ContainsPotentialFormula(manager) || _excelValidationService.ContainsPotentialFormula(maritalStatusRaw)
+                || _excelValidationService.ContainsPotentialFormula(educationRaw) || _excelValidationService.ContainsPotentialFormula(countryRaw) || _excelValidationService.ContainsPotentialFormula(cityRaw))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto
+                {
+                    Row = r,
+                    Message = "Valeur invalide: une formule Excel a été détectée dans la ligne."
+                });
+                continue;
+            }
+
+            if (!_excelValidationService.ValidateRequiredText(firstName, "Prénom", 100, NameRegex, out var firstNameError))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto
+                {
+                    Row = r,
+                    Message = firstNameError!
+                });
+                continue;
+            }
+
+            if (!_excelValidationService.ValidateRequiredText(lastName, "Nom", 100, NameRegex, out var lastNameError))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto
+                {
+                    Row = r,
+                    Message = lastNameError!
+                });
+                continue;
+            }
+
+            if (!_excelValidationService.ValidateOptionalEmail(email, "Email personnel", 254, out var emailError))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = emailError! });
+                continue;
+            }
+
             int? departementId = null;
             if (!string.IsNullOrWhiteSpace(departmentRaw))
             {
                 var depKey = Normalize(departmentRaw);
                 if (!departementsByName.TryGetValue(depKey, out var depId))
                 {
-                    result.ErrorCount++;
-                    result.Errors.Add(
-                        new NewEmployeeImportErrorDto
-                        {
-                            Row = r,
-                            Message = $"Département introuvable: '{departmentRaw}'.",
-                        }
-                    );
-                    continue;
+                    var newDepartment = new Departement
+                    {
+                        DepartementName = departmentRaw.Trim(),
+                        CompanyId = targetCompanyId,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = userId.Value
+                    };
+                    _db.Departements.Add(newDepartment);
+                    await _db.SaveChangesAsync(ct);
+                    depId = newDepartment.Id;
+                    departementsByName[depKey] = depId;
+                    result.CreatedDepartmentsCount++;
                 }
                 departementId = depId;
             }
@@ -175,11 +281,18 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 var jobKey = Normalize(jobPositionRaw);
                 if (!jobPositionsByName.TryGetValue(jobKey, out var jobId))
                 {
-                    result.ErrorCount++;
-                    result.Errors.Add(
-                        new NewEmployeeImportErrorDto { Row = r, Message = $"Poste introuvable: '{jobPositionRaw}'." }
-                    );
-                    continue;
+                    var newJobPosition = new JobPosition
+                    {
+                        Name = jobPositionRaw.Trim(),
+                        CompanyId = targetCompanyId,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = userId.Value
+                    };
+                    _db.JobPositions.Add(newJobPosition);
+                    await _db.SaveChangesAsync(ct);
+                    jobId = newJobPosition.Id;
+                    jobPositionsByName[jobKey] = jobId;
+                    result.CreatedJobPositionsCount++;
                 }
                 jobPositionId = jobId;
             }
@@ -246,19 +359,74 @@ public class NewEmployeeImportService : INewEmployeeImportService
             if (!string.IsNullOrWhiteSpace(genderRaw))
             {
                 var genderKey = Normalize(genderRaw);
-                var gender = await _db.Genders.AsNoTracking()
-                    .FirstOrDefaultAsync(g => g.DeletedAt == null && g.NameFr == genderKey, ct);
-                if (gender == null)
+                if (!gendersByNameMap.TryGetValue(genderKey, out var genderIdValue))
                 {
                     result.ErrorCount++;
                     result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = $"Genre introuvable: '{genderRaw}'." });
                     continue;
                 }
-                genderId = gender.Id;
-                if (!gender.IsActive)
+                genderId = genderIdValue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(maritalStatusRaw) && !maritalStatusesByNameMap.Contains(Normalize(maritalStatusRaw)))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto
+                {
+                    Row = r,
+                    Message = $"Situation familiale invalide: '{maritalStatusRaw}'."
+                });
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(educationRaw) && !educationLevelsByNameMap.Contains(Normalize(educationRaw)))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new NewEmployeeImportErrorDto
+                {
+                    Row = r,
+                    Message = $"Niveau d'éducation invalide: '{educationRaw}'."
+                });
+                continue;
+            }
+
+            int? countryId = null;
+            if (!string.IsNullOrWhiteSpace(countryRaw))
+            {
+                if (!countriesByName.TryGetValue(Normalize(countryRaw), out var countryIdValue))
                 {
                     result.ErrorCount++;
-                    result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = $"Genre inactif: '{genderRaw}'." });
+                    result.Errors.Add(new NewEmployeeImportErrorDto
+                    {
+                        Row = r,
+                        Message = $"Pays invalide: '{countryRaw}'."
+                    });
+                    continue;
+                }
+                countryId = countryIdValue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(cityRaw))
+            {
+                if (!countryId.HasValue)
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(new NewEmployeeImportErrorDto
+                    {
+                        Row = r,
+                        Message = "Ville fournie sans pays associé."
+                    });
+                    continue;
+                }
+
+                if (!cityByCountryAndName.ContainsKey((countryId.Value, Normalize(cityRaw))))
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(new NewEmployeeImportErrorDto
+                    {
+                        Row = r,
+                        Message = $"Ville invalide pour le pays '{countryRaw}': '{cityRaw}'."
+                    });
                     continue;
                 }
             }
@@ -303,6 +471,12 @@ public class NewEmployeeImportService : INewEmployeeImportService
             }
 
             result.SuccessCount++;
+            result.AddedEmployees.Add(new NewEmployeeImportSuccessDto
+            {
+                Row = r,
+                FirstName = firstName.Trim(),
+                LastName = lastName.Trim()
+            });
         }
 
         return ServiceResult<NewEmployeeImportResultDto>.Ok(result);
@@ -444,4 +618,5 @@ public class NewEmployeeImportService : INewEmployeeImportService
         var s = raw.Trim().Trim('"', '\'', '=').Replace('\u00A0', ' ').Trim();
         return string.IsNullOrWhiteSpace(s) ? null : s;
     }
+
 }

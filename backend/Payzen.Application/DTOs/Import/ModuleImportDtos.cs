@@ -15,4 +15,11 @@ public class ModuleImportSheetResultDto
     public string SheetType { get; set; } = string.Empty;
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
+    public int TotalRows { get; set; }
+    public int SuccessCount { get; set; }
+    public int ErrorCount { get; set; }
+    public int CreatedDepartmentsCount { get; set; }
+    public int CreatedJobPositionsCount { get; set; }
+    public List<NewEmployeeImportSuccessDto> AddedEmployees { get; set; } = new();
+    public List<NewEmployeeImportErrorDto> Errors { get; set; } = new();
 }

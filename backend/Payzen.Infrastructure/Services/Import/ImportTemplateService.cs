@@ -97,8 +97,40 @@ public class ImportTemplateService : IImportTemplateService
             .OrderBy(c => c.Name)
             .Select(c => c.Name)
             .ToListAsync(ct);
+        var employeesChanges = await _db.Employees.AsNoTracking()
+            .Where(e => e.CompanyId == targetCompanyId && e.DeletedAt == null)
+            .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
+            .Select(e => new { e.Matricule, e.LastName, e.FirstName })
+            .ToListAsync(ct);
+        var leaveTypes = await _db.LeaveTypes.AsNoTracking()
+            .Where(l => l.DeletedAt == null && l.IsActive && (l.CompanyId == null || l.CompanyId == targetCompanyId))
+            .OrderBy(l => l.LeaveNameFr)
+            .Select(l => l.LeaveNameFr)
+            .ToListAsync(ct);
 
         using var wb = new XLWorkbook();
+
+        var companySheet = wb.Worksheets.Add("Societe");
+        companySheet.Cell(1, 1).Value = "Champ";
+        companySheet.Cell(1, 2).Value = "Valeur";
+        companySheet.Cell(2, 1).Value = "Nom";
+        companySheet.Cell(2, 2).Value = company.CompanyName ?? string.Empty;
+        companySheet.Cell(3, 1).Value = "Email";
+        companySheet.Cell(3, 2).Value = company.Email ?? string.Empty;
+        companySheet.Cell(4, 1).Value = "Adresse";
+        companySheet.Cell(4, 2).Value = company.CompanyAddress ?? string.Empty;
+        companySheet.Cell(5, 1).Value = "ICE Number";
+        companySheet.Cell(5, 2).Value = company.IceNumber ?? string.Empty;
+
+        var companyHeader = companySheet.Range(1, 1, 1, 2);
+        companyHeader.Style.Font.Bold = true;
+        companyHeader.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+        companyHeader.Style.Font.FontSize = 14;
+
+        var companyDataRange = companySheet.Range(2, 1, 5, 2);
+        companyDataRange.Style.Protection.SetLocked(true);
+        companySheet.Columns().AdjustToContents();
+        companySheet.Protect("payzen_societe_readonly");
 
         // Le logic de creation du template Commence ICI
 
@@ -136,11 +168,16 @@ public class ImportTemplateService : IImportTemplateService
         headerRange.Style.Font.Bold = true;
         headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
         headerRange.Style.Font.FontSize = 16;
+        headerRange.Style.Protection.SetLocked(true);
+
+        var dataRange = ws.Range(2, 1, 500, headers.Length);
+        dataRange.Style.Protection.SetLocked(false);
 
         ws.Column(7).Style.DateFormat.Format = "dd/MM/yyyy";
         ws.Column(14).Style.DateFormat.Format = "dd/MM/yyyy";
         ws.Columns().AdjustToContents();
         ws.Rows().AdjustToContents();
+        ws.Protect("payzen_import_header_only");
 
         var listSheet = wb.Worksheets.Add("_lists");
         FillListColumn(listSheet, 1, "Departements", departments);
@@ -153,6 +190,11 @@ public class ImportTemplateService : IImportTemplateService
         FillListColumn(listSheet, 8, "Pays", countries.Select(c => c.CountryName).ToList());
         FillListColumn(listSheet, 9, "Categories", categories);
         FillListColumn(listSheet, 10, "PaysRangeKeys", countries.Select(c => ToExcelRangeName(c.CountryName)).ToList());
+        FillListColumn(listSheet, 11, "Matricules", employeesChanges.Select(e => e.Matricule?.ToString() ?? string.Empty).Where(m => !string.IsNullOrWhiteSpace(m)).ToList());
+        FillListColumn(listSheet, 12, "TypesAbsence", new List<string> { "Journée", "Demi-journée", "Heures" });
+        FillListColumn(listSheet, 13, "OuiNon", new List<string> { "Oui", "Non" });
+        FillListColumn(listSheet, 14, "TypesConge", leaveTypes);
+        FillListColumn(listSheet, 15, "TypesHeuresSup", new List<string> { "Jour ouvrable", "Weekend", "Jour férié", "Nuit" });
 
         var citySheet = wb.Worksheets.Add("_cities");
         citySheet.Visibility = XLWorksheetVisibility.VeryHidden;
@@ -238,12 +280,10 @@ public class ImportTemplateService : IImportTemplateService
         headerRangeChanges.Style.Font.Bold = true;
         headerRangeChanges.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
         headerRangeChanges.Style.Font.FontSize = 16;
+        headerRangeChanges.Style.Protection.SetLocked(true);
 
-        var employeesChanges = await _db.Employees.AsNoTracking()
-            .Where(e => e.CompanyId == targetCompanyId && e.DeletedAt == null)
-            .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
-            .Select(e => new { e.Matricule, e.LastName})
-            .ToListAsync(ct);
+        var changesDataRange = changesSheet.Range(2, 1, 500, changesHeaders.Length);
+        changesDataRange.Style.Protection.SetLocked(false);
 
         var changesRow = 2;
         foreach (var employee in employeesChanges)
@@ -252,17 +292,92 @@ public class ImportTemplateService : IImportTemplateService
             // d'utiliser une valeur métier (matricule) comme numéro de ligne.
             changesSheet.Cell(changesRow, 1).Value = employee.Matricule?.ToString() ?? string.Empty;
             changesSheet.Cell(changesRow, 2).Value = employee.LastName ?? string.Empty;
+            changesSheet.Cell(changesRow, 3).Value = employee.FirstName ?? string.Empty;
             changesRow++;
         }
+        AddValidation(changesSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
+        AddValidation(changesSheet, "E2:E500", listSheet, 5, genders.Count);
+        AddValidation(changesSheet, "N2:N500", listSheet, 8, countries.Count);
+        AddValidation(changesSheet, "O2:O500", listSheet, 7, educationLevels.Count);
+        AddValidation(changesSheet, "P2:P500", listSheet, 6, maritalStatuses.Count);
+        AddValidation(changesSheet, "Q2:Q500", listSheet, 4, managers.Count);
+        AddValidation(changesSheet, "R2:R500", listSheet, 2, jobPositions.Count);
+        AddValidation(changesSheet, "S2:S500", listSheet, 3, contractTypes.Count);
+        changesSheet.Protect("payzen_import_header_only");
 
         var absenceSheet = wb.Worksheets.Add("Absence");
-        absenceSheet.Cell(1, 1).Value = "Template Absence (à implémenter)";
+        var absenceHeaders = new[]
+        {
+            "Matricule",
+            "Date absence",
+            "Type durée",
+            "Nombre d'heures",
+            "Motif",
+            "Justifiée (Oui/Non)"
+        };
+        for (var i = 0; i < absenceHeaders.Length; i++)
+            absenceSheet.Cell(1, i + 1).Value = absenceHeaders[i];
+        var absenceHeaderRange = absenceSheet.Range(1, 1, 1, absenceHeaders.Length);
+        absenceHeaderRange.Style.Font.Bold = true;
+        absenceHeaderRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+        absenceHeaderRange.Style.Font.FontSize = 16;
+        absenceHeaderRange.Style.Protection.SetLocked(true);
+        absenceSheet.Range(2, 1, 500, absenceHeaders.Length).Style.Protection.SetLocked(false);
+        absenceSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
+        absenceSheet.Column(4).Style.NumberFormat.Format = "0.00";
+        AddValidation(absenceSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
+        AddValidation(absenceSheet, "C2:C500", listSheet, 12, 3);
+        AddValidation(absenceSheet, "F2:F500", listSheet, 13, 2);
+        absenceSheet.Columns().AdjustToContents();
+        absenceSheet.Protect("payzen_import_header_only");
 
         var leaveSheet = wb.Worksheets.Add("Congé");
-        leaveSheet.Cell(1, 1).Value = "Template Congé à implemneter";
+        var leaveHeaders = new[]
+        {
+            "Matricule",
+            "Date début",
+            "Date fin",
+            "Type de congé",
+            "Commentaire"
+        };
+        for (var i = 0; i < leaveHeaders.Length; i++)
+            leaveSheet.Cell(1, i + 1).Value = leaveHeaders[i];
+        var leaveHeaderRange = leaveSheet.Range(1, 1, 1, leaveHeaders.Length);
+        leaveHeaderRange.Style.Font.Bold = true;
+        leaveHeaderRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+        leaveHeaderRange.Style.Font.FontSize = 16;
+        leaveHeaderRange.Style.Protection.SetLocked(true);
+        leaveSheet.Range(2, 1, 500, leaveHeaders.Length).Style.Protection.SetLocked(false);
+        leaveSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
+        leaveSheet.Column(3).Style.DateFormat.Format = "dd/MM/yyyy";
+        AddValidation(leaveSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
+        AddValidation(leaveSheet, "D2:D500", listSheet, 14, leaveTypes.Count);
+        leaveSheet.Columns().AdjustToContents();
+        leaveSheet.Protect("payzen_import_header_only");
 
         var overtimeSheet = wb.Worksheets.Add("Heurs Sup");
-        overtimeSheet.Cell(1, 1).Value = "Template Heurs Sup à implemneter";
+        var overtimeHeaders = new[]
+        {
+            "Matricule",
+            "Date",
+            "Nombre d'heures",
+            "Type heure sup",
+            "Commentaire"
+        };
+        for (var i = 0; i < overtimeHeaders.Length; i++)
+            overtimeSheet.Cell(1, i + 1).Value = overtimeHeaders[i];
+        var overtimeHeaderRange = overtimeSheet.Range(1, 1, 1, overtimeHeaders.Length);
+        overtimeHeaderRange.Style.Font.Bold = true;
+        overtimeHeaderRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+        overtimeHeaderRange.Style.Font.FontSize = 16;
+        overtimeHeaderRange.Style.Protection.SetLocked(true);
+        overtimeSheet.Range(2, 1, 500, overtimeHeaders.Length).Style.Protection.SetLocked(false);
+        overtimeSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
+        overtimeSheet.Column(3).Style.NumberFormat.Format = "0.00";
+        AddValidation(overtimeSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
+        AddValidation(overtimeSheet, "D2:D500", listSheet, 15, 4);
+        overtimeSheet.Columns().AdjustToContents();
+        overtimeSheet.Protect("payzen_import_header_only");
 
         using var ms = new MemoryStream();
         wb.SaveAs(ms);
