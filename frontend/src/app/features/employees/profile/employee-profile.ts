@@ -578,7 +578,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
       details: this.employeeService.getEmployeeDetails(id),
       salary: this.employeeService.getEmployeeSalaryDetails(id),
       documents: this.employeeService.getDocuments(id).pipe(catchError(() => of([]))),
-      statuses: this.employeeService.getStatuses(false),
+      statuses: this.employeeService.getStatuses(true),
       form: this.employeeService.getEmployeeFormData(),
       spouse: this.familyService.getSpouse(id).pipe(catchError(() => of(null))),
       children: this.familyService.getChildren(id).pipe(catchError(() => of([]))),
@@ -1071,6 +1071,20 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
   // Helper to update employee signal (triggers effect)
   updateField<K extends keyof EmployeeProfileModel>(field: K, value: EmployeeProfileModel[K]): void {
     this.saveError.set(null);
+    if (field === 'baseSalary') {
+      const baseSalary = Number(value as number) || 0;
+      const recalculatedComponents = (this.employee().salaryComponents || []).map(c => {
+        const percentage = Number(c.percentage ?? 0);
+        const safePercentage = Number.isFinite(percentage) ? percentage : 0;
+        return {
+          ...c,
+          percentage: safePercentage,
+          amount: this.computeAmountFromPercentage(safePercentage, baseSalary)
+        };
+      });
+      this.employee.set({ ...this.employee(), [field]: value, salaryComponents: recalculatedComponents });
+      return;
+    }
     this.employee.set({ ...this.employee(), [field]: value });
   }
 
@@ -1098,7 +1112,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     // Load both form lookups and statuses referential
     forkJoin({
       form: this.employeeService.getEmployeeFormData(),
-      statuses: this.employeeService.getStatuses(false)
+      statuses: this.employeeService.getStatuses(true)
     }).subscribe({
       next: ({ form, statuses }) => {
         // Merge statuses into formData (convert to LookupOption[] expected shape)
@@ -1363,7 +1377,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     const current = this.employee().salaryComponents || [];
     this.updateField('salaryComponents', [
       ...current,
-      { type: '', amount: 0, isTaxable: false, effectiveDate: this.getTodayDate() }
+      { type: '', amount: 0, isTaxable: false, effectiveDate: this.getTodayDate(), percentage: 0 }
     ]);
   }
 
@@ -1371,7 +1385,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     const current = this.employee().salaryComponents || [];
     this.updateField('salaryComponents', [
       ...current,
-      { type: '', amount: 0, isTaxable: true, effectiveDate: this.getTodayDate() }
+      { type: '', amount: 0, isTaxable: true, effectiveDate: this.getTodayDate(), percentage: 0 }
     ]);
   }
 
@@ -1382,11 +1396,25 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
     this.updateField('salaryComponents', updated);
   }
 
-  updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable' | 'effectiveDate', value: any) {
+  updateSalaryComponent(index: number, field: 'type' | 'amount' | 'isTaxable' | 'effectiveDate' | 'percentage', value: any) {
     const current = this.employee().salaryComponents || [];
     const updated = [...current];
     const finalValue = field === 'isTaxable' ? Boolean(value) : value;
     updated[index] = { ...updated[index], [field]: finalValue };
+
+    if (field === 'percentage') {
+      const percentage = Number(value);
+      updated[index].percentage = Number.isFinite(percentage) ? percentage : 0;
+      updated[index].amount = this.computeAmountFromPercentage(updated[index].percentage);
+    }
+
+    if (field === 'amount') {
+      const amount = Number(value);
+      const safeAmount = Number.isFinite(amount) ? amount : 0;
+      updated[index].amount = safeAmount;
+      updated[index].percentage = this.computePercentageFromAmount(safeAmount);
+    }
+
     this.updateField('salaryComponents', updated);
   }
 
@@ -1636,6 +1664,37 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
         maritalStatusChangeDate: out['maritalStatusChangeDate'] ?? null
       });
     }
+
+    // Handle status: frontend uses `status` (code like "active"/"on_leave"), API expects `statusId` (int).
+    if ('status' in out) {
+      const code = norm(out['status']);
+      if (code) {
+        const opts = this.formData().statuses || [];
+        let statusId: number | undefined;
+
+        for (const o of opts) {
+          const anyO = o as any;
+          const val = norm(anyO.value ?? anyO.id ?? anyO.label ?? '');
+          const lbl = norm(anyO.label ?? '');
+
+          if (val === code || lbl === code || val.includes(code) || lbl.includes(code)) {
+            const maybeId = Number(anyO.id ?? anyO.Id);
+            if (Number.isFinite(maybeId) && maybeId > 0) {
+              statusId = maybeId;
+              break;
+            }
+          }
+        }
+
+        if (statusId !== undefined) {
+          out['statusId'] = statusId;
+        }
+      }
+
+      // Avoid sending the string code to backend.
+      delete out['status'];
+    }
+
     if ('managerId' in out && !('managerChangeDate' in out)) {
       out['managerChangeDate'] = today;
     }
@@ -1783,6 +1842,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               employeeSalaryId: newActiveSalaryId,
               componentType: c.type,
               amount: c.amount,
+              percentage: c.percentage ?? null,
               isTaxable: c.isTaxable ?? true,
               effectiveDate: c.effectiveDate || this.getTodayDate(),
             })));
@@ -1813,6 +1873,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               employeeSalaryId: newActiveSalaryId,
               componentType: c.type,
               amount: c.amount,
+              percentage: c.percentage ?? null,
               isTaxable: c.isTaxable ?? true,
               effectiveDate: c.effectiveDate || this.getTodayDate()
             })));
@@ -1824,6 +1885,7 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
               employeeSalaryId: newActiveSalaryId,
               componentType: c.type,
               amount: c.amount,
+              percentage: c.percentage ?? null,
               isTaxable: c.isTaxable ?? true,
               effectiveDate: c.effectiveDate || this.getTodayDate()
             })));
@@ -2612,6 +2674,20 @@ export class EmployeeProfile implements OnInit, CanComponentDeactivate {
 
   private getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  private computeAmountFromPercentage(percentage: number | null | undefined, baseSalaryOverride?: number): number {
+    const baseSalary = Number(baseSalaryOverride ?? this.employee().baseSalary) || 0;
+    const pct = Number(percentage);
+    if (!Number.isFinite(pct)) return 0;
+    return Number(((baseSalary * pct) / 100).toFixed(2));
+  }
+
+  private computePercentageFromAmount(amount: number | null | undefined, baseSalaryOverride?: number): number {
+    const baseSalary = Number(baseSalaryOverride ?? this.employee().baseSalary) || 0;
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || baseSalary <= 0) return 0;
+    return Number(((amt / baseSalary) * 100).toFixed(2));
   }
 
   /**

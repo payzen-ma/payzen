@@ -488,17 +488,35 @@ export class ImportComponent implements OnInit {
 
     this.importService.downloadModuleTemplate(companyId).subscribe({
       next: (response) => {
+        // Récupérer le nom du fichier depuis le header Content-Disposition
         const contentDisposition = response.headers.get('content-disposition') ?? '';
-        const fileNameMatch = /filename\*?=(?:UTF-8''|")?([^\";]+)/i.exec(contentDisposition);
-        const decodedFileName = fileNameMatch?.[1]
-          ? decodeURIComponent(fileNameMatch[1].replace(/"/g, '').trim())
-          : 'template_import_nouveaux_employes.xlsx';
+        console.log('Content-Disposition:', contentDisposition); // Debug
+
+        let decodedFileName: string | undefined;
+
+        if (contentDisposition) {
+          // Pattern pour RFC 5987 (filename*=UTF-8''...)
+          let fileNameMatch = /filename\*=UTF-8''([^\s;]+)/i.exec(contentDisposition);
+          if (fileNameMatch?.[1]) {
+            decodedFileName = decodeURIComponent(fileNameMatch[1]);
+          } else {
+            // Pattern pour filename standard
+            fileNameMatch = /filename="?([^";\n]+)"?/i.exec(contentDisposition);
+            if (fileNameMatch?.[1]) {
+              decodedFileName = fileNameMatch[1].trim();
+            }
+          }
+        }
 
         const blob = response.body ?? new Blob();
         const objectUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = objectUrl;
-        link.download = decodedFileName;
+
+        if (decodedFileName) {
+          link.download = decodedFileName;
+        }
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

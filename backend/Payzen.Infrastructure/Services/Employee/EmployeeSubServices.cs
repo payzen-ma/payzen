@@ -370,6 +370,15 @@ public class EmployeeSalaryService : IEmployeeSalaryService
                 ct
             );
             s.BaseSalary = dto.BaseSalary;
+            var componentsToRecalculate = await _db
+                .EmployeeSalaryComponents
+                .Where(c => c.EmployeeSalaryId == s.Id && c.DeletedAt == null && c.Percentage.HasValue)
+                .ToListAsync(ct);
+            foreach (var component in componentsToRecalculate)
+            {
+                component.Amount = CalculateAmountFromPercentage(component.Percentage, dto.BaseSalary);
+                component.UpdatedBy = updatedBy;
+            }
         }
         if (dto.BaseSalaryHourly != null)
             s.BaseSalaryHourly = dto.BaseSalaryHourly;
@@ -484,10 +493,19 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             IsSocial = true,
             IsCIMR = false,
             Amount = dto.Amount,
+            Percentage = dto.Percentage,
             EffectiveDate = dto.EffectiveDate,
             EndDate = dto.EndDate,
             CreatedBy = createdBy,
         };
+        if (dto.Percentage.HasValue)
+        {
+            var salary = await _db.EmployeeSalaries.FirstOrDefaultAsync(
+                s => s.Id == dto.EmployeeSalaryId && s.DeletedAt == null,
+                ct
+            );
+            c.Amount = CalculateAmountFromPercentage(dto.Percentage, salary?.BaseSalary);
+        }
         _db.EmployeeSalaryComponents.Add(c);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<EmployeeSalaryComponentReadDto>.Ok(MapComp(c));
@@ -516,10 +534,19 @@ public class EmployeeSalaryService : IEmployeeSalaryService
                 IsSocial = c.IsSocial,
                 IsCIMR = c.IsCIMR,
                 Amount = dto.Amount ?? c.Amount,
+                Percentage = dto.Percentage ?? c.Percentage,
                 EffectiveDate = dto.EffectiveDate.Value,
                 EndDate = dto.EndDate,
                 CreatedBy = updatedBy,
             };
+            if (dto.Percentage.HasValue)
+            {
+                var salary = await _db.EmployeeSalaries.FirstOrDefaultAsync(
+                    s => s.Id == c.EmployeeSalaryId && s.DeletedAt == null,
+                    ct
+                );
+                nextVersion.Amount = CalculateAmountFromPercentage(dto.Percentage, salary?.BaseSalary);
+            }
 
             _db.EmployeeSalaryComponents.Add(nextVersion);
             await _db.SaveChangesAsync(ct);
@@ -530,6 +557,15 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             c.ComponentType = dto.ComponentType;
         if (dto.Amount != null)
             c.Amount = dto.Amount.Value;
+        if (dto.Percentage != null)
+        {
+            c.Percentage = dto.Percentage.Value;
+            var salary = await _db.EmployeeSalaries.FirstOrDefaultAsync(
+                s => s.Id == c.EmployeeSalaryId && s.DeletedAt == null,
+                ct
+            );
+            c.Amount = CalculateAmountFromPercentage(dto.Percentage, salary?.BaseSalary);
+        }
         if (dto.IsTaxable.HasValue)
             c.IsTaxable = dto.IsTaxable.Value;
         if (dto.EffectiveDate.HasValue)
@@ -579,6 +615,7 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             EmployeeSalaryId = old.EmployeeSalaryId,
             ComponentType = dto.ComponentType ?? old.ComponentType,
             Amount = dto.Amount ?? old.Amount,
+            Percentage = dto.Percentage ?? old.Percentage,
             IsTaxable = dto.IsTaxable ?? old.IsTaxable,
             IsSocial = old.IsSocial,
             IsCIMR = old.IsCIMR,
@@ -586,6 +623,14 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             EndDate = dto.EndDate,
             CreatedBy = userId,
         };
+        if (dto.Percentage.HasValue)
+        {
+            var salary = await _db.EmployeeSalaries.FirstOrDefaultAsync(
+                s => s.Id == old.EmployeeSalaryId && s.DeletedAt == null,
+                ct
+            );
+            neu.Amount = CalculateAmountFromPercentage(dto.Percentage, salary?.BaseSalary);
+        }
         _db.EmployeeSalaryComponents.Add(neu);
         await _db.SaveChangesAsync(ct);
         return ServiceResult<object>.Ok(
@@ -626,10 +671,20 @@ public class EmployeeSalaryService : IEmployeeSalaryService
             ComponentType = c.ComponentType,
             IsTaxable = c.IsTaxable,
             Amount = c.Amount,
+            Percentage = c.Percentage,
             EffectiveDate = c.EffectiveDate,
             EndDate = c.EndDate,
             CreatedAt = c.CreatedAt.DateTime,
         };
+
+    private static decimal CalculateAmountFromPercentage(decimal? percentage, decimal? baseSalary)
+    {
+        if (!percentage.HasValue || !baseSalary.HasValue)
+            return 0m;
+        if (baseSalary.Value <= 0)
+            return 0m;
+        return Math.Round((baseSalary.Value * percentage.Value) / 100m, 2, MidpointRounding.AwayFromZero);
+    }
 }
 
 // ════════════════════════════════════════════════════════════

@@ -13,7 +13,7 @@ import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.comp
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /** État de chargement par export */
-type ExportKey = 'journal' | 'cnss' | 'cnssPdf' | 'ir' | 'irPdf';
+type ExportKey = 'journal' | 'cnssPdf' | 'irPdf';
 
 @Component({
   selector: 'app-payroll-exports',
@@ -34,13 +34,16 @@ export class PayrollExportsComponent implements OnInit {
 
   // ── Formulaire ─────────────────────────────────────────────────────────
   selectedYear = signal<number>(new Date().getFullYear());
-  selectedMonth = signal<number>(new Date().getMonth() + 1);
+  journalMonthFrom = signal<number>(new Date().getMonth() + 1);
+  journalMonthTo = signal<number>(new Date().getMonth() + 1);
+  cnssPdfMonth = signal<number>(new Date().getMonth() + 1);
+  irPdfMonth = signal<number>(new Date().getMonth() + 1);
 
   readonly yearOptions: SelectOption[] = this.buildYearOptions();
   readonly monthOptions: SelectOption[] = this.buildMonthOptions();
 
   // ── Loading states ──────────────────────────────────────────────────────
-  loading = signal<Record<ExportKey, boolean>>({ journal: false, cnss: false, cnssPdf: false, ir: false, irPdf: false });
+  loading = signal<Record<ExportKey, boolean>>({ journal: false, cnssPdf: false, irPdf: false });
   preetabliLoading = signal<boolean>(false);
 
   // ── Messages d'erreur ───────────────────────────────────────────────────
@@ -54,23 +57,22 @@ export class PayrollExportsComponent implements OnInit {
   // ── Actions ─────────────────────────────────────────────────────────────
 
   onExportJournal(): void {
-    this.download('journal', `JournalPaie_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.xlsx`);
-  }
-
-  onExportCnss(): void {
-    this.download('cnss', `EtatCnss_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
+    if (this.journalMonthTo() < this.journalMonthFrom()) {
+      this.errorMessage.set('Le mois "à" doit être supérieur ou égal au mois "de".');
+      return;
+    }
+    this.download(
+      'journal',
+      `JournalPaie_${this.selectedYear()}_${String(this.journalMonthFrom()).padStart(2, '0')}_${String(this.journalMonthTo()).padStart(2, '0')}.csv`
+    );
   }
 
   onExportCnssPdf(): void {
-    this.download('cnssPdf', `EtatCNSS_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.pdf`);
-  }
-
-  onExportIr(): void {
-    this.download('ir', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.csv`);
+    this.download('cnssPdf', `EtatCNSS_${this.selectedYear()}_${String(this.cnssPdfMonth()).padStart(2, '0')}.pdf`);
   }
 
   onExportIrPdf(): void {
-    this.download('irPdf', `EtatIR_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.pdf`);
+    this.download('irPdf', `EtatIR_${this.selectedYear()}_${String(this.irPdfMonth()).padStart(2, '0')}.pdf`);
   }
 
   onPreetabliFileSelected(event: Event): void {
@@ -115,7 +117,7 @@ export class PayrollExportsComponent implements OnInit {
       return;
     }
 
-    const period = `${this.selectedYear()}${String(this.selectedMonth()).padStart(2, '0')}`;
+    const period = `${this.selectedYear()}${String(this.cnssPdfMonth()).padStart(2, '0')}`;
     this.clearMessages();
     this.preetabliLoading.set(true);
     this.exportService
@@ -154,7 +156,7 @@ export class PayrollExportsComponent implements OnInit {
         next: (blob) => {
           PayrollExportService.triggerDownload(
             blob,
-            `DS_CNSS_${this.selectedYear()}_${String(this.selectedMonth()).padStart(2, '0')}.txt`
+            `DS_CNSS_${this.selectedYear()}_${String(this.cnssPdfMonth()).padStart(2, '0')}.txt`
           );
           this.successMessage.set('Fichier e-BDS généré avec succès.');
         },
@@ -177,11 +179,11 @@ export class PayrollExportsComponent implements OnInit {
     this.setLoading(key, true);
 
     const call$ =
-      key === 'journal' ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.selectedMonth()) :
-        key === 'cnss' ? this.exportService.downloadCnss(companyId, this.selectedYear(), this.selectedMonth()) :
-          key === 'cnssPdf' ? this.exportService.downloadCnssPdf(companyId, this.selectedYear(), this.selectedMonth()) :
-            key === 'ir' ? this.exportService.downloadIr(companyId, this.selectedYear(), this.selectedMonth()) :
-              this.exportService.downloadIrPdf(companyId, this.selectedYear(), this.selectedMonth());
+      key === 'journal'
+        ? this.exportService.downloadJournal(companyId, this.selectedYear(), this.journalMonthFrom(), this.journalMonthTo())
+        : key === 'cnssPdf'
+          ? this.exportService.downloadCnssPdf(companyId, this.selectedYear(), this.cnssPdfMonth())
+          : this.exportService.downloadIrPdf(companyId, this.selectedYear(), this.irPdfMonth());
 
     call$.pipe(finalize(() => this.setLoading(key, false)))
       .subscribe({
@@ -207,6 +209,10 @@ export class PayrollExportsComponent implements OnInit {
   private clearMessages(): void {
     this.errorMessage.set(null);
     this.successMessage.set(null);
+  }
+
+  get selectedPreetabliFileName(): string {
+    return this.selectedPreetabliFile()?.name ?? 'Aucun fichier choisi';
   }
 
   private buildYearOptions(): SelectOption[] {

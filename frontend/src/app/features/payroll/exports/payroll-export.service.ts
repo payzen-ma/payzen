@@ -79,9 +79,10 @@ export class PayrollExportService {
   /**
    * Télécharge le Journal de Paie (Excel XLSX)
    */
-  downloadJournal(companyId: number, year: number, month: number): Observable<Blob> {
+  downloadJournal(companyId: number, year: number, month: number, monthTo?: number): Observable<Blob> {
+    const monthToQuery = monthTo != null ? `?monthTo=${encodeURIComponent(String(monthTo))}` : '';
     return this.http.get(
-      `${this.baseUrl}/journal/${companyId}/${year}/${month}`,
+      `${this.baseUrl}/journal/${companyId}/${year}/${month}${monthToQuery}`,
       { responseType: 'blob' }
     );
   }

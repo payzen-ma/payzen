@@ -7,6 +7,17 @@
     box-sizing: border-box;
 }
 
+.payroll-exports-card__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.payroll-exports-card__actions app-select {
+    min-width: 180px;
+    flex: 1 1 180px;
+}
+
 .preetabli-section {
     margin-top: 1rem;
     padding: 1rem;
@@ -17,9 +28,27 @@
 
 .preetabli-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
     margin: 0.75rem 0;
+}
+
+.preetabli-file-input {
+    display: none;
+}
+
+.preetabli-file-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 0.9rem;
+    min-width: 240px;
 }
 
 .preetabli-result {

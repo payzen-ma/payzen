@@ -188,6 +188,7 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition")
             .AllowCredentials();
     });
 });

@@ -226,6 +226,7 @@ public class EmployeeService : IEmployeeService
                 {
                     ComponentName = c.ComponentType,
                     Amount = c.Amount,
+                    Percentage = c.Percentage,
                     IsTaxable = c.IsTaxable,
                 })
                 .ToList()

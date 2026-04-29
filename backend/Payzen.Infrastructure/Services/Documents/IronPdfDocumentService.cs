@@ -24,18 +24,21 @@ public class IronPdfDocumentService : IDocumentService
     private readonly IWebHostEnvironment _env;
     private readonly AppDbContext _db;
     private readonly ILeaveBalanceRecalculationService _leaveBalanceRecalc;
+    private readonly IPayrollExportService _payrollExportService;
     private readonly ILogger<IronPdfDocumentService> _logger;
 
     public IronPdfDocumentService(
         IWebHostEnvironment env,
         AppDbContext db,
         ILeaveBalanceRecalculationService leaveBalanceRecalc,
+        IPayrollExportService payrollExportService,
         ILogger<IronPdfDocumentService> logger
     )
     {
         _env = env;
         _db = db;
         _leaveBalanceRecalc = leaveBalanceRecalc;
+        _payrollExportService = payrollExportService;
         _logger = logger;
     }
 
@@ -258,83 +261,11 @@ public class IronPdfDocumentService : IDocumentService
         CancellationToken ct = default
     )
     {
-        var company = await _db.Companies.FindAsync(new object[] { companyId }, ct);
-        if (company == null)
-            return ServiceResult<byte[]>.Fail($"Entreprise {companyId} introuvable.");
+        var dataResult = await _payrollExportService.GetEtatCnssPdfDataAsync(companyId, year, month, ct);
+        if (!dataResult.Success || dataResult.Data == null)
+            return ServiceResult<byte[]>.Fail(dataResult.Error ?? $"Aucun salarié CNSS trouvé pour {month:D2}/{year}.");
 
-        var results = await _db
-            .PayrollResults.AsNoTracking()
-            .Include(r => r.Employee)
-            .Where(r =>
-                r.CompanyId == companyId
-                && r.Year == year
-                && r.Month == month
-                && r.Status == PayrollResultStatus.OK
-                && r.Employee.CnssNumber != null
-            )
-            .OrderBy(r => r.Employee.LastName)
-            .ThenBy(r => r.Employee.FirstName)
-            .ToListAsync(ct);
-
-        if (!results.Any())
-            return ServiceResult<byte[]>.Fail($"Aucun salarié CNSS trouvé pour {month:D2}/{year}.");
-
-        const decimal CNSS_RG_SAL = 0.0448m;
-        const decimal CNSS_AMO_SAL = 0.0226m;
-        const decimal CNSS_RG_PAT = 0.0898m;
-        const decimal CNSS_AF_PAT = 0.0640m;
-        const decimal CNSS_FP_PAT = 0.0160m;
-        const decimal CNSS_AMO_PAT = 0.0226m;
-        const decimal CNSS_AMO_PAT2 = 0.0185m;
-
-        var rows = results
-            .Select(
-                (r, i) =>
-                {
-                    var baseCnss = r.CnssBase ?? Math.Min(r.TotalBrut ?? 0m, 6_000m);
-                    var brut = r.TotalBrut ?? 0m;
-                    var rgSal = Math.Round(baseCnss * CNSS_RG_SAL, 2);
-                    var amoSal = Math.Round(brut * CNSS_AMO_SAL, 2);
-                    var rgPat = Math.Round(baseCnss * CNSS_RG_PAT, 2);
-                    var afPat = Math.Round(brut * CNSS_AF_PAT, 2);
-                    var fpPat = Math.Round(brut * CNSS_FP_PAT, 2);
-                    var amoPat = Math.Round(brut * CNSS_AMO_PAT, 2);
-                    var amoPat2 = Math.Round(brut * CNSS_AMO_PAT2, 2);
-
-                    return new EtatCnssFullRow
-                    {
-                        Ordre = i + 1,
-                        NomPrenom = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
-                        NumeroCnss = r.Employee.CnssNumber!,
-                        CIN = r.Employee.CinNumber ?? string.Empty,
-                        NombreJours = 26,
-                        SalaireBrut = brut,
-                        BaseCnss = baseCnss,
-                        RgSalarial = rgSal,
-                        AmoSalarial = amoSal,
-                        RgPatronal = rgPat,
-                        AfPatronal = afPat,
-                        FpPatronal = fpPat,
-                        AmoPatronal = amoPat,
-                        CotisationAmo = Math.Round(amoSal + amoPat, 2),
-                        ParticipationAmo = amoPat2,
-                    };
-                }
-            )
-            .ToList();
-
-        var data = new EtatCnssPdfData
-        {
-            CompanyName = company.CompanyName,
-            CompanyCnss = company.CnssNumber ?? string.Empty,
-            CompanyAddress = company.CompanyAddress ?? string.Empty,
-            CompanyIce = company.IceNumber ?? string.Empty,
-            Month = month,
-            Year = year,
-            Rows = rows,
-        };
-
-        var html = BuildEtatCnssPdfHtml(data);
+        var html = BuildEtatCnssPdfHtml(dataResult.Data);
         var pdfBytes = RenderPdf(html, landscape: true);
 
         return ServiceResult<byte[]>.Ok(pdfBytes);
@@ -349,41 +280,11 @@ public class IronPdfDocumentService : IDocumentService
         CancellationToken ct = default
     )
     {
-        var company = await _db.Companies.FindAsync(new object[] { companyId }, ct);
-        if (company == null)
-            return ServiceResult<byte[]>.Fail($"Entreprise {companyId} introuvable.");
+        var dataResult = await _payrollExportService.GetEtatIrPdfDataAsync(companyId, year, month, ct);
+        if (!dataResult.Success || dataResult.Data == null)
+            return ServiceResult<byte[]>.Fail(dataResult.Error ?? $"Aucun bulletin validé pour {month:D2}/{year}.");
 
-        var results = await _db
-            .PayrollResults.AsNoTracking()
-            .Include(r => r.Employee)
-            .Where(r =>
-                r.CompanyId == companyId && r.Year == year && r.Month == month && r.Status == PayrollResultStatus.OK
-            )
-            .OrderBy(r => r.Employee.Matricule)
-            .ThenBy(r => r.Employee.LastName)
-            .ToListAsync(ct);
-
-        if (!results.Any())
-            return ServiceResult<byte[]>.Fail($"Aucun bulletin validé pour {month:D2}/{year}.");
-
-        var data = new EtatIrPdfData
-        {
-            CompanyName = company.CompanyName,
-            CompanyAddress = company.CompanyAddress ?? string.Empty,
-            Month = month,
-            Year = year,
-            Rows = results
-                .Select(r => new EtatIrFullRow
-                {
-                    Matricule = r.Employee.Matricule ?? r.EmployeeId,
-                    NomPrenom = $"{r.Employee.LastName} {r.Employee.FirstName}".ToUpperInvariant(),
-                    SalImposable = r.BrutImposable ?? r.TotalBrut ?? 0m,
-                    MontantIGR = r.ImpotRevenu ?? 0m,
-                })
-                .ToList(),
-        };
-
-        var html = BuildEtatIrPdfHtml(data);
+        var html = BuildEtatIrPdfHtml(dataResult.Data);
         var pdfBytes = RenderPdf(html, landscape: true);
 
         return ServiceResult<byte[]>.Ok(pdfBytes);
@@ -395,21 +296,24 @@ public class IronPdfDocumentService : IDocumentService
         int companyId,
         int year,
         int month,
+        int? monthTo = null,
         CancellationToken ct = default
     )
     {
-        var results = await _db
-            .PayrollResults.Where(pr => pr.CompanyId == companyId && pr.Year == year && pr.Month == month)
-            .Include(pr => pr.Employee)
-            .ToListAsync(ct);
+        var monthEnd = monthTo ?? month;
+        var rowsResult = await _payrollExportService.GetJournalPaieAsync(companyId, year, month, monthEnd, ct);
+        if (!rowsResult.Success || rowsResult.Data == null)
+            return ServiceResult<byte[]>.Fail(rowsResult.Error ?? "Aucune donnée journal de paie.");
 
         var lines = new StringBuilder();
-        lines.AppendLine("Matricule;Nom;Prénom;Salaire Base;Net à Payer");
-        foreach (var pr in results)
+        lines.AppendLine($"Periode;{month:D2}/{year} -> {monthEnd:D2}/{year}");
+        lines.AppendLine(
+            "Matricule;Nom;Prenom;Date de naissance;Nbr jour travaille;Jr ferie;Salaire base + conge;Salaire base du mois;Nbr jr deduction;CNSS part salariale;AMO part salariale;IR a payer;Interet logement;Heures normales;Heures sup 50%;Heures sup 25%;Heures sup 100%;N CIN;N CNSS;Date embauche;Fonction;Nbr jr conge;Mt anciennete;Primes imposables;Brut imposable;Mutuelle part salariale;CIMR;Net imposable;Brut global;Avance"
+        );
+        foreach (var row in rowsResult.Data)
         {
             lines.AppendLine(
-                $"{pr.Employee?.Matricule};{pr.Employee?.LastName};{pr.Employee?.FirstName};"
-                    + $"{pr.SalaireBase};{pr.NetAPayer}"
+                $"{row.Matricule};{row.Nom};{row.Prenom};{row.DateNaissance};{row.NbrJrsTravailles};{row.JrsFeries};{row.SBPlusConge};{row.SalaireBaseDuMois};{row.NbrDeductions};{row.CNSSPartSalariale};{row.AMOPartSalariale};{row.IRAPayer};{row.InteretLogement};{row.HeuresNormales};{row.HeuresSup50};{row.HeuresSup25};{row.HeuresSup100};{row.CIN};{row.CNSS};{row.DateEmbauche};{row.Fonction};{row.NbrJrsConge};{row.MTAnciennete};{row.LesPrimesImposables};{row.BrutImposable};{row.MutuellePartSalariale};{row.CIMR};{row.NetImposable};{row.BrutGlobal};{row.Avance}"
             );
         }
 

@@ -326,6 +326,7 @@ public class SalaryComponentDto
 {
     public string ComponentName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
+    public decimal? Percentage { get; set; }
     public bool IsTaxable { get; set; }
 }
 
@@ -605,6 +606,9 @@ public class EmployeeSalaryComponentCreateDto
     [Required(ErrorMessage = "Le montant est requis")]
     public required decimal Amount { get; set; }
 
+    [Range(0, 1000, ErrorMessage = "Le pourcentage doit être supérieur ou égal à 0")]
+    public decimal? Percentage { get; set; }
+
     public bool IsTaxable { get; set; } = true;
 
     [Required(ErrorMessage = "La date d'effet est requise")]
@@ -618,6 +622,8 @@ public class EmployeeSalaryComponentUpdateDto
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Le type doit contenir entre 2 et 100 caractères")]
     public string? ComponentType { get; set; }
     public decimal? Amount { get; set; }
+    [Range(0, 1000, ErrorMessage = "Le pourcentage doit être supérieur ou égal à 0")]
+    public decimal? Percentage { get; set; }
     public bool? IsTaxable { get; set; }
     public DateTime? EffectiveDate { get; set; }
     public DateTime? EndDate { get; set; }
@@ -629,6 +635,7 @@ public class EmployeeSalaryComponentReadDto
     public int EmployeeSalaryId { get; set; }
     public string ComponentType { get; set; } = string.Empty;
     public decimal Amount { get; set; }
+    public decimal? Percentage { get; set; }
     public bool IsTaxable { get; set; }
     public DateTime EffectiveDate { get; set; }
     public DateTime? EndDate { get; set; }

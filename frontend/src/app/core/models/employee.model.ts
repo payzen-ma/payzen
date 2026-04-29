@@ -7,6 +7,10 @@ export interface SalaryComponent {
   amount: number;
   isTaxable?: boolean;
   effectiveDate?: string | null;
+  /** Mode de saisie UI (transient): montant fixe ou pourcentage du salaire brut. */
+  calculationMode?: 'amount' | 'percentage';
+  /** Pourcentage saisi côté UI (transient), utilisé pour recalculer `amount`. */
+  percentage?: number | null;
   /** Flag transient (non sauvegardé en base) : true = saisie libre hors catalogue */
   _custom?: boolean;
 }

@@ -32,6 +32,7 @@ public interface IDocumentService
         int companyId,
         int year,
         int month,
+        int? monthTo = null,
         CancellationToken ct = default
     );
 }

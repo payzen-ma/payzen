@@ -293,9 +293,9 @@ public class PayrollExportController : ControllerBase
     public PayrollExportController(IPayrollExportService svc) => _svc = svc;
 
     [HttpGet("journal/{companyId:int}")]
-    public async Task<ActionResult> JournalPaie(int companyId, [FromQuery] int year, [FromQuery] int month)
+    public async Task<ActionResult> JournalPaie(int companyId, [FromQuery] int year, [FromQuery] int month, [FromQuery] int? monthTo)
     {
-        var r = await _svc.GetJournalPaieAsync(companyId, year, month);
+        var r = await _svc.GetJournalPaieAsync(companyId, year, month, monthTo);
         if (!r.Success)
             return BadRequest(new { Message = r.Error });
         return Ok(r.Data);
@@ -368,12 +368,13 @@ public class PayslipController : ControllerBase
     }
 
     [HttpGet("journal-csv/{companyId:int}")]
-    public async Task<ActionResult> JournalCsv(int companyId, [FromQuery] int year, [FromQuery] int month)
+    public async Task<ActionResult> JournalCsv(int companyId, [FromQuery] int year, [FromQuery] int month, [FromQuery] int? monthTo)
     {
-        var r = await _svc.GenerateJournalPaieCsvAsync(companyId, year, month);
+        var r = await _svc.GenerateJournalPaieCsvAsync(companyId, year, month, monthTo);
         if (!r.Success)
             return BadRequest(new { Message = r.Error });
-        return File(r.Data!, "text/csv", $"journal-paie-{year}-{month:D2}.csv");
+        var monthEnd = monthTo ?? month;
+        return File(r.Data!, "text/csv", $"journal-paie-{year}-{month:D2}-{monthEnd:D2}.csv");
     }
 }
 
@@ -417,20 +418,23 @@ public class PayrollExportsCompatController : ControllerBase
     }
 
     [HttpGet("journal/{companyId:int}/{year:int}/{month:int}")]
-    public async Task<IActionResult> DownloadJournal(int companyId, int year, int month, CancellationToken ct)
+    public async Task<IActionResult> DownloadJournal(int companyId, int year, int month, [FromQuery] int? monthTo, CancellationToken ct)
     {
         if (!ValidatePeriod(companyId, year, month, out var err))
             return BadRequest(new { message = err });
+        if (monthTo.HasValue && (monthTo.Value < month || monthTo.Value is < 1 or > 12))
+            return BadRequest(new { message = "monthTo invalide (doit être entre month et 12)." });
 
-        var rows = await _export.GetJournalPaieAsync(companyId, year, month, ct);
+        var rows = await _export.GetJournalPaieAsync(companyId, year, month, monthTo, ct);
         if (!rows.Success || rows.Data is not { Count: > 0 })
             return NotFound(new { message = $"Aucun bulletin validé pour {month:D2}/{year}." });
 
-        var file = await _documents.GenerateJournalPaieCsvAsync(companyId, year, month, ct);
+        var file = await _documents.GenerateJournalPaieCsvAsync(companyId, year, month, monthTo, ct);
         if (!file.Success)
             return BadRequest(new { message = file.Error });
 
-        return File(file.Data!, "text/csv; charset=utf-8", $"JournalPaie_{year}_{month:D2}.csv");
+        var monthEnd = monthTo ?? month;
+        return File(file.Data!, "text/csv; charset=utf-8", $"JournalPaie_{year}_{month:D2}_{monthEnd:D2}.csv");
     }
 
     [HttpGet("cnss/{companyId:int}/{year:int}/{month:int}")]

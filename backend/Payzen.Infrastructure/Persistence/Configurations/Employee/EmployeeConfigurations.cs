@@ -135,6 +135,7 @@ public class EmployeeSalaryComponentConfiguration : IEntityTypeConfiguration<Emp
         entity.ToTable("EmployeeSalaryComponents");
         entity.Property(esc => esc.ComponentType).IsRequired().HasMaxLength(100);
         entity.Property(esc => esc.Amount).HasColumnType("decimal(18,2)");
+        entity.Property(esc => esc.Percentage).HasColumnType("decimal(5,2)");
         entity
             .HasOne(esc => esc.EmployeeSalary)
             .WithMany(es => es.Components)

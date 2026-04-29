@@ -10,6 +10,7 @@ public class EmployeeSalaryComponent : BaseEntity
     public required bool IsSocial { get; set; }
     public required bool IsCIMR { get; set; }
     public decimal Amount { get; set; }
+    public decimal? Percentage { get; set; }
     public required DateTime EffectiveDate { get; set; }
     public DateTime? EndDate { get; set; }
 

@@ -221,6 +221,8 @@ interface EmployeeAddressResponse {
 interface SalaryComponentResponse {
   componentName: string;
   amount: number;
+  percentage?: number | null;
+  Percentage?: number | null; // Backend may return PascalCase
   isTaxable?: boolean;
   IsTaxable?: boolean; // Backend returns PascalCase
   effectiveDate?: string;
@@ -704,6 +706,7 @@ export class EmployeeService {
               employeeSalaryId: c.employeeSalaryId ?? c.EmployeeSalaryId,
               type: c.componentType ?? c.ComponentType,
               amount: c.amount ?? c.Amount,
+              percentage: c.percentage ?? c.Percentage ?? null,
               isTaxable: c.isTaxable ?? c.IsTaxable ?? true,
               effectiveDate: c.effectiveDate ?? c.EffectiveDate ?? null
             }))
@@ -1138,6 +1141,7 @@ export class EmployeeService {
     const salaryComponents = (payload.salaryComponents ?? []).map(c => ({
       type: c.componentName,
       amount: c.amount,
+      percentage: c.percentage ?? c.Percentage ?? null,
       isTaxable: c.isTaxable !== undefined ? c.isTaxable : (c.IsTaxable ?? true),
       effectiveDate: c.effectiveDate ?? c.EffectiveDate ?? null
     }));

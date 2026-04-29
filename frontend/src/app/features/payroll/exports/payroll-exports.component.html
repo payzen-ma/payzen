@@ -33,21 +33,6 @@
       </div>
       }
 
-      <div class="payroll-exports-period app-filters app-filters--surface">
-        <h2 class="payroll-exports-period__title">{{ 'payrollExportsPage.periodSelection' | translate }}</h2>
-        <div class="payroll-exports-period__fields app-filters__row">
-          <div class="app-filters__item app-filters__item--grow">
-            <app-select [label]="'payrollExportsPage.month' | translate" [options]="monthOptions"
-              [value]="selectedMonth()" [placeholder]="'payrollExportsPage.month' | translate"
-              (valueChange)="selectedMonth.set($event)" />
-          </div>
-          <div class="app-filters__item app-filters__item--grow">
-            <app-select [label]="'payrollExportsPage.year' | translate" [options]="yearOptions" [value]="selectedYear()"
-              [placeholder]="'payrollExportsPage.year' | translate" (valueChange)="selectedYear.set($event)" />
-          </div>
-        </div>
-      </div>
-
       <div class="payroll-exports-grid">
         <article class="payroll-exports-card payroll-exports-card--journal">
           <div class="payroll-exports-card__head">
@@ -60,6 +45,16 @@
             </div>
           </div>
           <p class="payroll-exports-card__desc">{{ 'payrollExportsPage.journal.description' | translate }}</p>
+          <div class="payroll-exports-card__actions">
+            <app-select [label]="'payrollExportsPage.year' | translate" [options]="yearOptions" [value]="selectedYear()"
+              [placeholder]="'payrollExportsPage.year' | translate" (valueChange)="selectedYear.set($event)" />
+          </div>
+          <div class="payroll-exports-card__actions">
+            <app-select [label]="'Mois de'" [options]="monthOptions" [value]="journalMonthFrom()"
+              [placeholder]="'payrollExportsPage.month' | translate" (valueChange)="journalMonthFrom.set($event)" />
+            <app-select [label]="'Mois à'" [options]="monthOptions" [value]="journalMonthTo()"
+              [placeholder]="'payrollExportsPage.month' | translate" (valueChange)="journalMonthTo.set($event)" />
+          </div>
           <div class="payroll-exports-card__actions">
             <app-button variant="primary" size="sm" [loading]="loading()['journal']" [disabled]="loading()['journal']"
               (onClick)="onExportJournal()">
@@ -81,6 +76,15 @@
           </div>
           <p class="payroll-exports-card__desc">{{ 'payrollExportsPage.cnssPdf.description' | translate }}</p>
           <div class="payroll-exports-card__actions">
+            <app-select [label]="'payrollExportsPage.year' | translate" [options]="yearOptions" [value]="selectedYear()"
+              [placeholder]="'payrollExportsPage.year' | translate" (valueChange)="selectedYear.set($event)" />
+          </div>
+          <div class="payroll-exports-card__actions">
+            <app-select [label]="'payrollExportsPage.month' | translate" [options]="monthOptions"
+              [value]="cnssPdfMonth()" [placeholder]="'payrollExportsPage.month' | translate"
+              (valueChange)="cnssPdfMonth.set($event)" />
+          </div>
+          <div class="payroll-exports-card__actions">
             <app-button variant="secondary" size="sm" [loading]="loading()['cnssPdf']" [disabled]="loading()['cnssPdf']"
               (onClick)="onExportCnssPdf()">
               <i class="pi pi-download me-2"></i>
@@ -101,6 +105,14 @@
           </div>
           <p class="payroll-exports-card__desc">{{ 'payrollExportsPage.irPdf.description' | translate }}</p>
           <div class="payroll-exports-card__actions">
+            <app-select [label]="'payrollExportsPage.year' | translate" [options]="yearOptions" [value]="selectedYear()"
+              [placeholder]="'payrollExportsPage.year' | translate" (valueChange)="selectedYear.set($event)" />
+          </div>
+          <div class="payroll-exports-card__actions">
+            <app-select [label]="'payrollExportsPage.month' | translate" [options]="monthOptions" [value]="irPdfMonth()"
+              [placeholder]="'payrollExportsPage.month' | translate" (valueChange)="irPdfMonth.set($event)" />
+          </div>
+          <div class="payroll-exports-card__actions">
             <app-button variant="secondary" size="sm" [loading]="loading()['irPdf']" [disabled]="loading()['irPdf']"
               (onClick)="onExportIrPdf()">
               <i class="pi pi-download me-2"></i>
@@ -108,6 +120,7 @@
             </app-button>
           </div>
         </article>
+
       </div>
 
       <section class="preetabli-section">
@@ -115,30 +128,17 @@
         <p>Importer le fichier préétabli CNSS (.txt) pour l'analyser et afficher son contenu.</p>
 
         <div class="preetabli-actions">
-          <input type="file" accept=".txt" (change)="onPreetabliFileSelected($event)" />
-          <app-button
-            variant="primary"
-            size="sm"
-            [loading]="preetabliLoading()"
-            [disabled]="preetabliLoading()"
+          <input id="preetabliFileInput" class="preetabli-file-input" type="file" accept=".txt"
+            (change)="onPreetabliFileSelected($event)" />
+          <label class="preetabli-file-label" for="preetabliFileInput">
+            {{ selectedPreetabliFileName }}
+          </label>
+          <app-button variant="primary" size="sm" [loading]="preetabliLoading()" [disabled]="preetabliLoading()"
             (onClick)="onParsePreetabli()">
             <i class="pi pi-upload me-2"></i>
             Analyser le préétabli
           </app-button>
-          <app-button
-            variant="secondary"
-            size="sm"
-            [loading]="preetabliLoading()"
-            [disabled]="preetabliLoading()"
-            (onClick)="onLoadLatestPreetabli()">
-            <i class="pi pi-history me-2"></i>
-            Charger le dernier import
-          </app-button>
-          <app-button
-            variant="primary"
-            size="sm"
-            [loading]="preetabliLoading()"
-            [disabled]="preetabliLoading()"
+          <app-button variant="primary" size="sm" [loading]="preetabliLoading()" [disabled]="preetabliLoading()"
             (onClick)="onGenerateBds()">
             <i class="pi pi-file-export me-2"></i>
             Générer e-BDS CNSS
@@ -220,7 +220,8 @@
             <p><strong>Nombre salariés:</strong> {{ preetabli.summary.employeeCount }}</p>
             <p><strong>Total enfants:</strong> {{ preetabli.summary.totalChildren }}</p>
             <p><strong>Total AF à payer:</strong> {{ preetabli.summary.totalFamilyAllowanceToPay | number:'1.2-2' }}</p>
-            <p><strong>Total AF à déduire:</strong> {{ preetabli.summary.totalFamilyAllowanceToDeduct | number:'1.2-2' }}</p>
+            <p><strong>Total AF à déduire:</strong> {{ preetabli.summary.totalFamilyAllowanceToDeduct | number:'1.2-2'
+              }}</p>
             <p><strong>Total AF net:</strong> {{ preetabli.summary.totalFamilyAllowanceNetToPay | number:'1.2-2' }}</p>
             <p><strong>Total numéros immatriculation:</strong> {{ preetabli.summary.totalInsuredNumbers }}</p>
           </div>

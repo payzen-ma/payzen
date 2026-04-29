@@ -702,6 +702,11 @@
                             currency="MAD" locale="fr-MA" styleClass="w-full" inputStyleClass="w-full input"
                             placeholder="0.00" title="Amount"></p-inputnumber>
                         </div>
+                        <div class="w-32">
+                          <p-inputnumber [ngModel]="comp.percentage ?? 0" suffix="%" [min]="0"
+                            (ngModelChange)="updateSalaryComponent($index, 'percentage', $event)" styleClass="w-full"
+                            inputStyleClass="w-full input"></p-inputnumber>
+                        </div>
                         <button pButton type="button" icon="pi pi-trash"
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
@@ -734,6 +739,11 @@
                             currency="MAD" locale="fr-MA" styleClass="w-full" inputStyleClass="w-full input"
                             placeholder="0.00" title="Amount"></p-inputnumber>
                         </div>
+                        <div class="w-32">
+                          <p-inputnumber [ngModel]="comp.percentage ?? 0" suffix="%" [min]="0"
+                            (ngModelChange)="updateSalaryComponent($index, 'percentage', $event)" styleClass="w-full"
+                            inputStyleClass="w-full input"></p-inputnumber>
+                        </div>
                         <button pButton type="button" icon="pi pi-trash"
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
@@ -764,6 +774,11 @@
                             currency="MAD" locale="fr-MA" styleClass="w-full" inputStyleClass="w-full input"
                             placeholder="0.00" title="Amount"></p-inputnumber>
                         </div>
+                        <div class="w-32">
+                          <p-inputnumber [ngModel]="comp.percentage ?? 0" suffix="%" [min]="0"
+                            (ngModelChange)="updateSalaryComponent($index, 'percentage', $event)" styleClass="w-full"
+                            inputStyleClass="w-full input"></p-inputnumber>
+                        </div>
                         <button pButton type="button" icon="pi pi-trash"
                           class="p-button-text p-button-danger p-button-rounded" (click)="removeSalaryComponent($index)"
                           title="Remove" aria-label="Remove salary component"></button>
@@ -792,7 +807,10 @@
                     <div class="p-3 bg-(--bg-page) rounded-md border border-(--border-color-subtle) space-y-2">
                       <div class="flex items-center justify-between">
                         <span class="text-(--text-secondary) font-medium">{{ comp.type }}</span>
-                        <span class="text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                        <div class="text-right">
+                          <span class="block text-(--text-primary) font-semibold">{{ comp.amount | number:'1.2-2' }} MAD</span>
+                          <span class="block text-xs text-(--text-muted)">{{ (comp.percentage ?? 0) | number:'1.2-2' }} %</span>
+                        </div>
                       </div>
                       <div class="text-xs text-(--text-muted)">
                         Date d'effet:

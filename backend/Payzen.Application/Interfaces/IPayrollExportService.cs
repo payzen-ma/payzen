@@ -14,6 +14,7 @@ public interface IPayrollExportService
         int companyId,
         int year,
         int month,
+        int? monthTo = null,
         CancellationToken ct = default
     );
     Task<ServiceResult<List<EtatCnssRow>>> GetEtatCnssAsync(
