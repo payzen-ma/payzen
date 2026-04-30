@@ -14,7 +14,6 @@ using Microsoft.IdentityModel.Tokens;
 using Payzen.Application.Validators.Company;
 using Payzen.Infrastructure;
 using Payzen.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Payzen.Infrastructure.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -5,3 +5,6 @@ documentation
 /documentation
 /appsettings.json
 /node_modules
+**/bin/
+**/obj/
+payzen - old/

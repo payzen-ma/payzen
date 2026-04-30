@@ -1,0 +1,366 @@
+<div class="tax-dashboard">
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 1. HEADER DE PAGE                                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1 class="header-title">
+        <i class="pi pi-percentage header-icon"></i>
+        Tableau de bord fiscal
+      </h1>
+      <p class="header-subtitle">
+        Suivi IR cumulé —
+        <strong>{{ employeeName() }}</strong>
+        — {{ selectedYear() }}
+      </p>
+    </div>
+
+    <div class="header-right">
+      @if (hasAnySnapshot()) {
+        <p-tag
+          [value]="getGlobalStatusLabel()"
+          [severity]="getGlobalStatusSeverity()"
+          [rounded]="true"
+          styleClass="status-badge"
+        />
+      }
+      <p-select
+        [options]="yearOptions"
+        [ngModel]="selectedYear()"
+        (ngModelChange)="onYearChange($event)"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="year-select"
+        [appendTo]="'body'"
+      />
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SKELETON LOADING                                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (isLoading()) {
+    <div class="skeleton-wrapper">
+      <div class="timeline-skeleton">
+        @for (m of months; track m) {
+          <div class="skeleton-month">
+            <p-skeleton shape="circle" size="52px" />
+            <p-skeleton width="40px" height="12px" styleClass="mt-2" />
+          </div>
+        }
+      </div>
+      <div class="kpi-skeleton">
+        @for (k of [1,2,3,4]; track k) {
+          <p-skeleton height="90px" borderRadius="var(--radius-lg)" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- MESSAGE VIDE                                                -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  @if (!isLoading() && !hasAnySnapshot()) {
+    <div class="empty-state">
+      <p-message
+        severity="info"
+        [text]="'Aucun bulletin calculé pour ' + selectedYear()"
+        styleClass="empty-message"
+      />
+    </div>
+  }
+
+  @if (!isLoading() && hasAnySnapshot()) {
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 2. TIMELINE DES 12 MOIS                                    -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div class="timeline-section">
+      <div class="timeline-scroll" role="list" aria-label="Timeline des mois">
+        @for (month of months; track month) {
+          <div
+            class="month-item"
+            [class.month-item--mobile-grid]="true"
+            role="listitem"
+          >
+            <button
+              class="month-circle"
+              [class]="'month-circle month-circle--' + getMonthColor(month)"
+              [class.month-circle--selected]="selectedMonth() === month"
+              [class.month-circle--disabled]="!isMonthCalculated(month)"
+              [disabled]="!isMonthCalculated(month)"
+              (click)="selectMonth(month)"
+              [attr.aria-label]="getMonthAriaLabel(month)"
+              [attr.aria-pressed]="selectedMonth() === month"
+              [attr.aria-disabled]="!isMonthCalculated(month)"
+            >
+              <span class="month-number">{{ month | number:'2.0-0' }}</span>
+            </button>
+            <span class="month-ir-amount">{{ formatIrMonth(month) }}</span>
+            <span class="month-abbr">{{ monthAbbr[month] }}</span>
+          </div>
+
+          @if (month < 12) {
+            <div
+              class="month-connector"
+              [class.month-connector--active]="isMonthCalculated(month) && isMonthCalculated(month + 1)"
+            ></div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 3. BANDE DE 4 KPIs                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div class="kpi-strip">
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-icon-wrap--blue">
+          <i class="pi pi-wallet kpi-icon"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Salaire brut</span>
+          <span class="kpi-value">
+            {{ selectedSnap() ? formatAmount(selectedSnap()!.brutMois) : '— DH' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-icon-wrap--purple">
+          <i class="pi pi-chart-line kpi-icon"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">SNI cumulé</span>
+          <span class="kpi-value">
+            {{ selectedSnap() ? formatAmount(selectedSnap()!.cumulSni) : '— DH' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-icon-wrap--orange">
+          <i class="pi pi-percentage kpi-icon"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">IR du mois</span>
+          <span
+            class="kpi-value"
+            [class.kpi-value--danger]="selectedSnap() && selectedSnap()!.irMois > 0"
+            [class.kpi-value--success]="selectedSnap() && selectedSnap()!.irMois === 0"
+          >
+            {{ selectedSnap() ? formatAmount(selectedSnap()!.irMois) : '— DH' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap kpi-icon-wrap--green">
+          <i class="pi pi-money-bill kpi-icon"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Net à payer</span>
+          <span class="kpi-value kpi-value--primary">
+            {{ selectedSnap() ? formatAmount(selectedSnap()!.netMois) : '— DH' }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 4. DEUX CARTES CÔTE À CÔTE                                 -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div class="cards-row">
+
+      <!-- CARTE GAUCHE — Bulletin du mois -->
+      <div class="detail-card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <i class="pi pi-file card-header-icon"></i>
+            <span class="card-header-title">
+              @if (selectedSnap()) {
+                Bulletin — {{ monthNames[selectedSnap()!.month] }} {{ selectedSnap()!.year }}
+              } @else {
+                Bulletin du mois
+              }
+            </span>
+          </div>
+          @if (selectedSnap()) {
+            <p-tag
+              [value]="getStatusLabel(selectedSnap())"
+              [severity]="getStatusSeverity(selectedSnap())"
+              [rounded]="true"
+            />
+          }
+        </div>
+
+        @if (!selectedSnap()) {
+          <div class="empty-selection">
+            <i class="pi pi-mouse-pointer empty-icon"></i>
+            <span>Sélectionnez un mois</span>
+          </div>
+        } @else {
+          <div class="bulletin-table">
+
+            <div class="bulletin-section-header">GAINS</div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">Salaire brut de base</span>
+              <span class="bulletin-amount">{{ formatAmount(selectedSnap()!.brutMois) }}</span>
+            </div>
+
+            <div class="bulletin-divider"></div>
+            <div class="bulletin-section-header">COTISATIONS SALARIALES</div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">CNSS salariale</span>
+              <span class="bulletin-amount">{{ formatAmount(selectedSnap()!.cnssMois) }}</span>
+            </div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">AMO salariale</span>
+              <span class="bulletin-amount">{{ formatAmount(selectedSnap()!.amoMois) }}</span>
+            </div>
+
+            <div class="bulletin-divider"></div>
+            <div class="bulletin-section-header">IR</div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">Net imposable (SNI)</span>
+              <span class="bulletin-amount">{{ formatAmount(selectedSnap()!.sniMois) }}</span>
+            </div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">Taux IR appliqué</span>
+              <span class="bulletin-amount">{{ formatPercent(selectedSnap()!.tauxIrMois) }}</span>
+            </div>
+            <div class="bulletin-row">
+              <span class="bulletin-label">IR retenu</span>
+              <span
+                class="bulletin-amount"
+                [class.bulletin-amount--danger]="selectedSnap()!.irMois > 0"
+              >
+                {{ formatAmount(selectedSnap()!.irMois) }}
+              </span>
+            </div>
+
+            <div class="bulletin-divider"></div>
+            <div class="bulletin-row bulletin-row--net">
+              <span class="bulletin-label bulletin-label--net">NET À PAYER</span>
+              <span class="bulletin-amount bulletin-amount--net">
+                {{ formatAmount(selectedSnap()!.netMois) }}
+              </span>
+            </div>
+
+          </div>
+        }
+      </div>
+
+      <!-- CARTE DROITE — Cumul fiscal depuis janvier -->
+      <div class="detail-card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <i class="pi pi-chart-bar card-header-icon"></i>
+            <span class="card-header-title">
+              @if (selectedSnap()) {
+                Cumul fiscal — Jan → {{ monthNames[selectedSnap()!.month] }}
+              } @else {
+                Cumul fiscal depuis janvier
+              }
+            </span>
+          </div>
+        </div>
+
+        @if (!selectedSnap()) {
+          <div class="empty-selection">
+            <i class="pi pi-mouse-pointer empty-icon"></i>
+            <span>Sélectionnez un mois</span>
+          </div>
+        } @else {
+          <div class="cumul-table">
+
+            <div class="cumul-row">
+              <span class="cumul-label">Brut cumulé</span>
+              <span class="cumul-amount">{{ formatAmount(selectedSnap()!.cumulBrut) }}</span>
+            </div>
+            <div class="cumul-row">
+              <span class="cumul-label">CNSS cumulée</span>
+              <span class="cumul-amount">{{ formatAmount(selectedSnap()!.cumulCnss) }}</span>
+            </div>
+            <div class="cumul-row">
+              <span class="cumul-label">AMO cumulée</span>
+              <span class="cumul-amount">{{ formatAmount(selectedSnap()!.cumulAmo) }}</span>
+            </div>
+            <div class="cumul-row">
+              <span class="cumul-label">SNI cumulé</span>
+              <span class="cumul-amount">{{ formatAmount(selectedSnap()!.cumulSni) }}</span>
+            </div>
+            <div class="cumul-row">
+              <span class="cumul-label">IR cumulé</span>
+              <span
+                class="cumul-amount"
+                [class.cumul-amount--danger]="selectedSnap()!.cumulIr > 0"
+              >
+                {{ formatAmount(selectedSnap()!.cumulIr) }}
+              </span>
+            </div>
+            <div class="cumul-row cumul-row--net">
+              <span class="cumul-label cumul-label--net">Net cumulé</span>
+              <span class="cumul-amount cumul-amount--net">
+                {{ formatAmount(selectedSnap()!.cumulNet) }}
+              </span>
+            </div>
+
+            <!-- Barre de progression IR -->
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-label">Taux effectif IR</span>
+                <span
+                  class="progress-rate"
+                  [class.progress-rate--success]="selectedSnap()!.cumulIr === 0"
+                  [class.progress-rate--warning]="selectedSnap()!.cumulIr > 0 && selectedSnap()!.tauxEffectif <= 10"
+                  [class.progress-rate--danger]="selectedSnap()!.tauxEffectif > 10"
+                >
+                  {{ formatPercent(selectedSnap()!.tauxEffectif) }}
+                </span>
+              </div>
+              <div
+                class="progress-bar-wrap"
+                [class.progress-bar-wrap--success]="selectedSnap()!.cumulIr === 0"
+                [class.progress-bar-wrap--warning]="selectedSnap()!.cumulIr > 0 && selectedSnap()!.tauxEffectif <= 10"
+                [class.progress-bar-wrap--danger]="selectedSnap()!.tauxEffectif > 10"
+              >
+                <div
+                  class="progress-bar-fill"
+                  [style.width.%]="irProgressValue()"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Dérivation IR -->
+            <div class="derivation-box">
+              <div class="derivation-title">
+                <i class="pi pi-calculator derivation-icon"></i>
+                Dérivation IR du mois {{ selectedSnap()!.month }}
+              </div>
+              <div class="derivation-formula">
+                <span class="derivation-line">
+                  IR cumulé({{ selectedSnap()!.month }}) − IR cumulé({{ selectedSnap()!.month - 1 }}) = IR du mois
+                </span>
+                <span class="derivation-values">
+                  {{ formatAmount(selectedSnap()!.cumulIr) }}
+                  −
+                  {{ prevSnap() ? formatAmount(prevSnap()!.cumulIr) : '0,00 DH' }}
+                  =
+                  <strong>{{ formatAmount(selectedSnap()!.irMois) }}</strong>
+                </span>
+              </div>
+            </div>
+
+          </div>
+        }
+      </div>
+
+    </div>
+
+  }
+
+</div>

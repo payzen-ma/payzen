@@ -637,3 +637,56 @@ public class ClaudeSimulationController : ControllerBase
         return Ok(new { rules });
     }
 }
+
+
+[ApiController]
+[Route("/api/payroll/tax-snapshots")]
+//[Authorize]
+public class PayrollTaxSnapshotController : ControllerBase
+{
+    private readonly IPayrollTaxSnapshotService _snapshotService;
+
+    public PayrollTaxSnapshotController(IPayrollTaxSnapshotService snapshotService)
+    {
+        _snapshotService = snapshotService;
+    }
+
+    // ── Résumé fiscal annuel (dashboard IR) ───────────────────────────────────
+    [HttpGet("{employeeId}/tax-summary")]
+    public async Task<IActionResult> GetTaxSummary(
+        int employeeId,
+        [FromQuery] int year,
+        [FromQuery] int companyId,
+        CancellationToken ct)
+        {
+        Console.WriteLine($"Get Tax Summary is called for employee id {employeeId}");
+        var result = await _snapshotService.GetYearSummaryAsync(
+            employeeId, companyId, year, ct);
+
+        if (!result.Success)
+            return BadRequest(new { errors = result.Errors });
+
+        return Ok(result.Data); // List<PayrollTaxSnapshotDto>
+        }
+
+    // ── Snapshot d'un mois précis (optionnel — utile pour debug) ─────────────
+    [HttpGet("{employeeId}/tax-snapshot")]
+    public async Task<IActionResult> GetTaxSnapshot(
+        int employeeId,
+        [FromQuery] int month,
+        [FromQuery] int year,
+        [FromQuery] int companyId,
+        CancellationToken ct)
+        {
+        var result = await _snapshotService.GetByMonthAsync(
+            employeeId, companyId, month, year, ct);
+
+        if (!result.Success)
+            return BadRequest(new { errors = result.Errors });
+
+        if (result.Data is null)
+            return NotFound(new { message = $"Aucun snapshot pour {month:D2}/{year}" });
+
+        return Ok(result.Data);
+        }
+    }

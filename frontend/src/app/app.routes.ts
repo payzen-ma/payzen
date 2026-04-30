@@ -342,6 +342,14 @@ export const routes: Routes = [
         title: 'Simulateur de Paie - PayZen'
       },
 
+      // Payroll - Dashboard Fiscal IR
+      {
+        path: 'payroll/tax-dashboard',
+        loadComponent: () => import('./features/payroll/components/tax-dashboard/tax-dashboard-page.component').then(m => m.TaxDashboardPageComponent),
+        canActivate: [rhGuard],
+        title: 'Tableau de bord fiscal - PayZen'
+      },
+
       // Administration - Import de données
       {
         path: 'import',
@@ -509,6 +517,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payroll/simulation/simulation.component').then(m => m.SimulationComponent),
         data: { expertMode: true },
         title: 'Simulateur de Paie - PayZen'
+      },
+
+      // Payroll - Dashboard Fiscal IR (Expert Mode)
+      {
+        path: 'payroll/tax-dashboard',
+        loadComponent: () => import('./features/payroll/components/tax-dashboard/tax-dashboard-page.component').then(m => m.TaxDashboardPageComponent),
+        data: { expertMode: true },
+        title: 'Tableau de bord fiscal - PayZen'
       },
 
       // Leave Management (Expert Mode)

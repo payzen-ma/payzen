@@ -18,8 +18,6 @@ namespace Payzen.Application.Payroll;
 ///   - Code du Travail Art. 231-265 : congés annuels
 ///
 /// Ce moteur est PURE — aucun accès base de données.
-/// Il reçoit un <see cref="EmployeePayrollDto"/> entièrement hydraté par PayrollService (Phase 3)
-/// et retourne un <see cref="PayrollCalculationResult"/>.
 /// </summary>
 public class PayrollCalculationEngine
 {
@@ -616,7 +614,6 @@ public class PayrollCalculationEngine
             < 2 => 0.00m,
             < 5 => 0.05m,
             < 12 => 0.10m,
-            // Plafond atteint dès 15 ans selon les tests.
             < 15 => 0.15m,
             _ => 0.20m,
         };

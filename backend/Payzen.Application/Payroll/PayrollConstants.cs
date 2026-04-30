@@ -58,4 +58,15 @@ public static class PayrollConstants
         (8333.34m, 15000.00m, 0.34m, 1833.33m),
         (15000.01m, decimal.MaxValue, 0.37m, 2283.33m),
     };
+
+    /// <summary>Barème IR mensuel 2026 (Seuil, Taux, Déduction)</summary>
+    public static readonly (decimal Seuil, decimal Taux, decimal Ded)[] BaremeMensuel =
+    [
+        (40000m/12,  0.00m, 0m),
+        (60000m/12,  0.10m, 4000m/12),
+        (80000m/12,  0.20m, 10000m/12),
+        (100000m/12, 0.30m, 18000m/12),
+        (180000m/12, 0.34m, 22000m/12),
+        (decimal.MaxValue, 0.37m, 27400m/12),
+    ];
 }

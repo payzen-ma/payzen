@@ -85,6 +85,7 @@ public class AppDbContext : DbContext
     public DbSet<IrTaxBracket> IrTaxBrackets { get; set; }
     public DbSet<CnssPreetabliImport> CnssPreetabliImports { get; set; }
     public DbSet<CnssPreetabliLine> CnssPreetabliLines { get; set; }
+    public DbSet<PayrollTaxSnapshot> PayrollTaxSnapshots { get; set; }
 
     // ── Payroll Referentiel ───────────────────────────────────────────────────
     public DbSet<Authority> Authorities { get; set; }

@@ -260,3 +260,31 @@ public class CnssPreetabliLineConfiguration : IEntityTypeConfiguration<CnssPreet
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public class PayrollTaxSnapshotConfiguration
+    : IEntityTypeConfiguration<PayrollTaxSnapshot>
+{
+    public void Configure(EntityTypeBuilder<PayrollTaxSnapshot> b)
+    {
+        b.ToTable("PayrollTaxSnapshots");
+        b.HasKey(x => x.Id);
+
+        // Un seul snapshot par employé/mois/année
+        b.HasIndex(x => new { x.EmployeeId, x.CompanyId, x.Year, x.Month })
+         .IsUnique();
+
+        // Relation 1:1 avec PayrollResult
+        b.HasOne(x => x.PayrollResult)
+         .WithOne()
+         .HasForeignKey<PayrollTaxSnapshot>(x => x.PayrollResultId)
+         .OnDelete(DeleteBehavior.Cascade);
+
+        b.Property(x => x.CumulBrut).HasColumnType("decimal(18,2)");
+        b.Property(x => x.CumulCnss).HasColumnType("decimal(18,2)");
+        b.Property(x => x.CumulAmo).HasColumnType("decimal(18,2)");
+        b.Property(x => x.CumulSni).HasColumnType("decimal(18,2)");
+        b.Property(x => x.CumulIr).HasColumnType("decimal(18,2)");
+        b.Property(x => x.CumulNet).HasColumnType("decimal(18,2)");
+        b.Property(x => x.TauxEffectif).HasColumnType("decimal(18,2)");
+    }
+}

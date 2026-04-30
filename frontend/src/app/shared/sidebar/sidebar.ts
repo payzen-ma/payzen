@@ -333,6 +333,17 @@ export class Sidebar {
       itemBadge: null,
       notImplemented: false
     },
+    {
+      label: 'Dashboard Fiscal IR',
+      icon: 'pi pi-percentage',
+      routerLink: '/payroll/tax-dashboard',
+      requiredRoles: [UserRole.CABINET, UserRole.ADMIN_PAYZEN, UserRole.ADMIN, UserRole.RH],
+      modes: ['expert-all', 'standard'],
+      requiresCompanyContext: false,
+      groupe: 'payroll',
+      itemBadge: null,
+      notImplemented: false
+    },
 
     // ─────────────────────────────────────────────────────────────
     // COLLABORATEURS

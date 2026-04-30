@@ -94,6 +94,7 @@ public static class DependencyInjection
         services.AddScoped<IPayComponentService, PayComponentService>();
         services.AddScoped<IReferentielPayrollService, ReferentielPayrollService>();
         services.AddScoped<IConvergenceService, ConvergenceAnalysisService>();
+        services.AddScoped<IPayrollTaxSnapshotService, PayrollTaxSnapshotService>();
 
         // ── Email ─────────────────────────────────────────────────────────────
         services.AddScoped<IEmailService, EmailService>();

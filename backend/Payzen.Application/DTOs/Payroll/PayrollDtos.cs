@@ -330,3 +330,35 @@ public class IrBreakdownDto
     public int NombrePersonnesACharge { get; set; }
     public decimal IrNet { get; set; }
 }
+
+public class PayrollTaxSnapshotDto
+{
+    public int Month { get; set; }
+    public int Year { get; set; }
+
+    // Mois courant (depuis PayrollResult)
+    public decimal BrutMois { get; set; }
+    public decimal SniMois { get; set; }
+    public decimal CnssMois { get; set; }
+    public decimal AmoMois { get; set; }
+    public decimal IrMois { get; set; }
+    public decimal NetMois { get; set; }
+    public decimal TauxIrMois { get; set; }
+
+    // Cumuls depuis janvier
+    public decimal CumulBrut { get; set; }
+    public decimal CumulSni { get; set; }
+    public decimal CumulCnss { get; set; }
+    public decimal CumulAmo { get; set; }
+    public decimal CumulIr { get; set; }
+    public decimal CumulNet { get; set; }
+    public decimal TauxEffectif { get; set; }
+}
+
+public class PayrollYearSummaryDto
+{
+    public int EmployeeId { get; set; }
+    public string EmployeeFullName { get; set; } = string.Empty;
+    public int Year { get; set; }
+    public List<PayrollTaxSnapshotDto> Months { get; set; } = new();
+}

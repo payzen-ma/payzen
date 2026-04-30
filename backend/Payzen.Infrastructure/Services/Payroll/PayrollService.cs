@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Payzen.Application.Common;
 using Payzen.Application.DTOs.Payroll;
 using Payzen.Application.Interfaces;
@@ -27,11 +28,15 @@ public class PayrollService : IPayrollService
     private readonly PayrollCalculationEngine _engine;
     private readonly IWebHostEnvironment _env;
     private readonly ILlmService _llmService;
+    private readonly IPayrollTaxSnapshotService _snapshotService;
+    private readonly ILogger<PayrollService> _logger;
 
     public PayrollService(
         AppDbContext db,
         PayrollCalculationEngine engine,
         IWebHostEnvironment env,
+        IPayrollTaxSnapshotService snapshotService,
+        ILogger<PayrollService> logger,
         ILlmService llmService
     )
     {
@@ -39,6 +44,8 @@ public class PayrollService : IPayrollService
         _engine = engine;
         _env = env;
         _llmService = llmService;
+        _snapshotService = snapshotService;
+        _logger = logger;
     }
 
     // ── Calcul ────────────────────────────────────────────────────────────────
@@ -77,7 +84,6 @@ public class PayrollService : IPayrollService
         var result = _engine.CalculatePayroll(data);
         if (!result.Success)
             return ServiceResult<PayrollResultReadDto>.Fail(result.ErrorMessage ?? "Erreur de calcul.");
-
         var entity = await PersistResultAsync(
             dto.EmployeeId,
             dto.PayMonth,
@@ -1021,6 +1027,18 @@ public class PayrollService : IPayrollService
         }
 
         await _db.SaveChangesAsync(ct);
+
+        // ══════════════════════════════════════════════════════
+        // NOUVEAU — Snapshot cumulé IR
+        // ══════════════════════════════════════════════════════
+        var snapResult = await _snapshotService.BuildAndSaveAsync(entity, ct);
+        if (!snapResult.Success)
+            // Non bloquant — on logue mais on ne fait pas échouer le calcul
+            _logger.LogWarning(
+                "Snapshot IR non sauvegardé pour emp {EmpId} {Month}/{Year} : {Error}",
+                employeeId, month, year, snapResult.Error);
+        // ══════════════════════════════════════════════════════
+
         return entity;
     }
 
