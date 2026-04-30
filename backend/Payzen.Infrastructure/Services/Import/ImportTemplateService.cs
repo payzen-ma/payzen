@@ -309,6 +309,8 @@ public class ImportTemplateService : IImportTemplateService
         var absenceHeaders = new[]
         {
             "Matricule",
+            "Nom",
+            "Prénom",
             "Date absence",
             "Type durée",
             "Nombre d'heures",
@@ -323,11 +325,11 @@ public class ImportTemplateService : IImportTemplateService
         absenceHeaderRange.Style.Font.FontSize = 16;
         absenceHeaderRange.Style.Protection.SetLocked(true);
         absenceSheet.Range(2, 1, 500, absenceHeaders.Length).Style.Protection.SetLocked(false);
-        absenceSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
-        absenceSheet.Column(4).Style.NumberFormat.Format = "0.00";
+        absenceSheet.Column(4).Style.DateFormat.Format = "dd/MM/yyyy";
+        absenceSheet.Column(6).Style.NumberFormat.Format = "0.00";
         AddValidation(absenceSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
-        AddValidation(absenceSheet, "C2:C500", listSheet, 12, 3);
-        AddValidation(absenceSheet, "F2:F500", listSheet, 13, 2);
+        AddValidation(absenceSheet, "E2:E500", listSheet, 12, 3);
+        AddValidation(absenceSheet, "H2:H500", listSheet, 13, 2);
         absenceSheet.Columns().AdjustToContents();
         absenceSheet.Protect("payzen_import_header_only");
 
@@ -335,6 +337,8 @@ public class ImportTemplateService : IImportTemplateService
         var leaveHeaders = new[]
         {
             "Matricule",
+            "Nom",
+            "Prénom",
             "Date début",
             "Date fin",
             "Type de congé",
@@ -348,10 +352,10 @@ public class ImportTemplateService : IImportTemplateService
         leaveHeaderRange.Style.Font.FontSize = 16;
         leaveHeaderRange.Style.Protection.SetLocked(true);
         leaveSheet.Range(2, 1, 500, leaveHeaders.Length).Style.Protection.SetLocked(false);
-        leaveSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
-        leaveSheet.Column(3).Style.DateFormat.Format = "dd/MM/yyyy";
+        leaveSheet.Column(4).Style.DateFormat.Format = "dd/MM/yyyy";
+        leaveSheet.Column(5).Style.DateFormat.Format = "dd/MM/yyyy";
         AddValidation(leaveSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
-        AddValidation(leaveSheet, "D2:D500", listSheet, 14, leaveTypes.Count);
+        AddValidation(leaveSheet, "F2:F500", listSheet, 14, leaveTypes.Count);
         leaveSheet.Columns().AdjustToContents();
         leaveSheet.Protect("payzen_import_header_only");
 
@@ -359,6 +363,8 @@ public class ImportTemplateService : IImportTemplateService
         var overtimeHeaders = new[]
         {
             "Matricule",
+            "Nom",
+            "Prénom",
             "Date",
             "Nombre d'heures",
             "Type heure sup",
@@ -372,10 +378,10 @@ public class ImportTemplateService : IImportTemplateService
         overtimeHeaderRange.Style.Font.FontSize = 16;
         overtimeHeaderRange.Style.Protection.SetLocked(true);
         overtimeSheet.Range(2, 1, 500, overtimeHeaders.Length).Style.Protection.SetLocked(false);
-        overtimeSheet.Column(2).Style.DateFormat.Format = "dd/MM/yyyy";
-        overtimeSheet.Column(3).Style.NumberFormat.Format = "0.00";
+        overtimeSheet.Column(4).Style.DateFormat.Format = "dd/MM/yyyy";
+        overtimeSheet.Column(5).Style.NumberFormat.Format = "0.00";
         AddValidation(overtimeSheet, "A2:A500", listSheet, 11, employeesChanges.Count(e => !string.IsNullOrWhiteSpace(e.Matricule?.ToString())));
-        AddValidation(overtimeSheet, "D2:D500", listSheet, 15, 4);
+        AddValidation(overtimeSheet, "F2:F500", listSheet, 15, 4);
         overtimeSheet.Columns().AdjustToContents();
         overtimeSheet.Protect("payzen_import_header_only");
 

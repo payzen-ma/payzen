@@ -126,6 +126,19 @@ public class NewEmployeeImportService : INewEmployeeImportService
             .ToListAsync(ct);
         var cityByCountryAndName = validCities
             .ToDictionary(c => (c.CountryId, Normalize(c.CityName)), c => true);
+        var existingEmployeesIdentity = await _db
+            .Employees.AsNoTracking()
+            .Where(e => e.CompanyId == targetCompanyId && e.DeletedAt == null)
+            .Select(e => new { e.CinNumber, e.Email })
+            .ToListAsync(ct);
+        var existingCinKeys = existingEmployeesIdentity
+            .Select(e => Normalize(e.CinNumber))
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+        var existingEmailKeys = existingEmployeesIdentity
+            .Select(e => NormalizeEmail(e.Email))
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
         int? employeeRoleId = null;
         if (sendWelcomeEmail)
         {
@@ -250,6 +263,20 @@ public class NewEmployeeImportService : INewEmployeeImportService
             {
                 result.ErrorCount++;
                 result.Errors.Add(new NewEmployeeImportErrorDto { Row = r, Message = emailError! });
+                continue;
+            }
+
+            var cinKey = Normalize(cin);
+            if (!string.IsNullOrWhiteSpace(cinKey) && existingCinKeys.Contains(cinKey))
+            {
+                // Doublon détecté: on ignore silencieusement la ligne.
+                continue;
+            }
+
+            var emailKey = NormalizeEmail(email);
+            if (!string.IsNullOrWhiteSpace(emailKey) && existingEmailKeys.Contains(emailKey))
+            {
+                // Doublon détecté: on ignore silencieusement la ligne.
                 continue;
             }
 
@@ -471,6 +498,10 @@ public class NewEmployeeImportService : INewEmployeeImportService
             }
 
             result.SuccessCount++;
+            if (!string.IsNullOrWhiteSpace(cinKey))
+                existingCinKeys.Add(cinKey);
+            if (!string.IsNullOrWhiteSpace(emailKey))
+                existingEmailKeys.Add(emailKey);
             result.AddedEmployees.Add(new NewEmployeeImportSuccessDto
             {
                 Row = r,
@@ -609,6 +640,13 @@ public class NewEmployeeImportService : INewEmployeeImportService
                 sb.Append(char.ToLowerInvariant(ch));
         }
         return sb.ToString().Trim();
+    }
+
+    private static string NormalizeEmail(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return string.Empty;
+        return input.Trim().ToLowerInvariant();
     }
 
     private static string? Clean(string? raw)
